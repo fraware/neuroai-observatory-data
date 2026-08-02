@@ -1,0 +1,20 @@
+{
+  "release_id": "OBS-DATA-2026-08-02-BOOTSTRAP",
+  "release_tag": "data-v0.0.1-bootstrap",
+  "published_at": "2026-08-02T14:48:00Z",
+  "workbench_version": "0.3.0.dev0",
+  "manifest_path": "releases/data-v0.0.1-bootstrap/SHA256SUMS.txt",
+  "manifest_sha256": "dc14c4d2956b8d63410e0aeb786daa58aafee3698b50de8b0754c020129ca30e",
+  "record_counts": {
+    "files": 2,
+    "bytes": 1031
+  },
+  "notes": "Synthetic bootstrap release scaffolding public manifest tooling only.",
+  "withheld_claims": [
+    "No regulatory authorization",
+    "No clinical effectiveness or safety conclusion",
+    "No system conformance determination",
+    "No UNESCO endorsement or institutional authority",
+    "No protected-evidence completeness claim"
+  ]
+}

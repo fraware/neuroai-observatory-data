@@ -1,0 +1,13 @@
+{
+  "summary_id": "SYN-DISP-001",
+  "as_of": "2026-08-02",
+  "candidate_id": "SYN-CAND-001",
+  "disposition": "PUBLISH_BOUNDED_SUMMARY",
+  "bounded_statement": "Synthetic fixture records a permitted public summary only.",
+  "withheld_claims": [
+    "No regulatory authorization",
+    "No clinical effectiveness",
+    "No system conformance",
+    "No UNESCO endorsement"
+  ]
+}

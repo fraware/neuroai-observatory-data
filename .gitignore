@@ -1,0 +1,53 @@
+# Large binaries and local capture material must not enter public canonical data.
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+*.rar
+*.pdf
+*.doc
+*.docx
+*.xls
+*.xlsx
+*.ppt
+*.pptx
+*.bin
+*.dat
+*.h5
+*.hdf5
+*.nii
+*.nii.gz
+*.edf
+*.bdf
+*.mat
+*.mp4
+*.avi
+*.mov
+*.wav
+*.mp3
+*.sqlite
+*.db
+
+# OS and editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# Local verification output
+SHA256SUMS.local.txt
+*.local.json

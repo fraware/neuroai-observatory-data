@@ -1,0 +1,21 @@
+{
+  "registry_id": "SYN-REG-001",
+  "schema_version": "observatory-source-registry/0.1",
+  "as_of": "2026-08-02",
+  "sources": [
+    {
+      "source_id": "SYN-SRC-001",
+      "title": "Synthetic public developer announcement",
+      "url": "https://example.invalid/neuroai/synthetic-announcement",
+      "credential_required": false,
+      "notes": "Fixture only. No live collection or redistribution claim."
+    },
+    {
+      "source_id": "SYN-SRC-002",
+      "title": "Synthetic public trial registry entry",
+      "url": "https://example.invalid/neuroai/synthetic-trial",
+      "credential_required": false,
+      "notes": "Fixture only."
+    }
+  ]
+}

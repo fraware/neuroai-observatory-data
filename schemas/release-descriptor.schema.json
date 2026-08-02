@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/fraware/neuroai-observatory-data/schemas/release-descriptor.schema.json",
+  "title": "Observatory public data release descriptor",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "release_id",
+    "release_tag",
+    "published_at",
+    "workbench_version",
+    "manifest_path",
+    "manifest_sha256",
+    "record_counts",
+    "withheld_claims"
+  ],
+  "properties": {
+    "release_id": {
+      "type": "string",
+      "pattern": "^OBS-DATA-[0-9]{4}-[0-9]{2}-[0-9]{2}-[A-Z0-9-]{1,32}$"
+    },
+    "release_tag": {
+      "type": "string",
+      "pattern": "^data-v[0-9]+\\.[0-9]+\\.[0-9]+(-[A-Za-z0-9.-]+)?$"
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "workbench_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "predecessor_tag": {
+      "type": "string",
+      "pattern": "^data-v[0-9]+\\.[0-9]+\\.[0-9]+(-[A-Za-z0-9.-]+)?$"
+    },
+    "manifest_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "manifest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "record_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["files", "bytes"],
+      "properties": {
+        "files": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "notes": {
+      "type": "string"
+    },
+    "withheld_claims": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

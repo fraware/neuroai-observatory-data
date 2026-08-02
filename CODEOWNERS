@@ -1,0 +1,9 @@
+
+# Public canonical data repository. Add named domain reviewers when GitHub identities exist.
+* @fraware
+
+/schemas/ @fraware
+/scripts/ @fraware
+/releases/ @fraware
+/docs/signed-release-policy.md @fraware
+/docs/branch-protection-policy.md @fraware

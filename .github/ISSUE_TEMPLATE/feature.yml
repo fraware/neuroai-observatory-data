@@ -1,0 +1,27 @@
+
+name: Public data change request
+description: Propose a bounded public canonical data change.
+title: "[data-change] "
+labels: [data, triage]
+body:
+  - type: markdown
+    attributes:
+      value: Protected evidence and generated products belong outside this repository.
+  - type: textarea
+    id: objective
+    attributes:
+      label: Bounded objective
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+    validations:
+      required: true
+  - type: textarea
+    id: withheld
+    attributes:
+      label: Withheld claims this change must preserve
+    validations:
+      required: true

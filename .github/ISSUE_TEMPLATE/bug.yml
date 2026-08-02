@@ -1,0 +1,28 @@
+
+name: Data release defect
+description: Report a checksum, schema, or publication-boundary defect in public canonical data.
+title: "[data-bug] "
+labels: [data, triage]
+body:
+  - type: markdown
+    attributes:
+      value: Do not include protected evidence, credentials, or private paths.
+  - type: input
+    id: release_tag
+    attributes:
+      label: Affected release tag
+      placeholder: data-v0.1.0
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Defect description
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+    validations:
+      required: true
