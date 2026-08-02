@@ -1,0 +1,330 @@
+{
+  "metadata": {
+    "title": "UNESCO NeuroAI canonical successor snapshot with PRIMA controlled assessment",
+    "version": "v1.7",
+    "predecessor": "v1.6",
+    "effective_as_of": "2026-07-29",
+    "assessment_executed": "2026-07-29",
+    "status": "CONTROLLED_SUCCESSOR_SNAPSHOT"
+  },
+  "baseline_reference": {
+    "canonical_sha256": "00985fa168b26c4e02df485895d728ee30191aea436b4e3956c60657e2ffc3be",
+    "immutable": true,
+    "path": "08_Baseline_References/CANONICAL_EVIDENCE_DEPTH_AND_OBSERVATORY_RELEASE_v1.4.json"
+  },
+  "baseline_counts": {
+    "organization_records_total_including_legacy": 217,
+    "active_nonlegacy_organization_denominator": 153,
+    "current_verified_active_nonlegacy": 150,
+    "remaining_partial_active_nonlegacy": 3,
+    "verification_rate": 0.9804,
+    "reclassified_nonorganization_provenance_nodes": 6,
+    "historical_archived_organizations": 1,
+    "regional_expansion_records": 13,
+    "capital_and_ownership_events": 5,
+    "model_records_inherited": 13,
+    "model_dataset_registry_objects": 5,
+    "trial_site_relationships": 7,
+    "participant_authority_relationships": 6,
+    "supplier_dependency_relationships": 9,
+    "source_records": 224
+  },
+  "delta_counts": {
+    "new_sources": 12,
+    "change_candidates": 9,
+    "regulatory_and_market_events": 2,
+    "capital_and_ownership_events": 2,
+    "model_records": 2,
+    "supplier_dependency_relationships": 1,
+    "governance_and_leadership_events": 2,
+    "reopening_decisions": 6
+  },
+  "successor_effective_counts": {
+    "organizations": 153,
+    "current_verified_organizations": 150,
+    "capital_and_ownership_events": 7,
+    "representative_model_records": 15,
+    "supplier_dependency_relationships": 10,
+    "source_records": 248,
+    "completed_system_assessments": 4
+  },
+  "delta": {
+    "regulatory_and_market_events": [
+      {
+        "event_id": "REG-16-001",
+        "event_date": "2026-07-22",
+        "system": "PRIMA retinal prosthesis",
+        "jurisdiction": "European Union / EEA",
+        "event_type": "CE_MARK_AND_COMMERCIAL_LAUNCH_ANNOUNCEMENT",
+        "source_ids": [
+          "SRC-16-001"
+        ],
+        "evidence_state": "COMPANY_ANNOUNCEMENT_CORROBORATED_BY_REPUTABLE_MEDIA",
+        "bounded_effect": "Update observatory regulatory and deployment state to company-announced CE-marked and commercially launched in EU/EEA.",
+        "prohibited_inferences": [
+          "Global authorization",
+          "United States marketing authorization",
+          "Complete clinical-effectiveness conclusion",
+          "Universal system conformance"
+        ]
+      },
+      {
+        "event_id": "REG-16-002",
+        "event_date": "2026-07-22",
+        "system": "PRIMA retinal prosthesis",
+        "jurisdiction": "United States",
+        "event_type": "TWO_HUD_DESIGNATIONS_ANNOUNCED",
+        "source_ids": [
+          "SRC-16-002",
+          "SRC-16-003"
+        ],
+        "evidence_state": "COMPANY_ANNOUNCEMENT_WITH_FDA_PROCEDURAL_BOUNDARY",
+        "bounded_effect": "Record HUD-designation pathway for two stated populations.",
+        "prohibited_inferences": [
+          "HDE approval",
+          "US marketing authorization",
+          "FDA effectiveness determination"
+        ]
+      }
+    ],
+    "capital_and_ownership_events": [
+      {
+        "event_id": "CAP-16-001",
+        "date": "2026-03-05",
+        "event_type": "EQUITY_FINANCING",
+        "subject": "Science Corporation",
+        "amount": 230000000,
+        "currency": "USD",
+        "source_ids": [
+          "SRC-16-004"
+        ],
+        "boundary": "Company-announced financing; no valuation or control inference."
+      },
+      {
+        "event_id": "CAP-16-002",
+        "date": "2025-11-06",
+        "event_type": "SERIES_D_FINANCING",
+        "subject": "Synchron",
+        "amount": 200000000,
+        "currency": "USD",
+        "source_ids": [
+          "SRC-16-008"
+        ],
+        "boundary": "Company press release; no authorization, commercial-readiness or performance inference."
+      }
+    ],
+    "model_records": [
+      {
+        "model_id": "MDL-16-001",
+        "name": "Chiral",
+        "developer": "Synchron",
+        "record_type": "MODEL_ROADMAP",
+        "publication_state": "COMPANY_ANNOUNCEMENT",
+        "source_ids": [
+          "SRC-16-009"
+        ],
+        "verification_state": "ROADMAP_ONLY",
+        "claim_boundary": "No released checkpoint, corpus manifest, benchmark or independent evaluation."
+      },
+      {
+        "model_id": "MDL-16-002",
+        "name": "CLEF",
+        "developer": "MIT and collaborators",
+        "record_type": "EEG_FOUNDATION_MODEL",
+        "publication_state": "PREPRINT",
+        "source_ids": [
+          "SRC-16-010"
+        ],
+        "verification_state": "PREPRINT_REPORTED",
+        "claim_boundary": "Bounded to reported 234-task benchmark, datasets and splits; peer review and replication unresolved."
+      }
+    ],
+    "supplier_dependency_relationships": [
+      {
+        "dependency_id": "DEP-16-001",
+        "subject": "Neurosoft Bioelectronics BCI programme",
+        "provider": "Science Corporation",
+        "relationship_type": "MULTIYEAR_BCI_ECOSYSTEM_PLATFORM_AGREEMENT",
+        "source_ids": [
+          "SRC-16-005"
+        ],
+        "evidence_state": "COMPANY_ANNOUNCED_RELATIONSHIP",
+        "boundary": "Does not establish product approval, successful trial execution or audited contract performance."
+      }
+    ],
+    "governance_and_leadership_events": [
+      {
+        "governance_id": "GOV-16-001",
+        "date": "2026-03-31",
+        "organization": "Science Corporation",
+        "event": "Murat Günel appointed Medical Director for BCI",
+        "source_ids": [
+          "SRC-16-006"
+        ],
+        "reopening": "NO_SYSTEM_ASSESSMENT_REOPEN"
+      },
+      {
+        "governance_id": "GOV-16-002",
+        "date": "2026-07-07",
+        "organization": "Paradromics",
+        "event": "William J. Marks appointed Chief Clinical Officer",
+        "source_ids": [
+          "SRC-16-007"
+        ],
+        "reopening": "NO_CONNEXUS_ASSESSMENT_REOPEN"
+      }
+    ]
+  },
+  "reopening_decisions": [
+    {
+      "decision_id": "ROP-16-002",
+      "object": "Brain2Qwerty public-evidence pilot v4.1.3",
+      "decision": "NO_REOPENING_TRIGGER_IDENTIFIED",
+      "basis": [],
+      "required_actions": []
+    },
+    {
+      "decision_id": "ROP-16-003",
+      "object": "FDA adaptive DBS public-evidence pilot v4.1.4",
+      "decision": "NO_REOPENING_TRIGGER_IDENTIFIED",
+      "basis": [],
+      "required_actions": []
+    },
+    {
+      "decision_id": "ROP-16-004",
+      "object": "BrainGate2 T15 pilot v4.1.5",
+      "decision": "NO_REOPENING_TRIGGER_IDENTIFIED",
+      "basis": [],
+      "required_actions": []
+    },
+    {
+      "decision_id": "ROP-16-005",
+      "object": "Synchron model registry",
+      "decision": "UPDATE_REQUIRED_NO_ASSESSMENT_REOPEN",
+      "basis": [
+        "MDL-16-001",
+        "CAP-16-002"
+      ],
+      "required_actions": [
+        "Retain Chiral as roadmap-only until checkpoint and evaluation evidence exist"
+      ]
+    },
+    {
+      "decision_id": "ROP-16-006",
+      "object": "Paradromics Connexus system record",
+      "decision": "METADATA_UPDATE_ONLY",
+      "basis": [
+        "GOV-16-002"
+      ],
+      "required_actions": [
+        "No substantive finding change from leadership appointment alone"
+      ]
+    },
+    {
+      "decision_id": "ROP-17-001",
+      "object": "PRIMA observatory system record",
+      "decision": "REOPENING_EXECUTED_RECORD_UPDATED_OPEN_CONDITIONS",
+      "basis": [
+        "PRIMA-PUBLIC-2026-001",
+        "REG-16-001",
+        "REG-16-002"
+      ],
+      "required_actions": [
+        "Obtain notified-body certificate/EUDAMED/UDI/current IFU and reconcile the exact commercial configuration.",
+        "Record first commercial implantation only after primary confirmation.",
+        "Open postmarket exposure, safety, cybersecurity, data, access and continuity conditions remain."
+      ]
+    }
+  ],
+  "provenance": {
+    "refresh_release": "03_Delta/ADJUDICATED_DELTA_v1.6.json",
+    "source_register": "02_Refresh/NEW_SOURCE_REGISTER_v1.6.json",
+    "baseline_sha256": "00985fa168b26c4e02df485895d728ee30191aea436b4e3956c60657e2ffc3be",
+    "predecessor_archive_sha256": "c8c0268bb9bd30eb5a81ce291c60b8abaafe23b46125f09d350ed839aacc497f",
+    "assessment_release": "PRIMA Controlled Public-Evidence Assessment v4.2.1"
+  },
+  "predecessor_reference": {
+    "v1_6_archive_sha256": "c8c0268bb9bd30eb5a81ce291c60b8abaafe23b46125f09d350ed839aacc497f",
+    "immutable": true
+  },
+  "assessment_successor_delta": {
+    "metadata": {
+      "title": "PRIMA assessment-driven observatory successor delta",
+      "version": "v1.7",
+      "predecessor": "v1.6",
+      "effective_as_of": "2026-07-29",
+      "status": "CONTROLLED_SUCCESSOR",
+      "event_cutoff_unchanged": "2026-07-29"
+    },
+    "predecessor_reference": {
+      "archive_sha256": "c8c0268bb9bd30eb5a81ce291c60b8abaafe23b46125f09d350ed839aacc497f",
+      "immutable": true,
+      "archive_path": "09_Inputs/UNESCO_NeuroAI_First_Live_Refresh_and_Successor_Delta_v1.6.zip"
+    },
+    "event_delta": {
+      "new_post_cutoff_material_events": 0,
+      "statement": "No later event is introduced. This release executes the PRIMA reopening using evidence available through the same 29 July 2026 cutoff."
+    },
+    "assessment_delta": {
+      "assessment_id": "PRIMA-PUBLIC-2026-001",
+      "assessment_version": "v4.2.1",
+      "system": "PRIMA retinal prosthesis",
+      "state": "COMPLETED_BOUNDED_PUBLIC_EVIDENCE_ASSESSMENT",
+      "target_level": "CL-4",
+      "decision": "CL-4_NOT_ESTABLISHED",
+      "open_p0_gaps": 19
+    },
+    "source_delta": {
+      "assessment_sources_registered": 15,
+      "new_unique_source_records_relative_to_v1_6": 12,
+      "reused_v1_6_source_ids": [
+        "SRC-16-001",
+        "SRC-16-002"
+      ]
+    },
+    "reopening_transition": {
+      "predecessor_decision_id": "ROP-16-001",
+      "predecessor_state": "REOPEN_REQUIRED",
+      "successor_decision_id": "ROP-17-001",
+      "successor_state": "REOPENING_EXECUTED_RECORD_UPDATED_OPEN_CONDITIONS",
+      "resolved_actions": [
+        "Dedicated exact-system assessment executed.",
+        "EU commercial status and US HUD/HDE pathway separated."
+      ],
+      "open_actions": [
+        "Obtain notified-body certificate/EUDAMED/UDI/current IFU and reconcile the exact commercial configuration.",
+        "Record first commercial implantation only after primary confirmation.",
+        "Open postmarket exposure, safety, cybersecurity, data, access and continuity conditions remain."
+      ]
+    },
+    "bounded_system_record": {
+      "system": "PRIMA retinal prosthesis",
+      "EU_EEA_state": "COMPANY_ANNOUNCED_CE_MARK_AND_COMMERCIAL_LAUNCH",
+      "US_state": "COMPANY_ANNOUNCED_TWO_HUD_DESIGNATIONS_NO_HDE_APPROVAL_ESTABLISHED",
+      "clinical_evidence_state": "PUBLISHED_SINGLE_GROUP_12_MONTH_PRIMARY_STUDY",
+      "commercial_implantation_state": "EXPECTED_NOT_CONFIRMED",
+      "conformance_state": "CL-4_NOT_ESTABLISHED",
+      "assessment_reference": "02_Assessment/PRIMA_COMPLETED_ASSESSMENT_v4.2.1.json"
+    },
+    "prohibited_inferences": [
+      "CE-mark announcement does not establish the exact certificate, UDI, current commercial configuration, labeling, reimbursement, site activation, completed implantation or complete conformance.",
+      "HUD designation does not establish HDE approval, US marketing authorization, reasonable assurance of effectiveness or any FDA finding for the full GA population.",
+      "An 81% complete-case response and an 80% imputed estimate are distinct results with distinct denominators.",
+      "A single-group baseline-controlled study does not establish randomized comparative effectiveness.",
+      "Prosthetic central form vision does not equal normal vision, natural central vision, color vision, face recognition or broad environmental vision.",
+      "Self-reported reading at home does not establish independently scored naturalistic accuracy or safe navigation.",
+      "Digitally enhanced acuity cannot be attributed to implant-native pixel resolution alone.",
+      "Mean preservation of natural peripheral visual acuity does not establish absence of individual ocular harm or long-term structural effect.",
+      "No event attributed to the device alone does not mean there was no device-related or procedure-related serious risk.",
+      "Resolution of many events does not erase incidence, severity, treatment burden or participant-level consequences.",
+      "Trial use with training and clinical support does not establish support-independent commercial use.",
+      "The January 2022 manual cannot be treated as the current CE-marked commercial IFU.",
+      "Commercial launch does not establish affordability, reimbursement, equitable access, production capacity or long-term support.",
+      "Publication of clinical evidence does not establish cybersecurity, update control, data governance or postmarket vigilance.",
+      "Sponsor participation in study design, analysis and writing does not invalidate the study, but it must remain visible in evidence appraisal.",
+      "No post-cutoff event identified in the controlled search does not prove global absence of unannounced, inaccessible or non-indexed events.",
+      "No demonstrated FAIL is inferred solely from unavailable public evidence.",
+      "The assessment does not provide clinical advice, product certification, regulatory endorsement or a deployment decision."
+    ]
+  }
+}

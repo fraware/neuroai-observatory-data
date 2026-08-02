@@ -1,0 +1,127 @@
+{
+  "regulatory_and_market_events": [
+    {
+      "event_id": "REG-16-001",
+      "event_date": "2026-07-22",
+      "system": "PRIMA retinal prosthesis",
+      "jurisdiction": "European Union / EEA",
+      "event_type": "CE_MARK_AND_COMMERCIAL_LAUNCH_ANNOUNCEMENT",
+      "source_ids": [
+        "SRC-16-001"
+      ],
+      "evidence_state": "COMPANY_ANNOUNCEMENT_CORROBORATED_BY_REPUTABLE_MEDIA",
+      "bounded_effect": "Update observatory regulatory and deployment state to company-announced CE-marked and commercially launched in EU/EEA.",
+      "prohibited_inferences": [
+        "Global authorization",
+        "United States marketing authorization",
+        "Complete clinical-effectiveness conclusion",
+        "Universal system conformance"
+      ]
+    },
+    {
+      "event_id": "REG-16-002",
+      "event_date": "2026-07-22",
+      "system": "PRIMA retinal prosthesis",
+      "jurisdiction": "United States",
+      "event_type": "TWO_HUD_DESIGNATIONS_ANNOUNCED",
+      "source_ids": [
+        "SRC-16-002",
+        "SRC-16-003"
+      ],
+      "evidence_state": "COMPANY_ANNOUNCEMENT_WITH_FDA_PROCEDURAL_BOUNDARY",
+      "bounded_effect": "Record HUD-designation pathway for two stated populations.",
+      "prohibited_inferences": [
+        "HDE approval",
+        "US marketing authorization",
+        "FDA effectiveness determination"
+      ]
+    }
+  ],
+  "capital_and_ownership_events": [
+    {
+      "event_id": "CAP-16-001",
+      "date": "2026-03-05",
+      "event_type": "EQUITY_FINANCING",
+      "subject": "Science Corporation",
+      "amount": 230000000,
+      "currency": "USD",
+      "source_ids": [
+        "SRC-16-004"
+      ],
+      "boundary": "Company-announced financing; no valuation or control inference."
+    },
+    {
+      "event_id": "CAP-16-002",
+      "date": "2025-11-06",
+      "event_type": "SERIES_D_FINANCING",
+      "subject": "Synchron",
+      "amount": 200000000,
+      "currency": "USD",
+      "source_ids": [
+        "SRC-16-008"
+      ],
+      "boundary": "Company press release; no authorization, commercial-readiness or performance inference."
+    }
+  ],
+  "model_records": [
+    {
+      "model_id": "MDL-16-001",
+      "name": "Chiral",
+      "developer": "Synchron",
+      "record_type": "MODEL_ROADMAP",
+      "publication_state": "COMPANY_ANNOUNCEMENT",
+      "source_ids": [
+        "SRC-16-009"
+      ],
+      "verification_state": "ROADMAP_ONLY",
+      "claim_boundary": "No released checkpoint, corpus manifest, benchmark or independent evaluation."
+    },
+    {
+      "model_id": "MDL-16-002",
+      "name": "CLEF",
+      "developer": "MIT and collaborators",
+      "record_type": "EEG_FOUNDATION_MODEL",
+      "publication_state": "PREPRINT",
+      "source_ids": [
+        "SRC-16-010"
+      ],
+      "verification_state": "PREPRINT_REPORTED",
+      "claim_boundary": "Bounded to reported 234-task benchmark, datasets and splits; peer review and replication unresolved."
+    }
+  ],
+  "supplier_dependency_relationships": [
+    {
+      "dependency_id": "DEP-16-001",
+      "subject": "Neurosoft Bioelectronics BCI programme",
+      "provider": "Science Corporation",
+      "relationship_type": "MULTIYEAR_BCI_ECOSYSTEM_PLATFORM_AGREEMENT",
+      "source_ids": [
+        "SRC-16-005"
+      ],
+      "evidence_state": "COMPANY_ANNOUNCED_RELATIONSHIP",
+      "boundary": "Does not establish product approval, successful trial execution or audited contract performance."
+    }
+  ],
+  "governance_and_leadership_events": [
+    {
+      "governance_id": "GOV-16-001",
+      "date": "2026-03-31",
+      "organization": "Science Corporation",
+      "event": "Murat Günel appointed Medical Director for BCI",
+      "source_ids": [
+        "SRC-16-006"
+      ],
+      "reopening": "NO_SYSTEM_ASSESSMENT_REOPEN"
+    },
+    {
+      "governance_id": "GOV-16-002",
+      "date": "2026-07-07",
+      "organization": "Paradromics",
+      "event": "William J. Marks appointed Chief Clinical Officer",
+      "source_ids": [
+        "SRC-16-007"
+      ],
+      "reopening": "NO_CONNEXUS_ASSESSMENT_REOPEN"
+    }
+  ]
+}

@@ -37,12 +37,29 @@ WORKBENCH_VERSION        Pinned compatible neuroai-workbench package version
 
 ## Releases
 
-1. Place canonical public records under a versioned release directory.
+1. Place canonical public records under a versioned release directory (`releases/<tag>/records/` for authorized governing sets).
 2. Run `python scripts/generate_manifest.py <release-root> releases/<tag>/SHA256SUMS.txt`.
 3. Author or update `releases/<tag>/release-descriptor.json` against `schemas/release-descriptor.schema.json`.
 4. Open a reviewed pull request; merge to `main`.
 5. Create an immutable annotated tag and signed GitHub release per [docs/signed-release-policy.md](docs/signed-release-policy.md).
 
+### data-v0.1.0-public-governing
+
+First authorized public governing release (`public-governing-v1`):
+
+- `source_monitor_registry_v1.5.json` (224 sources)
+- `canonical_observatory_release_v1.4.json`
+- `canonical_live_refresh_release_v1.6.json`
+- `adjudicated_delta_v1.6.json`
+- `canonical_successor_snapshot_v1.7.json`
+- `public_disposition_summary.json` (includes residual `AMB-003`)
+
+Records live under `releases/data-v0.1.0-public-governing/records/` and are mirrored under `fixtures/` for discovery. Verify:
+
+```bash
+python scripts/verify_manifest.py releases/data-v0.1.0-public-governing/records releases/data-v0.1.0-public-governing/SHA256SUMS.txt
+```
+
 ## Workbench coupling
 
-Import and validation adapters in `fraware/neuroai-workbench` consume tagged releases from this repository. The pinned workbench version is recorded in `WORKBENCH_VERSION`.
+Import and validation adapters in `fraware/neuroai-workbench` consume tagged releases from this repository. The pinned workbench version is recorded in `WORKBENCH_VERSION`. Publish tooling: `python scripts/publish_observatory_data.py --release-set public-governing-v1` (requires local `NEUROAI_OPS_WORKSPACE`).
