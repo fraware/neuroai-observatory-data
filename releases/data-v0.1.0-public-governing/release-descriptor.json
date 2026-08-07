@@ -1,0 +1,22 @@
+{
+  "release_id": "OBS-DATA-20260802-DATA-V0.1.0-PUBLIC-GOVERNING",
+  "release_tag": "data-v0.1.0-public-governing",
+  "release_set": "public-governing-v1",
+  "published_at": "2026-08-02T21:36:59Z",
+  "workbench_version": "0.3.0.dev0",
+  "workbench_commit": "5d6e610f17dea76b1a4c9c880adacace94cf16f2",
+  "manifest_path": "releases/data-v0.1.0-public-governing/SHA256SUMS.txt",
+  "manifest_sha256": "4547622a2aac1aa469c1ea8c7c678dda7b48d462711923c0ca3fa15283a37cd6",
+  "record_counts": {
+    "files": 6,
+    "bytes": 712387
+  },
+  "notes": "Authorized public governing records copied from Operations Starter via workbench publish pipeline.",
+  "withheld_claims": [
+    "No regulatory authorization",
+    "No clinical effectiveness or safety conclusion",
+    "No system conformance determination",
+    "No UNESCO endorsement or institutional authority",
+    "No protected-evidence completeness claim"
+  ]
+}

@@ -1,0 +1,636 @@
+{
+  "metadata": {
+    "title": "UNESCO NeuroAI First Live Refresh and Successor Delta",
+    "version": "v1.6",
+    "phase": "FIRST_LIVE_REFRESH",
+    "baseline_version": "v1.4",
+    "operations_version": "v1.5",
+    "baseline_evidence_cutoff": "2026-07-29",
+    "refresh_executed": "2026-07-29T12:38:00Z",
+    "status": "COMPLETE AS A CONTROLLED REFRESH; POST-CUTOFF MATERIAL EVENT NOT IDENTIFIED; MATERIAL PRE-CUTOFF BACKFILL ACCEPTED",
+    "north_star": "Preserve a global NeuroAI observatory in which new evidence changes explicit records through attributable deltas and controlled reopening, never through silent overwrite."
+  },
+  "methodology": {
+    "refresh_window": "2026-07-01 through 2026-07-29, plus targeted historical backfill",
+    "search_scope": [
+      "official company update indexes",
+      "official regulatory and normative pages",
+      "primary press releases",
+      "technical preprints relevant to the existing model register"
+    ],
+    "post_cutoff_event_count": 0,
+    "pre_cutoff_backfill_candidate_count": 9,
+    "limitations": [
+      "Search engines and accessible official pages do not provide a complete universe",
+      "Page-content hashes were unavailable through the web research interface",
+      "CE-mark certificate was not independently retrieved",
+      "HUD designation was not independently located in a public FDA device record",
+      "Company and preprint claims remain bounded to their source class"
+    ]
+  },
+  "baseline": {
+    "canonical_sha256": "00985fa168b26c4e02df485895d728ee30191aea436b4e3956c60657e2ffc3be",
+    "immutable": true,
+    "path": "08_Baseline_References/CANONICAL_EVIDENCE_DEPTH_AND_OBSERVATORY_RELEASE_v1.4.json"
+  },
+  "source_checks": [
+    {
+      "check_id": "CHK-001",
+      "source_id": "SRC-16-001",
+      "retrieved": "2026-07-29T12:38:00Z",
+      "retrieval_outcome": "SUCCESS_VIA_WEB_RESEARCH",
+      "baseline_match": "NEW_SOURCE_OR_BACKFILL",
+      "page_content_hash": "NOT_AVAILABLE_FROM_WEB_RESEARCH_INTERFACE",
+      "metadata_digest": "b6127d6129339d9c95b21a18e844247a9c848e2e3cc8e2f51cb1e41dadfb2336"
+    },
+    {
+      "check_id": "CHK-002",
+      "source_id": "SRC-16-002",
+      "retrieved": "2026-07-29T12:38:00Z",
+      "retrieval_outcome": "SUCCESS_VIA_WEB_RESEARCH",
+      "baseline_match": "NEW_SOURCE_OR_BACKFILL",
+      "page_content_hash": "NOT_AVAILABLE_FROM_WEB_RESEARCH_INTERFACE",
+      "metadata_digest": "20c935a26ef56ecaed81e2518cba9e8fd781f18eb186c97e5f8011cd6b160a48"
+    },
+    {
+      "check_id": "CHK-003",
+      "source_id": "SRC-16-003",
+      "retrieved": "2026-07-29T12:38:00Z",
+      "retrieval_outcome": "SUCCESS_VIA_WEB_RESEARCH",
+      "baseline_match": "NEW_SOURCE_OR_BACKFILL",
+      "page_content_hash": "NOT_AVAILABLE_FROM_WEB_RESEARCH_INTERFACE",
+      "metadata_digest": "d96cf053ce0440d3d832066dab7b06e4d92c82494018fb14f87b869c394239c9"
+    },
+    {
+      "check_id": "CHK-004",
+      "source_id": "SRC-16-004",
+      "retrieved": "2026-07-29T12:38:00Z",
+      "retrieval_outcome": "SUCCESS_VIA_WEB_RESEARCH",
+      "baseline_match": "NEW_SOURCE_OR_BACKFILL",
+      "page_content_hash": "NOT_AVAILABLE_FROM_WEB_RESEARCH_INTERFACE",
+      "metadata_digest": "8842cd8a1fb3aeda41a7a3c6fb8b3eff187bf0f58d6ecbf3a3369c671c42470a"
+    },
+    {
+      "check_id": "CHK-005",
+      "source_id": "SRC-16-005",
+      "retrieved": "2026-07-29T12:38:00Z",
+      "retrieval_outcome": "SUCCESS_VIA_WEB_RESEARCH",
+      "baseline_match": "NEW_SOURCE_OR_BACKFILL",
+      "page_content_hash": "NOT_AVAILABLE_FROM_WEB_RESEARCH_INTERFACE",
+      "metadata_digest": "dbaf808c8a0f890a21f00257bb88f6430d29b3aa789959fe6e43a76680b110e3"
+    },
+    {
+      "check_id": "CHK-006",
+      "source_id": "SRC-16-006",
+      "retrieved": "2026-07-29T12:38:00Z",
+      "retrieval_outcome": "SUCCESS_VIA_WEB_RESEARCH",
+      "baseline_match": "NEW_SOURCE_OR_BACKFILL",
+      "page_content_hash": "NOT_AVAILABLE_FROM_WEB_RESEARCH_INTERFACE",
+      "metadata_digest": "53a6afbd6c63dbfcc72507d82ff6732fea566ea998efabb743d4d2145db54a49"
+    },
+    {
+      "check_id": "CHK-007",
+      "source_id": "SRC-16-007",
+      "retrieved": "2026-07-29T12:38:00Z",
+      "retrieval_outcome": "SUCCESS_VIA_WEB_RESEARCH",
+      "baseline_match": "NEW_SOURCE_OR_BACKFILL",
+      "page_content_hash": "NOT_AVAILABLE_FROM_WEB_RESEARCH_INTERFACE",
+      "metadata_digest": "bdb5d832c35d0554a0cd3627687a182e5ec608bd581a6e018241954116f16664"
+    },
+    {
+      "check_id": "CHK-008",
+      "source_id": "SRC-16-008",
+      "retrieved": "2026-07-29T12:38:00Z",
+      "retrieval_outcome": "SUCCESS_VIA_WEB_RESEARCH",
+      "baseline_match": "NEW_SOURCE_OR_BACKFILL",
+      "page_content_hash": "NOT_AVAILABLE_FROM_WEB_RESEARCH_INTERFACE",
+      "metadata_digest": "a2ba05416e81217a5b885fdace54a2a4a2eee26ca791709cd2508e8c611e837f"
+    },
+    {
+      "check_id": "CHK-009",
+      "source_id": "SRC-16-009",
+      "retrieved": "2026-07-29T12:38:00Z",
+      "retrieval_outcome": "SUCCESS_VIA_WEB_RESEARCH",
+      "baseline_match": "NEW_SOURCE_OR_BACKFILL",
+      "page_content_hash": "NOT_AVAILABLE_FROM_WEB_RESEARCH_INTERFACE",
+      "metadata_digest": "09ebeb2eac1378550283e72ada2498b53b7a641f8953d12d3054c47706a2754a"
+    },
+    {
+      "check_id": "CHK-010",
+      "source_id": "SRC-16-010",
+      "retrieved": "2026-07-29T12:38:00Z",
+      "retrieval_outcome": "SUCCESS_VIA_WEB_RESEARCH",
+      "baseline_match": "NEW_SOURCE_OR_BACKFILL",
+      "page_content_hash": "NOT_AVAILABLE_FROM_WEB_RESEARCH_INTERFACE",
+      "metadata_digest": "b94936ccc33e56c80cbed2ee297f9f388938d7b4f90359299e120a22cae395f0"
+    },
+    {
+      "check_id": "CHK-011",
+      "source_id": "SRC-16-011",
+      "retrieved": "2026-07-29T12:38:00Z",
+      "retrieval_outcome": "SUCCESS_VIA_WEB_RESEARCH",
+      "baseline_match": "NO_MATERIAL_CHANGE",
+      "page_content_hash": "NOT_AVAILABLE_FROM_WEB_RESEARCH_INTERFACE",
+      "metadata_digest": "7ddd46b226537c9625b84ea797357684b95ae382127db38cc6a661bf131312ee"
+    },
+    {
+      "check_id": "CHK-012",
+      "source_id": "SRC-16-012",
+      "retrieved": "2026-07-29T12:38:00Z",
+      "retrieval_outcome": "SUCCESS_VIA_WEB_RESEARCH",
+      "baseline_match": "NO_MATERIAL_CHANGE",
+      "page_content_hash": "NOT_AVAILABLE_FROM_WEB_RESEARCH_INTERFACE",
+      "metadata_digest": "caff04d87a1d5cecc8fe817563973f34dffae7a4d3aae00b9ea68f7719215e57"
+    }
+  ],
+  "new_sources": [
+    {
+      "source_id": "SRC-16-001",
+      "title": "Science announces European commercial launch of PRIMA",
+      "publisher": "Science Corporation",
+      "url": "https://science.xyz/news/ce-mark/",
+      "published": "2026-07-22",
+      "retrieved": "2026-07-29T12:38:00Z",
+      "source_class": "OFFICIAL_COMPANY_REGULATORY_ANNOUNCEMENT",
+      "evidence_state": "COMPANY_ANNOUNCEMENT_CORROBORATED_BY_REPUTABLE_MEDIA",
+      "supports": "Company states PRIMA received CE marking under EU MDR and entered European commercial launch across 30 countries.",
+      "claim_boundary": "No notified-body certificate or EUDAMED record was independently retrieved in this refresh. Commercial availability is bounded to the EU/EEA representation and does not establish global availability or complete system conformance."
+    },
+    {
+      "source_id": "SRC-16-002",
+      "title": "PRIMA receives two FDA Humanitarian Use Device designations",
+      "publisher": "Science Corporation",
+      "url": "https://science.xyz/news/hud-designation/",
+      "published": "2026-07-22",
+      "retrieved": "2026-07-29T12:38:00Z",
+      "source_class": "OFFICIAL_COMPANY_REGULATORY_ANNOUNCEMENT",
+      "evidence_state": "COMPANY_ANNOUNCEMENT_WITH_PROCEDURAL_FDA_BOUNDARY",
+      "supports": "Company states PRIMA received two HUD designations for advanced GA-related blindness and Stargardt disease.",
+      "claim_boundary": "HUD designation is not HDE approval and does not authorize marketing in the United States."
+    },
+    {
+      "source_id": "SRC-16-003",
+      "title": "FDA HDE approvals and procedural boundary",
+      "publisher": "U.S. Food and Drug Administration",
+      "url": "https://www.fda.gov/medical-devices/device-approvals-and-clearances/hde-approvals",
+      "published": null,
+      "retrieved": "2026-07-29T12:38:00Z",
+      "source_class": "OFFICIAL_REGULATORY_GUIDANCE",
+      "evidence_state": "REGULATORY_PROCEDURE_VERIFIED",
+      "supports": "Explains that an approved HDE authorizes marketing of a HUD and that effectiveness for the indication has not been demonstrated under the HDE standard.",
+      "claim_boundary": "Procedural source does not independently verify PRIMA HUD designation or HDE approval."
+    },
+    {
+      "source_id": "SRC-16-004",
+      "title": "Science closes $230 million Series C",
+      "publisher": "Science Corporation",
+      "url": "https://science.xyz/news/series-c/",
+      "published": "2026-03-05",
+      "retrieved": "2026-07-29T12:38:00Z",
+      "source_class": "OFFICIAL_COMPANY_FINANCING_ANNOUNCEMENT",
+      "evidence_state": "COMPANY_ANNOUNCEMENT_ONLY",
+      "supports": "Science states a $230 million Series C and approximately $490 million total capital since 2021.",
+      "claim_boundary": "Financing announcement does not establish valuation, cash availability, profitability, governance control or technological quality."
+    },
+    {
+      "source_id": "SRC-16-005",
+      "title": "Science and Neurosoft BCI ecosystem partnership",
+      "publisher": "Science Corporation",
+      "url": "https://science.xyz/news/neurosoft-partnership/",
+      "published": "2026-02-20",
+      "retrieved": "2026-07-29T12:38:00Z",
+      "source_class": "OFFICIAL_PARTNERSHIP_ANNOUNCEMENT",
+      "evidence_state": "BILATERAL_RELATIONSHIP_COMPANY_ANNOUNCEMENT",
+      "supports": "Science states a multiyear, multimillion-dollar ecosystem agreement granting Neurosoft access to Science engineering infrastructure.",
+      "claim_boundary": "Announcement does not establish product authorization, successful translation, clinical effectiveness or independently audited contract performance."
+    },
+    {
+      "source_id": "SRC-16-006",
+      "title": "Science appoints Murat Günel as Medical Director for BCI",
+      "publisher": "Science Corporation",
+      "url": "https://science.xyz/news/leadership-gunel/",
+      "published": "2026-03-31",
+      "retrieved": "2026-07-29T12:38:00Z",
+      "source_class": "OFFICIAL_LEADERSHIP_ANNOUNCEMENT",
+      "evidence_state": "OFFICIAL_CURRENT_REPRESENTATION",
+      "supports": "Leadership appointment and stated role in Biohybrid clinical and surgical programmes.",
+      "claim_boundary": "Appointment does not establish clinical readiness, trial authorization or successful translation."
+    },
+    {
+      "source_id": "SRC-16-007",
+      "title": "Paradromics appoints William J. Marks as Chief Clinical Officer",
+      "publisher": "Paradromics",
+      "url": "https://paradromics.com/news/paradromics-appoints-william-j-marks-chief-clinical-officer/",
+      "published": "2026-07-07",
+      "retrieved": "2026-07-29T12:38:00Z",
+      "source_class": "OFFICIAL_LEADERSHIP_ANNOUNCEMENT",
+      "evidence_state": "OFFICIAL_CURRENT_REPRESENTATION",
+      "supports": "Leadership appointment while Connect-One early feasibility work proceeds.",
+      "claim_boundary": "Appointment does not alter the safety or effectiveness evidence for Connexus."
+    },
+    {
+      "source_id": "SRC-16-008",
+      "title": "Synchron raises $200 million Series D",
+      "publisher": "Synchron / Business Wire",
+      "url": "https://www.businesswire.com/news/home/20251106150841/en/Synchron-Raises-%24200-Million-Series-D-to-Advance-Brain-Computer-Interface-Technology",
+      "published": "2025-11-06",
+      "retrieved": "2026-07-29T12:38:00Z",
+      "source_class": "COMPANY_PRESS_RELEASE",
+      "evidence_state": "COMPANY_ANNOUNCEMENT_ONLY",
+      "supports": "Synchron states a $200 million Series D, $345 million total funding and intended support for commercialization and next-generation development.",
+      "claim_boundary": "Funding does not establish commercial authorization, pivotal-trial success, market readiness or technological superiority."
+    },
+    {
+      "source_id": "SRC-16-009",
+      "title": "Synchron unveils roadmap to Chiral cognitive AI model",
+      "publisher": "Synchron / Business Wire",
+      "url": "https://www.businesswire.com/news/home/20250319964709/en/Synchron-Unveils-Chiral-the-Worlds-First-Cognitive-AI-Brain-Foundation-Model",
+      "published": "2025-03-19",
+      "retrieved": "2026-07-29T12:38:00Z",
+      "source_class": "COMPANY_MODEL_ROADMAP_ANNOUNCEMENT",
+      "evidence_state": "ROADMAP_NOT_VALIDATED_MODEL",
+      "supports": "Synchron describes a roadmap to train Chiral on deidentified Stentrode data using NVIDIA infrastructure.",
+      "claim_boundary": "No released checkpoint, training-corpus manifest, benchmark protocol or independent evaluation was identified. This is a roadmap record, not a validated foundation model."
+    },
+    {
+      "source_id": "SRC-16-010",
+      "title": "CLEF: EEG Foundation Model for Learning Clinical Semantics",
+      "publisher": "arXiv",
+      "url": "https://arxiv.org/abs/2605.10817",
+      "published": "2026-05-11",
+      "retrieved": "2026-07-29T12:38:00Z",
+      "source_class": "RESEARCH_PREPRINT",
+      "evidence_state": "PREPRINT_NOT_PEER_REVIEWED",
+      "supports": "Preprint describes a long-context EEG model evaluated on a 234-task benchmark using more than 260,000 EEG sessions from over 108,000 patients.",
+      "claim_boundary": "Results remain bounded to the reported datasets, splits, tasks and preprint protocol; independent replication and peer review are unresolved."
+    },
+    {
+      "source_id": "SRC-16-011",
+      "title": "Neuralink updates index",
+      "publisher": "Neuralink",
+      "url": "https://neuralink.com/updates/",
+      "published": null,
+      "retrieved": "2026-07-29T12:38:00Z",
+      "source_class": "OFFICIAL_COMPANY_UPDATE_INDEX",
+      "evidence_state": "NO_POST_BASELINE_MATERIAL_EVENT_IDENTIFIED",
+      "supports": "Latest indexed substantive participant update remains dated 2026-01-28.",
+      "claim_boundary": "No-change finding is limited to the accessible official update index and does not establish absence of unannounced or non-indexed events."
+    },
+    {
+      "source_id": "SRC-16-012",
+      "title": "UNESCO Recommendation on the Ethics of Neurotechnology",
+      "publisher": "UNESCO",
+      "url": "https://www.unesco.org/en/legal-affairs/recommendation-ethics-neurotechnology?hub=66535",
+      "published": "2025-11-11",
+      "retrieved": "2026-07-29T12:38:00Z",
+      "source_class": "OFFICIAL_NORMATIVE_INSTRUMENT",
+      "evidence_state": "NO_MATERIAL_TEXT_CHANGE_IDENTIFIED",
+      "supports": "Adopted Recommendation and implementation obligations remain the normative anchor.",
+      "claim_boundary": "No-change finding is limited to the retrieved official text and does not establish national implementation status."
+    }
+  ],
+  "change_candidates": [
+    {
+      "candidate_id": "CAND-16-001",
+      "event_date": "2026-07-22",
+      "discovery_class": "PRE_CUTOFF_EVIDENCE_DISCOVERED_AFTER_FREEZE",
+      "change_class": "REGULATORY_AND_MARKET_STATE_CHANGE",
+      "subject": "PRIMA retinal prosthesis",
+      "summary": "CE-mark and European commercial-launch announcement.",
+      "source_ids": [
+        "SRC-16-001"
+      ],
+      "materiality": "HIGH",
+      "adjudication": "ACCEPT_WITH_EVIDENCE_BOUNDARY",
+      "reopening": "SYSTEM_RECORD_REOPEN_REQUIRED"
+    },
+    {
+      "candidate_id": "CAND-16-002",
+      "event_date": "2026-07-22",
+      "discovery_class": "PRE_CUTOFF_EVIDENCE_DISCOVERED_AFTER_FREEZE",
+      "change_class": "REGULATORY_DESIGNATION_CHANGE",
+      "subject": "PRIMA retinal prosthesis",
+      "summary": "Two FDA HUD designation announcements.",
+      "source_ids": [
+        "SRC-16-002",
+        "SRC-16-003"
+      ],
+      "materiality": "HIGH",
+      "adjudication": "ACCEPT_WITH_REGULATORY_BOUNDARY",
+      "reopening": "SYSTEM_RECORD_REOPEN_REQUIRED"
+    },
+    {
+      "candidate_id": "CAND-16-003",
+      "event_date": "2026-03-05",
+      "discovery_class": "HISTORICAL_BACKFILL",
+      "change_class": "CAPITAL_AND_CONTINUITY_CHANGE",
+      "subject": "Science Corporation",
+      "summary": "$230 million Series C financing.",
+      "source_ids": [
+        "SRC-16-004"
+      ],
+      "materiality": "MEDIUM",
+      "adjudication": "ACCEPT_AS_COMPANY_ANNOUNCED_EVENT",
+      "reopening": "ORGANIZATION_AND_CAPITAL_RECORD_UPDATE"
+    },
+    {
+      "candidate_id": "CAND-16-004",
+      "event_date": "2026-02-20",
+      "discovery_class": "HISTORICAL_BACKFILL",
+      "change_class": "SUPPLIER_AND_PLATFORM_DEPENDENCY_CHANGE",
+      "subject": "Science Corporation and Neurosoft Bioelectronics",
+      "summary": "Multiyear BCI ecosystem agreement.",
+      "source_ids": [
+        "SRC-16-005"
+      ],
+      "materiality": "MEDIUM",
+      "adjudication": "ACCEPT_AS_ANNOUNCED_RELATIONSHIP",
+      "reopening": "DEPENDENCY_GRAPH_UPDATE"
+    },
+    {
+      "candidate_id": "CAND-16-005",
+      "event_date": "2026-03-31",
+      "discovery_class": "HISTORICAL_BACKFILL",
+      "change_class": "GOVERNANCE_AND_LEADERSHIP_CHANGE",
+      "subject": "Science Corporation",
+      "summary": "Medical Director for BCI appointment.",
+      "source_ids": [
+        "SRC-16-006"
+      ],
+      "materiality": "LOW",
+      "adjudication": "ACCEPT",
+      "reopening": "NO_SYSTEM_ASSESSMENT_REOPEN"
+    },
+    {
+      "candidate_id": "CAND-16-006",
+      "event_date": "2026-07-07",
+      "discovery_class": "PRE_CUTOFF_EVIDENCE_DISCOVERED_AFTER_FREEZE",
+      "change_class": "GOVERNANCE_AND_LEADERSHIP_CHANGE",
+      "subject": "Paradromics",
+      "summary": "Chief Clinical Officer appointment.",
+      "source_ids": [
+        "SRC-16-007"
+      ],
+      "materiality": "LOW",
+      "adjudication": "ACCEPT",
+      "reopening": "NO_CONNEXUS_ASSESSMENT_REOPEN"
+    },
+    {
+      "candidate_id": "CAND-16-007",
+      "event_date": "2025-11-06",
+      "discovery_class": "HISTORICAL_BACKFILL",
+      "change_class": "CAPITAL_AND_CONTINUITY_CHANGE",
+      "subject": "Synchron",
+      "summary": "$200 million Series D financing.",
+      "source_ids": [
+        "SRC-16-008"
+      ],
+      "materiality": "MEDIUM",
+      "adjudication": "ACCEPT_AS_COMPANY_ANNOUNCED_EVENT",
+      "reopening": "ORGANIZATION_AND_CAPITAL_RECORD_UPDATE"
+    },
+    {
+      "candidate_id": "CAND-16-008",
+      "event_date": "2025-03-19",
+      "discovery_class": "HISTORICAL_BACKFILL",
+      "change_class": "MODEL_ROADMAP_CHANGE",
+      "subject": "Synchron Chiral",
+      "summary": "Roadmap to a cognitive AI brain foundation model.",
+      "source_ids": [
+        "SRC-16-009"
+      ],
+      "materiality": "MEDIUM",
+      "adjudication": "ACCEPT_AS_ROADMAP_ONLY",
+      "reopening": "MODEL_REGISTRY_UPDATE_NO_VALIDATED_MODEL_CLAIM"
+    },
+    {
+      "candidate_id": "CAND-16-009",
+      "event_date": "2026-05-11",
+      "discovery_class": "HISTORICAL_BACKFILL",
+      "change_class": "MODEL_AND_BENCHMARK_CHANGE",
+      "subject": "CLEF",
+      "summary": "Long-context clinically grounded EEG foundation-model preprint.",
+      "source_ids": [
+        "SRC-16-010"
+      ],
+      "materiality": "MEDIUM",
+      "adjudication": "ACCEPT_AS_PREPRINT",
+      "reopening": "MODEL_REGISTRY_UPDATE"
+    }
+  ],
+  "adjudicated_delta": {
+    "regulatory_and_market_events": [
+      {
+        "event_id": "REG-16-001",
+        "event_date": "2026-07-22",
+        "system": "PRIMA retinal prosthesis",
+        "jurisdiction": "European Union / EEA",
+        "event_type": "CE_MARK_AND_COMMERCIAL_LAUNCH_ANNOUNCEMENT",
+        "source_ids": [
+          "SRC-16-001"
+        ],
+        "evidence_state": "COMPANY_ANNOUNCEMENT_CORROBORATED_BY_REPUTABLE_MEDIA",
+        "bounded_effect": "Update observatory regulatory and deployment state to company-announced CE-marked and commercially launched in EU/EEA.",
+        "prohibited_inferences": [
+          "Global authorization",
+          "United States marketing authorization",
+          "Complete clinical-effectiveness conclusion",
+          "Universal system conformance"
+        ]
+      },
+      {
+        "event_id": "REG-16-002",
+        "event_date": "2026-07-22",
+        "system": "PRIMA retinal prosthesis",
+        "jurisdiction": "United States",
+        "event_type": "TWO_HUD_DESIGNATIONS_ANNOUNCED",
+        "source_ids": [
+          "SRC-16-002",
+          "SRC-16-003"
+        ],
+        "evidence_state": "COMPANY_ANNOUNCEMENT_WITH_FDA_PROCEDURAL_BOUNDARY",
+        "bounded_effect": "Record HUD-designation pathway for two stated populations.",
+        "prohibited_inferences": [
+          "HDE approval",
+          "US marketing authorization",
+          "FDA effectiveness determination"
+        ]
+      }
+    ],
+    "capital_and_ownership_events": [
+      {
+        "event_id": "CAP-16-001",
+        "date": "2026-03-05",
+        "event_type": "EQUITY_FINANCING",
+        "subject": "Science Corporation",
+        "amount": 230000000,
+        "currency": "USD",
+        "source_ids": [
+          "SRC-16-004"
+        ],
+        "boundary": "Company-announced financing; no valuation or control inference."
+      },
+      {
+        "event_id": "CAP-16-002",
+        "date": "2025-11-06",
+        "event_type": "SERIES_D_FINANCING",
+        "subject": "Synchron",
+        "amount": 200000000,
+        "currency": "USD",
+        "source_ids": [
+          "SRC-16-008"
+        ],
+        "boundary": "Company press release; no authorization, commercial-readiness or performance inference."
+      }
+    ],
+    "model_records": [
+      {
+        "model_id": "MDL-16-001",
+        "name": "Chiral",
+        "developer": "Synchron",
+        "record_type": "MODEL_ROADMAP",
+        "publication_state": "COMPANY_ANNOUNCEMENT",
+        "source_ids": [
+          "SRC-16-009"
+        ],
+        "verification_state": "ROADMAP_ONLY",
+        "claim_boundary": "No released checkpoint, corpus manifest, benchmark or independent evaluation."
+      },
+      {
+        "model_id": "MDL-16-002",
+        "name": "CLEF",
+        "developer": "MIT and collaborators",
+        "record_type": "EEG_FOUNDATION_MODEL",
+        "publication_state": "PREPRINT",
+        "source_ids": [
+          "SRC-16-010"
+        ],
+        "verification_state": "PREPRINT_REPORTED",
+        "claim_boundary": "Bounded to reported 234-task benchmark, datasets and splits; peer review and replication unresolved."
+      }
+    ],
+    "supplier_dependency_relationships": [
+      {
+        "dependency_id": "DEP-16-001",
+        "subject": "Neurosoft Bioelectronics BCI programme",
+        "provider": "Science Corporation",
+        "relationship_type": "MULTIYEAR_BCI_ECOSYSTEM_PLATFORM_AGREEMENT",
+        "source_ids": [
+          "SRC-16-005"
+        ],
+        "evidence_state": "COMPANY_ANNOUNCED_RELATIONSHIP",
+        "boundary": "Does not establish product approval, successful trial execution or audited contract performance."
+      }
+    ],
+    "governance_and_leadership_events": [
+      {
+        "governance_id": "GOV-16-001",
+        "date": "2026-03-31",
+        "organization": "Science Corporation",
+        "event": "Murat Günel appointed Medical Director for BCI",
+        "source_ids": [
+          "SRC-16-006"
+        ],
+        "reopening": "NO_SYSTEM_ASSESSMENT_REOPEN"
+      },
+      {
+        "governance_id": "GOV-16-002",
+        "date": "2026-07-07",
+        "organization": "Paradromics",
+        "event": "William J. Marks appointed Chief Clinical Officer",
+        "source_ids": [
+          "SRC-16-007"
+        ],
+        "reopening": "NO_CONNEXUS_ASSESSMENT_REOPEN"
+      }
+    ]
+  },
+  "reopening_decisions": [
+    {
+      "decision_id": "ROP-16-001",
+      "object": "PRIMA observatory system record",
+      "decision": "REOPEN_REQUIRED",
+      "basis": [
+        "REG-16-001",
+        "REG-16-002"
+      ],
+      "required_actions": [
+        "Create exact CE-marked configuration and intended-use record",
+        "Obtain notified-body certificate or EUDAMED evidence if available",
+        "Separate EU commercial status from US HUD pathway",
+        "Record first commercial implantation only after source confirmation"
+      ]
+    },
+    {
+      "decision_id": "ROP-16-002",
+      "object": "Brain2Qwerty public-evidence pilot v4.1.3",
+      "decision": "NO_REOPENING_TRIGGER_IDENTIFIED",
+      "basis": [],
+      "required_actions": []
+    },
+    {
+      "decision_id": "ROP-16-003",
+      "object": "FDA adaptive DBS public-evidence pilot v4.1.4",
+      "decision": "NO_REOPENING_TRIGGER_IDENTIFIED",
+      "basis": [],
+      "required_actions": []
+    },
+    {
+      "decision_id": "ROP-16-004",
+      "object": "BrainGate2 T15 pilot v4.1.5",
+      "decision": "NO_REOPENING_TRIGGER_IDENTIFIED",
+      "basis": [],
+      "required_actions": []
+    },
+    {
+      "decision_id": "ROP-16-005",
+      "object": "Synchron model registry",
+      "decision": "UPDATE_REQUIRED_NO_ASSESSMENT_REOPEN",
+      "basis": [
+        "MDL-16-001",
+        "CAP-16-002"
+      ],
+      "required_actions": [
+        "Retain Chiral as roadmap-only until checkpoint and evaluation evidence exist"
+      ]
+    },
+    {
+      "decision_id": "ROP-16-006",
+      "object": "Paradromics Connexus system record",
+      "decision": "METADATA_UPDATE_ONLY",
+      "basis": [
+        "GOV-16-002"
+      ],
+      "required_actions": [
+        "No substantive finding change from leadership appointment alone"
+      ]
+    }
+  ],
+  "no_change_confirmations": [
+    {
+      "object": "Neuralink official update index",
+      "source_ids": [
+        "SRC-16-011"
+      ],
+      "result": "NO_POST_BASELINE_MATERIAL_EVENT_IDENTIFIED"
+    },
+    {
+      "object": "UNESCO Recommendation text",
+      "source_ids": [
+        "SRC-16-012"
+      ],
+      "result": "NO_MATERIAL_TEXT_CHANGE_IDENTIFIED"
+    }
+  ],
+  "withheld_claims": [
+    "Global completeness",
+    "Absence of unannounced events",
+    "Independent CE-certificate verification",
+    "PRIMA HDE approval",
+    "US commercial authorization",
+    "Clinical-effectiveness appraisal",
+    "Production deployment completion",
+    "UNESCO endorsement",
+    "System conformance"
+  ]
+}

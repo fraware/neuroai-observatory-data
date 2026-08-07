@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0",
+  "title": "Public migration disposition summary",
+  "release_set": "public-governing-v1",
+  "human_disposition": "ACCEPTED_WITH_RESIDUALS",
+  "residuals": [
+    "AMB-003"
+  ],
+  "ambiguities": {
+    "AMB-001": "RESOLVED_OPS_DIGEST_VERIFIED",
+    "AMB-002": "RESOLVED_OPS_DIGEST_VERIFIED",
+    "AMB-003": "INACCESSIBLE",
+    "AMB-004": "RESOLVED_REPO_EXISTS"
+  },
+  "withheld_claims": [
+    "No regulatory authorization",
+    "No clinical effectiveness or safety conclusion",
+    "No system conformance determination",
+    "No UNESCO endorsement or institutional authority",
+    "No protected-evidence completeness claim"
+  ],
+  "boundary": "Disposition summary records migration closure state only; it does not establish substantive observatory truth or institutional authority."
+}
