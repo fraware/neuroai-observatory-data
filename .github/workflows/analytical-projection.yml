@@ -40,3 +40,6 @@ jobs:
           test -s "$RUNNER_TEMP/neuroai-analytics/data-health.json"
           test -s "$RUNNER_TEMP/neuroai-analytics/current-state.json"
           test -s "$RUNNER_TEMP/neuroai-analytics/table-manifest.json"
+      - name: Print data checkpoint
+        run: |
+          python -c 'import json, os; from pathlib import Path; root = Path(os.environ["RUNNER_TEMP"]) / "neuroai-analytics"; manifest = json.loads((root / "table-manifest.json").read_text()); health = json.loads((root / "data-health.json").read_text()); print("TABLE COUNTS"); [print(f"{t[\"table\"]}: {t[\"row_count\"]}") for t in manifest["tables"]]; print("FRESHNESS"); [print(f"{k}: {v}") for k, v in health["source_monitor_freshness"]["counts"].items()]; print(f"ATTENTION: {len(health[\"source_monitor_freshness\"][\"attention\"])}")'
