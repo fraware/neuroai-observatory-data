@@ -14,7 +14,9 @@ from typing import Any, Iterable
 from urllib.parse import urlsplit, urlunsplit
 
 DEFAULT_RECORDS_DIR = Path("releases/data-v0.1.0-public-governing/records")
+DEFAULT_SUPPLEMENTAL_DIR = Path("supplemental_records")
 DEFAULT_OUTPUT_DIR = Path("analytics/current")
+PRIMA_SOURCE_REGISTER = "PRIMA_NEW_UNIQUE_SOURCE_REGISTER_v1.7.json"
 CADENCE_DAYS = {
     "DAILY": 1,
     "WEEKLY": 7,
@@ -49,16 +51,20 @@ NAME_FIELDS = (
     "publisher",
     "object",
 )
-DATE_FIELDS = (
+SUBSTANTIVE_DATE_FIELDS = (
     "event_date",
     "date",
     "decision_date",
     "effective_as_of",
+    "published_at",
+    "published",
+    "announcement_date",
     "last_verified",
+)
+RETRIEVAL_DATE_FIELDS = (
     "last_successful_retrieval",
     "retrieved_at",
-    "published_at",
-    "announcement_date",
+    "retrieved",
 )
 CSV_FIELDS = (
     "record_id",
@@ -68,6 +74,8 @@ CSV_FIELDS = (
     "name",
     "entity_or_system",
     "date",
+    "publication_date",
+    "retrieval_date",
     "jurisdiction",
     "url",
     "publisher",
@@ -143,23 +151,13 @@ def first_scalar(record: dict[str, Any], fields: Iterable[str]) -> Any:
 
 def record_id(record: dict[str, Any], *, section: str, ordinal: int) -> str:
     value = first_scalar(record, ID_FIELDS)
-    if value is not None:
-        return str(value)
-    return f"{section}:{ordinal:05d}"
+    return str(value) if value is not None else f"{section}:{ordinal:05d}"
 
 
 def entity_or_system(record: dict[str, Any]) -> str | None:
     value = first_scalar(
         record,
-        (
-            "system",
-            "organization",
-            "subject",
-            "developer",
-            "canonical_name",
-            "publisher",
-            "object",
-        ),
+        ("system", "organization", "subject", "developer", "canonical_name", "publisher", "object"),
     )
     return str(value) if value is not None else None
 
@@ -186,14 +184,18 @@ def project_record(
     ordinal: int,
 ) -> dict[str, Any]:
     name = first_scalar(record, NAME_FIELDS)
-    row = {
+    publication_date = first_scalar(record, ("published_at", "published", "announcement_date"))
+    retrieval_date = first_scalar(record, RETRIEVAL_DATE_FIELDS)
+    return {
         "record_id": record_id(record, section=source_section, ordinal=ordinal),
         "record_type": record_type,
         "source_release": source_release,
         "source_section": source_section,
         "name": str(name) if name is not None else None,
         "entity_or_system": entity_or_system(record),
-        "date": first_scalar(record, DATE_FIELDS),
+        "date": first_scalar(record, SUBSTANTIVE_DATE_FIELDS),
+        "publication_date": publication_date,
+        "retrieval_date": retrieval_date,
         "jurisdiction": first_scalar(record, ("jurisdiction", "jurisdictions", "headquarters_country")),
         "url": first_scalar(record, ("url", "official_url", "retrieval_url")),
         "publisher": record.get("publisher"),
@@ -204,13 +206,10 @@ def project_record(
         "source_ids": source_ids(record),
         "payload": record,
     }
-    return row
 
 
 def list_records(value: Any) -> list[dict[str, Any]]:
-    if not isinstance(value, list):
-        return []
-    return [item for item in value if isinstance(item, dict)]
+    return [item for item in value if isinstance(item, dict)] if isinstance(value, list) else []
 
 
 def append_section(
@@ -233,7 +232,7 @@ def append_section(
         )
 
 
-def load_inputs(records_dir: Path) -> dict[str, Any]:
+def load_inputs(records_dir: Path, supplemental_dir: Path | None = None) -> dict[str, Any]:
     paths = {
         "v14": records_dir / "canonical_observatory_release_v1.4.json",
         "v15_registry": records_dir / "source_monitor_registry_v1.5.json",
@@ -243,19 +242,63 @@ def load_inputs(records_dir: Path) -> dict[str, Any]:
     missing = [str(path) for path in paths.values() if not path.is_file()]
     if missing:
         raise ValueError("Missing governing input(s): " + ", ".join(missing))
-    return {key: load_json(path) for key, path in paths.items()}
+    inputs = {key: load_json(path) for key, path in paths.items()}
+    supplemental = supplemental_dir or DEFAULT_SUPPLEMENTAL_DIR
+    prima_path = supplemental / PRIMA_SOURCE_REGISTER
+    inputs["prima_sources"] = load_json(prima_path) if prima_path.is_file() else []
+    return inputs
+
+
+def _append_unique_sources(
+    table: list[dict[str, Any]],
+    value: Any,
+    *,
+    source_release: str,
+    source_section: str,
+) -> None:
+    existing = {str(row["record_id"]): row for row in table}
+    for ordinal, record in enumerate(list_records(value)):
+        row = project_record(
+            record,
+            record_type="source",
+            source_release=source_release,
+            source_section=source_section,
+            ordinal=ordinal,
+        )
+        source_id = str(row["record_id"])
+        previous = existing.get(source_id)
+        if previous is not None:
+            if normalize_url(previous.get("url")) != normalize_url(row.get("url")):
+                raise ValueError(f"Conflicting duplicate source_id {source_id!r}")
+            continue
+        table.append(row)
+        existing[source_id] = row
+
+
+def _validate_effective_source_count(inputs: dict[str, Any], tables: dict[str, list[dict[str, Any]]]) -> None:
+    successor = inputs["v17"]
+    counts = successor.get("successor_effective_counts", {}) if isinstance(successor, dict) else {}
+    expected = counts.get("source_records") if isinstance(counts, dict) else None
+    if isinstance(expected, int) and len(tables["sources"]) != expected:
+        raise ValueError(
+            f"Current source materialization incomplete: projected {len(tables['sources'])}, "
+            f"v1.7 declares {expected} effective source records"
+        )
 
 
 def build_tables(inputs: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
     base = inputs["v14"]
     registry = inputs["v15_registry"]
+    live = inputs["v16"]
     successor = inputs["v17"]
-    if not isinstance(base, dict) or not isinstance(successor, dict):
-        raise ValueError("v1.4 and v1.7 inputs must be JSON objects")
-    if not isinstance(registry, list):
-        raise ValueError("v1.5 source monitor registry must be a JSON list")
+    prima_sources = inputs.get("prima_sources", [])
+    if not isinstance(base, dict) or not isinstance(live, dict) or not isinstance(successor, dict):
+        raise ValueError("v1.4, v1.6 and v1.7 inputs must be JSON objects")
+    if not isinstance(registry, list) or not isinstance(prima_sources, list):
+        raise ValueError("Source registry and PRIMA supplemental source register must be JSON lists")
 
     base_version = metadata_version(base, "v1.4")
+    live_version = metadata_version(live, "v1.6")
     successor_version = metadata_version(successor, "v1.7")
     tables: dict[str, list[dict[str, Any]]] = {
         "organizations": [],
@@ -274,12 +317,23 @@ def build_tables(inputs: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
         source_release=base_version,
         source_section="organizations",
     )
-    append_section(
+    _append_unique_sources(
         tables["sources"],
         base.get("sources"),
-        record_type="source",
         source_release=base_version,
         source_section="sources",
+    )
+    _append_unique_sources(
+        tables["sources"],
+        live.get("new_sources"),
+        source_release=live_version,
+        source_section="new_sources",
+    )
+    _append_unique_sources(
+        tables["sources"],
+        prima_sources,
+        source_release=successor_version,
+        source_section=f"supplemental.{PRIMA_SOURCE_REGISTER}",
     )
     append_section(
         tables["source_monitors"],
@@ -352,7 +406,7 @@ def build_tables(inputs: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
         source_release=successor_version,
         source_section="reopening_decisions",
     )
-
+    _validate_effective_source_count(inputs, tables)
     for rows in tables.values():
         rows.sort(
             key=lambda row: (
@@ -394,6 +448,8 @@ def write_table(output_dir: Path, table_name: str, rows: list[dict[str, Any]]) -
                     "name": row.get("name"),
                     "entity_or_system": row.get("entity_or_system"),
                     "date": csv_value(row.get("date")),
+                    "publication_date": csv_value(row.get("publication_date")),
+                    "retrieval_date": csv_value(row.get("retrieval_date")),
                     "jurisdiction": csv_value(row.get("jurisdiction")),
                     "url": row.get("url"),
                     "publisher": row.get("publisher"),
@@ -410,7 +466,11 @@ def write_table(output_dir: Path, table_name: str, rows: list[dict[str, Any]]) -
     return {
         "table": table_name,
         "row_count": len(rows),
-        "jsonl": {"path": jsonl_path.name, "sha256": sha256_file(jsonl_path), "size_bytes": jsonl_path.stat().st_size},
+        "jsonl": {
+            "path": jsonl_path.name,
+            "sha256": sha256_file(jsonl_path),
+            "size_bytes": jsonl_path.stat().st_size,
+        },
         "csv": {"path": csv_path.name, "sha256": sha256_file(csv_path), "size_bytes": csv_path.stat().st_size},
     }
 
@@ -487,18 +547,24 @@ def build_health(tables: dict[str, list[dict[str, Any]]], *, as_of: date) -> dic
         }
         for name, rows in tables.items()
     }
-    missingness: dict[str, dict[str, int]] = {}
-    for name, rows in tables.items():
-        missingness[name] = {
+    missingness = {
+        name: {
             "missing_record_id": sum(1 for row in rows if not row.get("record_id")),
             "missing_date": sum(1 for row in rows if not row.get("date")),
             "missing_source_ids": sum(1 for row in rows if not row.get("source_ids")),
             "missing_name": sum(1 for row in rows if not row.get("name")),
         }
+        for name, rows in tables.items()
+    }
     return {
         "as_of": as_of.isoformat(),
         "table_row_counts": {name: len(rows) for name, rows in sorted(tables.items())},
         "source_monitor_freshness": freshness_health(tables["source_monitors"], as_of=as_of),
+        "monitor_coverage": {
+            "effective_source_records": len(tables["sources"]),
+            "monitored_source_records": len(tables["source_monitors"]),
+            "unmonitored_effective_source_count": max(0, len(tables["sources"]) - len(tables["source_monitors"])),
+        },
         "duplicates": duplicates,
         "missingness": missingness,
     }
@@ -538,8 +604,14 @@ def current_state(inputs: dict[str, Any], tables: dict[str, list[dict[str, Any]]
     }
 
 
-def build_projection(records_dir: Path, output_dir: Path, *, as_of: date) -> dict[str, Any]:
-    inputs = load_inputs(records_dir)
+def build_projection(
+    records_dir: Path,
+    output_dir: Path,
+    *,
+    as_of: date,
+    supplemental_dir: Path | None = None,
+) -> dict[str, Any]:
+    inputs = load_inputs(records_dir, supplemental_dir=supplemental_dir)
     tables = build_tables(inputs)
     output_dir.mkdir(parents=True, exist_ok=True)
     manifests = [write_table(output_dir, name, rows) for name, rows in sorted(tables.items())]
@@ -550,6 +622,7 @@ def build_projection(records_dir: Path, output_dir: Path, *, as_of: date) -> dic
     manifest = {
         "generated_for_as_of": as_of.isoformat(),
         "records_dir": records_dir.as_posix(),
+        "supplemental_dir": (supplemental_dir or DEFAULT_SUPPLEMENTAL_DIR).as_posix(),
         "tables": manifests,
         "derived_files": {
             "data-health.json": sha256_file(output_dir / "data-health.json"),
@@ -563,13 +636,19 @@ def build_projection(records_dir: Path, output_dir: Path, *, as_of: date) -> dic
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--records-dir", type=Path, default=DEFAULT_RECORDS_DIR)
+    parser.add_argument("--supplemental-dir", type=Path, default=DEFAULT_SUPPLEMENTAL_DIR)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     parser.add_argument("--as-of", default=date.today().isoformat())
     args = parser.parse_args()
     as_of = parse_date(args.as_of)
     if as_of is None:
         raise SystemExit(f"invalid --as-of date: {args.as_of!r}")
-    manifest = build_projection(args.records_dir.resolve(), args.output_dir.resolve(), as_of=as_of)
+    manifest = build_projection(
+        args.records_dir.resolve(),
+        args.output_dir.resolve(),
+        as_of=as_of,
+        supplemental_dir=args.supplemental_dir.resolve(),
+    )
     rows = sum(int(table["row_count"]) for table in manifest["tables"])
     print(f"{len(manifest['tables'])} tables / {rows} rows -> {args.output_dir}")
     return 0
