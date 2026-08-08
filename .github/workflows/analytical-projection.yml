@@ -1,0 +1,42 @@
+name: Analytical projection
+
+on:
+  pull_request:
+    paths:
+      - "scripts/build_analytical_projection.py"
+      - "tests/test_build_analytical_projection.py"
+      - ".github/workflows/analytical-projection.yml"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/build_analytical_projection.py"
+      - "tests/test_build_analytical_projection.py"
+      - ".github/workflows/analytical-projection.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Unit tests
+        run: python -m unittest discover -s tests -p 'test_build_analytical_projection.py' -v
+      - name: Build projection on governing corpus
+        run: >-
+          python scripts/build_analytical_projection.py
+          --records-dir releases/data-v0.1.0-public-governing/records
+          --output-dir "$RUNNER_TEMP/neuroai-analytics"
+          --as-of 2026-08-08
+      - name: Verify expected outputs
+        run: |
+          test -s "$RUNNER_TEMP/neuroai-analytics/organizations.jsonl"
+          test -s "$RUNNER_TEMP/neuroai-analytics/sources.jsonl"
+          test -s "$RUNNER_TEMP/neuroai-analytics/source_monitors.jsonl"
+          test -s "$RUNNER_TEMP/neuroai-analytics/data-health.json"
+          test -s "$RUNNER_TEMP/neuroai-analytics/current-state.json"
+          test -s "$RUNNER_TEMP/neuroai-analytics/table-manifest.json"
