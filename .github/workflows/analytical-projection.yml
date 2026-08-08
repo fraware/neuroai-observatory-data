@@ -41,5 +41,25 @@ jobs:
           test -s "$RUNNER_TEMP/neuroai-analytics/current-state.json"
           test -s "$RUNNER_TEMP/neuroai-analytics/table-manifest.json"
       - name: Print data checkpoint
+        env:
+          ANALYTICS_ROOT: ${{ runner.temp }}/neuroai-analytics
         run: |
-          python -c 'import json, os; from pathlib import Path; root = Path(os.environ["RUNNER_TEMP"]) / "neuroai-analytics"; manifest = json.loads((root / "table-manifest.json").read_text()); health = json.loads((root / "data-health.json").read_text()); print("TABLE COUNTS"); [print(f"{t[\"table\"]}: {t[\"row_count\"]}") for t in manifest["tables"]]; print("FRESHNESS"); [print(f"{k}: {v}") for k, v in health["source_monitor_freshness"]["counts"].items()]; print(f"ATTENTION: {len(health[\"source_monitor_freshness\"][\"attention\"])}")'
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          root = Path(os.environ["ANALYTICS_ROOT"])
+          manifest = json.loads((root / "table-manifest.json").read_text())
+          health = json.loads((root / "data-health.json").read_text())
+
+          print("TABLE COUNTS")
+          for table in manifest["tables"]:
+              print(f"{table['table']}: {table['row_count']}")
+
+          print("FRESHNESS")
+          freshness = health["source_monitor_freshness"]
+          for key, value in freshness["counts"].items():
+              print(f"{key}: {value}")
+          print(f"ATTENTION: {len(freshness['attention'])}")
+          PY
