@@ -51,18 +51,20 @@ NAME_FIELDS = (
     "publisher",
     "object",
 )
-DATE_FIELDS = (
+SUBSTANTIVE_DATE_FIELDS = (
     "event_date",
     "date",
     "decision_date",
     "effective_as_of",
-    "last_verified",
-    "last_successful_retrieval",
-    "retrieved_at",
-    "retrieved",
     "published_at",
     "published",
     "announcement_date",
+    "last_verified",
+)
+RETRIEVAL_DATE_FIELDS = (
+    "last_successful_retrieval",
+    "retrieved_at",
+    "retrieved",
 )
 CSV_FIELDS = (
     "record_id",
@@ -72,6 +74,8 @@ CSV_FIELDS = (
     "name",
     "entity_or_system",
     "date",
+    "publication_date",
+    "retrieval_date",
     "jurisdiction",
     "url",
     "publisher",
@@ -180,6 +184,8 @@ def project_record(
     ordinal: int,
 ) -> dict[str, Any]:
     name = first_scalar(record, NAME_FIELDS)
+    publication_date = first_scalar(record, ("published_at", "published", "announcement_date"))
+    retrieval_date = first_scalar(record, RETRIEVAL_DATE_FIELDS)
     return {
         "record_id": record_id(record, section=source_section, ordinal=ordinal),
         "record_type": record_type,
@@ -187,7 +193,9 @@ def project_record(
         "source_section": source_section,
         "name": str(name) if name is not None else None,
         "entity_or_system": entity_or_system(record),
-        "date": first_scalar(record, DATE_FIELDS),
+        "date": first_scalar(record, SUBSTANTIVE_DATE_FIELDS),
+        "publication_date": publication_date,
+        "retrieval_date": retrieval_date,
         "jurisdiction": first_scalar(record, ("jurisdiction", "jurisdictions", "headquarters_country")),
         "url": first_scalar(record, ("url", "official_url", "retrieval_url")),
         "publisher": record.get("publisher"),
@@ -440,6 +448,8 @@ def write_table(output_dir: Path, table_name: str, rows: list[dict[str, Any]]) -
                     "name": row.get("name"),
                     "entity_or_system": row.get("entity_or_system"),
                     "date": csv_value(row.get("date")),
+                    "publication_date": csv_value(row.get("publication_date")),
+                    "retrieval_date": csv_value(row.get("retrieval_date")),
                     "jurisdiction": csv_value(row.get("jurisdiction")),
                     "url": row.get("url"),
                     "publisher": row.get("publisher"),
