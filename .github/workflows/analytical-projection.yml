@@ -4,13 +4,17 @@ on:
   pull_request:
     paths:
       - "scripts/build_analytical_projection.py"
+      - "scripts/build_monitoring_eligibility.py"
       - "tests/test_build_analytical_projection.py"
+      - "tests/test_build_monitoring_eligibility.py"
       - ".github/workflows/analytical-projection.yml"
   push:
     branches: [main]
     paths:
       - "scripts/build_analytical_projection.py"
+      - "scripts/build_monitoring_eligibility.py"
       - "tests/test_build_analytical_projection.py"
+      - "tests/test_build_monitoring_eligibility.py"
       - ".github/workflows/analytical-projection.yml"
 
 permissions:
@@ -25,13 +29,18 @@ jobs:
         with:
           python-version: "3.12"
       - name: Unit tests
-        run: python -m unittest discover -s tests -p 'test_build_analytical_projection.py' -v
+        run: python -m unittest discover -s tests -p 'test_build_*.py' -v
       - name: Build projection on governing corpus
         run: >-
           python scripts/build_analytical_projection.py
           --records-dir releases/data-v0.1.0-public-governing/records
           --output-dir "$RUNNER_TEMP/neuroai-analytics"
           --as-of 2026-08-08
+      - name: Build monitoring eligibility on governing corpus
+        run: >-
+          python scripts/build_monitoring_eligibility.py
+          --records-dir releases/data-v0.1.0-public-governing/records
+          --output-dir "$RUNNER_TEMP/neuroai-monitoring"
       - name: Verify expected outputs
         run: |
           test -s "$RUNNER_TEMP/neuroai-analytics/organizations.jsonl"
@@ -40,6 +49,37 @@ jobs:
           test -s "$RUNNER_TEMP/neuroai-analytics/data-health.json"
           test -s "$RUNNER_TEMP/neuroai-analytics/current-state.json"
           test -s "$RUNNER_TEMP/neuroai-analytics/table-manifest.json"
+          test -s "$RUNNER_TEMP/neuroai-monitoring/monitoring-eligibility.json"
+          test -s "$RUNNER_TEMP/neuroai-monitoring/monitoring-eligibility.csv"
+      - name: Verify real-corpus monitoring checkpoint
+        env:
+          MONITORING_ROOT: ${{ runner.temp }}/neuroai-monitoring
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          root = Path(os.environ["MONITORING_ROOT"])
+          payload = json.loads((root / "monitoring-eligibility.json").read_text())
+          metadata = payload["metadata"]
+          rows = payload["sources"]
+
+          assert metadata["effective_source_count"] == 248, metadata
+          assert metadata["monitor_registry_source_count"] == 224, metadata
+          assert metadata["unmonitored_effective_source_count"] == 24, metadata
+          assert len(rows) == 248, len(rows)
+          assert len({row["source_id"] for row in rows}) == 248
+          assert sum(not row["monitor_present"] for row in rows) == 24
+          assert set(payload["unmonitored_mode_counts"]).issubset({"RECURRING", "ON_CHANGE", "ARCHIVAL_STATIC"})
+
+          print("MONITORING ELIGIBILITY")
+          print(f"effective: {metadata['effective_source_count']}")
+          print(f"existing monitors: {metadata['monitor_registry_source_count']}")
+          print(f"unmonitored effective: {metadata['unmonitored_effective_source_count']}")
+          for mode, count in payload["unmonitored_mode_counts"].items():
+              print(f"{mode}: {count}")
+          PY
       - name: Print data checkpoint
         env:
           ANALYTICS_ROOT: ${{ runner.temp }}/neuroai-analytics
