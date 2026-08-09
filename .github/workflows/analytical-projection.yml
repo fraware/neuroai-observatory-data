@@ -6,10 +6,12 @@ on:
       - "scripts/build_analytical_projection.py"
       - "scripts/build_monitoring_eligibility.py"
       - "scripts/validate_legacy_source_registration.py"
+      - "scripts/project_legacy_source_registration_impact.py"
       - "tests/test_build_analytical_projection.py"
       - "tests/test_build_monitoring_eligibility.py"
       - "tests/test_build_legacy_source_registration.py"
       - "tests/test_build_legacy_source_registration_provenance.py"
+      - "tests/test_build_legacy_source_registration_impact.py"
       - "curation/legacy_assessment_source_registration_proposals_v0.1.json"
       - "curation/legacy_assessment_source_registration_provenance_v0.1.json"
       - "schemas/legacy-source-registration-proposals.schema.json"
@@ -20,10 +22,12 @@ on:
       - "scripts/build_analytical_projection.py"
       - "scripts/build_monitoring_eligibility.py"
       - "scripts/validate_legacy_source_registration.py"
+      - "scripts/project_legacy_source_registration_impact.py"
       - "tests/test_build_analytical_projection.py"
       - "tests/test_build_monitoring_eligibility.py"
       - "tests/test_build_legacy_source_registration.py"
       - "tests/test_build_legacy_source_registration_provenance.py"
+      - "tests/test_build_legacy_source_registration_impact.py"
       - "curation/legacy_assessment_source_registration_proposals_v0.1.json"
       - "curation/legacy_assessment_source_registration_provenance_v0.1.json"
       - "schemas/legacy-source-registration-proposals.schema.json"
@@ -88,6 +92,58 @@ jobs:
           print("exact source proposals: 33")
           print("missing explicit source: 1")
           print("curation-only: 1")
+          PY
+      - name: Project legacy source registration impact
+        run: >-
+          python scripts/project_legacy_source_registration_impact.py
+          --output-dir "$RUNNER_TEMP/legacy-source-registration-impact"
+      - name: Verify prospective identity-safe impact
+        env:
+          IMPACT_ROOT: ${{ runner.temp }}/legacy-source-registration-impact
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          root = Path(os.environ["IMPACT_ROOT"])
+          payload = json.loads((root / "legacy-source-registration-impact.json").read_text(encoding="utf-8"))
+          scenario = payload["full_identity_safe_acceptance_scenario"]
+          remaining = payload["remaining_unresolved_evidence"]
+          packet = payload["review_packet"]
+
+          assert payload["status"] == "NONCANONICAL_PROJECTION", payload["status"]
+          assert payload["scenario_only"] is True
+          assert scenario["newly_joinable_evidence_count"] == 36, scenario
+          assert scenario["projected_deterministically_matched_evidence_count"] == 51, scenario
+          assert scenario["projected_joinability"] == {"numerator": 51, "denominator": 52}, scenario
+          assert scenario["projected_unresolved_evidence_count"] == 1, scenario
+          assert scenario["projected_added_source_identity_count"] == 34, scenario
+          assert scenario["projected_effective_source_count"] == 282, scenario
+          assert scenario["canonical_status"] == "SCENARIO_ONLY_NOT_CURRENT_CANONICAL_DATA", scenario
+          assert len(remaining) == 1, remaining
+          assert remaining[0]["system"] == "FDA adaptive DBS", remaining
+          assert remaining[0]["evidence_id"] == "EV-15", remaining
+          assert {row["review_disposition"] for row in packet} <= {
+              "READY_FOR_IDENTITY_REVIEW",
+              "CURATION_REQUIRED",
+          }
+          assert all(
+              row["monitoring_disposition"] == "UNCLASSIFIED_PENDING_SEPARATE_MONITORING_REVIEW"
+              for row in packet
+          )
+          assert sorted(
+              row["requested_source_id"]
+              for row in packet
+              if row["requested_source_id"]
+          ) == ["SRC-PR-011"]
+
+          print("LEGACY REGISTRATION IMPACT")
+          print("current joinability: 15/52")
+          print("newly joinable if identity-safe proposals are later accepted: 36")
+          print("projected joinability: 51/52")
+          print("remaining unresolved: FDA adaptive DBS EV-15")
+          print("projected effective sources: 282 (scenario only)")
           PY
       - name: Build projection on governing corpus
         run: >-
