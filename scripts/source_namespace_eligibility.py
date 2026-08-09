@@ -99,6 +99,10 @@ def evaluate_proposal(proposal: dict[str, Any], policy: dict[str, Any]) -> dict[
         effective_action = str(override["effective_action"])
         rule = "EXPLICIT_POLICY_OVERRIDE"
         reason = str(override["reason"])
+    elif raw_action == "CURATION_REQUIRED":
+        effective_action = "CURATION_REQUIRED"
+        rule = "MECHANICAL_CURATION_REMAINS_CURATION"
+        reason = "MECHANICAL_CURATION_REQUIRED"
     else:
         effective_action = raw_action
         rule = "MECHANICAL_ACTION_PASSES_NAMESPACE_GATE"
