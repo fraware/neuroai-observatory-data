@@ -1,4 +1,4 @@
-name: CI
+name: Analytical projection
 
 on:
   pull_request:
