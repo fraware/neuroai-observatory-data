@@ -1,0 +1,38 @@
+{
+  "schema_version": "0.1.0",
+  "artifact": "source_namespace_eligibility_policy",
+  "status": "NONCANONICAL_POLICY",
+  "precedence": "SOURCE_NAMESPACE_ELIGIBILITY_OVERRIDES_MECHANICAL_REGISTRATION_ACTION",
+  "scope": "legacy_assessment_source_registration_proposals_v0.1",
+  "principle": "Exact URL or checksum establishes artifact identity only after the artifact is eligible for the observatory source namespace. Assessment-local controlled adjudication records remain assessment-local even when content-addressed.",
+  "ineligible_evidence_markers": [
+    "CONTROLLED ADJUDICATION"
+  ],
+  "action_overrides": {
+    "LEGACY-SRC-PROP-033": {
+      "effective_action": "CURATION_REQUIRED",
+      "reason": "ASSESSMENT_LOCAL_CONTROLLED_ADJUDICATION",
+      "evidence_ids": ["EV-T15-012"],
+      "system": "BrainGate2 T15",
+      "checksum_is_provenance_only": true
+    }
+  },
+  "expected_checkpoint": {
+    "current_source_universe_count": 248,
+    "assessment_evidence_count": 52,
+    "currently_matched_evidence_count": 15,
+    "currently_unresolved_evidence_count": 37,
+    "exact_key_candidate_evidence_count": 35,
+    "source_namespace_eligible_exact_key_evidence_count": 34,
+    "effective_register_new_source_proposal_count": 32,
+    "effective_register_missing_explicit_source_count": 1,
+    "effective_curation_required_proposal_count": 2,
+    "identity_safe_proposal_count": 33,
+    "prospective_newly_joinable_evidence_count": 35,
+    "projected_matched_evidence_count": 50,
+    "projected_unresolved_evidence_count": 2,
+    "projected_added_source_identity_count": 33,
+    "projected_effective_source_count": 281
+  },
+  "authority_boundary": "This policy is a technical namespace-eligibility gate. It does not approve any source registration, alter historical assessment bytes, publish a canonical successor universe, or classify monitoring cadence."
+}
