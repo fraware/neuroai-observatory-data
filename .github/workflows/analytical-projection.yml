@@ -1,4 +1,4 @@
-name: Analytical projection
+name: CI
 
 on:
   pull_request:
@@ -9,7 +9,9 @@ on:
       - "tests/test_build_analytical_projection.py"
       - "tests/test_build_monitoring_eligibility.py"
       - "tests/test_build_legacy_source_registration.py"
+      - "tests/test_build_legacy_source_registration_provenance.py"
       - "curation/legacy_assessment_source_registration_proposals_v0.1.json"
+      - "curation/legacy_assessment_source_registration_provenance_v0.1.json"
       - "schemas/legacy-source-registration-proposals.schema.json"
       - ".github/workflows/analytical-projection.yml"
   push:
@@ -21,7 +23,9 @@ on:
       - "tests/test_build_analytical_projection.py"
       - "tests/test_build_monitoring_eligibility.py"
       - "tests/test_build_legacy_source_registration.py"
+      - "tests/test_build_legacy_source_registration_provenance.py"
       - "curation/legacy_assessment_source_registration_proposals_v0.1.json"
+      - "curation/legacy_assessment_source_registration_provenance_v0.1.json"
       - "schemas/legacy-source-registration-proposals.schema.json"
       - ".github/workflows/analytical-projection.yml"
 
