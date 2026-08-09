@@ -5,16 +5,24 @@ on:
     paths:
       - "scripts/build_analytical_projection.py"
       - "scripts/build_monitoring_eligibility.py"
+      - "scripts/validate_legacy_source_registration.py"
       - "tests/test_build_analytical_projection.py"
       - "tests/test_build_monitoring_eligibility.py"
+      - "tests/test_build_legacy_source_registration.py"
+      - "curation/legacy_assessment_source_registration_proposals_v0.1.json"
+      - "schemas/legacy-source-registration-proposals.schema.json"
       - ".github/workflows/analytical-projection.yml"
   push:
     branches: [main]
     paths:
       - "scripts/build_analytical_projection.py"
       - "scripts/build_monitoring_eligibility.py"
+      - "scripts/validate_legacy_source_registration.py"
       - "tests/test_build_analytical_projection.py"
       - "tests/test_build_monitoring_eligibility.py"
+      - "tests/test_build_legacy_source_registration.py"
+      - "curation/legacy_assessment_source_registration_proposals_v0.1.json"
+      - "schemas/legacy-source-registration-proposals.schema.json"
       - ".github/workflows/analytical-projection.yml"
 
 permissions:
@@ -30,6 +38,53 @@ jobs:
           python-version: "3.12"
       - name: Unit tests
         run: python -m unittest discover -s tests -p 'test_build_*.py' -v
+      - name: Validate legacy source registration proposals
+        run: python scripts/validate_legacy_source_registration.py
+      - name: Verify legacy source registration checkpoint
+        run: |
+          python - <<'PY'
+          import json
+          from collections import Counter
+          from pathlib import Path
+
+          path = Path("curation/legacy_assessment_source_registration_proposals_v0.1.json")
+          payload = json.loads(path.read_text(encoding="utf-8"))
+          metadata = payload["derived_from"]
+          proposals = payload["proposals"]
+          actions = Counter(row["action"] for row in proposals)
+
+          assert metadata["source_universe_count"] == 248, metadata
+          assert metadata["assessment_evidence_count"] == 52, metadata
+          assert metadata["deterministic_matched_evidence_count"] == 15, metadata
+          assert metadata["unresolved_evidence_count"] == 37, metadata
+          assert metadata["registration_eligible_evidence_count"] == 35, metadata
+          assert metadata["exact_identity_source_proposal_count"] == 33, metadata
+          assert metadata["missing_explicit_source_count"] == 1, metadata
+          assert metadata["curation_required_count"] == 1, metadata
+          assert metadata["fuzzy_matching"] is False, metadata
+          assert len(proposals) == 35, len(proposals)
+          assert actions == {
+              "REGISTER_NEW_SOURCE": 33,
+              "REGISTER_MISSING_EXPLICIT_SOURCE": 1,
+              "CURATION_REQUIRED": 1,
+          }, actions
+          assert sum(
+              len(row["linked_evidence"])
+              for row in proposals
+              if row["action"] == "REGISTER_NEW_SOURCE"
+          ) == 35
+          assert sum(len(row["linked_evidence"]) for row in proposals) == 37
+
+          print("LEGACY SOURCE REGISTRATION")
+          print("source universe: 248")
+          print("assessment evidence: 52")
+          print("deterministically matched: 15")
+          print("unresolved: 37")
+          print("registration-eligible evidence: 35")
+          print("exact source proposals: 33")
+          print("missing explicit source: 1")
+          print("curation-only: 1")
+          PY
       - name: Build projection on governing corpus
         run: >-
           python scripts/build_analytical_projection.py
