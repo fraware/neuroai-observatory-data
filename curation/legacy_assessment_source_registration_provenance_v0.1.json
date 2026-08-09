@@ -1,0 +1,75 @@
+{
+  "schema_version": "0.1.0",
+  "artifact": "legacy_assessment_source_registration_provenance",
+  "status": "NONCANONICAL_PROVENANCE_RECORD",
+  "source_checkpoint": {
+    "filename": "UNESCO_NeuroAI_All_Data_Combined_v2.2.0.xlsx",
+    "sha256": "db5bfca8c30e8b1945c52dc208dcbb486d1e0146adeb125b7fef9f557fcaa49a",
+    "size_bytes": 1400027,
+    "programme_checkpoint": "v2.2.0",
+    "availability_boundary": "The workbook is an external controlled programme artifact and is not copied into this public data repository. Reproduction requires bytes matching this SHA-256 digest."
+  },
+  "workbook_surfaces": {
+    "baseline_sources": {
+      "sheet": "Sources",
+      "range": "A1:K225",
+      "data_rows": 224
+    },
+    "assessment_evidence": {
+      "sheet": "Assessment_Evidence",
+      "range": "A1:AI53",
+      "data_rows": 52
+    },
+    "assessment_findings": {
+      "sheet": "Assessment_Findings",
+      "range": "A1:AG313",
+      "data_rows": 312
+    },
+    "raw_csv_rows": {
+      "sheet": "Raw_CSV_Rows",
+      "range": "A1:D10728"
+    }
+  },
+  "effective_source_universe": {
+    "baseline_source_rows": 224,
+    "v1_6_successor_additions": 12,
+    "v1_7_prima_additions": 12,
+    "effective_source_count": 248,
+    "v1_6_raw_csv_path": "03_LANDSCAPE_AND_OBSERVATORY_RELEASES/06_v1.6_First_Live_Refresh_and_Successor_Delta/02_Refresh/NEW_SOURCE_REGISTER_v1.6.csv",
+    "v1_7_raw_csv_path": "05_COMPLETED_SYSTEM_ASSESSMENTS/04_PRIMA_v4.2.1_and_Observatory_v1.7/05_Observatory_Successor/PRIMA_NEW_UNIQUE_SOURCE_REGISTER_v1.7.csv"
+  },
+  "normalization_contract": {
+    "workbench_crosswalk_commit": "1a44e1c0f9f3fd60793f57579b4e043c5117b467",
+    "public_url": [
+      "accept only http/https URLs",
+      "case-fold scheme and network location",
+      "remove URL fragment",
+      "preserve query string",
+      "remove trailing slash except for root"
+    ],
+    "checksum": [
+      "case-fold usable checksum strings",
+      "treat empty, N/A, NA, NONE, UNKNOWN, UNAVAILABLE, and NOT CLAIMED-prefixed values as unresolved"
+    ],
+    "identity": "Automatic grouping uses exact normalized URL and/or exact normalized checksum only. No fuzzy, semantic, title, publisher, embedding, or model-based identity inference is permitted."
+  },
+  "derived_checkpoint": {
+    "assessment_evidence_count": 52,
+    "deterministic_matched_evidence_count": 15,
+    "unresolved_evidence_count": 37,
+    "registration_eligible_evidence_count": 35,
+    "exact_identity_source_proposal_count": 33,
+    "missing_explicit_source_count": 1,
+    "curation_required_count": 1
+  },
+  "reproduction_contract": [
+    "Verify that the input workbook bytes match source_checkpoint.sha256.",
+    "Read only the named workbook surfaces and raw-CSV successor paths recorded above.",
+    "Construct the 248-source effective universe as 224 baseline rows plus the 12 v1.6 and 12 v1.7 additions.",
+    "Apply the pinned Workbench URL/checksum normalization semantics.",
+    "Resolve assessment evidence only by explicit current source ID, exact normalized URL, or exact normalized checksum.",
+    "For unresolved evidence, group registration proposals only by exact normalized URL/checksum connected identity.",
+    "Keep evidence with neither exact key nor a valid explicit current source ID unresolved for human curation.",
+    "Do not mutate completed assessments, existing source releases, or monitoring registries during reproduction."
+  ]
+}
