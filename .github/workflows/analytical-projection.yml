@@ -231,21 +231,30 @@ jobs:
           )
 
           excluded_evidence = {
-              evidence_id
+              (system, evidence_id)
               for row in excluded
+              for system in row["systems"]
               for evidence_id in row["linked_evidence_ids"]
           }
-          assert excluded_evidence == {"EV-15", "EV-T15-012"}, excluded
+          assert excluded_evidence == {
+              ("FDA adaptive DBS", "EV-15"),
+              ("BrainGate2 T15", "EV-T15-012"),
+          }, excluded
 
-          def row_for(evidence_id):
-              return next(row for row in rows if evidence_id in row["linked_evidence_ids"])
+          def row_for(system, evidence_id):
+              matches = [
+                  row for row in rows
+                  if system in row["systems"] and evidence_id in row["linked_evidence_ids"]
+              ]
+              assert len(matches) == 1, (system, evidence_id, matches)
+              return matches[0]
 
-          assert row_for("EV-06")["monitoring_mode"] == "RECURRING"
-          assert row_for("EV-T15-002")["monitoring_mode"] == "RECURRING"
-          assert row_for("EV-01")["monitoring_mode"] == "ARCHIVAL_STATIC"
-          assert row_for("EV-04")["monitoring_mode"] == "ARCHIVAL_STATIC"
-          assert row_for("EV-02")["monitoring_mode"] == "ON_CHANGE"
-          assert row_for("EV-PR-011")["monitoring_mode"] == "ARCHIVAL_STATIC"
+          assert row_for("FDA adaptive DBS", "EV-06")["monitoring_mode"] == "RECURRING"
+          assert row_for("BrainGate2 T15", "EV-T15-002")["monitoring_mode"] == "RECURRING"
+          assert row_for("Brain2Qwerty", "EV-01")["monitoring_mode"] == "ARCHIVAL_STATIC"
+          assert row_for("Brain2Qwerty", "EV-04")["monitoring_mode"] == "ARCHIVAL_STATIC"
+          assert row_for("Brain2Qwerty", "EV-02")["monitoring_mode"] == "ON_CHANGE"
+          assert row_for("PRIMA", "EV-PR-011")["monitoring_mode"] == "ARCHIVAL_STATIC"
 
           checkpoint = payload["current_canonical_monitoring_checkpoint"]
           assert checkpoint == {
