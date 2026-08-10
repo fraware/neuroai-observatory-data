@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import argparse
 import csv
-import hashlib
 import json
 import re
 from collections import Counter
@@ -143,7 +142,7 @@ def classify_proposal(proposal: dict[str, Any]) -> dict[str, Any]:
         "clinicaltrials.gov",
         "clinicaltrialsregister.eu",
         "ctis.eu",
-        "who.int",
+        "trialsearch.who.int",
     )
     if "TRIAL REGISTRY" in token or "CLINICALTRIAL" in token or any(marker in host for marker in trial_hosts):
         return {
