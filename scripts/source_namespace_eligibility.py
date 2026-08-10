@@ -85,7 +85,19 @@ def evaluate_proposal(proposal: dict[str, Any], policy: dict[str, Any]) -> dict[
     )
     override = policy["action_overrides"].get(proposal_id)
 
-    if matched_markers:
+    # Namespace eligibility is a monotone safety gate: it can demote a mechanically
+    # registerable candidate, but it cannot promote a record that the mechanical
+    # layer already sent to curation. Preserve the original causal reason in that
+    # case even if the evidence also carries an ineligible namespace marker.
+    if raw_action == "CURATION_REQUIRED":
+        if override is not None and override.get("effective_action") != "CURATION_REQUIRED":
+            raise NamespaceEligibilityError(
+                f"Policy override for {proposal_id} cannot promote mechanical curation into the source namespace"
+            )
+        effective_action = "CURATION_REQUIRED"
+        rule = "MECHANICAL_CURATION_REMAINS_CURATION"
+        reason = "MECHANICAL_CURATION_REQUIRED"
+    elif matched_markers:
         effective_action = "CURATION_REQUIRED"
         rule = "INELIGIBLE_ASSESSMENT_LOCAL_EVIDENCE_CLASS"
         reason = "ASSESSMENT_LOCAL_CONTROLLED_ADJUDICATION"
@@ -99,10 +111,6 @@ def evaluate_proposal(proposal: dict[str, Any], policy: dict[str, Any]) -> dict[
         effective_action = str(override["effective_action"])
         rule = "EXPLICIT_POLICY_OVERRIDE"
         reason = str(override["reason"])
-    elif raw_action == "CURATION_REQUIRED":
-        effective_action = "CURATION_REQUIRED"
-        rule = "MECHANICAL_CURATION_REMAINS_CURATION"
-        reason = "MECHANICAL_CURATION_REQUIRED"
     else:
         effective_action = raw_action
         rule = "MECHANICAL_ACTION_PASSES_NAMESPACE_GATE"
