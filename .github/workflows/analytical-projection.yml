@@ -7,12 +7,14 @@ on:
       - "scripts/build_monitoring_eligibility.py"
       - "scripts/validate_legacy_source_registration.py"
       - "scripts/project_legacy_source_registration_impact.py"
+      - "scripts/project_legacy_source_monitoring.py"
       - "scripts/source_namespace_eligibility.py"
       - "tests/test_build_analytical_projection.py"
       - "tests/test_build_monitoring_eligibility.py"
       - "tests/test_build_legacy_source_registration.py"
       - "tests/test_build_legacy_source_registration_provenance.py"
       - "tests/test_build_legacy_source_registration_impact.py"
+      - "tests/test_build_legacy_source_monitoring.py"
       - "tests/test_build_source_namespace_eligibility.py"
       - "curation/legacy_assessment_source_registration_proposals_v0.1.json"
       - "curation/legacy_assessment_source_registration_provenance_v0.1.json"
@@ -26,12 +28,14 @@ on:
       - "scripts/build_monitoring_eligibility.py"
       - "scripts/validate_legacy_source_registration.py"
       - "scripts/project_legacy_source_registration_impact.py"
+      - "scripts/project_legacy_source_monitoring.py"
       - "scripts/source_namespace_eligibility.py"
       - "tests/test_build_analytical_projection.py"
       - "tests/test_build_monitoring_eligibility.py"
       - "tests/test_build_legacy_source_registration.py"
       - "tests/test_build_legacy_source_registration_provenance.py"
       - "tests/test_build_legacy_source_registration_impact.py"
+      - "tests/test_build_legacy_source_monitoring.py"
       - "tests/test_build_source_namespace_eligibility.py"
       - "curation/legacy_assessment_source_registration_proposals_v0.1.json"
       - "curation/legacy_assessment_source_registration_provenance_v0.1.json"
@@ -187,6 +191,79 @@ jobs:
           print("remaining unresolved: FDA EV-15; BrainGate EV-T15-012")
           print("projected effective sources: 281 (scenario only)")
           PY
+      - name: Project prospective legacy source monitoring
+        run: >-
+          python scripts/project_legacy_source_monitoring.py
+          --output-dir "$RUNNER_TEMP/legacy-source-monitoring"
+      - name: Verify prospective legacy monitoring classification
+        env:
+          LEGACY_MONITORING_ROOT: ${{ runner.temp }}/legacy-source-monitoring
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          root = Path(os.environ["LEGACY_MONITORING_ROOT"])
+          payload = json.loads((root / "legacy-source-prospective-monitoring.json").read_text(encoding="utf-8"))
+          population = payload["prospective_population"]
+          rows = payload["sources"]
+          excluded = payload["excluded_curation_holds"]
+
+          assert payload["status"] == "NONCANONICAL_PROJECTION"
+          assert payload["scenario_only"] is True
+          assert payload["registration_status"] == "NOT_REGISTERED"
+          assert payload["monitor_status"] == "PROSPECTIVE_ONLY"
+          assert population["source_identity_count"] == 33, population
+          assert population["excluded_curation_hold_count"] == 2, population
+          assert sum(population["mode_counts"].values()) == 33, population
+          assert set(population["mode_counts"]) <= {"RECURRING", "ON_CHANGE", "ARCHIVAL_STATIC"}
+          assert len(rows) == 33
+          assert len({row["proposal_id"] for row in rows}) == 33
+          assert all(row["source_namespace_eligible"] is True for row in rows)
+          assert all(row["registration_status"] == "NOT_REGISTERED" for row in rows)
+          assert all(row["monitor_status"] == "PROSPECTIVE_ONLY" for row in rows)
+          assert sorted(row["requested_source_id"] for row in rows if row["requested_source_id"]) == ["SRC-PR-011"]
+          assert all(
+              not row["requested_source_id"] and not row["existing_source_id"]
+              for row in rows
+              if row["effective_source_action"] == "REGISTER_NEW_SOURCE"
+          )
+
+          excluded_evidence = {
+              evidence_id
+              for row in excluded
+              for evidence_id in row["linked_evidence_ids"]
+          }
+          assert excluded_evidence == {"EV-15", "EV-T15-012"}, excluded
+
+          def row_for(evidence_id):
+              return next(row for row in rows if evidence_id in row["linked_evidence_ids"])
+
+          assert row_for("EV-06")["monitoring_mode"] == "RECURRING"
+          assert row_for("EV-T15-002")["monitoring_mode"] == "RECURRING"
+          assert row_for("EV-01")["monitoring_mode"] == "ARCHIVAL_STATIC"
+          assert row_for("EV-04")["monitoring_mode"] == "ARCHIVAL_STATIC"
+          assert row_for("EV-02")["monitoring_mode"] == "ON_CHANGE"
+          assert row_for("EV-PR-011")["monitoring_mode"] == "ARCHIVAL_STATIC"
+
+          checkpoint = payload["current_canonical_monitoring_checkpoint"]
+          assert checkpoint == {
+              "effective_source_count": 248,
+              "monitor_registry_source_count": 224,
+              "unmonitored_effective_source_count": 24,
+              "mutated_by_this_projection": False,
+          }, checkpoint
+
+          print("PROSPECTIVE LEGACY MONITORING")
+          print(f"source identities: {population['source_identity_count']}")
+          print(f"excluded curation holds: {population['excluded_curation_hold_count']}")
+          for mode, count in population["mode_counts"].items():
+              print(f"{mode}: {count}")
+          print("RULE COUNTS")
+          for rule, count in population["rule_counts"].items():
+              print(f"{rule}: {count}")
+          PY
       - name: Build projection on governing corpus
         run: >-
           python scripts/build_analytical_projection.py
@@ -200,6 +277,9 @@ jobs:
           --output-dir "$RUNNER_TEMP/neuroai-monitoring"
       - name: Verify expected outputs
         run: |
+          test -s "$RUNNER_TEMP/legacy-source-monitoring/legacy-source-prospective-monitoring.json"
+          test -s "$RUNNER_TEMP/legacy-source-monitoring/legacy-source-prospective-monitoring.csv"
+          test -s "$RUNNER_TEMP/legacy-source-monitoring/legacy-source-prospective-monitoring.md"
           test -s "$RUNNER_TEMP/neuroai-analytics/organizations.jsonl"
           test -s "$RUNNER_TEMP/neuroai-analytics/sources.jsonl"
           test -s "$RUNNER_TEMP/neuroai-analytics/source_monitors.jsonl"
