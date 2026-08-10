@@ -8,6 +8,7 @@ on:
       - "scripts/validate_legacy_source_registration.py"
       - "scripts/project_legacy_source_registration_impact.py"
       - "scripts/project_legacy_source_monitoring.py"
+      - "scripts/build_legacy_source_promotion_queue.py"
       - "scripts/source_namespace_eligibility.py"
       - "tests/test_build_analytical_projection.py"
       - "tests/test_build_monitoring_eligibility.py"
@@ -15,6 +16,7 @@ on:
       - "tests/test_build_legacy_source_registration_provenance.py"
       - "tests/test_build_legacy_source_registration_impact.py"
       - "tests/test_build_legacy_source_monitoring.py"
+      - "tests/test_build_legacy_source_promotion_queue.py"
       - "tests/test_build_source_namespace_eligibility.py"
       - "curation/legacy_assessment_source_registration_proposals_v0.1.json"
       - "curation/legacy_assessment_source_registration_provenance_v0.1.json"
@@ -29,6 +31,7 @@ on:
       - "scripts/validate_legacy_source_registration.py"
       - "scripts/project_legacy_source_registration_impact.py"
       - "scripts/project_legacy_source_monitoring.py"
+      - "scripts/build_legacy_source_promotion_queue.py"
       - "scripts/source_namespace_eligibility.py"
       - "tests/test_build_analytical_projection.py"
       - "tests/test_build_monitoring_eligibility.py"
@@ -36,6 +39,7 @@ on:
       - "tests/test_build_legacy_source_registration_provenance.py"
       - "tests/test_build_legacy_source_registration_impact.py"
       - "tests/test_build_legacy_source_monitoring.py"
+      - "tests/test_build_legacy_source_promotion_queue.py"
       - "tests/test_build_source_namespace_eligibility.py"
       - "curation/legacy_assessment_source_registration_proposals_v0.1.json"
       - "curation/legacy_assessment_source_registration_provenance_v0.1.json"
@@ -216,8 +220,19 @@ jobs:
           assert payload["monitor_status"] == "PROSPECTIVE_ONLY"
           assert population["source_identity_count"] == 33, population
           assert population["excluded_curation_hold_count"] == 2, population
-          assert sum(population["mode_counts"].values()) == 33, population
-          assert set(population["mode_counts"]) <= {"RECURRING", "ON_CHANGE", "ARCHIVAL_STATIC"}
+          assert population["mode_counts"] == {
+              "ARCHIVAL_STATIC": 22,
+              "ON_CHANGE": 7,
+              "RECURRING": 4,
+          }, population
+          assert population["rule_counts"] == {
+              "DATED_PUBLICATION_OR_EVENT_ARTIFACT": 9,
+              "IMMUTABLE_GIT_OBJECT": 6,
+              "LIVE_PROJECT_OR_REPOSITORY_PAGE": 2,
+              "LIVE_REGULATORY_DATABASE": 5,
+              "LIVE_TRIAL_REGISTRY": 4,
+              "STATIC_FILE_OR_VERSIONED_DOCUMENT": 7,
+          }, population
           assert len(rows) == 33
           assert len({row["proposal_id"] for row in rows}) == 33
           assert all(row["source_namespace_eligible"] is True for row in rows)
@@ -273,6 +288,76 @@ jobs:
           for rule, count in population["rule_counts"].items():
               print(f"{rule}: {count}")
           PY
+      - name: Build legacy source promotion-readiness queue
+        run: >-
+          python scripts/build_legacy_source_promotion_queue.py
+          --output-dir "$RUNNER_TEMP/legacy-source-promotion-readiness"
+      - name: Verify promotion-readiness queue
+        env:
+          PROMOTION_QUEUE_ROOT: ${{ runner.temp }}/legacy-source-promotion-readiness
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          root = Path(os.environ["PROMOTION_QUEUE_ROOT"])
+          payload = json.loads((root / "legacy-source-promotion-readiness.json").read_text(encoding="utf-8"))
+          checkpoint = payload["queue_checkpoint"]
+          rows = payload["rows"]
+
+          assert payload["status"] == "NONCANONICAL_REVIEW_QUEUE"
+          assert payload["approval_status"] == "NOT_APPROVED"
+          assert payload["canonical_status"] == "NOT_CANONICAL"
+          assert payload["human_review_status"] == "UNREVIEWED"
+          assert checkpoint["queue_row_count"] == 35, checkpoint
+          assert checkpoint["linked_unresolved_evidence_row_count"] == 37, checkpoint
+          assert checkpoint["lane_counts"] == {
+              "CURATION_REQUIRED": 2,
+              "LIVE_SOURCE_REFRESH_REQUIRED": 11,
+              "STATIC_IDENTITY_AND_METADATA_REVIEW": 22,
+          }, checkpoint
+          assert checkpoint["eligible_monitoring_mode_counts"] == {
+              "ARCHIVAL_STATIC": 22,
+              "ON_CHANGE": 7,
+              "RECURRING": 4,
+          }, checkpoint
+          assert len(rows) == 35
+          assert len({row["proposal_id"] for row in rows}) == 35
+          assert len({evidence for row in rows for evidence in row["assessment_scoped_evidence_ids"]}) == 37
+          assert all(row["approval_status"] == "NOT_APPROVED" for row in rows)
+          assert all(row["canonical_status"] == "NOT_CANONICAL" for row in rows)
+          assert all(row["human_review_status"] == "UNREVIEWED" for row in rows)
+          assert all(row["reviewer_identity"] is None and row["decision_record_id"] is None for row in rows)
+          assert sorted(row["requested_source_id"] for row in rows if row["requested_source_id"]) == ["SRC-PR-011"]
+
+          mutable = [row for row in rows if row["monitoring_mode"] in {"ON_CHANGE", "RECURRING"}]
+          static = [row for row in rows if row["monitoring_mode"] == "ARCHIVAL_STATIC"]
+          curation = [row for row in rows if row["review_lane"] == "CURATION_REQUIRED"]
+          assert len(mutable) == 11 and all(row["refresh_status"] == "REQUIRED" for row in mutable)
+          assert len(static) == 22 and all(row["refresh_status"] == "NOT_REQUIRED" for row in static)
+          assert len(curation) == 2 and all(row["refresh_status"] == "NOT_APPLICABLE" for row in curation)
+          assert {
+              evidence
+              for row in curation
+              for evidence in row["assessment_scoped_evidence_ids"]
+          } == {"BrainGate2 T15:EV-T15-012", "FDA adaptive DBS:EV-15"}
+
+          current = payload["current_canonical_checkpoint"]
+          assert current == {
+              "effective_source_count": 248,
+              "monitor_registry_source_count": 224,
+              "unmonitored_effective_source_count": 24,
+              "mutated_by_this_queue": False,
+          }, current
+
+          print("LEGACY SOURCE PROMOTION READINESS")
+          print("rows: 35")
+          print("static identity review: 22")
+          print("live refresh required: 11")
+          print("curation required: 2")
+          print("approval: NOT_APPROVED; canonical: NOT_CANONICAL; human review: UNREVIEWED")
+          PY
       - name: Build projection on governing corpus
         run: >-
           python scripts/build_analytical_projection.py
@@ -289,6 +374,9 @@ jobs:
           test -s "$RUNNER_TEMP/legacy-source-monitoring/legacy-source-prospective-monitoring.json"
           test -s "$RUNNER_TEMP/legacy-source-monitoring/legacy-source-prospective-monitoring.csv"
           test -s "$RUNNER_TEMP/legacy-source-monitoring/legacy-source-prospective-monitoring.md"
+          test -s "$RUNNER_TEMP/legacy-source-promotion-readiness/legacy-source-promotion-readiness.json"
+          test -s "$RUNNER_TEMP/legacy-source-promotion-readiness/legacy-source-promotion-readiness.csv"
+          test -s "$RUNNER_TEMP/legacy-source-promotion-readiness/legacy-source-promotion-readiness.md"
           test -s "$RUNNER_TEMP/neuroai-analytics/organizations.jsonl"
           test -s "$RUNNER_TEMP/neuroai-analytics/sources.jsonl"
           test -s "$RUNNER_TEMP/neuroai-analytics/source_monitors.jsonl"
