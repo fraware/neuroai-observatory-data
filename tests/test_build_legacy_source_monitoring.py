@@ -60,6 +60,29 @@ class ProspectiveLegacyMonitoringTests(unittest.TestCase):
         self.assertEqual(len({row["proposal_id"] for row in projection["sources"]}), 33)
         self.assertTrue(all(row["source_namespace_eligible"] for row in projection["sources"]))
 
+    def test_fixed_corpus_mode_and_rule_counts_are_explicit(self) -> None:
+        population = _projection()["prospective_population"]
+        self.assertEqual(
+            population["mode_counts"],
+            {
+                "ARCHIVAL_STATIC": 22,
+                "ON_CHANGE": 7,
+                "RECURRING": 4,
+            },
+        )
+        self.assertEqual(
+            population["rule_counts"],
+            {
+                "DATED_PUBLICATION_OR_EVENT_ARTIFACT": 9,
+                "IMMUTABLE_GIT_OBJECT": 6,
+                "LIVE_PROJECT_OR_REPOSITORY_PAGE": 2,
+                "LIVE_REGULATORY_DATABASE": 5,
+                "LIVE_TRIAL_REGISTRY": 4,
+                "STATIC_FILE_OR_VERSIONED_DOCUMENT": 7,
+            },
+        )
+        self.assertNotIn("CONSERVATIVE_ON_CHANGE_FALLBACK", population["rule_counts"])
+
     def test_curation_holds_are_excluded(self) -> None:
         projection = _projection()
         included_evidence = {
@@ -202,6 +225,40 @@ class ProspectiveLegacyMonitoringTests(unittest.TestCase):
         self.assertEqual(live["rule"], "LIVE_PROJECT_OR_REPOSITORY_PAGE")
         self.assertEqual(pinned["monitoring_mode"], "ARCHIVAL_STATIC")
         self.assertEqual(pinned["rule"], "IMMUTABLE_GIT_OBJECT")
+
+    def test_who_publication_does_not_inherit_ictrp_recurring_semantics(self) -> None:
+        publication = monitoring.classify_proposal(
+            {
+                "proposal_id": "WHO-PUB",
+                "normalized_public_url": "https://www.who.int/publications/i/item/example",
+                "linked_evidence": [
+                    {
+                        "evidence_id": "EV-WHO-PUB",
+                        "system": "Synthetic",
+                        "evidence_type": "PUBLICATION",
+                        "title": "WHO technical publication",
+                    }
+                ],
+            }
+        )
+        registry = monitoring.classify_proposal(
+            {
+                "proposal_id": "WHO-ICTRP",
+                "normalized_public_url": "https://trialsearch.who.int/Trial2.aspx?TrialID=NCT00000000",
+                "linked_evidence": [
+                    {
+                        "evidence_id": "EV-WHO-TRIAL",
+                        "system": "Synthetic",
+                        "evidence_type": "TRIAL REGISTRY RECORD",
+                        "title": "WHO ICTRP trial record",
+                    }
+                ],
+            }
+        )
+        self.assertEqual(publication["monitoring_mode"], "ARCHIVAL_STATIC")
+        self.assertEqual(publication["rule"], "DATED_PUBLICATION_OR_EVENT_ARTIFACT")
+        self.assertEqual(registry["monitoring_mode"], "RECURRING")
+        self.assertEqual(registry["rule"], "LIVE_TRIAL_REGISTRY")
 
     def test_unknown_mutability_fails_conservatively_to_on_change(self) -> None:
         result = monitoring.classify_proposal(
