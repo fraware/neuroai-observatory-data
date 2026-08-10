@@ -8,6 +8,14 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
+from source_namespace_eligibility import (
+    DEFAULT_POLICY,
+    SAFE_RAW_ACTIONS,
+    evaluate_manifest,
+    file_sha256,
+    load_policy,
+    validate_policy,
+)
 from validate_legacy_source_registration import validate_manifest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -15,13 +23,7 @@ DEFAULT_MANIFEST = ROOT / "curation" / "legacy_assessment_source_registration_pr
 DEFAULT_SCHEMA = ROOT / "schemas" / "legacy-source-registration-proposals.schema.json"
 DEFAULT_OUTPUT_DIR = ROOT / "artifacts" / "legacy-source-registration-impact"
 
-SAFE_IDENTITY_ACTIONS = frozenset(
-    {
-        "REGISTER_NEW_SOURCE",
-        "REGISTER_MISSING_EXPLICIT_SOURCE",
-        "REUSE_EXISTING_SOURCE",
-    }
-)
+SAFE_IDENTITY_ACTIONS = SAFE_RAW_ACTIONS
 SOURCE_DELTA_ACTIONS = frozenset({"REGISTER_NEW_SOURCE", "REGISTER_MISSING_EXPLICIT_SOURCE"})
 REVIEW_DISPOSITIONS = frozenset({"READY_FOR_IDENTITY_REVIEW", "CURATION_REQUIRED"})
 MONITORING_DISPOSITION = "UNCLASSIFIED_PENDING_SEPARATE_MONITORING_REVIEW"
@@ -45,7 +47,18 @@ def _manifest_sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def build_projection(manifest: dict[str, Any], *, manifest_sha256: str | None = None) -> dict[str, Any]:
+def build_projection(
+    manifest: dict[str, Any],
+    *,
+    policy: dict[str, Any] | None = None,
+    manifest_sha256: str | None = None,
+    policy_sha256: str | None = None,
+) -> dict[str, Any]:
+    if policy is None:
+        policy = load_policy()
+    validate_policy(policy)
+    evaluations = {row["proposal_id"]: row for row in evaluate_manifest(manifest, policy)}
+
     checkpoint = manifest["derived_from"]
     proposals = manifest["proposals"]
     total_evidence = int(checkpoint["assessment_evidence_count"])
@@ -56,10 +69,14 @@ def build_projection(manifest: dict[str, Any], *, manifest_sha256: str | None = 
     all_evidence: dict[str, dict[str, Any]] = {}
     safe_evidence: dict[str, dict[str, Any]] = {}
     unresolved_after: dict[str, dict[str, Any]] = {}
+    unresolved_reasons: dict[str, str] = {}
     packet: list[dict[str, Any]] = []
 
     for proposal in proposals:
-        action = str(proposal["action"])
+        proposal_id = str(proposal["proposal_id"])
+        evaluation = evaluations[proposal_id]
+        raw_action = str(proposal["action"])
+        effective_action = str(evaluation["effective_action"])
         linked = proposal["linked_evidence"]
         proposal_evidence_keys: list[str] = []
         for row in linked:
@@ -68,26 +85,36 @@ def build_projection(manifest: dict[str, Any], *, manifest_sha256: str | None = 
                 raise ProjectionError(f"Evidence {key} appears in more than one proposal")
             all_evidence[key] = row
             proposal_evidence_keys.append(key)
-            if action in SAFE_IDENTITY_ACTIONS:
+            if effective_action in SAFE_IDENTITY_ACTIONS:
                 safe_evidence[key] = row
             else:
                 unresolved_after[key] = row
+                unresolved_reasons[key] = str(evaluation["eligibility_reason"])
 
-        if action in SAFE_IDENTITY_ACTIONS:
+        if effective_action in SAFE_IDENTITY_ACTIONS:
             disposition = "READY_FOR_IDENTITY_REVIEW"
-        elif action == "CURATION_REQUIRED":
+        elif effective_action == "CURATION_REQUIRED":
             disposition = "CURATION_REQUIRED"
         else:
-            raise ProjectionError(f"Unsupported proposal action {action!r}")
+            raise ProjectionError(f"Unsupported effective proposal action {effective_action!r}")
 
         packet.append(
             {
-                "proposal_id": proposal["proposal_id"],
-                "action": action,
+                "proposal_id": proposal_id,
+                "action": raw_action,
+                "raw_action": raw_action,
+                "effective_action": effective_action,
+                "source_namespace_eligible": bool(evaluation["source_namespace_eligible"]),
+                "eligibility_rule": evaluation["eligibility_rule"],
+                "eligibility_reason": evaluation["eligibility_reason"],
+                "matched_ineligible_markers": evaluation["matched_ineligible_markers"],
+                "checksum_is_provenance_only": evaluation["checksum_is_provenance_only"],
                 "review_disposition": disposition,
                 "monitoring_disposition": MONITORING_DISPOSITION,
-                "projected_source_universe_delta": 1 if action in SOURCE_DELTA_ACTIONS else 0,
-                "projected_newly_joinable_evidence_count": len(linked) if action in SAFE_IDENTITY_ACTIONS else 0,
+                "projected_source_universe_delta": 1 if effective_action in SOURCE_DELTA_ACTIONS else 0,
+                "projected_newly_joinable_evidence_count": (
+                    len(linked) if effective_action in SAFE_IDENTITY_ACTIONS else 0
+                ),
                 "linked_evidence_keys": proposal_evidence_keys,
                 "linked_evidence_ids": [row["evidence_id"] for row in linked],
                 "systems": sorted({str(row["system"]) for row in linked}),
@@ -117,9 +144,10 @@ def build_projection(manifest: dict[str, Any], *, manifest_sha256: str | None = 
             f"Projected unresolved count {projected_unresolved} does not match curation remainder {len(unresolved_after)}"
         )
 
-    added_sources = sum(1 for proposal in proposals if proposal["action"] in SOURCE_DELTA_ACTIONS)
+    added_sources = sum(1 for row in packet if row["effective_action"] in SOURCE_DELTA_ACTIONS)
     projected_sources = current_sources + added_sources
-    action_counts = Counter(str(proposal["action"]) for proposal in proposals)
+    raw_action_counts = Counter(str(proposal["action"]) for proposal in proposals)
+    effective_action_counts = Counter(str(row["effective_action"]) for row in packet)
     disposition_counts = Counter(str(row["review_disposition"]) for row in packet)
     remaining = [
         {
@@ -128,13 +156,13 @@ def build_projection(manifest: dict[str, Any], *, manifest_sha256: str | None = 
             "assessment_version": row.get("assessment_version"),
             "evidence_id": row.get("evidence_id"),
             "title": row.get("title"),
-            "reason": "CURATION_REQUIRED_NO_SAFE_DETERMINISTIC_SOURCE_IDENTITY",
+            "reason": unresolved_reasons[key],
         }
         for key, row in sorted(unresolved_after.items())
     ]
 
     projection = {
-        "schema_version": "0.1.0",
+        "schema_version": "0.2.0",
         "artifact": "legacy_assessment_source_registration_impact",
         "status": "NONCANONICAL_PROJECTION",
         "scenario_only": True,
@@ -142,6 +170,13 @@ def build_projection(manifest: dict[str, Any], *, manifest_sha256: str | None = 
             "artifact": manifest["artifact"],
             "status": manifest["status"],
             "sha256": manifest_sha256,
+            "interpretation": "MECHANICAL_EXACT_IDENTITY_CANDIDATE_LAYER",
+        },
+        "source_namespace_policy": {
+            "artifact": policy["artifact"],
+            "status": policy["status"],
+            "precedence": policy["precedence"],
+            "sha256": policy_sha256,
         },
         "current_state": {
             "effective_source_count": current_sources,
@@ -149,12 +184,25 @@ def build_projection(manifest: dict[str, Any], *, manifest_sha256: str | None = 
             "deterministically_matched_evidence_count": current_matched,
             "unresolved_evidence_count": current_unresolved,
         },
+        "candidate_state": {
+            "exact_key_candidate_evidence_count": int(checkpoint["registration_eligible_evidence_count"]),
+            "source_namespace_eligible_exact_key_evidence_count": sum(
+                len(row["linked_evidence_ids"])
+                for row in packet
+                if row["raw_action"] == "REGISTER_NEW_SOURCE" and row["source_namespace_eligible"]
+            ),
+        },
         "proposal_state": {
             "proposal_count": len(proposals),
-            "action_counts": {key: action_counts[key] for key in sorted(action_counts)},
+            "raw_action_counts": {key: raw_action_counts[key] for key in sorted(raw_action_counts)},
+            "effective_action_counts": {key: effective_action_counts[key] for key in sorted(effective_action_counts)},
             "review_disposition_counts": {key: disposition_counts[key] for key in sorted(disposition_counts)},
-            "identity_safe_proposal_count": sum(1 for row in packet if row["review_disposition"] == "READY_FOR_IDENTITY_REVIEW"),
-            "curation_required_proposal_count": sum(1 for row in packet if row["review_disposition"] == "CURATION_REQUIRED"),
+            "identity_safe_proposal_count": sum(
+                1 for row in packet if row["review_disposition"] == "READY_FOR_IDENTITY_REVIEW"
+            ),
+            "curation_required_proposal_count": sum(
+                1 for row in packet if row["review_disposition"] == "CURATION_REQUIRED"
+            ),
         },
         "full_identity_safe_acceptance_scenario": {
             "scenario_label": "IF_ALL_IDENTITY_SAFE_PROPOSALS_ARE_LATER_ACCEPTED_BY_AUTHORIZED_REVIEW",
@@ -173,8 +221,9 @@ def build_projection(manifest: dict[str, Any], *, manifest_sha256: str | None = 
             f"{MONITORING_DISPOSITION} until a separate monitoring review is performed."
         ),
         "authority_boundary": (
-            "READY_FOR_IDENTITY_REVIEW is a technical review disposition only. This projection does not approve, accept, "
-            "publish, or canonically register any source and does not modify historical assessments."
+            "READY_FOR_IDENTITY_REVIEW is a technical review disposition only. Source-namespace eligibility is evaluated "
+            "after exact artifact identity. This projection does not approve, accept, publish, or canonically register any "
+            "source and does not modify historical assessments."
         ),
     }
     validate_projection(projection)
@@ -184,6 +233,11 @@ def build_projection(manifest: dict[str, Any], *, manifest_sha256: str | None = 
 def validate_projection(projection: dict[str, Any]) -> None:
     if projection.get("status") != "NONCANONICAL_PROJECTION" or projection.get("scenario_only") is not True:
         raise ProjectionError("Projection must remain explicitly noncanonical and scenario-only")
+    policy = projection.get("source_namespace_policy")
+    if not isinstance(policy, dict) or policy.get("status") != "NONCANONICAL_POLICY":
+        raise ProjectionError("Projection must carry a noncanonical source-namespace policy")
+    if policy.get("precedence") != "SOURCE_NAMESPACE_ELIGIBILITY_OVERRIDES_MECHANICAL_REGISTRATION_ACTION":
+        raise ProjectionError("Projection does not enforce source-namespace policy precedence")
     packet = projection.get("review_packet")
     if not isinstance(packet, list) or not packet:
         raise ProjectionError("Projection review packet must be a non-empty list")
@@ -196,8 +250,12 @@ def validate_projection(projection: dict[str, Any]) -> None:
     if requested_ids != ["SRC-PR-011"]:
         raise ProjectionError(f"Unexpected requested source IDs in projection: {requested_ids}")
     for row in packet:
-        if row["action"] == "REGISTER_NEW_SOURCE" and (row.get("requested_source_id") or row.get("existing_source_id")):
-            raise ProjectionError("New-source proposal received a canonical source identity")
+        if row["raw_action"] == "REGISTER_NEW_SOURCE" and (
+            row.get("requested_source_id") or row.get("existing_source_id")
+        ):
+            raise ProjectionError("New-source candidate received a canonical source identity")
+        if row["effective_action"] == "CURATION_REQUIRED" and row["projected_source_universe_delta"] != 0:
+            raise ProjectionError("Curation-required proposal must not increase the projected source universe")
 
     scenario = projection.get("full_identity_safe_acceptance_scenario")
     current = projection.get("current_state")
@@ -216,6 +274,7 @@ def validate_projection(projection: dict[str, Any]) -> None:
 
 def render_markdown(projection: dict[str, Any]) -> str:
     current = projection["current_state"]
+    candidates = projection["candidate_state"]
     scenario = projection["full_identity_safe_acceptance_scenario"]
     lines = [
         "# Legacy source-registration impact projection",
@@ -229,6 +288,11 @@ def render_markdown(projection: dict[str, Any]) -> str:
         f"- Deterministically joined: {current['deterministically_matched_evidence_count']}",
         f"- Unresolved: {current['unresolved_evidence_count']}",
         "",
+        "## Candidate vs namespace-eligible evidence",
+        "",
+        f"- Exact-key candidate evidence: {candidates['exact_key_candidate_evidence_count']}",
+        f"- Source-namespace-eligible exact-key evidence: {candidates['source_namespace_eligible_exact_key_evidence_count']}",
+        "",
         "## Full identity-safe acceptance scenario",
         "",
         f"- Newly joinable evidence: {scenario['newly_joinable_evidence_count']}",
@@ -239,12 +303,13 @@ def render_markdown(projection: dict[str, Any]) -> str:
         "",
         "## Review packet",
         "",
-        "| Proposal | Action | Review disposition | Evidence unlocked | Systems | Requested source ID | Monitoring |",
-        "| --- | --- | --- | ---: | --- | --- | --- |",
+        "| Proposal | Raw action | Effective action | Namespace eligible | Review disposition | Evidence unlocked | Systems | Requested source ID | Monitoring |",
+        "| --- | --- | --- | --- | --- | ---: | --- | --- | --- |",
     ]
     for row in projection["review_packet"]:
         lines.append(
-            f"| {row['proposal_id']} | {row['action']} | {row['review_disposition']} | "
+            f"| {row['proposal_id']} | {row['raw_action']} | {row['effective_action']} | "
+            f"{row['source_namespace_eligible']} | {row['review_disposition']} | "
             f"{row['projected_newly_joinable_evidence_count']} | {', '.join(row['systems'])} | "
             f"{row.get('requested_source_id') or '—'} | {row['monitoring_disposition']} |"
         )
@@ -268,13 +333,20 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Project noncanonical impact of identity-safe legacy source registrations")
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
     parser.add_argument("--schema", type=Path, default=DEFAULT_SCHEMA)
+    parser.add_argument("--namespace-policy", type=Path, default=DEFAULT_POLICY)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     args = parser.parse_args(argv)
 
     manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
     schema = json.loads(args.schema.read_text(encoding="utf-8"))
     validate_manifest(manifest, schema)
-    projection = build_projection(manifest, manifest_sha256=_manifest_sha256(args.manifest))
+    policy = load_policy(args.namespace_policy)
+    projection = build_projection(
+        manifest,
+        policy=policy,
+        manifest_sha256=_manifest_sha256(args.manifest),
+        policy_sha256=file_sha256(args.namespace_policy),
+    )
     outputs = write_outputs(projection, args.output_dir)
     scenario = projection["full_identity_safe_acceptance_scenario"]
     print(
