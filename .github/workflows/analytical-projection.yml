@@ -7,13 +7,16 @@ on:
       - "scripts/build_monitoring_eligibility.py"
       - "scripts/validate_legacy_source_registration.py"
       - "scripts/project_legacy_source_registration_impact.py"
+      - "scripts/source_namespace_eligibility.py"
       - "tests/test_build_analytical_projection.py"
       - "tests/test_build_monitoring_eligibility.py"
       - "tests/test_build_legacy_source_registration.py"
       - "tests/test_build_legacy_source_registration_provenance.py"
       - "tests/test_build_legacy_source_registration_impact.py"
+      - "tests/test_build_source_namespace_eligibility.py"
       - "curation/legacy_assessment_source_registration_proposals_v0.1.json"
       - "curation/legacy_assessment_source_registration_provenance_v0.1.json"
+      - "curation/source_namespace_eligibility_policy_v0.1.json"
       - "schemas/legacy-source-registration-proposals.schema.json"
       - ".github/workflows/analytical-projection.yml"
   push:
@@ -23,13 +26,16 @@ on:
       - "scripts/build_monitoring_eligibility.py"
       - "scripts/validate_legacy_source_registration.py"
       - "scripts/project_legacy_source_registration_impact.py"
+      - "scripts/source_namespace_eligibility.py"
       - "tests/test_build_analytical_projection.py"
       - "tests/test_build_monitoring_eligibility.py"
       - "tests/test_build_legacy_source_registration.py"
       - "tests/test_build_legacy_source_registration_provenance.py"
       - "tests/test_build_legacy_source_registration_impact.py"
+      - "tests/test_build_source_namespace_eligibility.py"
       - "curation/legacy_assessment_source_registration_proposals_v0.1.json"
       - "curation/legacy_assessment_source_registration_provenance_v0.1.json"
+      - "curation/source_namespace_eligibility_policy_v0.1.json"
       - "schemas/legacy-source-registration-proposals.schema.json"
       - ".github/workflows/analytical-projection.yml"
 
@@ -83,15 +89,15 @@ jobs:
           ) == 35
           assert sum(len(row["linked_evidence"]) for row in proposals) == 37
 
-          print("LEGACY SOURCE REGISTRATION")
+          print("LEGACY SOURCE REGISTRATION — MECHANICAL CANDIDATE LAYER")
           print("source universe: 248")
           print("assessment evidence: 52")
           print("deterministically matched: 15")
           print("unresolved: 37")
-          print("registration-eligible evidence: 35")
-          print("exact source proposals: 33")
+          print("exact-key candidate evidence: 35")
+          print("raw exact source proposals: 33")
           print("missing explicit source: 1")
-          print("curation-only: 1")
+          print("mechanical curation-only: 1")
           PY
       - name: Project legacy source registration impact
         run: >-
@@ -108,22 +114,43 @@ jobs:
 
           root = Path(os.environ["IMPACT_ROOT"])
           payload = json.loads((root / "legacy-source-registration-impact.json").read_text(encoding="utf-8"))
+          candidates = payload["candidate_state"]
+          proposal_state = payload["proposal_state"]
+          policy = payload["source_namespace_policy"]
           scenario = payload["full_identity_safe_acceptance_scenario"]
           remaining = payload["remaining_unresolved_evidence"]
           packet = payload["review_packet"]
 
           assert payload["status"] == "NONCANONICAL_PROJECTION", payload["status"]
           assert payload["scenario_only"] is True
-          assert scenario["newly_joinable_evidence_count"] == 36, scenario
-          assert scenario["projected_deterministically_matched_evidence_count"] == 51, scenario
-          assert scenario["projected_joinability"] == {"numerator": 51, "denominator": 52}, scenario
-          assert scenario["projected_unresolved_evidence_count"] == 1, scenario
-          assert scenario["projected_added_source_identity_count"] == 34, scenario
-          assert scenario["projected_effective_source_count"] == 282, scenario
+          assert policy["status"] == "NONCANONICAL_POLICY", policy
+          assert policy["precedence"] == "SOURCE_NAMESPACE_ELIGIBILITY_OVERRIDES_MECHANICAL_REGISTRATION_ACTION", policy
+
+          assert candidates["exact_key_candidate_evidence_count"] == 35, candidates
+          assert candidates["source_namespace_eligible_exact_key_evidence_count"] == 34, candidates
+          assert proposal_state["effective_action_counts"] == {
+              "CURATION_REQUIRED": 2,
+              "REGISTER_MISSING_EXPLICIT_SOURCE": 1,
+              "REGISTER_NEW_SOURCE": 32,
+          }, proposal_state
+
+          assert scenario["newly_joinable_evidence_count"] == 35, scenario
+          assert scenario["projected_deterministically_matched_evidence_count"] == 50, scenario
+          assert scenario["projected_joinability"] == {"numerator": 50, "denominator": 52}, scenario
+          assert scenario["projected_unresolved_evidence_count"] == 2, scenario
+          assert scenario["projected_added_source_identity_count"] == 33, scenario
+          assert scenario["projected_effective_source_count"] == 281, scenario
           assert scenario["canonical_status"] == "SCENARIO_ONLY_NOT_CURRENT_CANONICAL_DATA", scenario
-          assert len(remaining) == 1, remaining
-          assert remaining[0]["system"] == "FDA adaptive DBS", remaining
-          assert remaining[0]["evidence_id"] == "EV-15", remaining
+
+          unresolved = {
+              (row["system"], row["evidence_id"], row["reason"])
+              for row in remaining
+          }
+          assert unresolved == {
+              ("BrainGate2 T15", "EV-T15-012", "ASSESSMENT_LOCAL_CONTROLLED_ADJUDICATION"),
+              ("FDA adaptive DBS", "EV-15", "MECHANICAL_CURATION_REQUIRED"),
+          }, remaining
+
           assert {row["review_disposition"] for row in packet} <= {
               "READY_FOR_IDENTITY_REVIEW",
               "CURATION_REQUIRED",
@@ -138,12 +165,27 @@ jobs:
               if row["requested_source_id"]
           ) == ["SRC-PR-011"]
 
-          print("LEGACY REGISTRATION IMPACT")
+          braingate = next(row for row in packet if row["linked_evidence_ids"] == ["EV-T15-012"])
+          assert braingate["raw_action"] == "REGISTER_NEW_SOURCE", braingate
+          assert braingate["effective_action"] == "CURATION_REQUIRED", braingate
+          assert braingate["source_namespace_eligible"] is False, braingate
+          assert braingate["checksum_is_provenance_only"] is True, braingate
+          assert braingate["eligibility_reason"] == "ASSESSMENT_LOCAL_CONTROLLED_ADJUDICATION", braingate
+
+          fda = next(row for row in packet if row["linked_evidence_ids"] == ["EV-15"])
+          assert fda["raw_action"] == "CURATION_REQUIRED", fda
+          assert fda["effective_action"] == "CURATION_REQUIRED", fda
+          assert fda["source_namespace_eligible"] is False, fda
+          assert fda["eligibility_reason"] == "MECHANICAL_CURATION_REQUIRED", fda
+
+          print("LEGACY REGISTRATION IMPACT — POLICY AWARE")
           print("current joinability: 15/52")
-          print("newly joinable if identity-safe proposals are later accepted: 36")
-          print("projected joinability: 51/52")
-          print("remaining unresolved: FDA adaptive DBS EV-15")
-          print("projected effective sources: 282 (scenario only)")
+          print("mechanical exact-key candidate evidence: 35")
+          print("namespace-eligible exact-key evidence: 34")
+          print("newly joinable if identity-safe proposals are later accepted: 35")
+          print("projected joinability: 50/52")
+          print("remaining unresolved: FDA EV-15; BrainGate EV-T15-012")
+          print("projected effective sources: 281 (scenario only)")
           PY
       - name: Build projection on governing corpus
         run: >-
