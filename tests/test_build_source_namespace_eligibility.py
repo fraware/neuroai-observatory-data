@@ -74,13 +74,16 @@ class SourceNamespaceEligibilityTests(unittest.TestCase):
         )
         self.assertEqual(exact_key_eligible_evidence, 34)
 
-    def test_fda_ev15_remains_curation_required(self) -> None:
+    def test_fda_ev15_remains_mechanical_curation_with_original_reason(self) -> None:
         manifest, policy = _load()
         proposal = next(row for row in manifest["proposals"] if row["proposal_id"] == "LEGACY-SRC-PROP-034")
         result = eligibility.evaluate_proposal(proposal, policy)
         self.assertEqual(proposal["action"], "CURATION_REQUIRED")
         self.assertEqual(result["effective_action"], "CURATION_REQUIRED")
         self.assertFalse(result["source_namespace_eligible"])
+        self.assertEqual(result["eligibility_rule"], "MECHANICAL_CURATION_REMAINS_CURATION")
+        self.assertEqual(result["eligibility_reason"], "MECHANICAL_CURATION_REQUIRED")
+        self.assertEqual(result["matched_ineligible_markers"], ["CONTROLLED ADJUDICATION"])
         self.assertEqual([row["evidence_id"] for row in proposal["linked_evidence"]], ["EV-15"])
 
     def test_prima_missing_explicit_source_remains_namespace_eligible(self) -> None:
@@ -119,6 +122,17 @@ class SourceNamespaceEligibilityTests(unittest.TestCase):
         mutated["action_overrides"]["LEGACY-SRC-PROP-033"]["effective_action"] = "REGISTER_NEW_SOURCE"
         proposal = next(row for row in manifest["proposals"] if row["proposal_id"] == "LEGACY-SRC-PROP-033")
         with self.assertRaisesRegex(eligibility.NamespaceEligibilityError, "conflicts with ineligible evidence marker"):
+            eligibility.evaluate_proposal(proposal, mutated)
+
+    def test_policy_cannot_promote_mechanical_curation(self) -> None:
+        manifest, policy = _load()
+        mutated = copy.deepcopy(policy)
+        mutated["action_overrides"]["LEGACY-SRC-PROP-034"] = {
+            "effective_action": "REGISTER_NEW_SOURCE",
+            "reason": "INVALID_PROMOTION",
+        }
+        proposal = next(row for row in manifest["proposals"] if row["proposal_id"] == "LEGACY-SRC-PROP-034")
+        with self.assertRaisesRegex(eligibility.NamespaceEligibilityError, "cannot promote mechanical curation"):
             eligibility.evaluate_proposal(proposal, mutated)
 
     def test_policy_checkpoint_records_candidate_vs_eligible_distinction(self) -> None:
