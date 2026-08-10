@@ -34,8 +34,20 @@ def _projection() -> dict[str, object]:
     return monitoring.build_projection(_manifest(), _policy())
 
 
-def _row_for_evidence(projection: dict[str, object], evidence_id: str) -> dict[str, object]:
-    return next(row for row in projection["sources"] if evidence_id in row["linked_evidence_ids"])
+def _row_for_evidence(
+    projection: dict[str, object],
+    evidence_id: str,
+    *,
+    system: str,
+) -> dict[str, object]:
+    matches = [
+        row
+        for row in projection["sources"]
+        if evidence_id in row["linked_evidence_ids"] and system in row["systems"]
+    ]
+    if len(matches) != 1:
+        raise AssertionError(f"Expected one row for {system} {evidence_id}; found {len(matches)}")
+    return matches[0]
 
 
 class ProspectiveLegacyMonitoringTests(unittest.TestCase):
@@ -51,18 +63,26 @@ class ProspectiveLegacyMonitoringTests(unittest.TestCase):
     def test_curation_holds_are_excluded(self) -> None:
         projection = _projection()
         included_evidence = {
-            evidence_id
+            (system, evidence_id)
             for row in projection["sources"]
+            for system in row["systems"]
             for evidence_id in row["linked_evidence_ids"]
         }
-        self.assertNotIn("EV-15", included_evidence)
-        self.assertNotIn("EV-T15-012", included_evidence)
+        self.assertNotIn(("FDA adaptive DBS", "EV-15"), included_evidence)
+        self.assertNotIn(("BrainGate2 T15", "EV-T15-012"), included_evidence)
         excluded = {
-            evidence_id
+            (system, evidence_id)
             for row in projection["excluded_curation_holds"]
+            for system in row["systems"]
             for evidence_id in row["linked_evidence_ids"]
         }
-        self.assertEqual(excluded, {"EV-15", "EV-T15-012"})
+        self.assertEqual(
+            excluded,
+            {
+                ("FDA adaptive DBS", "EV-15"),
+                ("BrainGate2 T15", "EV-T15-012"),
+            },
+        )
 
     def test_authority_boundary_and_source_identity_rules(self) -> None:
         projection = _projection()
@@ -92,26 +112,31 @@ class ProspectiveLegacyMonitoringTests(unittest.TestCase):
 
     def test_real_corpus_trial_registries_are_recurring(self) -> None:
         projection = _projection()
-        for evidence_id in ("EV-06", "EV-T15-002"):
-            row = _row_for_evidence(projection, evidence_id)
+        cases = (
+            ("FDA adaptive DBS", "EV-06"),
+            ("BrainGate2 T15", "EV-T15-002"),
+        )
+        for system, evidence_id in cases:
+            row = _row_for_evidence(projection, evidence_id, system=system)
             self.assertEqual(row["monitoring_mode"], "RECURRING", row)
             self.assertEqual(row["recommended_interval"], "MONTHLY", row)
             self.assertEqual(row["rule"], "LIVE_TRIAL_REGISTRY", row)
 
     def test_real_corpus_pinned_git_and_preprint_are_archival(self) -> None:
         projection = _projection()
-        for evidence_id in ("EV-01", "EV-04"):
-            row = _row_for_evidence(projection, evidence_id)
-            self.assertEqual(row["monitoring_mode"], "ARCHIVAL_STATIC", row)
-        self.assertEqual(_row_for_evidence(projection, "EV-04")["rule"], "IMMUTABLE_GIT_OBJECT")
+        preprint = _row_for_evidence(projection, "EV-01", system="Brain2Qwerty")
+        pinned = _row_for_evidence(projection, "EV-04", system="Brain2Qwerty")
+        self.assertEqual(preprint["monitoring_mode"], "ARCHIVAL_STATIC", preprint)
+        self.assertEqual(pinned["monitoring_mode"], "ARCHIVAL_STATIC", pinned)
+        self.assertEqual(pinned["rule"], "IMMUTABLE_GIT_OBJECT")
 
     def test_real_corpus_project_page_is_on_change(self) -> None:
-        row = _row_for_evidence(_projection(), "EV-02")
+        row = _row_for_evidence(_projection(), "EV-02", system="Brain2Qwerty")
         self.assertEqual(row["monitoring_mode"], "ON_CHANGE", row)
         self.assertEqual(row["rule"], "LIVE_PROJECT_OR_REPOSITORY_PAGE", row)
 
     def test_prima_press_release_is_archival_static(self) -> None:
-        row = _row_for_evidence(_projection(), "EV-PR-011")
+        row = _row_for_evidence(_projection(), "EV-PR-011", system="PRIMA")
         self.assertEqual(row["monitoring_mode"], "ARCHIVAL_STATIC", row)
         self.assertEqual(row["rule"], "DATED_PUBLICATION_OR_EVENT_ARTIFACT", row)
 
