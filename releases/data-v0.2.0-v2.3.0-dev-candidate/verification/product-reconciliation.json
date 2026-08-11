@@ -1,0 +1,13 @@
+{
+  "$schema": "schemas/v23-public-candidate-record.schema.json",
+  "artifact": "v23_public_candidate_product_reconciliation",
+  "authority_boundary": "This record is part of a noncanonical public development projection. It grants no scientific, clinical, regulatory, conformance, institutional, UNESCO, governance, release, or canonical publication authority.",
+  "candidate_successor_sha256": "0ca19a25c118f2d25406d9b4694dbd1e3e80afa092446860f0fd311c4cfb718f",
+  "cycle_report_sha256": "33b1c81204d88894d8bc51886d7faa7f57230a97ffd4aecbc93569af9a94f95a",
+  "generated_product_binaries_stored_here": false,
+  "publication_reconciled": true,
+  "result": "PASS",
+  "schema_version": "1.0.0",
+  "status": "PASS_NONCANONICAL",
+  "workbench_execution_record_sha256": "42bd226102729fe8e6e529e55a791b5048a420cb99c04f647de08e2323798be9"
+}
