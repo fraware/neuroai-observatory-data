@@ -23,7 +23,7 @@
   "governance_layer_applied": false,
   "governance_state": "DEFERRED",
   "manifest_path": "releases/data-v0.2.0-v2.3.0-dev-candidate/SHA256SUMS.txt",
-  "manifest_sha256": "9e27cccbc7ceabd408e9225a4e6daac16b94394dd9e1c81567a5b05dd1608403",
+  "manifest_sha256": "05ff9d68e3c8a5bf1f1118023a51a4e3e707d50082067046bc9d32f93a17ff3a",
   "predecessor": {
     "release_tag": "data-v0.1.0-public-governing",
     "v1_7_snapshot_sha256": "9cc36aacb4c791c9830990b58e144f223925f3ad492016abaea44727b48a0b70",
