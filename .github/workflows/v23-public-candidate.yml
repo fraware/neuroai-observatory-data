@@ -1,0 +1,34 @@
+name: V2.3 public candidate
+
+on:
+  pull_request:
+    paths:
+      - "scripts/verify_v23_public_candidate.py"
+      - "tests/test_build_v23_public_candidate.py"
+      - "schemas/v23-public-candidate-record.schema.json"
+      - "releases/data-v0.2.0-v2.3.0-dev-candidate/**"
+      - ".github/workflows/v23-public-candidate.yml"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/verify_v23_public_candidate.py"
+      - "tests/test_build_v23_public_candidate.py"
+      - "schemas/v23-public-candidate-record.schema.json"
+      - "releases/data-v0.2.0-v2.3.0-dev-candidate/**"
+      - ".github/workflows/v23-public-candidate.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify v2.3 public candidate
+        run: python scripts/verify_v23_public_candidate.py
+      - name: Contract tests
+        run: python -m unittest tests/test_build_v23_public_candidate.py -v
