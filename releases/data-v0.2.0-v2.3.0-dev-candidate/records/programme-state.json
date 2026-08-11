@@ -1,0 +1,44 @@
+{
+  "$schema": "schemas/v23-public-candidate-record.schema.json",
+  "artifact": "v23_public_candidate_programme_state",
+  "assessment_mutation_performed": false,
+  "authority_boundary": "This record is part of a noncanonical public development projection. It grants no scientific, clinical, regulatory, conformance, institutional, UNESCO, governance, release, or canonical publication authority.",
+  "candidate_release": "data-v0.2.0-v2.3.0-dev-candidate",
+  "comparative_cycle": {
+    "change_candidates": 14,
+    "collection_run_id": "CRUN-2948ed474a7c4aa0941f49bffc91a8c4",
+    "delta_operations": 14,
+    "development_dispositions": 14,
+    "first_capture_without_baseline": 0,
+    "logical_sources": 25,
+    "publication_reconciled": true,
+    "reopening_recommendations": 112,
+    "successful_captures": 21,
+    "true_comparisons": 21,
+    "typed_failures": 4
+  },
+  "current_pointer_updated": false,
+  "governance": {
+    "governance_layer_applied": false,
+    "governance_state": "DEFERRED",
+    "release_authority_state": "DEFERRED"
+  },
+  "predecessor": {
+    "effective_source_count": 248,
+    "immutable": true,
+    "monitor_registry_source_count": 224,
+    "release_tag": "data-v0.1.0-public-governing",
+    "resolution": "DECLARED_PREDECESSOR_REFERENCE",
+    "v1_7_snapshot_sha256": "9cc36aacb4c791c9830990b58e144f223925f3ad492016abaea44727b48a0b70"
+  },
+  "schema_version": "1.0.0",
+  "status": "SHADOW_EVALUATION_NOT_CANONICAL",
+  "successor": {
+    "bytes_in_this_repository": false,
+    "candidate_successor_sha256": "0ca19a25c118f2d25406d9b4694dbd1e3e80afa092446860f0fd311c4cfb718f",
+    "canonical_publication_state": "NOT_AUTHORIZED",
+    "canonical_successor_written": false,
+    "materialization_state": "DIGEST_AND_PUBLIC_INDEX_ONLY",
+    "workbench_refresh_version": "v2.3.0-dev"
+  }
+}
