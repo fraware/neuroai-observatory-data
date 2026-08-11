@@ -1,0 +1,18 @@
+{
+  "$schema": "schemas/v23-public-candidate-record.schema.json",
+  "artifact": "v23_public_candidate_development_delta_reference",
+  "authority_boundary": "This record is part of a noncanonical public development projection. It grants no scientific, clinical, regulatory, conformance, institutional, UNESCO, governance, release, or canonical publication authority.",
+  "boundary_note": "The digest and count prove which development delta the public projection refers to. They do not expose or reconstruct operation bodies and do not authorize applying them to the public governing source universe.",
+  "candidate_successor_sha256": "0ca19a25c118f2d25406d9b4694dbd1e3e80afa092446860f0fd311c4cfb718f",
+  "canonical_observatory_mutation_performed": false,
+  "delta_sha256": "86d7a2ce102765b165ceda704622da686a0ef872e74d3663fefe676a8f917c99",
+  "governance_layer_applied": false,
+  "operation_bodies_in_this_repository": false,
+  "operation_body_state": "WITHHELD_FROM_PUBLIC_PROJECTION",
+  "operation_count": 14,
+  "schema_version": "1.0.0",
+  "scope": "DEVELOPMENT_PIPELINE_ONLY",
+  "status": "NONCANONICAL_DEVELOPMENT_DELTA_REFERENCE",
+  "substantive_authority": false,
+  "workbench_public_projection_declares_contains_delta_operations": false
+}

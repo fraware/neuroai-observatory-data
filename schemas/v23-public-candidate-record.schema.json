@@ -1,0 +1,15 @@
+{
+  "$id": "v23-public-candidate-record.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "$schema": {"type": "string"},
+    "artifact": {"minLength": 1, "type": "string"},
+    "authority_boundary": {"minLength": 1, "type": "string"},
+    "schema_version": {"const": "1.0.0", "type": "string"},
+    "status": {"minLength": 1, "type": "string"}
+  },
+  "required": ["schema_version", "artifact", "status", "authority_boundary"],
+  "title": "NeuroAI v2.3 public candidate record",
+  "type": "object"
+}

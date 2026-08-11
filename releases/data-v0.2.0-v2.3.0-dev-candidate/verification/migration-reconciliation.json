@@ -1,0 +1,16 @@
+{
+  "$schema": "schemas/v23-public-candidate-record.schema.json",
+  "artifact": "v23_public_candidate_migration_reconciliation",
+  "authority_boundary": "This record is part of a noncanonical public development projection. It grants no scientific, clinical, regulatory, conformance, institutional, UNESCO, governance, release, or canonical publication authority.",
+  "predecessor_records_copied": false,
+  "predecessor_records_mutated": false,
+  "predecessor_release": "data-v0.1.0-public-governing",
+  "predecessor_v1_7_sha256": "9cc36aacb4c791c9830990b58e144f223925f3ad492016abaea44727b48a0b70",
+  "reference_resolution": "INHERIT_FROM_DECLARED_PREDECESSOR",
+  "result": "PASS",
+  "schema_version": "1.0.0",
+  "silent_conflict_resolution": false,
+  "status": "PASS_NONCANONICAL",
+  "v2_2_migration_reconciliation_sha256": "b8fca0e5a6a005ed5664d3ff7ed4f6b0696fd2b6221dd9ba4dd4c2cbc0685f79",
+  "v2_3_static_checkpoint_sha256": "7b2066e174e85e61d446466a59d372c9b828d79ef5ab19c88742d56ab1773127"
+}

@@ -1,0 +1,62 @@
+{
+  "$schema": "schemas/v23-public-candidate-record.schema.json",
+  "artifact": "v23_public_candidate_release_descriptor",
+  "assessment_mutation_performed": false,
+  "authority_boundary": "This record is part of a noncanonical public development projection. It grants no scientific, clinical, regulatory, conformance, institutional, UNESCO, governance, release, or canonical publication authority.",
+  "canonical_publication_state": "NOT_AUTHORIZED",
+  "canonical_successor_written": false,
+  "comparative_refresh": {
+    "accepted_development_delta_sha256": "86d7a2ce102765b165ceda704622da686a0ef872e74d3663fefe676a8f917c99",
+    "candidate_successor_sha256": "0ca19a25c118f2d25406d9b4694dbd1e3e80afa092446860f0fd311c4cfb718f",
+    "comparative_refresh_report_sha256": "323bccc3c7ff0a2cb911b4668ada24d3693ea6c705cf0a32ce7c33f856f6d6dc",
+    "execution_record_sha256": "42bd226102729fe8e6e529e55a791b5048a420cb99c04f647de08e2323798be9",
+    "public_projection_manifest_sha256": "0175cd1b0575d7fba90a4fdfd43af8b9712b3aaed9e8c163e158e73624aba031",
+    "reopening_analysis": {
+      "direct_public_digest_state": "WITHHELD_NOT_PUBLICLY_EXPOSED",
+      "enclosing_cycle_report_sha256": "33b1c81204d88894d8bc51886d7faa7f57230a97ffd4aecbc93569af9a94f95a",
+      "recommendation_count": 112
+    },
+    "run_id": "CRUN-2948ed474a7c4aa0941f49bffc91a8c4"
+  },
+  "created_at": "2026-08-11T08:18:00Z",
+  "current_pointer_updated": false,
+  "governance_layer_applied": false,
+  "governance_state": "DEFERRED",
+  "manifest_path": "releases/data-v0.2.0-v2.3.0-dev-candidate/SHA256SUMS.txt",
+  "manifest_sha256": "05ff9d68e3c8a5bf1f1118023a51a4e3e707d50082067046bc9d32f93a17ff3a",
+  "predecessor": {
+    "release_tag": "data-v0.1.0-public-governing",
+    "v1_7_snapshot_sha256": "9cc36aacb4c791c9830990b58e144f223925f3ad492016abaea44727b48a0b70",
+    "v2_2_migration_reconciliation_sha256": "b8fca0e5a6a005ed5664d3ff7ed4f6b0696fd2b6221dd9ba4dd4c2cbc0685f79",
+    "v2_3_static_checkpoint_sha256": "7b2066e174e85e61d446466a59d372c9b828d79ef5ab19c88742d56ab1773127"
+  },
+  "published_at": null,
+  "record_counts": {
+    "comparisons": 21,
+    "delta_operations_referenced": 14,
+    "manifested_files": 11,
+    "reopening_recommendations_referenced": 112,
+    "source_outcomes": 25
+  },
+  "release_authority_state": "DEFERRED",
+  "release_id": "OBS-DATA-20260811-DATA-V0.2.0-V2.3.0-DEV-CANDIDATE",
+  "release_tag": "data-v0.2.0-v2.3.0-dev-candidate",
+  "schema_version": "1.0.0",
+  "status": "CANDIDATE_PUBLIC_PROJECTION_NOT_CANONICAL",
+  "withheld_claims": [
+    "No canonical publication or release authorization.",
+    "No scientific, clinical, regulatory, conformance, institutional, or UNESCO conclusion.",
+    "Development delta operation bodies are not present in this public projection and are not reconstructed.",
+    "Detailed reopening recommendation records are not present in this public projection.",
+    "Retrieval failures are operational outcomes with finding_effect NONE.",
+    "The inherited 248-source public governing predecessor is unchanged."
+  ],
+  "workbench": {
+    "execution_workflow_commit": "f61b29fd5dff17e94db45422b46dca180dd7f66d",
+    "issue": 120,
+    "merged_main_commit": "e01b56f96b494f40f026181fa9f01f2c91926f30",
+    "pull_request": 148,
+    "validated_software_head": "83c64a9656ebff6f31556ca9ccf5cbb92685963c",
+    "version": "0.3.0.dev0"
+  }
+}

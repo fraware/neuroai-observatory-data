@@ -1,0 +1,14 @@
+{
+  "$schema": "schemas/v23-public-candidate-record.schema.json",
+  "artifact": "v23_public_candidate_reopening_reference",
+  "assessment_mutation_performed": false,
+  "authority_boundary": "This record is part of a noncanonical public development projection. It grants no scientific, clinical, regulatory, conformance, institutional, UNESCO, governance, release, or canonical publication authority.",
+  "direct_public_reopening_digest_available": false,
+  "enclosing_cycle_report_sha256": "33b1c81204d88894d8bc51886d7faa7f57230a97ffd4aecbc93569af9a94f95a",
+  "interpretation_boundary": "A reopening recommendation is not a reopened assessment, changed finding, or completed reassessment. The public workbench projection exposes the count and enclosing cycle digest, not the detailed protected recommendation package.",
+  "recommendation_count": 112,
+  "recommendation_record_state": "WITHHELD_FROM_PUBLIC_PROJECTION",
+  "recommendation_records_in_this_repository": false,
+  "schema_version": "1.0.0",
+  "status": "NONCANONICAL_REOPENING_REFERENCE"
+}
