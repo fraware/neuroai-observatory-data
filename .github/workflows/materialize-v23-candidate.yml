@@ -19,6 +19,27 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Wire permanent analytical workflow
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('.github/workflows/analytical-projection.yml')
+          text = path.read_text(encoding='utf-8')
+          insertions = [
+              ('      - "scripts/build_legacy_source_promotion_queue.py"\n', '      - "scripts/verify_v23_public_candidate.py"\n'),
+              ('      - "tests/test_build_legacy_source_promotion_queue.py"\n', '      - "tests/test_build_v23_public_candidate.py"\n'),
+              ('      - "schemas/legacy-source-registration-proposals.schema.json"\n', '      - "schemas/v23-public-candidate-record.schema.json"\n      - "releases/data-v0.2.0-v2.3.0-dev-candidate/**"\n'),
+          ]
+          for anchor, addition in insertions:
+              if addition.strip() not in text:
+                  text = text.replace(anchor, anchor + addition)
+          step_anchor = "      - name: Validate legacy source registration proposals\n"
+          step = "      - name: Verify v2.3 public candidate release\n        run: python scripts/verify_v23_public_candidate.py\n"
+          if step.strip() not in text:
+              text = text.replace(step_anchor, step + step_anchor)
+          path.write_text(text, encoding='utf-8')
+          PY
       - name: Materialize byte manifest
         run: |
           python - <<'PY'
@@ -31,31 +52,29 @@ jobs:
               + [p for p in (root / 'verification').rglob('*') if p.is_file()],
               key=lambda p: p.relative_to(root).as_posix(),
           )
-          lines = [
+          manifest = ''.join(
               f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {path.relative_to(root).as_posix()}\n"
               for path in files
-          ]
-          manifest = ''.join(lines)
+          )
           (root / 'SHA256SUMS.txt').write_text(manifest, encoding='utf-8')
           descriptor_path = root / 'release-descriptor.json'
           descriptor = json.loads(descriptor_path.read_text(encoding='utf-8'))
           descriptor['manifest_sha256'] = hashlib.sha256(manifest.encode('utf-8')).hexdigest()
           descriptor['record_counts']['manifested_files'] = len(files)
           descriptor_path.write_text(json.dumps(descriptor, indent=2, sort_keys=True) + '\n', encoding='utf-8')
-          print(f"manifested={len(files)} manifest_sha256={descriptor['manifest_sha256']}")
           PY
       - name: Verify candidate
         run: python scripts/verify_v23_public_candidate.py
       - name: Contract tests
         run: python -m unittest tests/test_build_v23_public_candidate.py -v
-      - name: Commit deterministic materialization
+      - name: Commit deterministic materialization and permanent check
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add releases/data-v0.2.0-v2.3.0-dev-candidate/SHA256SUMS.txt releases/data-v0.2.0-v2.3.0-dev-candidate/release-descriptor.json
+          git add .github/workflows/analytical-projection.yml releases/data-v0.2.0-v2.3.0-dev-candidate/SHA256SUMS.txt releases/data-v0.2.0-v2.3.0-dev-candidate/release-descriptor.json
           if git diff --cached --quiet; then
             echo 'No materialization drift.'
           else
-            git commit -m 'Materialize v2.3 candidate byte manifest'
+            git commit -m 'Enforce v2.3 public candidate verification'
             git push origin HEAD:agent/2-v23-public-data-projection
           fi
