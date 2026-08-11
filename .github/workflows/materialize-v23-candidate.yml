@@ -1,0 +1,61 @@
+name: Materialize v2.3 candidate
+
+on:
+  push:
+    branches:
+      - agent/2-v23-public-data-projection
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/2-v23-public-data-projection
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Materialize byte manifest
+        run: |
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+
+          root = Path('releases/data-v0.2.0-v2.3.0-dev-candidate')
+          files = sorted(
+              [p for p in (root / 'records').rglob('*') if p.is_file()]
+              + [p for p in (root / 'verification').rglob('*') if p.is_file()],
+              key=lambda p: p.relative_to(root).as_posix(),
+          )
+          lines = [
+              f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {path.relative_to(root).as_posix()}\n"
+              for path in files
+          ]
+          manifest = ''.join(lines)
+          (root / 'SHA256SUMS.txt').write_text(manifest, encoding='utf-8')
+          descriptor_path = root / 'release-descriptor.json'
+          descriptor = json.loads(descriptor_path.read_text(encoding='utf-8'))
+          descriptor['manifest_sha256'] = hashlib.sha256(manifest.encode('utf-8')).hexdigest()
+          descriptor['record_counts']['manifested_files'] = len(files)
+          descriptor_path.write_text(json.dumps(descriptor, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+          print(f"manifested={len(files)} manifest_sha256={descriptor['manifest_sha256']}")
+          PY
+      - name: Verify candidate
+        run: python scripts/verify_v23_public_candidate.py
+      - name: Contract tests
+        run: python -m unittest tests/test_build_v23_public_candidate.py -v
+      - name: Commit deterministic materialization
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add releases/data-v0.2.0-v2.3.0-dev-candidate/SHA256SUMS.txt releases/data-v0.2.0-v2.3.0-dev-candidate/release-descriptor.json
+          if git diff --cached --quiet; then
+            echo 'No materialization drift.'
+          else
+            git commit -m 'Materialize v2.3 candidate byte manifest'
+            git push origin HEAD:agent/2-v23-public-data-projection
+          fi
