@@ -1,0 +1,32 @@
+{
+  "$schema": "schemas/v23-public-candidate-record.schema.json",
+  "artifact": "v23_public_candidate_release_verification",
+  "authority_boundary": "This record is part of a noncanonical public development projection. It grants no scientific, clinical, regulatory, conformance, institutional, UNESCO, governance, release, or canonical publication authority.",
+  "checks": {
+    "assessment_mutation_performed_false": true,
+    "candidate_count_14": true,
+    "canonical_publication_state_not_authorized": true,
+    "canonical_successor_written_false": true,
+    "comparison_classification_counts_reconcile": true,
+    "current_pointer_unchanged": true,
+    "delta_operation_bodies_not_reconstructed": true,
+    "delta_operation_count_14": true,
+    "development_disposition_count_14": true,
+    "finding_effect_none_for_all_outcomes": true,
+    "governance_layer_applied_false": true,
+    "json_records_schema_contract_valid": true,
+    "manifest_digests_recompute": true,
+    "predecessor_declared": true,
+    "predecessor_v1_7_digest_pinned": true,
+    "product_reconciliation_pass": true,
+    "protected_data_scan_pass": true,
+    "reopening_recommendation_count_112": true,
+    "source_outcome_count_25": true,
+    "true_comparison_count_21": true,
+    "typed_failure_count_4": true,
+    "workbench_public_artifact_digests_pinned": true
+  },
+  "result": "PASS",
+  "schema_version": "1.0.0",
+  "status": "PASS_NONCANONICAL"
+}
