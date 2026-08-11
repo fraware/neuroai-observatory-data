@@ -1,0 +1,43 @@
+{
+  "$schema": "schemas/v23-public-candidate-record.schema.json",
+  "artifact": "v23_public_candidate_source_outcomes",
+  "authority_boundary": "This record is part of a noncanonical public development projection. It grants no scientific, clinical, regulatory, conformance, institutional, UNESCO, governance, release, or canonical publication authority.",
+  "interpretation_boundary": "Retrieval and comparison outcomes are operational evidence only. Every row has finding_effect = NONE and no row changes a completed assessment.",
+  "outcome_counts": {
+    "CONTENT_CHANGED": 14,
+    "HTTP_ERROR_UNCLASSIFIED": 3,
+    "NO_CHANGE": 7,
+    "TIMEOUT": 1
+  },
+  "record_count": 25,
+  "records": [
+    {"comparison_classification":"CONTENT_CHANGED_REQUIRES_REVIEW","failure_class":null,"finding_effect":"NONE","http_status":200,"outcome_type":"CONTENT_CHANGED","source_id":"SRC-0004"},
+    {"comparison_classification":"CONTENT_CHANGED_REQUIRES_REVIEW","failure_class":null,"finding_effect":"NONE","http_status":200,"outcome_type":"CONTENT_CHANGED","source_id":"SRC-0013"},
+    {"comparison_classification":"NO_CHANGE","failure_class":null,"finding_effect":"NONE","http_status":200,"outcome_type":"NO_CHANGE","source_id":"SRC-0030"},
+    {"comparison_classification":"NO_CHANGE","failure_class":null,"finding_effect":"NONE","http_status":200,"outcome_type":"NO_CHANGE","source_id":"SRC-0031"},
+    {"comparison_classification":"CONTENT_CHANGED_REQUIRES_REVIEW","failure_class":null,"finding_effect":"NONE","http_status":200,"outcome_type":"CONTENT_CHANGED","source_id":"SRC-0034"},
+    {"comparison_classification":"CONTENT_CHANGED_REQUIRES_REVIEW","failure_class":null,"finding_effect":"NONE","http_status":200,"outcome_type":"CONTENT_CHANGED","source_id":"SRC-0038"},
+    {"comparison_classification":"CONTENT_CHANGED_REQUIRES_REVIEW","failure_class":null,"finding_effect":"NONE","http_status":200,"outcome_type":"CONTENT_CHANGED","source_id":"SRC-0040"},
+    {"comparison_classification":null,"failure_class":"HTTP_ERROR","finding_effect":"NONE","http_status":null,"outcome_type":"HTTP_ERROR_UNCLASSIFIED","source_id":"SRC-0041"},
+    {"comparison_classification":"NO_CHANGE","failure_class":null,"finding_effect":"NONE","http_status":200,"outcome_type":"NO_CHANGE","source_id":"SRC-0045"},
+    {"comparison_classification":"CONTENT_CHANGED_REQUIRES_REVIEW","failure_class":null,"finding_effect":"NONE","http_status":200,"outcome_type":"CONTENT_CHANGED","source_id":"SRC-0046"},
+    {"comparison_classification":"CONTENT_CHANGED_REQUIRES_REVIEW","failure_class":null,"finding_effect":"NONE","http_status":200,"outcome_type":"CONTENT_CHANGED","source_id":"SRC-0047"},
+    {"comparison_classification":"CONTENT_CHANGED_REQUIRES_REVIEW","failure_class":null,"finding_effect":"NONE","http_status":200,"outcome_type":"CONTENT_CHANGED","source_id":"SRC-0062"},
+    {"comparison_classification":"CONTENT_CHANGED_REQUIRES_REVIEW","failure_class":null,"finding_effect":"NONE","http_status":200,"outcome_type":"CONTENT_CHANGED","source_id":"SRC-0063"},
+    {"comparison_classification":"CONTENT_CHANGED_REQUIRES_REVIEW","failure_class":null,"finding_effect":"NONE","http_status":200,"outcome_type":"CONTENT_CHANGED","source_id":"SRC-0079"},
+    {"comparison_classification":null,"failure_class":"HTTP_ERROR","finding_effect":"NONE","http_status":null,"outcome_type":"HTTP_ERROR_UNCLASSIFIED","source_id":"SRC-0115"},
+    {"comparison_classification":"CONTENT_CHANGED_REQUIRES_REVIEW","failure_class":null,"finding_effect":"NONE","http_status":200,"outcome_type":"CONTENT_CHANGED","source_id":"SRC-0121"},
+    {"comparison_classification":null,"failure_class":"TIMEOUT","finding_effect":"NONE","http_status":null,"outcome_type":"TIMEOUT","source_id":"SRC-0124"},
+    {"comparison_classification":"CONTENT_CHANGED_REQUIRES_REVIEW","failure_class":null,"finding_effect":"NONE","http_status":200,"outcome_type":"CONTENT_CHANGED","source_id":"SRC-0169"},
+    {"comparison_classification":"NO_CHANGE","failure_class":null,"finding_effect":"NONE","http_status":200,"outcome_type":"NO_CHANGE","source_id":"SRC-0174"},
+    {"comparison_classification":null,"failure_class":"HTTP_ERROR","finding_effect":"NONE","http_status":null,"outcome_type":"HTTP_ERROR_UNCLASSIFIED","source_id":"SRC-14-007"},
+    {"comparison_classification":"NO_CHANGE","failure_class":null,"finding_effect":"NONE","http_status":200,"outcome_type":"NO_CHANGE","source_id":"SRC-14-031"},
+    {"comparison_classification":"CONTENT_CHANGED_REQUIRES_REVIEW","failure_class":null,"finding_effect":"NONE","http_status":200,"outcome_type":"CONTENT_CHANGED","source_id":"SRC-14-032"},
+    {"comparison_classification":"NO_CHANGE","failure_class":null,"finding_effect":"NONE","http_status":200,"outcome_type":"NO_CHANGE","source_id":"SRC-14-033"},
+    {"comparison_classification":"NO_CHANGE","failure_class":null,"finding_effect":"NONE","http_status":200,"outcome_type":"NO_CHANGE","source_id":"SRC-14-039"},
+    {"comparison_classification":"CONTENT_CHANGED_REQUIRES_REVIEW","failure_class":null,"finding_effect":"NONE","http_status":200,"outcome_type":"CONTENT_CHANGED","source_id":"SRC-14-041"}
+  ],
+  "schema_version": "1.0.0",
+  "source_report_sha256": "323bccc3c7ff0a2cb911b4668ada24d3693ea6c705cf0a32ce7c33f856f6d6dc",
+  "status": "SHADOW_EVALUATION_NOT_CANONICAL"
+}
