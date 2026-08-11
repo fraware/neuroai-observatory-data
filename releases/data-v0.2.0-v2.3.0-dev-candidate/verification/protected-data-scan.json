@@ -1,0 +1,15 @@
+{
+  "$schema": "schemas/v23-public-candidate-record.schema.json",
+  "artifact": "v23_public_candidate_protected_data_scan",
+  "authority_boundary": "This record is part of a noncanonical public development projection. It grants no scientific, clinical, regulatory, conformance, institutional, UNESCO, governance, release, or canonical publication authority.",
+  "credentials_or_tokens_present": false,
+  "generated_binary_products_present": false,
+  "private_reviewer_identities_present": false,
+  "prohibited_content_found": false,
+  "protected_capture_bytes_present": false,
+  "protected_filesystem_paths_present": false,
+  "result": "PASS",
+  "scan_scope": "release candidate JSON and manifest bytes committed under data-v0.2.0-v2.3.0-dev-candidate",
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}
