@@ -1,0 +1,38 @@
+{
+  "$schema": "schemas/v23-public-candidate-record.schema.json",
+  "artifact": "v23_public_candidate_projection_boundary",
+  "authority_boundary": "This record is part of a noncanonical public development projection. It grants no scientific, clinical, regulatory, conformance, institutional, UNESCO, governance, release, or canonical publication authority.",
+  "current_public_governing_state": {
+    "effective_sources": 248,
+    "monitored_sources": 224,
+    "mutated_by_candidate": false,
+    "unmonitored_sources": 24
+  },
+  "excluded": {
+    "credentials_or_tokens": true,
+    "detailed_reopening_records": true,
+    "development_delta_operation_bodies": true,
+    "generated_xlsx_docx_pdf_html_binaries": true,
+    "licensed_evidence_bytes": true,
+    "private_reviewer_identities": true,
+    "protected_capture_bytes": true,
+    "protected_filesystem_paths": true,
+    "raw_operations_extracts": true
+  },
+  "included": {
+    "comparison_index_rows": 21,
+    "delta_digest_and_count": true,
+    "predecessor_references": true,
+    "reopening_count_and_enclosing_digest": true,
+    "source_outcomes": 25,
+    "workbench_public_provenance": true
+  },
+  "non_inference_rules": [
+    "Missing public operation bodies are WITHHELD, not zero operations.",
+    "Retrieval failures have finding_effect NONE and do not become assessment FAIL findings.",
+    "The inherited 248-source public governing universe is not rewritten by this candidate projection.",
+    "Candidate successor digest does not establish canonical publication."
+  ],
+  "schema_version": "1.0.0",
+  "status": "PUBLIC_PROJECTION_BOUNDARY"
+}
