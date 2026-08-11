@@ -2,7 +2,11 @@
   "$schema": "schemas/v23-public-candidate-record.schema.json",
   "artifact": "v23_public_candidate_comparison_index",
   "authority_boundary": "This record is part of a noncanonical public development projection. It grants no scientific, clinical, regulatory, conformance, institutional, UNESCO, governance, release, or canonical publication authority.",
-  "classification_counts": {"BYTE_IDENTICAL":7,"STRUCTURED_RECORD_FIELD_CHANGE":1,"SUBSTANTIVE_NORMALIZED_TEXT_CHANGE":13},
+  "classification_counts": {
+    "BYTE_IDENTICAL": 7,
+    "STRUCTURED_RECORD_FIELD_CHANGE": 1,
+    "SUBSTANTIVE_NORMALIZED_TEXT_CHANGE": 13
+  },
   "detail_boundary": "Snapshot IDs, byte digests, retrieval targets, adapter bindings, and timestamps remain available in the exact hash-bound public workbench report; this data release indexes them without duplicating that report.",
   "record_count": 21,
   "records": [
@@ -29,6 +33,10 @@
     {"candidate_required":true,"classification":"SUBSTANTIVE_NORMALIZED_TEXT_CHANGE","detail_record_state":"HASH_BOUND_IN_WORKBENCH_PUBLIC_COMPARATIVE_REPORT","normalization_version":"TEXT_NORMALIZATION_v1","source_id":"SRC-14-041"}
   ],
   "schema_version": "1.0.0",
-  "source_report": {"path":"docs/operations/issue-120-comparative-execution/comparative-refresh-report.json","repository":"fraware/neuroai-workbench","sha256":"323bccc3c7ff0a2cb911b4668ada24d3693ea6c705cf0a32ce7c33f856f6d6dc"},
+  "source_report": {
+    "path": "docs/operations/issue-120-comparative-execution/comparative-refresh-report.json",
+    "repository": "fraware/neuroai-workbench",
+    "sha256": "323bccc3c7ff0a2cb911b4668ada24d3693ea6c705cf0a32ce7c33f856f6d6dc"
+  },
   "status": "SHADOW_EVALUATION_NOT_CANONICAL"
 }
