@@ -18,13 +18,14 @@
     "successor_discovery_watch_id": "DISC-SCIENCE-CAREERS-001",
     "transition_sha256": "2140045cff2130ebfdb81d262d4e0130fd13f2f8d86856852a73e418efc89433"
   },
-  "manifest_sha256": "07e52bbecbb3f03f4f6b289d91b6c5db666c9b120f87b441cdacc9b50faea2aa",
+  "manifest_sha256": "ef6283bf9d35a3fd72fad0db55a9adb90da2aefb2dc3b3620c364c8786c02b31",
   "metadata": {
     "automatic_assessment_mutation": false,
     "automatic_source_mutation": false,
     "automatic_source_registration": false,
     "boundary": "Development monitoring transition evidence only. Historical source records and the governing predecessor registry remain unchanged. This manifest does not establish open-world completeness, substantive source truth beyond the bound official-route observation, assessment validity, human governance, canonical promotion, release authority, or publication authority.",
     "canonical_promotion_authorized": false,
+    "gate_revision": "final-exact-head-v1",
     "human_governance_performed": false,
     "issue_number": 31,
     "publication_authorized": false,
