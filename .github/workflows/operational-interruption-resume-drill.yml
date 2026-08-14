@@ -1,0 +1,75 @@
+name: Operational interruption resume drill
+
+on:
+  push:
+    branches:
+      - agent/live-interruption-resume-drill
+    paths:
+      - "scripts/run_live_interruption_resume_drill.py"
+      - ".github/workflows/operational-interruption-resume-drill.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: neuroai-operational-interruption-resume-drill
+  cancel-in-progress: false
+
+jobs:
+  drill:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Checkout exact green workbench
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: fraware/neuroai-workbench
+          ref: 65c32abce505f0915e8b5a146b914c9ce7be07f8
+          path: workbench
+      - name: Install hash-locked workbench runtime
+        run: |
+          python -m pip install --require-hashes -r workbench/requirements/constraints.txt
+          python -m pip install --no-deps ./workbench
+      - name: Terminate after durable progress and resume same ledger
+        run: |
+          rm -rf "$RUNNER_TEMP/neuroai-interruption-drill"
+          python scripts/run_live_interruption_resume_drill.py \
+            --workspace "$RUNNER_TEMP/neuroai-interruption-drill/workspace" \
+            --as-of "$(date -u +%F)" \
+            --output "$RUNNER_TEMP/neuroai-interruption-drill/report.json"
+      - name: Enforce exact resume invariants
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          report = json.loads((Path(os.environ["RUNNER_TEMP"]) / "neuroai-interruption-drill/report.json").read_text())
+          if report["terminal_targets_before_kill"] < 1:
+              raise SystemExit("no target was durably terminal before OS termination")
+          if not all(report["terminal_checkpoints_bit_identical_after_resume"].values()):
+              raise SystemExit("a pre-interruption terminal checkpoint changed during resume")
+          if report["resume_counts"]["resumed_targets"] < report["terminal_targets_before_kill"]:
+              raise SystemExit("resume did not account for every pre-interruption terminal target")
+          if report["resume_slo"]["source_accountability_coverage"] != 1.0:
+              raise SystemExit("source-accountability SLO below 1.0 after resume")
+          if report["resume_slo"]["target_execution_coverage"] != 1.0:
+              raise SystemExit("target-execution SLO below 1.0 after resume")
+          print("INTERRUPTION_DRILL_ACCEPTANCE=" + json.dumps({
+              "terminal_targets_before_kill": report["terminal_targets_before_kill"],
+              "resumed_targets": report["resume_counts"]["resumed_targets"],
+              "resume_transport_sends": report["resume_transport_sends"],
+              "resume_execution_status": report["resume_execution_status"],
+              "source_accountability_coverage": report["resume_slo"]["source_accountability_coverage"],
+              "target_execution_coverage": report["resume_slo"]["target_execution_coverage"],
+              "committed_checkpoints_bit_identical": True,
+          }, sort_keys=True))
+          PY
+      - name: Prove protected material remains ephemeral
+        run: |
+          rm -rf workbench
+          git status --porcelain
+          test -z "$(git status --porcelain)"
