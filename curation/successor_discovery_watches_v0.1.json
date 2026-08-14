@@ -1,0 +1,47 @@
+{
+  "metadata": {
+    "automatic_assessment_mutation": false,
+    "automatic_source_registration": false,
+    "boundary": "Noncanonical successor discovery only. A discovered item is a review candidate and does not replace a historical source, enter the canonical source registry, change an assessment, or confer governance, release, or publication authority.",
+    "lifecycle_overlay_sha256": "f97f53fac0f0df2549241da34be3a602908576cae914bb40a42bcad72de73144",
+    "status": "DEVELOPMENT_SUCCESSOR_DISCOVERY_WATCHES_NOT_CANONICAL",
+    "title": "NeuroAI successor discovery watches",
+    "version": "0.1",
+    "watch_count": 1
+  },
+  "watches": [
+    {
+      "cadence": "MONTHLY",
+      "discovery_mode": "ON_CHANGE",
+      "official_host": "science.xyz",
+      "publisher": "Science Corporation",
+      "relevance_policy": {
+        "context_terms": [
+          "clinical",
+          "engineer",
+          "field",
+          "medical",
+          "operations",
+          "product",
+          "research",
+          "scientist",
+          "specialist"
+        ],
+        "domain_terms": [
+          "ophthalm",
+          "prima",
+          "rehabilitation",
+          "retina",
+          "vision"
+        ],
+        "rule": "AT_LEAST_ONE_DOMAIN_AND_ONE_CONTEXT_TERM",
+        "scope_boundary": "Lexical discovery is intentionally non-exhaustive. Zero candidates does not establish that no relevant successor exists."
+      },
+      "trigger_lifecycle_state": "NO_LONGER_LISTED",
+      "trigger_source_id": "SRC-PR-015",
+      "trigger_transition_sha256": "2140045cff2130ebfdb81d262d4e0130fd13f2f8d86856852a73e418efc89433",
+      "url": "https://science.xyz/careers/open-positions/",
+      "watch_id": "DISC-SCIENCE-CAREERS-001"
+    }
+  ]
+}
