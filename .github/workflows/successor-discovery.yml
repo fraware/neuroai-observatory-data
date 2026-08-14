@@ -7,10 +7,12 @@ on:
     paths:
       - "scripts/run_successor_discovery.py"
       - "scripts/source_lifecycle_overlay.py"
+      - "tests/test_monitoring_transition_manifest.py"
       - "tests/test_successor_discovery.py"
       - "tests/test_source_lifecycle_overlay.py"
       - "curation/successor_discovery_watches_v0.1.json"
       - "curation/source_lifecycle_monitoring_overlay_v0.1.json"
+      - "curation/lifecycle_monitoring_transition_manifest_v0.1.json"
       - ".github/workflows/successor-discovery.yml"
   schedule:
     - cron: "37 6 1 * *"
@@ -42,9 +44,23 @@ jobs:
         run: |
           python -m pip install --require-hashes -r workbench/requirements/constraints.txt
           python -m pip install --no-deps ./workbench
-      - name: Verify discovery and lifecycle contracts
+      - name: Verify discovery, lifecycle, manifest, and quality contracts
         run: |
+          python -m compileall -q scripts tests
+          python -m ruff format --check \
+            scripts/run_successor_discovery.py \
+            scripts/source_lifecycle_overlay.py \
+            tests/test_monitoring_transition_manifest.py \
+            tests/test_source_lifecycle_overlay.py \
+            tests/test_successor_discovery.py
+          python -m ruff check \
+            scripts/run_successor_discovery.py \
+            scripts/source_lifecycle_overlay.py \
+            tests/test_monitoring_transition_manifest.py \
+            tests/test_source_lifecycle_overlay.py \
+            tests/test_successor_discovery.py
           python -m unittest \
+            tests/test_monitoring_transition_manifest.py \
             tests/test_source_lifecycle_overlay.py \
             tests/test_successor_discovery.py -v
       - name: Run bounded official-surface successor discovery
@@ -69,6 +85,7 @@ jobs:
           assert watch["official_host"] == "science.xyz"
           assert watch["final_host"] == "science.xyz"
           assert watch["http_status"] == 200
+          assert isinstance(watch["scope_boundary"], str) and watch["scope_boundary"]
           for candidate in watch["candidates"]:
               assert candidate["url"].startswith("https://science.xyz/")
               assert candidate["canonical_source_created"] is False
