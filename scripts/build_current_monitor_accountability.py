@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build current operational monitoring accountability and a noncanonical recurring-monitor extension."""
+"""Build current operational accountability with lifecycle and noncanonical monitor-extension state."""
 
 from __future__ import annotations
 
@@ -11,6 +11,12 @@ from typing import Any
 
 from build_analytical_projection import DEFAULT_RECORDS_DIR, DEFAULT_SUPPLEMENTAL_DIR, build_tables, load_inputs
 from build_monitoring_eligibility import classify_monitoring
+from source_lifecycle_overlay import (
+    DEFAULT_LIFECYCLE_OVERLAY,
+    DEFAULT_ROUTE_POLICY,
+    MONITORING_STATE,
+    load_verified_lifecycle_overlay,
+)
 
 DEFAULT_OUTPUT_DIR = Path("analytics/operational-accountability")
 BOUNDARY = (
@@ -19,8 +25,9 @@ BOUNDARY = (
     "UNESCO endorsement, or canonical release authority."
 )
 CANDIDATE_BOUNDARY = (
-    "Development monitor-extension records are noncanonical scheduling candidates. They do not rewrite the governing "
-    "v1.5 monitor registry, establish substantive evidence validity, or confer release authority."
+    "Development monitor-extension records are noncanonical scheduling candidates. Evidence-bound lifecycle-resolved "
+    "sources are accounted outside recurring monitoring. Neither state rewrites the governing v1.5 monitor registry, "
+    "establishes substantive evidence validity, or confers release authority."
 )
 
 
@@ -58,11 +65,17 @@ def _candidate_monitor(row: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def build_projection(sources: list[dict[str, Any]], monitors: list[dict[str, Any]]) -> dict[str, Any]:
-    eligibility = classify_monitoring(sources, monitors)
+def build_projection(
+    sources: list[dict[str, Any]],
+    monitors: list[dict[str, Any]],
+    lifecycle_transitions: dict[str, dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    transitions = lifecycle_transitions or {}
+    eligibility = classify_monitoring(sources, monitors, transitions)
     rows: list[dict[str, Any]] = []
     recurring_gaps: list[dict[str, Any]] = []
     candidate_monitors: list[dict[str, Any]] = []
+    lifecycle_resolved_ids: list[str] = []
     current_counts: Counter[str] = Counter()
 
     for row in eligibility["sources"]:
@@ -75,6 +88,10 @@ def build_projection(sources: list[dict[str, Any]], monitors: list[dict[str, Any
         elif row["recommended_mode"] == "ON_CHANGE":
             state = "MANUAL_ONLY"
             rationale = str(row["reason"])
+        elif row["recommended_mode"] == MONITORING_STATE:
+            state = MONITORING_STATE
+            rationale = str(row["reason"])
+            lifecycle_resolved_ids.append(str(row["source_id"]))
         elif row["recommended_mode"] == "RECURRING":
             state = "GAP"
             rationale = str(row["reason"])
@@ -93,6 +110,9 @@ def build_projection(sources: list[dict[str, Any]], monitors: list[dict[str, Any
                 "source_class": row["source_class"],
                 "publisher": row["publisher"],
                 "url": row["url"],
+                "lifecycle_state": row.get("lifecycle_state"),
+                "successor_discovery_watch_id": row.get("successor_discovery_watch_id"),
+                "lifecycle_transition_sha256": row.get("lifecycle_transition_sha256"),
                 "rationale": rationale,
             }
         )
@@ -109,12 +129,15 @@ def build_projection(sources: list[dict[str, Any]], monitors: list[dict[str, Any
         candidate_rows.append(candidate_row)
 
     projection: dict[str, Any] = {
-        "schema_version": "1",
-        "status": "CURRENT_OPERATIONAL_ACCOUNTABILITY_WITH_NONCANONICAL_EXTENSION_CANDIDATE",
+        "schema_version": "2",
+        "status": "CURRENT_OPERATIONAL_ACCOUNTABILITY_WITH_LIFECYCLE_AND_NONCANONICAL_EXTENSION_CANDIDATE",
         "inputs": {
             "effective_sources_sha256": sha256(sources),
             "governing_monitor_registry_sha256": sha256(monitors),
             "eligibility_projection_sha256": sha256(eligibility),
+            "lifecycle_transition_sha256s": sorted(
+                str(item["transition_sha256"]) for item in transitions.values()
+            ),
         },
         "current": {
             "effective_source_count": len(rows),
@@ -122,6 +145,7 @@ def build_projection(sources: list[dict[str, Any]], monitors: list[dict[str, Any
             "coverage_fraction": (len(rows) - current_counts["GAP"]) / len(rows) if rows else 1.0,
             "gap_source_ids": sorted(row["source_id"] for row in recurring_gaps),
             "gap_mode_counts": dict(sorted(Counter(row["recommended_mode"] for row in recurring_gaps).items())),
+            "lifecycle_resolved_source_ids": sorted(lifecycle_resolved_ids),
             "sources": rows,
         },
         "monitor_extension_candidate": {
@@ -129,6 +153,7 @@ def build_projection(sources: list[dict[str, Any]], monitors: list[dict[str, Any
             "predecessor_monitor_count": len(monitors),
             "candidate_record_count": len(candidate_monitors),
             "candidate_records": candidate_monitors,
+            "lifecycle_resolved_source_ids": sorted(lifecycle_resolved_ids),
             "boundary": CANDIDATE_BOUNDARY,
         },
         "candidate_accountability": {
@@ -138,6 +163,7 @@ def build_projection(sources: list[dict[str, Any]], monitors: list[dict[str, Any
             "gap_source_ids": sorted(
                 row["source_id"] for row in candidate_rows if row["accountability_state"] == "GAP"
             ),
+            "lifecycle_resolved_source_ids": sorted(lifecycle_resolved_ids),
             "sources": candidate_rows,
         },
         "boundary": BOUNDARY,
@@ -151,12 +177,23 @@ def verify_expected_current_checkpoint(projection: dict[str, Any]) -> None:
     counts = current["counts"]
     if current["effective_source_count"] != 248:
         raise ValueError(f"Expected 248 effective sources, got {current['effective_source_count']}")
-    expected = {"MONITORED": 224, "EXEMPT_WITH_RATIONALE": 15, "MANUAL_ONLY": 6, "GAP": 3}
+    expected = {
+        "MONITORED": 224,
+        "EXEMPT_WITH_RATIONALE": 15,
+        "MANUAL_ONLY": 6,
+        "GAP": 2,
+        MONITORING_STATE: 1,
+    }
     if {key: counts.get(key, 0) for key in expected} != expected:
         raise ValueError(f"Current accountability counts changed: {counts}")
+    if current.get("lifecycle_resolved_source_ids") != ["SRC-PR-015"]:
+        raise ValueError(f"Lifecycle-resolved source set changed: {current.get('lifecycle_resolved_source_ids')}")
     candidate = projection["monitor_extension_candidate"]
-    if candidate["candidate_record_count"] != 3:
-        raise ValueError(f"Expected three recurring monitor candidates, got {candidate['candidate_record_count']}")
+    if candidate["candidate_record_count"] != 2:
+        raise ValueError(f"Expected two recurring monitor candidates, got {candidate['candidate_record_count']}")
+    candidate_ids = {str(item["source_id"]) for item in candidate["candidate_records"]}
+    if candidate_ids != {"SRC-PR-002", "SRC-PR-007"}:
+        raise ValueError(f"Recurring monitor candidate set changed: {sorted(candidate_ids)}")
     candidate_accountability = projection["candidate_accountability"]
     if candidate_accountability["gap_source_ids"]:
         raise ValueError(f"Candidate accountability still contains gaps: {candidate_accountability['gap_source_ids']}")
@@ -179,21 +216,37 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--records-dir", type=Path, default=DEFAULT_RECORDS_DIR)
     parser.add_argument("--supplemental-dir", type=Path, default=DEFAULT_SUPPLEMENTAL_DIR)
+    parser.add_argument("--route-policy", type=Path, default=DEFAULT_ROUTE_POLICY)
+    parser.add_argument("--lifecycle-overlay", type=Path, default=DEFAULT_LIFECYCLE_OVERLAY)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     args = parser.parse_args()
     inputs = load_inputs(args.records_dir.resolve(), supplemental_dir=args.supplemental_dir.resolve())
     tables = build_tables(inputs)
-    projection = build_projection(tables["sources"], tables["source_monitors"])
+    source_ids = {str(row["record_id"]) for row in tables["sources"] if row.get("record_id")}
+    monitor_ids = {str(row["record_id"]) for row in tables["source_monitors"] if row.get("record_id")}
+    _, _, transitions = load_verified_lifecycle_overlay(
+        route_policy_path=args.route_policy,
+        overlay_path=args.lifecycle_overlay,
+        effective_source_ids=source_ids,
+        governing_monitor_source_ids=monitor_ids,
+    )
+    projection = build_projection(tables["sources"], tables["source_monitors"], transitions)
     verify_expected_current_checkpoint(projection)
     path = write_projection(projection, args.output_dir.resolve())
-    print(json.dumps({
-        "output": str(path),
-        "current_counts": projection["current"]["counts"],
-        "current_gap_source_ids": projection["current"]["gap_source_ids"],
-        "candidate_records": projection["monitor_extension_candidate"]["candidate_records"],
-        "candidate_counts": projection["candidate_accountability"]["counts"],
-        "projection_sha256": projection["projection_sha256"],
-    }, sort_keys=True))
+    print(
+        json.dumps(
+            {
+                "output": str(path),
+                "current_counts": projection["current"]["counts"],
+                "current_gap_source_ids": projection["current"]["gap_source_ids"],
+                "lifecycle_resolved_source_ids": projection["current"]["lifecycle_resolved_source_ids"],
+                "candidate_records": projection["monitor_extension_candidate"]["candidate_records"],
+                "candidate_counts": projection["candidate_accountability"]["counts"],
+                "projection_sha256": projection["projection_sha256"],
+            },
+            sort_keys=True,
+        )
+    )
     return 0
 
 
