@@ -104,9 +104,18 @@ def _route_resolution_summary(
                 "observed": reported_state,
             }
         )
+    evidence_payload_state = route_resilience.get("evidence_payload_availability_state")
+    if evidence_payload_state not in {HEALTHY, DEGRADED}:
+        blocking.append(
+            {
+                "code": "EVIDENCE_PAYLOAD_AVAILABILITY_STATE_INVALID",
+                "observed": evidence_payload_state,
+            }
+        )
 
     return {
         "reported_source_availability_state": reported_state,
+        "evidence_payload_availability_state": evidence_payload_state,
         "report_sha256": route_resilience.get("report_sha256"),
         "counts": route_resilience.get("counts"),
         "failed_source_ids": failed_source_ids,
