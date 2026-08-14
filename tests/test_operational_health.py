@@ -67,7 +67,7 @@ class OperationalHealthTests(unittest.TestCase):
             governing_monitor_source_ids=monitor_ids,
         )
         cls.accountability = build_projection(tables["sources"], tables["source_monitors"], cls.transitions)
-        cls.registry = build_development_monitor_registry = build_development_registry(inputs, cls.transitions)
+        cls.registry = build_development_registry(inputs, cls.transitions)
         cls.plan = {"counts": {"due": 10, "manual": 0, "not_due": 216}}
 
     def test_exact_current_state_is_healthy_with_clean_complete_run(self) -> None:
