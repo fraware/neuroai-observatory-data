@@ -25,29 +25,13 @@ def _text(value: Any) -> str:
 
 
 def _rule_for(source_class: Any, title: Any) -> tuple[str, str | None, str, str]:
-    token = f"{_text(source_class)} {_text(title)}"
-    if "TRIAL_REGISTRY" in token or "CLINICALTRIAL" in token or "CLINICAL TRIAL" in token:
-        return (
-            "RECURRING",
-            "MONTHLY",
-            "HIGH",
-            "Living trial-registry metadata can change during recruitment, follow-up, and results posting.",
-        )
-    if any(part in token for part in ("TECHNOLOGY_PAGE", "PRODUCT_PAGE", "OPERATIONAL_CAPACITY", "RECRUIT", "CAREER")):
-        return (
-            "RECURRING",
-            "MONTHLY",
-            "NORMAL",
-            "Living official product/technology/operational page is useful for current-state monitoring.",
-        )
-    if any(part in token for part in ("GUIDANCE", "LEGAL_TEXT", "REGULATION", "PROCEDURAL")):
-        return (
-            "ON_CHANGE",
-            "QUARTERLY",
-            "NORMAL",
-            "Normative or procedural source changes infrequently but may alter interpretation or obligations.",
-        )
-    if "MANUAL" in token:
+    source_token = _text(source_class)
+    title_token = _text(title)
+
+    # Source class is the primary operational ontology. Dated/versioned artifact
+    # classes must not become living monitors solely because their titles contain
+    # words such as "trial" or "product".
+    if "MANUAL" in source_token:
         return (
             "ARCHIVAL_STATIC",
             None,
@@ -55,7 +39,7 @@ def _rule_for(source_class: Any, title: Any) -> tuple[str, str | None, str, str]
             "Versioned or historical manual is treated as a fixed evidence artifact unless a successor is discovered.",
         )
     if any(
-        part in token
+        part in source_token
         for part in (
             "PEER_REVIEWED",
             "PREPRINT",
@@ -74,6 +58,34 @@ def _rule_for(source_class: Any, title: Any) -> tuple[str, str | None, str, str]
             "LOW",
             "Publication or dated event record is expected to remain fixed; monitor the underlying programme separately.",
         )
+    if "TRIAL_REGISTRY" in source_token or "CLINICALTRIAL" in source_token or "CLINICAL_TRIAL" in source_token:
+        return (
+            "RECURRING",
+            "MONTHLY",
+            "HIGH",
+            "Living trial-registry metadata can change during recruitment, follow-up, and results posting.",
+        )
+    if any(
+        part in source_token
+        for part in ("TECHNOLOGY_PAGE", "PRODUCT_PAGE", "OPERATIONAL_CAPACITY", "RECRUIT", "CAREER")
+    ):
+        return (
+            "RECURRING",
+            "MONTHLY",
+            "NORMAL",
+            "Living official product/technology/operational page is useful for current-state monitoring.",
+        )
+    if any(part in source_token for part in ("GUIDANCE", "LEGAL_TEXT", "REGULATION", "PROCEDURAL")):
+        return (
+            "ON_CHANGE",
+            "QUARTERLY",
+            "NORMAL",
+            "Normative or procedural source changes infrequently but may alter interpretation or obligations.",
+        )
+
+    # Title is retained for diagnostics/future policy refinement, but an unknown
+    # source class stays explicit ON_CHANGE instead of being upgraded by keywords.
+    del title_token
     return (
         "ON_CHANGE",
         None,

@@ -151,12 +151,12 @@ def verify_expected_current_checkpoint(projection: dict[str, Any]) -> None:
     counts = current["counts"]
     if current["effective_source_count"] != 248:
         raise ValueError(f"Expected 248 effective sources, got {current['effective_source_count']}")
-    expected = {"MONITORED": 224, "EXEMPT_WITH_RATIONALE": 14, "MANUAL_ONLY": 6, "GAP": 4}
+    expected = {"MONITORED": 224, "EXEMPT_WITH_RATIONALE": 15, "MANUAL_ONLY": 6, "GAP": 3}
     if {key: counts.get(key, 0) for key in expected} != expected:
         raise ValueError(f"Current accountability counts changed: {counts}")
     candidate = projection["monitor_extension_candidate"]
-    if candidate["candidate_record_count"] != 4:
-        raise ValueError(f"Expected four recurring monitor candidates, got {candidate['candidate_record_count']}")
+    if candidate["candidate_record_count"] != 3:
+        raise ValueError(f"Expected three recurring monitor candidates, got {candidate['candidate_record_count']}")
     candidate_accountability = projection["candidate_accountability"]
     if candidate_accountability["gap_source_ids"]:
         raise ValueError(f"Candidate accountability still contains gaps: {candidate_accountability['gap_source_ids']}")
