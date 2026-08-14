@@ -38,6 +38,19 @@ def _count(mapping: Any, key: str) -> int:
     return int(value) if isinstance(value, int | float) else 0
 
 
+def _executed_source_ids(run: dict[str, Any]) -> list[str]:
+    outcomes = run.get("outcomes")
+    if not isinstance(outcomes, list):
+        return []
+    return sorted(
+        {
+            str(item["source_id"])
+            for item in outcomes
+            if isinstance(item, dict) and item.get("source_id")
+        }
+    )
+
+
 def _failed_source_ids(run: dict[str, Any]) -> list[str]:
     outcomes = run.get("outcomes")
     if not isinstance(outcomes, list):
@@ -241,8 +254,9 @@ def evaluate_health(
         slo = run.get("slo", {}) if isinstance(run.get("slo"), dict) else {}
         counts = run.get("counts", {}) if isinstance(run.get("counts"), dict) else {}
         failed_count = _count(counts, "failed")
+        executed_source_ids = _executed_source_ids(run)
         failed_source_ids = _failed_source_ids(run)
-        lifecycle_execution_overlap = sorted(set(failed_source_ids) & lifecycle_resolved_ids)
+        lifecycle_execution_overlap = sorted(set(executed_source_ids) & lifecycle_resolved_ids)
         if lifecycle_execution_overlap:
             blocking.append(
                 {
@@ -279,6 +293,7 @@ def evaluate_health(
             "plan_id": run.get("plan_id"),
             "counts": counts,
             "slo": slo,
+            "executed_source_ids": executed_source_ids,
             "failed_source_ids": failed_source_ids,
         }
 
