@@ -97,8 +97,6 @@ def evaluate_health(
         "record_count": 227,
         "predecessor_record_count": 224,
         "extension_record_count": 3,
-        "manual_on_change_source_count": 6,
-        "archival_static_source_count": 15,
         "effective_source_count": 248,
         "candidate_accountability_coverage_fraction": 1.0,
     }
@@ -117,12 +115,7 @@ def evaluate_health(
         raw_counts = plan.get("counts", {}) if isinstance(plan, dict) else {}
         plan_counts = {key: _count(raw_counts, key) for key in plan_counts}
         if plan_counts["manual"] > 0:
-            warnings.append(
-                {
-                    "code": "MANUAL_MONITOR_WORK_PRESENT",
-                    "count": plan_counts["manual"],
-                }
-            )
+            warnings.append({"code": "MANUAL_MONITOR_WORK_PRESENT", "count": plan_counts["manual"]})
 
     run_metrics: dict[str, Any] | None = None
     if run is not None:
@@ -130,12 +123,7 @@ def evaluate_health(
         slo = run.get("slo", {}) if isinstance(run.get("slo"), dict) else {}
         counts = run.get("counts", {}) if isinstance(run.get("counts"), dict) else {}
         if execution_status not in {"COMPLETE", "COMPLETE_WITH_SOURCE_FAILURES"}:
-            blocking.append(
-                {
-                    "code": "RUN_NOT_OPERATIONALLY_COMPLETE",
-                    "execution_status": execution_status,
-                }
-            )
+            blocking.append({"code": "RUN_NOT_OPERATIONALLY_COMPLETE", "execution_status": execution_status})
         if slo.get("source_accountability_coverage") != 1.0:
             blocking.append(
                 {
@@ -197,8 +185,8 @@ def evaluate_health(
         },
         "registry": {
             "automatic_monitors": registry_meta.get("record_count"),
-            "manual_on_change_sources": registry_meta.get("manual_on_change_source_count"),
-            "archival_static_sources": registry_meta.get("archival_static_source_count"),
+            "manual_on_change_sources": observed_decomposition["MANUAL_ONLY"],
+            "archival_static_sources": observed_decomposition["EXEMPT_WITH_RATIONALE"],
             "registry_view_sha256": registry_meta.get("registry_view_sha256"),
             "predecessor_registry_sha256": registry_meta.get("predecessor_registry_sha256"),
         },
@@ -214,10 +202,7 @@ def evaluate_health(
     return report
 
 
-def verify_health_report(
-    report: dict[str, Any],
-    **inputs: Any,
-) -> None:
+def verify_health_report(report: dict[str, Any], **inputs: Any) -> None:
     expected = evaluate_health(**inputs)
     if canonical_bytes(expected) != canonical_bytes(report):
         raise ValueError("Operational health report does not match recomputed inputs")
@@ -246,11 +231,13 @@ def main() -> int:
     registry = load(args.development_registry)
     if accountability is None or registry is None:
         raise ValueError("Accountability and development registry are required")
+    plan = load(args.plan)
+    run = load(args.run)
     report = evaluate_health(
         accountability=accountability,
         development_registry=registry,
-        plan=load(args.plan),
-        run=load(args.run),
+        plan=plan,
+        run=run,
         wall_clock_seconds=args.wall_clock_seconds,
         performance_budget_seconds=args.performance_budget_seconds,
     )
@@ -258,14 +245,24 @@ def main() -> int:
         report,
         accountability=accountability,
         development_registry=registry,
-        plan=load(args.plan),
-        run=load(args.run),
+        plan=plan,
+        run=run,
         wall_clock_seconds=args.wall_clock_seconds,
         performance_budget_seconds=args.performance_budget_seconds,
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    print(json.dumps({"state": report["state"], "blocking": len(report["blocking_alerts"]), "warnings": len(report["warnings"]), "sha256": report["health_report_sha256"]}, sort_keys=True))
+    print(
+        json.dumps(
+            {
+                "state": report["state"],
+                "blocking": len(report["blocking_alerts"]),
+                "warnings": len(report["warnings"]),
+                "sha256": report["health_report_sha256"],
+            },
+            sort_keys=True,
+        )
+    )
     return 0 if report["state"] != UNHEALTHY else 2
 
 
