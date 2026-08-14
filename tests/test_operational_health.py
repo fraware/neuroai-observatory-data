@@ -10,11 +10,18 @@ SCRIPTS = ROOT / "scripts"
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
-from build_analytical_projection import load_inputs  # noqa: E402
+from build_analytical_projection import build_tables, load_inputs  # noqa: E402
 from build_current_monitor_accountability import build_projection  # noqa: E402
 from build_development_monitor_registry import build_development_registry  # noqa: E402
-from build_analytical_projection import build_tables  # noqa: E402
-from evaluate_operational_health import DEGRADED, HEALTHY, UNHEALTHY, evaluate_health, verify_health_report  # noqa: E402
+from evaluate_operational_health import (  # noqa: E402
+    DEGRADED,
+    ENGINEERING_BLOCKED,
+    ENGINEERING_READY,
+    HEALTHY,
+    UNHEALTHY,
+    evaluate_health,
+    verify_health_report,
+)
 
 
 def complete_run(*, failed: int = 0, retries: int = 0, exhausted: int = 0) -> dict:
@@ -62,6 +69,8 @@ class OperationalHealthTests(unittest.TestCase):
             performance_budget_seconds=60.0,
         )
         self.assertEqual(report["state"], HEALTHY)
+        self.assertEqual(report["engineering_state"], ENGINEERING_READY)
+        self.assertEqual(report["source_availability_state"], HEALTHY)
         self.assertEqual(report["blocking_alerts"], [])
         self.assertEqual(report["warnings"], [])
         self.assertEqual(report["accountability"]["effective_sources"], 248)
@@ -79,7 +88,7 @@ class OperationalHealthTests(unittest.TestCase):
             performance_budget_seconds=60.0,
         )
 
-    def test_typed_source_failures_and_retries_are_degraded_not_incomplete(self) -> None:
+    def test_typed_source_failures_and_retries_degrade_sources_not_engineering(self) -> None:
         report = evaluate_health(
             accountability=self.accountability,
             development_registry=self.registry,
@@ -87,13 +96,26 @@ class OperationalHealthTests(unittest.TestCase):
             run=complete_run(failed=2, retries=3, exhausted=1),
         )
         self.assertEqual(report["state"], DEGRADED)
+        self.assertEqual(report["engineering_state"], ENGINEERING_READY)
+        self.assertEqual(report["source_availability_state"], DEGRADED)
         self.assertEqual(report["blocking_alerts"], [])
         self.assertEqual(
             {alert["code"] for alert in report["warnings"]},
             {"TYPED_SOURCE_FAILURES_PRESENT", "RETRIES_PRESENT", "RETRYABLE_FAILURES_EXHAUSTED"},
         )
 
-    def test_internal_incomplete_or_slo_breach_is_unhealthy(self) -> None:
+    def test_manual_warning_alone_does_not_mark_sources_unavailable(self) -> None:
+        report = evaluate_health(
+            accountability=self.accountability,
+            development_registry=self.registry,
+            plan={"counts": {"due": 1, "manual": 2, "not_due": 224}},
+            run=complete_run(),
+        )
+        self.assertEqual(report["state"], DEGRADED)
+        self.assertEqual(report["engineering_state"], ENGINEERING_READY)
+        self.assertEqual(report["source_availability_state"], HEALTHY)
+
+    def test_internal_incomplete_or_slo_breach_blocks_engineering(self) -> None:
         run = complete_run()
         run["execution_status"] = "INCOMPLETE_INTERNAL_ERROR"
         run["counts"]["incomplete"] = 1
@@ -104,6 +126,7 @@ class OperationalHealthTests(unittest.TestCase):
             run=run,
         )
         self.assertEqual(report["state"], UNHEALTHY)
+        self.assertEqual(report["engineering_state"], ENGINEERING_BLOCKED)
         codes = {alert["code"] for alert in report["blocking_alerts"]}
         self.assertEqual(
             codes,
@@ -118,6 +141,7 @@ class OperationalHealthTests(unittest.TestCase):
         registry["metadata"]["record_count"] = 226
         report = evaluate_health(accountability=accountability, development_registry=registry)
         self.assertEqual(report["state"], UNHEALTHY)
+        self.assertEqual(report["engineering_state"], ENGINEERING_BLOCKED)
         codes = {alert["code"] for alert in report["blocking_alerts"]}
         self.assertTrue(
             {
@@ -133,6 +157,7 @@ class OperationalHealthTests(unittest.TestCase):
         accountability["candidate_accountability"]["gap_source_ids"] = ["SRC-X"]
         report = evaluate_health(accountability=accountability, development_registry=self.registry)
         self.assertEqual(report["state"], UNHEALTHY)
+        self.assertEqual(report["engineering_state"], ENGINEERING_BLOCKED)
         self.assertIn("CANDIDATE_ACCOUNTABILITY_NOT_COMPLETE", {a["code"] for a in report["blocking_alerts"]})
 
     def test_manual_work_and_slow_run_are_warnings(self) -> None:
@@ -145,6 +170,7 @@ class OperationalHealthTests(unittest.TestCase):
             performance_budget_seconds=60.0,
         )
         self.assertEqual(report["state"], DEGRADED)
+        self.assertEqual(report["engineering_state"], ENGINEERING_READY)
         self.assertEqual(
             {alert["code"] for alert in report["warnings"]},
             {"MANUAL_MONITOR_WORK_PRESENT", "PERFORMANCE_BUDGET_EXCEEDED"},
@@ -157,12 +183,13 @@ class OperationalHealthTests(unittest.TestCase):
             wall_clock_seconds=-1.0,
         )
         self.assertEqual(report["state"], UNHEALTHY)
+        self.assertEqual(report["engineering_state"], ENGINEERING_BLOCKED)
         self.assertIn("INVALID_WALL_CLOCK", {a["code"] for a in report["blocking_alerts"]})
 
     def test_report_tampering_is_detected(self) -> None:
         report = evaluate_health(accountability=self.accountability, development_registry=self.registry)
         tampered = copy.deepcopy(report)
-        tampered["state"] = UNHEALTHY
+        tampered["engineering_state"] = ENGINEERING_BLOCKED
         with self.assertRaisesRegex(ValueError, "does not match recomputed"):
             verify_health_report(
                 tampered,
