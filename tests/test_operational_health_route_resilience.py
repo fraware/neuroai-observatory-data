@@ -189,6 +189,23 @@ class RouteAwareOperationalHealthTests(unittest.TestCase):
             {alert["code"] for alert in report["blocking_alerts"]},
         )
 
+    def test_lifecycle_resolved_successful_execution_is_also_blocking(self) -> None:
+        run = active_failed_run()
+        run["outcomes"].append({"source_id": "SRC-PR-015", "status": "RESULT"})
+        run["counts"]["succeeded"] += 1
+        run["counts"]["logical_sources"] += 1
+        report = evaluate_health(
+            accountability=self.accountability,
+            development_registry=self.registry,
+            run=run,
+            route_resilience=active_route_report(),
+        )
+        self.assertEqual(report["engineering_state"], ENGINEERING_BLOCKED)
+        self.assertIn(
+            "LIFECYCLE_RESOLVED_SOURCE_EXECUTED",
+            {alert["code"] for alert in report["blocking_alerts"]},
+        )
+
     def test_duplicate_active_route_source_report_is_blocking(self) -> None:
         routes = active_route_report()
         routes["source_reports"].append(copy.deepcopy(routes["source_reports"][0]))
