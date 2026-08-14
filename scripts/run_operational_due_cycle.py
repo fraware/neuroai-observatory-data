@@ -28,7 +28,8 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_ROUTE_POLICY = ROOT / "curation" / "source_route_resilience_v0.1.json"
 BOUNDARY = (
     "This report is controlled operational evidence over the declared noncanonical development monitor view. "
-    "Network success/failure is not assessment adjudication and does not authorize canonical publication or human governance claims."
+    "Network success/failure and narrow source lifecycle resolution are not assessment adjudication and do not "
+    "authorize canonical publication or human governance claims."
 )
 
 
@@ -60,7 +61,7 @@ class CountingTransport:
 
 
 def _configuration_hash() -> str:
-    return hashlib.sha256(b"neuroai-operational-live-cycle-v1-route-resilience").hexdigest()
+    return hashlib.sha256(b"neuroai-operational-live-cycle-v2-route-lifecycle-resilience").hexdigest()
 
 
 def _failure_status_counts(run: dict[str, Any]) -> dict[str, int]:
@@ -95,6 +96,19 @@ def _sanitize_route_diagnostic(item: Any) -> dict[str, Any] | None:
         return None
     allowed = {"route_id", "state", "failure_class", "http_status", "failover_allowed", "rejection"}
     return {key: item.get(key) for key in sorted(allowed) if key in item}
+
+
+def _sanitize_lifecycle(item: Any) -> dict[str, Any] | None:
+    if not isinstance(item, dict):
+        return None
+    return {
+        "resolution_state": item.get("resolution_state"),
+        "lifecycle_state": item.get("lifecycle_state"),
+        "source_active_expected": item.get("source_active_expected"),
+        "evidence_substitution_allowed": item.get("evidence_substitution_allowed"),
+        "diagnostics": item.get("diagnostics", []),
+        "report_sha256": item.get("report_sha256"),
+    }
 
 
 def execute(
@@ -209,7 +223,7 @@ def execute(
     )
 
     report: dict[str, Any] = {
-        "schema_version": "2",
+        "schema_version": "3",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "as_of": as_of,
         "boundary": BOUNDARY,
@@ -241,8 +255,12 @@ def execute(
         "route_resilience": {
             "policy_sha256": route_resilience.get("policy_sha256"),
             "report_sha256": route_resilience.get("report_sha256"),
-            "source_availability_state": route_resilience.get("source_availability_state"),
-            "evidence_payload_availability_state": route_resilience.get("evidence_payload_availability_state"),
+            "source_resolution_state": route_resilience.get("source_resolution_state"),
+            "active_source_availability_state": route_resilience.get("active_source_availability_state"),
+            "active_evidence_payload_availability_state": route_resilience.get(
+                "active_evidence_payload_availability_state"
+            ),
+            "lifecycle_transition_count": route_resilience.get("lifecycle_transition_count"),
             "counts": route_resilience.get("counts"),
             "sources": [
                 {
@@ -252,6 +270,7 @@ def execute(
                     "selected_route_id": item.get("selected_route_id"),
                     "selected_route_class": item.get("selected_route_class"),
                     "evidence_substitution_allowed": item.get("evidence_substitution_allowed"),
+                    "lifecycle": _sanitize_lifecycle(item.get("lifecycle")),
                     "route_observations": [
                         cleaned
                         for raw in item.get("route_observations", [])
@@ -308,10 +327,12 @@ def main() -> int:
                 "execution_status": report["execution"]["execution_status"],
                 "health": report["health"]["state"],
                 "engineering_state": report["health"]["engineering_state"],
-                "source_availability_state": report["health"]["source_availability_state"],
-                "evidence_payload_availability_state": report["route_resilience"][
-                    "evidence_payload_availability_state"
+                "source_resolution_state": report["health"]["source_resolution_state"],
+                "active_source_availability_state": report["health"]["active_source_availability_state"],
+                "active_evidence_payload_availability_state": report["health"][
+                    "active_evidence_payload_availability_state"
                 ],
+                "lifecycle_transition_count": report["route_resilience"]["lifecycle_transition_count"],
                 "route_sources": report["route_resilience"]["sources"],
                 "source_accountability_coverage": report["execution"]["slo"]["source_accountability_coverage"],
                 "target_execution_coverage": report["execution"]["slo"]["target_execution_coverage"],
