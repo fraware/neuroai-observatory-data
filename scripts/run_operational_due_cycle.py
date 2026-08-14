@@ -14,19 +14,22 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from build_analytical_projection import DEFAULT_RECORDS_DIR, DEFAULT_SUPPLEMENTAL_DIR, load_inputs
+from build_analytical_projection import DEFAULT_RECORDS_DIR, DEFAULT_SUPPLEMENTAL_DIR, build_tables, load_inputs
 from build_current_monitor_accountability import build_projection
-from build_analytical_projection import build_tables
 from build_development_monitor_registry import build_development_registry, verify_development_registry, write_registry
 from evaluate_operational_health import evaluate_health
 from neuroai_workbench.collector import CollectionScheduler, CollectorConfig, SchedulerConfig
 from neuroai_workbench.collector.http_client import HttpRequest, HttpTransport
 from neuroai_workbench.collector.transport import StdlibHttpTransport
 from neuroai_workbench.monitoring import initialize_monitoring, plan_monitoring_run, validate_source_registry
+from probe_source_route_resilience import probe_policy
 
+ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_ROUTE_POLICY = ROOT / "curation" / "source_route_resilience_v0.1.json"
 BOUNDARY = (
     "This report is controlled operational evidence over the declared noncanonical development monitor view. "
-    "Network success/failure is not assessment adjudication and does not authorize canonical publication or human governance claims."
+    "Network success/failure and narrow source lifecycle resolution are not assessment adjudication and do not "
+    "authorize canonical publication or human governance claims."
 )
 
 
@@ -58,11 +61,54 @@ class CountingTransport:
 
 
 def _configuration_hash() -> str:
-    return hashlib.sha256(b"neuroai-operational-live-cycle-v1").hexdigest()
+    return hashlib.sha256(b"neuroai-operational-live-cycle-v2-route-lifecycle-resilience").hexdigest()
 
 
 def _failure_status_counts(run: dict[str, Any]) -> dict[str, int]:
     return dict(sorted(Counter(str(item.get("status", "UNKNOWN")) for item in run.get("outcomes", [])).items()))
+
+
+def _load_route_policy(path: Path) -> dict[str, Any]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError("Source-route policy must be a JSON object")
+    return payload
+
+
+def _sanitize_route_observation(item: Any) -> dict[str, Any] | None:
+    if not isinstance(item, dict):
+        return None
+    allowed = {
+        "route_id",
+        "outcome",
+        "failure_class",
+        "http_status",
+        "final_host",
+        "redirect_hops",
+        "identity_match",
+        "corroboration_match",
+    }
+    return {key: item.get(key) for key in sorted(allowed) if key in item}
+
+
+def _sanitize_route_diagnostic(item: Any) -> dict[str, Any] | None:
+    if not isinstance(item, dict):
+        return None
+    allowed = {"route_id", "state", "failure_class", "http_status", "failover_allowed", "rejection"}
+    return {key: item.get(key) for key in sorted(allowed) if key in item}
+
+
+def _sanitize_lifecycle(item: Any) -> dict[str, Any] | None:
+    if not isinstance(item, dict):
+        return None
+    return {
+        "resolution_state": item.get("resolution_state"),
+        "lifecycle_state": item.get("lifecycle_state"),
+        "source_active_expected": item.get("source_active_expected"),
+        "evidence_substitution_allowed": item.get("evidence_substitution_allowed"),
+        "diagnostics": item.get("diagnostics", []),
+        "report_sha256": item.get("report_sha256"),
+    }
 
 
 def execute(
@@ -74,6 +120,7 @@ def execute(
     max_workers: int,
     max_workers_per_host: int,
     performance_budget_seconds: float,
+    route_policy_path: Path = DEFAULT_ROUTE_POLICY,
 ) -> dict[str, Any]:
     inputs = load_inputs(records_dir.resolve(), supplemental_dir=supplemental_dir.resolve())
     tables = build_tables(inputs)
@@ -162,17 +209,21 @@ def execute(
     if slo.get("source_accountability_coverage") != 1.0 or slo.get("target_execution_coverage") != 1.0:
         raise ValueError(f"Live cycle failed operational SLOs: {slo}")
 
+    route_policy = _load_route_policy(route_policy_path.resolve())
+    route_resilience = probe_policy(route_policy)
+
     health = evaluate_health(
         accountability=accountability,
         development_registry=registry,
         plan=plan,
         run=first,
+        route_resilience=route_resilience,
         wall_clock_seconds=first_wall,
         performance_budget_seconds=performance_budget_seconds,
     )
 
     report: dict[str, Any] = {
-        "schema_version": "1",
+        "schema_version": "3",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "as_of": as_of,
         "boundary": BOUNDARY,
@@ -201,6 +252,40 @@ def execute(
             "host_count": len(transport.hosts),
             "wall_clock_seconds": round(first_wall, 6),
         },
+        "route_resilience": {
+            "policy_sha256": route_resilience.get("policy_sha256"),
+            "report_sha256": route_resilience.get("report_sha256"),
+            "source_resolution_state": route_resilience.get("source_resolution_state"),
+            "active_source_availability_state": route_resilience.get("active_source_availability_state"),
+            "active_evidence_payload_availability_state": route_resilience.get(
+                "active_evidence_payload_availability_state"
+            ),
+            "lifecycle_transition_count": route_resilience.get("lifecycle_transition_count"),
+            "counts": route_resilience.get("counts"),
+            "sources": [
+                {
+                    "source_id": item.get("source_id"),
+                    "availability_state": item.get("availability_state"),
+                    "primary_route_state": item.get("primary_route_state"),
+                    "selected_route_id": item.get("selected_route_id"),
+                    "selected_route_class": item.get("selected_route_class"),
+                    "evidence_substitution_allowed": item.get("evidence_substitution_allowed"),
+                    "lifecycle": _sanitize_lifecycle(item.get("lifecycle")),
+                    "route_observations": [
+                        cleaned
+                        for raw in item.get("route_observations", [])
+                        if (cleaned := _sanitize_route_observation(raw)) is not None
+                    ],
+                    "diagnostics": [
+                        cleaned
+                        for raw in item.get("diagnostics", [])
+                        if (cleaned := _sanitize_route_diagnostic(raw)) is not None
+                    ],
+                }
+                for item in route_resilience.get("source_reports", [])
+                if isinstance(item, dict)
+            ],
+        },
         "resume_proof": {
             "identical_summary": True,
             "additional_transport_sends": sends_after_resume - sends_after_first,
@@ -220,6 +305,7 @@ def main() -> int:
     parser.add_argument("--max-workers", type=int, default=12)
     parser.add_argument("--max-workers-per-host", type=int, default=2)
     parser.add_argument("--performance-budget-seconds", type=float, default=300.0)
+    parser.add_argument("--route-policy", type=Path, default=DEFAULT_ROUTE_POLICY)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
 
@@ -231,6 +317,7 @@ def main() -> int:
         max_workers=args.max_workers,
         max_workers_per_host=args.max_workers_per_host,
         performance_budget_seconds=args.performance_budget_seconds,
+        route_policy_path=args.route_policy,
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -239,6 +326,14 @@ def main() -> int:
             {
                 "execution_status": report["execution"]["execution_status"],
                 "health": report["health"]["state"],
+                "engineering_state": report["health"]["engineering_state"],
+                "source_resolution_state": report["health"]["source_resolution_state"],
+                "active_source_availability_state": report["health"]["active_source_availability_state"],
+                "active_evidence_payload_availability_state": report["health"][
+                    "active_evidence_payload_availability_state"
+                ],
+                "lifecycle_transition_count": report["route_resilience"]["lifecycle_transition_count"],
+                "route_sources": report["route_resilience"]["sources"],
                 "source_accountability_coverage": report["execution"]["slo"]["source_accountability_coverage"],
                 "target_execution_coverage": report["execution"]["slo"]["target_execution_coverage"],
                 "additional_resume_sends": report["resume_proof"]["additional_transport_sends"],

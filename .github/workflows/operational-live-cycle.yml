@@ -4,13 +4,18 @@ on:
   push:
     branches:
       - agent/operational-live-health
+      - agent/source-route-resilience
     paths:
       - "scripts/run_operational_due_cycle.py"
       - "scripts/evaluate_operational_health.py"
+      - "scripts/probe_source_route_resilience.py"
       - "scripts/build_monitoring_eligibility.py"
       - "scripts/build_current_monitor_accountability.py"
       - "scripts/build_development_monitor_registry.py"
       - "tests/test_operational_health.py"
+      - "tests/test_operational_health_route_resilience.py"
+      - "tests/test_source_route_resilience.py"
+      - "curation/source_route_resilience_v0.1.json"
       - "fixtures/source_monitor_registry_v1.5.json"
       - "supplemental_records/**"
       - ".github/workflows/operational-live-cycle.yml"
@@ -33,12 +38,14 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: "3.12"
-      - name: Verify static accountability and health contracts
+      - name: Verify static accountability, route, lifecycle, and health contracts
         run: |
           python -m unittest \
             tests/test_current_monitor_accountability.py \
             tests/test_development_monitor_registry.py \
-            tests/test_operational_health.py -v
+            tests/test_operational_health.py \
+            tests/test_operational_health_route_resilience.py \
+            tests/test_source_route_resilience.py -v
 
   live:
     needs: validate
@@ -49,22 +56,23 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: "3.12"
-      - name: Checkout exact green workbench
+      - name: Checkout exact merged workbench lifecycle stack
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           repository: fraware/neuroai-workbench
-          ref: 0bb460818e4bd9ee5ce23b1e6e91e4d1148f15bc
+          ref: 428b4e8de069355307875f5d463e59689639248b
           path: workbench
       - name: Install hash-locked exact workbench runtime
         run: |
           python -m pip install --require-hashes -r workbench/requirements/constraints.txt
           python -m pip install --no-deps ./workbench
-      - name: Execute controlled real due cycle and exact zero-send resume proof
+      - name: Execute real due cycle, route/lifecycle resolution, and zero-send resume proof
         run: |
           rm -rf "$RUNNER_TEMP/neuroai-live"
           mkdir -p "$RUNNER_TEMP/neuroai-live"
           python scripts/run_operational_due_cycle.py \
             --workspace "$RUNNER_TEMP/neuroai-live/workspace" \
+            --route-policy curation/source_route_resilience_v0.1.json \
             --output "$RUNNER_TEMP/neuroai-live/operational-live-report.json" \
             --max-workers 12 \
             --max-workers-per-host 2 \
@@ -92,7 +100,7 @@ jobs:
               )
           print("SANITIZED_HTTP_FAILURES=" + json.dumps(rows, sort_keys=True))
           PY
-      - name: Enforce blocking operational invariants and emit sanitized metrics
+      - name: Enforce blocking execution, resolution, availability, and resume invariants
         run: |
           python - <<'PY'
           import json, os
@@ -104,6 +112,7 @@ jobs:
           health = report["health"]
           execution = report["execution"]
           resume = report["resume_proof"]
+          routes = report["route_resilience"]
 
           failure_classes = Counter()
           failure_sources = []
@@ -140,13 +149,31 @@ jobs:
               "wall_clock_seconds": execution["wall_clock_seconds"],
               "resume_additional_sends": resume["additional_transport_sends"],
               "health_state": health["state"],
+              "engineering_state": health["engineering_state"],
+              "source_resolution_state": health["source_resolution_state"],
+              "active_source_availability_state": health["active_source_availability_state"],
+              "active_evidence_payload_availability_state": health[
+                  "active_evidence_payload_availability_state"
+              ],
+              "lifecycle_transition_count": routes["lifecycle_transition_count"],
+              "route_counts": routes["counts"],
+              "route_sources": routes["sources"],
               "blocking_alerts": health["blocking_alerts"],
               "warnings": health["warnings"],
               "semantic_summary_sha256": execution["semantic_summary_sha256"],
+              "route_report_sha256": routes["report_sha256"],
           }
           print("SANITIZED_OPERATIONAL_METRICS=" + json.dumps(sanitized, sort_keys=True))
           if health["state"] == "UNHEALTHY":
               raise SystemExit(f"blocking operational health alerts: {health['blocking_alerts']}")
+          if health["engineering_state"] != "READY":
+              raise SystemExit(f"engineering is not ready: {health}")
+          if health["source_resolution_state"] != "HEALTHY":
+              raise SystemExit(f"source resolution remains degraded: {routes}")
+          if health["active_source_availability_state"] != "HEALTHY":
+              raise SystemExit(f"active source availability remains degraded: {routes}")
+          if health["active_evidence_payload_availability_state"] != "HEALTHY":
+              raise SystemExit(f"active evidence-payload availability remains degraded: {routes}")
           if execution["slo"]["source_accountability_coverage"] != 1.0:
               raise SystemExit("source-accountability SLO is below 1.0")
           if execution["slo"]["target_execution_coverage"] != 1.0:
@@ -165,6 +192,7 @@ jobs:
           plan = report["plan"]
           execution = report["execution"]
           health = report["health"]
+          routes = report["route_resilience"]
           resume = report["resume_proof"]
           failure_classes = Counter()
           target_root = root / "workspace/quarantine/run-ledgers" / execution["run_id"] / "targets"
@@ -181,18 +209,39 @@ jobs:
           print(f"- Archival-static: **{registry['archival_static_sources']}**")
           print(f"- Due/manual/not-due: **{plan['counts']}**")
           print(f"- Execution: **{execution['execution_status']}**")
+          print(f"- Engineering state: **{health['engineering_state']}**")
+          print(f"- Source resolution: **{health['source_resolution_state']}**")
+          print(f"- Active-source availability: **{health['active_source_availability_state']}**")
+          print(f"- Active evidence-payload availability: **{health['active_evidence_payload_availability_state']}**")
+          print(f"- Lifecycle transitions: **{routes['lifecycle_transition_count']}**")
+          print(f"- Registered route counts: **{routes['counts']}**")
+          for source in routes["sources"]:
+              print(
+                  f"  - `{source['source_id']}`: availability=**{source['availability_state']}**, "
+                  f"primary={source['primary_route_state']}, selected=`{source['selected_route_id']}`, "
+                  f"class={source['selected_route_class']}, evidence-substitution={source['evidence_substitution_allowed']}"
+              )
+              lifecycle = source.get("lifecycle")
+              if lifecycle:
+                  print(
+                      f"    - lifecycle: **{lifecycle['resolution_state']} / {lifecycle['lifecycle_state']}**, "
+                      f"active-expected={lifecycle['source_active_expected']}"
+                  )
+              for observation in source.get("route_observations", []):
+                  print(f"    - observation: `{observation}`")
           print(f"- Source accountability SLO: **{execution['slo']['source_accountability_coverage']:.3f}**")
           print(f"- Target execution SLO: **{execution['slo']['target_execution_coverage']:.3f}**")
           print(f"- Typed failure classes: **{dict(sorted(failure_classes.items()))}**")
           print(f"- Transport sends: **{execution['transport_sends']}** across **{execution['host_count']}** hosts")
           print(f"- Wall clock: **{execution['wall_clock_seconds']:.2f}s**")
           print(f"- Exact resume additional sends: **{resume['additional_transport_sends']}**")
-          print(f"- Operational health: **{health['state']}**")
+          print(f"- Overall operational health: **{health['state']}**")
           print(f"- Blocking alerts: **{len(health['blocking_alerts'])}**")
           print(f"- Warnings: **{len(health['warnings'])}**")
           for warning in health["warnings"]:
               print(f"  - `{warning['code']}`: {warning}")
           print(f"- Run semantic SHA-256: `{execution['semantic_summary_sha256']}`")
+          print(f"- Route/lifecycle report SHA-256: `{routes['report_sha256']}`")
           print(f"- Development registry SHA-256: `{registry['development_registry_view_sha256']}`")
           print("\nCapture bytes and quarantine records remain ephemeral under RUNNER_TEMP and are not uploaded.")
           PY

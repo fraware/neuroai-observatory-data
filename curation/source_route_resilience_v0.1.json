@@ -1,0 +1,117 @@
+{
+  "metadata": {
+    "title": "Development source-route resilience policy",
+    "version": "0.2",
+    "status": "DEVELOPMENT_ROUTE_POLICY_NOT_CANONICAL",
+    "source_count": 2,
+    "boundary": "Official retrieval-route policy for operational availability and narrow lifecycle resolution only. Fallback or lifecycle resolution does not establish source truth beyond the observed route/listing state, assessment validity, regulatory or clinical status, governance authority, canonical release authority, or publication authority."
+  },
+  "sources": [
+    {
+      "source_id": "SRC-PR-002",
+      "publisher": "ClinicalTrials.gov",
+      "url": "https://clinicaltrials.gov/study/NCT04676854?tab=table",
+      "retrieval_routes": [
+        {
+          "route_id": "SRC-PR-002:api-v2-single",
+          "url": "https://clinicaltrials.gov/api/v2/studies/NCT04676854",
+          "priority": 0,
+          "role": "PRIMARY",
+          "route_class": "PRIMARY",
+          "official_host": "clinicaltrials.gov",
+          "official_basis": "ClinicalTrials.gov modern API documents /api/v2/studies/{nctId} as the single-study endpoint.",
+          "accept": "application/json",
+          "identity_check": {
+            "kind": "JSON_NCT_ID",
+            "expected": "NCT04676854"
+          }
+        },
+        {
+          "route_id": "SRC-PR-002:api-v2-id-query",
+          "url": "https://clinicaltrials.gov/api/v2/studies?query.id=NCT04676854&pageSize=1&format=json",
+          "priority": 1,
+          "role": "FALLBACK",
+          "route_class": "IDENTITY_EQUIVALENT",
+          "official_host": "clinicaltrials.gov",
+          "official_basis": "ClinicalTrials.gov search-area documentation defines query.id for study identifiers and the modern API documents /api/v2/studies.",
+          "accept": "application/json",
+          "identity_check": {
+            "kind": "JSON_NCT_ID",
+            "expected": "NCT04676854"
+          }
+        },
+        {
+          "route_id": "SRC-PR-002:official-study-page",
+          "url": "https://clinicaltrials.gov/study/NCT04676854",
+          "priority": 2,
+          "role": "FALLBACK",
+          "route_class": "LIVENESS_CORROBORATION",
+          "official_host": "clinicaltrials.gov",
+          "official_basis": "Official ClinicalTrials.gov public study page for the same registered NCT identifier.",
+          "accept": "text/html,application/xhtml+xml;q=0.9",
+          "corroboration_check": {
+            "kind": "TEXT_CONTAINS",
+            "expected": "NCT04676854"
+          }
+        }
+      ]
+    },
+    {
+      "source_id": "SRC-PR-015",
+      "publisher": "Science Corporation",
+      "url": "https://science.xyz/careers/vision-rehabilitation-specialist-eu-65",
+      "retrieval_routes": [
+        {
+          "route_id": "SRC-PR-015:deep-page",
+          "url": "https://science.xyz/careers/vision-rehabilitation-specialist-eu-65",
+          "priority": 0,
+          "role": "PRIMARY",
+          "route_class": "PRIMARY",
+          "official_host": "science.xyz",
+          "official_basis": "Registered Science Corporation recruitment source previously retrieved into the PRIMA evidence lineage.",
+          "accept": "text/html,application/xhtml+xml;q=0.9",
+          "identity_check": {
+            "kind": "TEXT_CONTAINS",
+            "expected": "Vision Rehabilitation Specialist, EU"
+          }
+        },
+        {
+          "route_id": "SRC-PR-015:deep-page-slash",
+          "url": "https://science.xyz/careers/vision-rehabilitation-specialist-eu-65/",
+          "priority": 1,
+          "role": "FALLBACK",
+          "route_class": "IDENTITY_EQUIVALENT",
+          "official_host": "science.xyz",
+          "official_basis": "Canonical trailing-slash variant on the same official Science Corporation host and path identity.",
+          "accept": "text/html,application/xhtml+xml;q=0.9",
+          "identity_check": {
+            "kind": "TEXT_CONTAINS",
+            "expected": "Vision Rehabilitation Specialist, EU"
+          }
+        },
+        {
+          "route_id": "SRC-PR-015:open-positions",
+          "url": "https://science.xyz/careers/open-positions/",
+          "priority": 2,
+          "role": "FALLBACK",
+          "route_class": "LIVENESS_CORROBORATION",
+          "official_host": "science.xyz",
+          "official_basis": "Current official Science Corporation open-positions index used to test whether the exact historical role identity remains listed.",
+          "accept": "text/html,application/xhtml+xml;q=0.9",
+          "corroboration_check": {
+            "kind": "TEXT_CONTAINS",
+            "expected": "Vision Rehabilitation Specialist, EU"
+          }
+        }
+      ],
+      "lifecycle_resolution": {
+        "state": "NO_LONGER_LISTED",
+        "primary_route_id": "SRC-PR-015:deep-page",
+        "publisher_listing_route_id": "SRC-PR-015:open-positions",
+        "expected_identity": "Vision Rehabilitation Specialist, EU",
+        "evidence_ref": "official-route:science.xyz/careers/open-positions/",
+        "basis": "Resolve only when the registered deep page is confirmed HTTP 404/410 and the successfully retrieved current official Science open-positions index does not contain the exact historical role identity. This does not infer why the role disappeared."
+      }
+    }
+  ]
+}
