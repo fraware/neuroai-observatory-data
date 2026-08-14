@@ -11,9 +11,6 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urljoin, urlparse
 
-from neuroai_workbench.collector.config import CollectorConfig
-from neuroai_workbench.collector.http_client import HttpClient
-from neuroai_workbench.collector.transport import StdlibHttpTransport
 from source_lifecycle_overlay import DEFAULT_LIFECYCLE_OVERLAY, load_json, sha256
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -145,6 +142,10 @@ def discover_from_html(watch: dict[str, Any], body: bytes) -> list[dict[str, Any
 
 
 def run_discovery(config: dict[str, Any], overlay: dict[str, Any]) -> dict[str, Any]:
+    from neuroai_workbench.collector.config import CollectorConfig
+    from neuroai_workbench.collector.http_client import HttpClient
+    from neuroai_workbench.collector.transport import StdlibHttpTransport
+
     watches = verify_watch_config(config, overlay)
     client = HttpClient(
         config=CollectorConfig(
@@ -163,7 +164,10 @@ def run_discovery(config: dict[str, Any], overlay: dict[str, Any]) -> dict[str, 
     reports: list[dict[str, Any]] = []
     for watch_id in sorted(watches):
         watch = watches[watch_id]
-        response = client.fetch(str(watch["url"]), conditional_headers={"Accept": "text/html,application/xhtml+xml;q=0.9"})
+        response = client.fetch(
+            str(watch["url"]),
+            conditional_headers={"Accept": "text/html,application/xhtml+xml;q=0.9"},
+        )
         final_host = (urlparse(response.url).hostname or "").lower()
         if final_host != str(watch["official_host"]).lower():
             raise ValueError(f"Watch {watch_id} redirected away from official host")
