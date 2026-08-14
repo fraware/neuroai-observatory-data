@@ -1,0 +1,66 @@
+name: Development monitor registry
+
+on:
+  pull_request:
+    paths:
+      - "scripts/build_analytical_projection.py"
+      - "scripts/build_monitoring_eligibility.py"
+      - "scripts/build_current_monitor_accountability.py"
+      - "scripts/build_development_monitor_registry.py"
+      - "tests/test_current_monitor_accountability.py"
+      - "tests/test_development_monitor_registry.py"
+      - "fixtures/source_monitor_registry_v1.5.json"
+      - "supplemental_records/**"
+      - ".github/workflows/development-monitor-registry.yml"
+  push:
+    branches:
+      - main
+      - agent/current-monitor-accountability
+    paths:
+      - "scripts/build_analytical_projection.py"
+      - "scripts/build_monitoring_eligibility.py"
+      - "scripts/build_current_monitor_accountability.py"
+      - "scripts/build_development_monitor_registry.py"
+      - "tests/test_current_monitor_accountability.py"
+      - "tests/test_development_monitor_registry.py"
+      - "fixtures/source_monitor_registry_v1.5.json"
+      - "supplemental_records/**"
+      - ".github/workflows/development-monitor-registry.yml"
+  schedule:
+    - cron: "31 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Verify accountability and development registry contracts
+        run: |
+          python -m unittest tests/test_current_monitor_accountability.py tests/test_development_monitor_registry.py -v
+      - name: Build deterministic development registry view
+        run: |
+          python scripts/build_current_monitor_accountability.py --output-dir "$RUNNER_TEMP/accountability"
+          python scripts/build_development_monitor_registry.py --output "$RUNNER_TEMP/accountability/development-monitor-registry.json"
+          python -m json.tool "$RUNNER_TEMP/accountability/development-monitor-registry.json" >/dev/null
+      - name: Publish non-authoritative health summary
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json, os
+          from pathlib import Path
+          path = Path(os.environ["RUNNER_TEMP"]) / "accountability/development-monitor-registry.json"
+          data = json.loads(path.read_text())
+          meta = data["metadata"]
+          print("## Development monitor registry")
+          print(f"- Status: `{meta['status']}`")
+          print(f"- Effective sources: {meta['effective_source_count']}")
+          print(f"- Automatic monitors: {meta['record_count']} ({meta['predecessor_record_count']} predecessor + {meta['extension_record_count']} candidate)")
+          print(f"- Candidate accountability coverage: {meta['candidate_accountability_coverage_fraction']:.3f}")
+          print(f"- Registry view SHA-256: `{meta['registry_view_sha256']}`")
+          PY
