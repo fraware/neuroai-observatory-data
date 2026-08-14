@@ -1,0 +1,89 @@
+name: Successor discovery
+
+on:
+  push:
+    branches:
+      - agent/31-lifecycle-successor-discovery
+    paths:
+      - "scripts/run_successor_discovery.py"
+      - "scripts/source_lifecycle_overlay.py"
+      - "tests/test_successor_discovery.py"
+      - "tests/test_source_lifecycle_overlay.py"
+      - "curation/successor_discovery_watches_v0.1.json"
+      - "curation/source_lifecycle_monitoring_overlay_v0.1.json"
+      - ".github/workflows/successor-discovery.yml"
+  schedule:
+    - cron: "37 6 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: neuroai-successor-discovery
+  cancel-in-progress: false
+
+jobs:
+  discover:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Checkout exact merged workbench lifecycle stack
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: fraware/neuroai-workbench
+          ref: 428b4e8d797c0729bc4f36678daec88711688689
+          path: workbench
+      - name: Install hash-locked exact workbench runtime
+        run: |
+          python -m pip install --require-hashes -r workbench/requirements/constraints.txt
+          python -m pip install --no-deps ./workbench
+      - name: Verify discovery and lifecycle contracts
+        run: |
+          python -m unittest \
+            tests/test_source_lifecycle_overlay.py \
+            tests/test_successor_discovery.py -v
+      - name: Run bounded official-surface successor discovery
+        run: |
+          python scripts/run_successor_discovery.py \
+            --watch-config curation/successor_discovery_watches_v0.1.json \
+            --lifecycle-overlay curation/source_lifecycle_monitoring_overlay_v0.1.json \
+            --output "$RUNNER_TEMP/successor-discovery.json"
+      - name: Enforce candidate-only discovery boundary
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          report = json.loads((Path(os.environ["RUNNER_TEMP"]) / "successor-discovery.json").read_text())
+          assert report["status"] == "DEVELOPMENT_SUCCESSOR_DISCOVERY_REPORT_NOT_CANONICAL"
+          assert report["watch_count"] == 1
+          assert report["automatic_source_registration"] is False
+          assert report["automatic_assessment_mutation"] is False
+          watch = report["watch_reports"][0]
+          assert watch["watch_id"] == "DISC-SCIENCE-CAREERS-001"
+          assert watch["trigger_source_id"] == "SRC-PR-015"
+          assert watch["official_host"] == "science.xyz"
+          assert watch["final_host"] == "science.xyz"
+          assert watch["http_status"] == 200
+          for candidate in watch["candidates"]:
+              assert candidate["url"].startswith("https://science.xyz/")
+              assert candidate["canonical_source_created"] is False
+              assert candidate["assessment_mutation_authorized"] is False
+              assert candidate["registration_authorized"] is False
+          print("SUCCESSOR_DISCOVERY_PROOF=" + json.dumps({
+              "watch_id": watch["watch_id"],
+              "candidate_count": watch["candidate_count"],
+              "automatic_source_registration": report["automatic_source_registration"],
+              "automatic_assessment_mutation": report["automatic_assessment_mutation"],
+              "report_sha256": report["report_sha256"],
+          }, sort_keys=True))
+          PY
+      - name: Prove discovery did not mutate repository state
+        run: |
+          rm -rf workbench
+          git status --porcelain
+          test -z "$(git status --porcelain)"
