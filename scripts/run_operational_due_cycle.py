@@ -74,6 +74,29 @@ def _load_route_policy(path: Path) -> dict[str, Any]:
     return payload
 
 
+def _sanitize_route_observation(item: Any) -> dict[str, Any] | None:
+    if not isinstance(item, dict):
+        return None
+    allowed = {
+        "route_id",
+        "outcome",
+        "failure_class",
+        "http_status",
+        "final_host",
+        "redirect_hops",
+        "identity_match",
+        "corroboration_match",
+    }
+    return {key: item.get(key) for key in sorted(allowed) if key in item}
+
+
+def _sanitize_route_diagnostic(item: Any) -> dict[str, Any] | None:
+    if not isinstance(item, dict):
+        return None
+    allowed = {"route_id", "state", "failure_class", "http_status", "failover_allowed", "rejection"}
+    return {key: item.get(key) for key in sorted(allowed) if key in item}
+
+
 def execute(
     *,
     records_dir: Path,
@@ -229,6 +252,16 @@ def execute(
                     "selected_route_id": item.get("selected_route_id"),
                     "selected_route_class": item.get("selected_route_class"),
                     "evidence_substitution_allowed": item.get("evidence_substitution_allowed"),
+                    "route_observations": [
+                        cleaned
+                        for raw in item.get("route_observations", [])
+                        if (cleaned := _sanitize_route_observation(raw)) is not None
+                    ],
+                    "diagnostics": [
+                        cleaned
+                        for raw in item.get("diagnostics", [])
+                        if (cleaned := _sanitize_route_diagnostic(raw)) is not None
+                    ],
                 }
                 for item in route_resilience.get("source_reports", [])
                 if isinstance(item, dict)
@@ -279,6 +312,7 @@ def main() -> int:
                 "evidence_payload_availability_state": report["route_resilience"][
                     "evidence_payload_availability_state"
                 ],
+                "route_sources": report["route_resilience"]["sources"],
                 "source_accountability_coverage": report["execution"]["slo"]["source_accountability_coverage"],
                 "target_execution_coverage": report["execution"]["slo"]["target_execution_coverage"],
                 "additional_resume_sends": report["resume_proof"]["additional_transport_sends"],
