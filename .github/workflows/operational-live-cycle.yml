@@ -56,11 +56,11 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: "3.12"
-      - name: Checkout exact source-route resilience workbench candidate
+      - name: Checkout exact merged source-route resilience workbench
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           repository: fraware/neuroai-workbench
-          ref: 726746410e38dca95d4225cb61cc0e8a3ddfe9c2
+          ref: 2cc75f699e8830e5b2381133bf3d6ed6cab0a742
           path: workbench
       - name: Install hash-locked exact workbench runtime
         run: |
@@ -209,6 +209,8 @@ jobs:
                   f"primary={source['primary_route_state']}, selected=`{source['selected_route_id']}`, "
                   f"class={source['selected_route_class']}, evidence-substitution={source['evidence_substitution_allowed']}"
               )
+              for observation in source.get("route_observations", []):
+                  print(f"    - observation: `{observation}`")
           print(f"- Source accountability SLO: **{execution['slo']['source_accountability_coverage']:.3f}**")
           print(f"- Target execution SLO: **{execution['slo']['target_execution_coverage']:.3f}**")
           print(f"- Typed failure classes: **{dict(sorted(failure_classes.items()))}**")
