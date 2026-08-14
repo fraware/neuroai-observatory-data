@@ -1,10 +1,10 @@
 {
   "metadata": {
     "title": "Development source-route resilience policy",
-    "version": "0.1",
+    "version": "0.2",
     "status": "DEVELOPMENT_ROUTE_POLICY_NOT_CANONICAL",
     "source_count": 2,
-    "boundary": "Official retrieval-route policy for operational availability only. Fallback success does not establish source truth, assessment validity, regulatory or clinical status, governance authority, canonical release authority, or publication authority. Liveness corroboration never substitutes for evidence payloads."
+    "boundary": "Official retrieval-route policy for operational availability and narrow lifecycle resolution only. Fallback or lifecycle resolution does not establish source truth beyond the observed route/listing state, assessment validity, regulatory or clinical status, governance authority, canonical release authority, or publication authority."
   },
   "sources": [
     {
@@ -68,7 +68,7 @@
           "role": "PRIMARY",
           "route_class": "PRIMARY",
           "official_host": "science.xyz",
-          "official_basis": "Registered Science Corporation recruitment source.",
+          "official_basis": "Registered Science Corporation recruitment source previously retrieved into the PRIMA evidence lineage.",
           "accept": "text/html,application/xhtml+xml;q=0.9",
           "identity_check": {
             "kind": "TEXT_CONTAINS",
@@ -96,14 +96,22 @@
           "role": "FALLBACK",
           "route_class": "LIVENESS_CORROBORATION",
           "official_host": "science.xyz",
-          "official_basis": "Official Science Corporation open-positions index currently listing the role.",
+          "official_basis": "Current official Science Corporation open-positions index used to test whether the exact historical role identity remains listed.",
           "accept": "text/html,application/xhtml+xml;q=0.9",
           "corroboration_check": {
             "kind": "TEXT_CONTAINS",
             "expected": "Vision Rehabilitation Specialist, EU"
           }
         }
-      ]
+      ],
+      "lifecycle_resolution": {
+        "state": "NO_LONGER_LISTED",
+        "primary_route_id": "SRC-PR-015:deep-page",
+        "publisher_listing_route_id": "SRC-PR-015:open-positions",
+        "expected_identity": "Vision Rehabilitation Specialist, EU",
+        "evidence_ref": "official-route:science.xyz/careers/open-positions/",
+        "basis": "Resolve only when the registered deep page is confirmed HTTP 404/410 and the successfully retrieved current official Science open-positions index does not contain the exact historical role identity. This does not infer why the role disappeared."
+      }
     }
   ]
 }
