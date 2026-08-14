@@ -56,11 +56,11 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: "3.12"
-      - name: Checkout exact combined workbench candidate
+      - name: Checkout exact merged workbench lifecycle stack
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           repository: fraware/neuroai-workbench
-          ref: 2d0f0b3b336bb029f7efb84906fff551b7f4743f
+          ref: 428b4e8de069355307875f5d463e59689639248b
           path: workbench
       - name: Install hash-locked exact workbench runtime
         run: |
