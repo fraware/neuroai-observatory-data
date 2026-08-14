@@ -36,12 +36,93 @@ def _count(mapping: Any, key: str) -> int:
     return int(value) if isinstance(value, int | float) else 0
 
 
+def _failed_source_ids(run: dict[str, Any]) -> list[str]:
+    outcomes = run.get("outcomes")
+    if not isinstance(outcomes, list):
+        return []
+    return sorted(
+        {
+            str(item["source_id"])
+            for item in outcomes
+            if isinstance(item, dict) and item.get("status") == "FAILURE" and item.get("source_id")
+        }
+    )
+
+
+def _route_resolution_summary(
+    route_resilience: dict[str, Any],
+    *,
+    failed_source_ids: list[str],
+    blocking: list[dict[str, Any]],
+    warnings: list[dict[str, Any]],
+) -> dict[str, Any]:
+    reports = route_resilience.get("source_reports")
+    if not isinstance(reports, list):
+        blocking.append({"code": "ROUTE_RESILIENCE_REPORT_INVALID", "reason": "source_reports must be an array"})
+        reports = []
+
+    states: dict[str, str] = {}
+    selected_routes: dict[str, str | None] = {}
+    duplicate_ids: set[str] = set()
+    for item in reports:
+        if not isinstance(item, dict) or not isinstance(item.get("source_id"), str):
+            blocking.append({"code": "ROUTE_RESILIENCE_SOURCE_REPORT_INVALID"})
+            continue
+        source_id = str(item["source_id"])
+        if source_id in states:
+            duplicate_ids.add(source_id)
+            continue
+        states[source_id] = str(item.get("availability_state") or "UNRESOLVED")
+        selected = item.get("selected_route_id")
+        selected_routes[source_id] = str(selected) if isinstance(selected, str) else None
+    if duplicate_ids:
+        blocking.append({"code": "ROUTE_RESILIENCE_DUPLICATE_SOURCE_REPORT", "source_ids": sorted(duplicate_ids)})
+
+    available_states = {"AVAILABLE_PRIMARY", "AVAILABLE_FALLBACK"}
+    resolved_failed = sorted(source_id for source_id in failed_source_ids if states.get(source_id) in available_states)
+    unresolved_failed = sorted(set(failed_source_ids) - set(resolved_failed))
+    if unresolved_failed:
+        warnings.append(
+            {
+                "code": "FAILED_SOURCES_UNRESOLVED_AFTER_REGISTERED_ROUTE_FAILOVER",
+                "source_ids": unresolved_failed,
+            }
+        )
+    elif failed_source_ids:
+        warnings.append(
+            {
+                "code": "TYPED_SOURCE_FAILURES_RESOLVED_BY_REGISTERED_ROUTE",
+                "source_ids": resolved_failed,
+            }
+        )
+
+    reported_state = route_resilience.get("source_availability_state")
+    if reported_state not in {HEALTHY, DEGRADED}:
+        blocking.append(
+            {
+                "code": "ROUTE_RESILIENCE_STATE_INVALID",
+                "observed": reported_state,
+            }
+        )
+
+    return {
+        "reported_source_availability_state": reported_state,
+        "report_sha256": route_resilience.get("report_sha256"),
+        "counts": route_resilience.get("counts"),
+        "failed_source_ids": failed_source_ids,
+        "resolved_failed_source_ids": resolved_failed,
+        "unresolved_failed_source_ids": unresolved_failed,
+        "selected_routes": {key: selected_routes[key] for key in sorted(selected_routes)},
+    }
+
+
 def evaluate_health(
     *,
     accountability: dict[str, Any],
     development_registry: dict[str, Any],
     plan: dict[str, Any] | None = None,
     run: dict[str, Any] | None = None,
+    route_resilience: dict[str, Any] | None = None,
     wall_clock_seconds: float | None = None,
     performance_budget_seconds: float | None = None,
 ) -> dict[str, Any]:
@@ -120,10 +201,14 @@ def evaluate_health(
             warnings.append({"code": "MANUAL_MONITOR_WORK_PRESENT", "count": plan_counts["manual"]})
 
     run_metrics: dict[str, Any] | None = None
+    failed_source_ids: list[str] = []
+    failed_count = 0
     if run is not None:
         execution_status = run.get("execution_status")
         slo = run.get("slo", {}) if isinstance(run.get("slo"), dict) else {}
         counts = run.get("counts", {}) if isinstance(run.get("counts"), dict) else {}
+        failed_count = _count(counts, "failed")
+        failed_source_ids = _failed_source_ids(run)
         if execution_status not in {"COMPLETE", "COMPLETE_WITH_SOURCE_FAILURES"}:
             blocking.append({"code": "RUN_NOT_OPERATIONALLY_COMPLETE", "execution_status": execution_status})
         if slo.get("source_accountability_coverage") != 1.0:
@@ -142,8 +227,8 @@ def evaluate_health(
             )
         if _count(counts, "incomplete") > 0:
             blocking.append({"code": "INCOMPLETE_SOURCE_OUTCOMES", "count": _count(counts, "incomplete")})
-        if _count(counts, "failed") > 0:
-            warnings.append({"code": "TYPED_SOURCE_FAILURES_PRESENT", "count": _count(counts, "failed")})
+        if failed_count > 0:
+            warnings.append({"code": "TYPED_SOURCE_FAILURES_PRESENT", "count": failed_count})
         if _count(counts, "retries") > 0:
             warnings.append({"code": "RETRIES_PRESENT", "count": _count(counts, "retries")})
         if _count(counts, "retryable_failures_exhausted") > 0:
@@ -159,7 +244,20 @@ def evaluate_health(
             "plan_id": run.get("plan_id"),
             "counts": counts,
             "slo": slo,
+            "failed_source_ids": failed_source_ids,
         }
+
+    route_summary: dict[str, Any] | None = None
+    if route_resilience is not None:
+        if not isinstance(route_resilience, dict):
+            blocking.append({"code": "ROUTE_RESILIENCE_REPORT_INVALID", "reason": "report must be an object"})
+        else:
+            route_summary = _route_resolution_summary(
+                route_resilience,
+                failed_source_ids=failed_source_ids,
+                blocking=blocking,
+                warnings=warnings,
+            )
 
     if wall_clock_seconds is not None:
         if wall_clock_seconds < 0:
@@ -175,11 +273,17 @@ def evaluate_health(
 
     state = UNHEALTHY if blocking else DEGRADED if warnings else HEALTHY
     engineering_state = ENGINEERING_BLOCKED if blocking else ENGINEERING_READY
-    source_availability_state = (
-        DEGRADED if any(warning["code"] == "TYPED_SOURCE_FAILURES_PRESENT" for warning in warnings) else HEALTHY
-    )
+    source_availability_state = HEALTHY
+    if failed_count > 0:
+        source_availability_state = DEGRADED
+        if route_summary is not None:
+            all_failed_resolved = bool(failed_source_ids) and not route_summary["unresolved_failed_source_ids"]
+            route_report_healthy = route_summary["reported_source_availability_state"] == HEALTHY
+            if all_failed_resolved and route_report_healthy:
+                source_availability_state = HEALTHY
+
     report: dict[str, Any] = {
-        "schema_version": "1",
+        "schema_version": "2",
         "state": state,
         "engineering_state": engineering_state,
         "source_availability_state": source_availability_state,
@@ -200,6 +304,7 @@ def evaluate_health(
         },
         "plan_counts": plan_counts if plan is not None else None,
         "run": run_metrics,
+        "route_resilience": route_summary,
         "telemetry": {
             "wall_clock_seconds": wall_clock_seconds,
             "performance_budget_seconds": performance_budget_seconds,
@@ -222,6 +327,7 @@ def main() -> int:
     parser.add_argument("--development-registry", type=Path, required=True)
     parser.add_argument("--plan", type=Path)
     parser.add_argument("--run", type=Path)
+    parser.add_argument("--route-resilience", type=Path)
     parser.add_argument("--wall-clock-seconds", type=float)
     parser.add_argument("--performance-budget-seconds", type=float)
     parser.add_argument("--output", type=Path, required=True)
@@ -241,11 +347,13 @@ def main() -> int:
         raise ValueError("Accountability and development registry are required")
     plan = load(args.plan)
     run = load(args.run)
+    route_resilience = load(args.route_resilience)
     report = evaluate_health(
         accountability=accountability,
         development_registry=registry,
         plan=plan,
         run=run,
+        route_resilience=route_resilience,
         wall_clock_seconds=args.wall_clock_seconds,
         performance_budget_seconds=args.performance_budget_seconds,
     )
@@ -255,6 +363,7 @@ def main() -> int:
         development_registry=registry,
         plan=plan,
         run=run,
+        route_resilience=route_resilience,
         wall_clock_seconds=args.wall_clock_seconds,
         performance_budget_seconds=args.performance_budget_seconds,
     )
