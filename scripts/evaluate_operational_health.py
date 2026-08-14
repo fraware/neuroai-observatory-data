@@ -12,6 +12,8 @@ from typing import Any
 HEALTHY = "HEALTHY"
 DEGRADED = "DEGRADED"
 UNHEALTHY = "UNHEALTHY"
+ENGINEERING_READY = "READY"
+ENGINEERING_BLOCKED = "BLOCKED"
 BOUNDARY = (
     "Operational health covers execution and accountability over the declared effective source namespace only. "
     "Typed retrieval failures remain source-operation outcomes and do not establish assessment failure, source falsity, "
@@ -43,7 +45,7 @@ def evaluate_health(
     wall_clock_seconds: float | None = None,
     performance_budget_seconds: float | None = None,
 ) -> dict[str, Any]:
-    """Return deterministic blocking/warning alerts and an overall operational state."""
+    """Return deterministic blocking/warning alerts and operational/engineering states."""
     blocking: list[dict[str, Any]] = []
     warnings: list[dict[str, Any]] = []
 
@@ -172,9 +174,15 @@ def evaluate_health(
             )
 
     state = UNHEALTHY if blocking else DEGRADED if warnings else HEALTHY
+    engineering_state = ENGINEERING_BLOCKED if blocking else ENGINEERING_READY
+    source_availability_state = (
+        DEGRADED if any(warning["code"] == "TYPED_SOURCE_FAILURES_PRESENT" for warning in warnings) else HEALTHY
+    )
     report: dict[str, Any] = {
         "schema_version": "1",
         "state": state,
+        "engineering_state": engineering_state,
+        "source_availability_state": source_availability_state,
         "blocking_alerts": blocking,
         "warnings": warnings,
         "accountability": {
@@ -256,6 +264,8 @@ def main() -> int:
         json.dumps(
             {
                 "state": report["state"],
+                "engineering_state": report["engineering_state"],
+                "source_availability_state": report["source_availability_state"],
                 "blocking": len(report["blocking_alerts"]),
                 "warnings": len(report["warnings"]),
                 "sha256": report["health_report_sha256"],
