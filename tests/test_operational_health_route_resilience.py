@@ -51,7 +51,7 @@ def failed_run() -> dict:
     }
 
 
-def route_report(*, include_science: bool = True, evidence_healthy: bool = False) -> dict:
+def route_report(*, include_science: bool = True) -> dict:
     reports = [
         {
             "source_id": "SRC-PR-002",
@@ -60,31 +60,44 @@ def route_report(*, include_science: bool = True, evidence_healthy: bool = False
             "selected_route_id": "SRC-PR-002:api-v2-id-query",
             "selected_route_class": "IDENTITY_EQUIVALENT",
             "evidence_substitution_allowed": True,
+            "lifecycle": None,
         }
     ]
     if include_science:
         reports.append(
             {
                 "source_id": "SRC-PR-015",
-                "availability_state": "AVAILABLE_FALLBACK",
+                "availability_state": "UNRESOLVED",
                 "primary_route_state": "DEGRADED",
-                "selected_route_id": "SRC-PR-015:open-positions",
-                "selected_route_class": "LIVENESS_CORROBORATION",
+                "selected_route_id": None,
+                "selected_route_class": None,
                 "evidence_substitution_allowed": False,
+                "lifecycle": {
+                    "resolution_state": "RESOLVED_LIFECYCLE_CHANGE",
+                    "lifecycle_state": "NO_LONGER_LISTED",
+                    "source_active_expected": False,
+                    "evidence_substitution_allowed": False,
+                    "report_sha256": "c" * 64,
+                },
             }
         )
     return {
+        "source_resolution_state": "HEALTHY" if include_science else "DEGRADED",
+        "active_source_availability_state": "HEALTHY",
+        "active_evidence_payload_availability_state": "HEALTHY",
         "source_availability_state": "HEALTHY",
-        "evidence_payload_availability_state": "HEALTHY" if evidence_healthy else "DEGRADED",
+        "evidence_payload_availability_state": "HEALTHY",
+        "lifecycle_transition_count": 1 if include_science else 0,
         "report_sha256": "a" * 64,
         "counts": {
             "AVAILABLE_PRIMARY": 0,
-            "AVAILABLE_FALLBACK": len(reports),
-            "UNRESOLVED": 0,
+            "AVAILABLE_FALLBACK": 1,
+            "UNRESOLVED": 1 if include_science else 0,
             "RETIRED": 0,
+            "RESOLVED_LIFECYCLE_CHANGE": 1 if include_science else 0,
             "PRIMARY_DEGRADED": len(reports),
             "EVIDENCE_SUBSTITUTABLE_FALLBACK": 1,
-            "LIVENESS_ONLY_FALLBACK": 1 if include_science else 0,
+            "LIVENESS_ONLY_FALLBACK": 0,
         },
         "source_reports": reports,
     }
@@ -101,7 +114,7 @@ class RouteAwareOperationalHealthTests(unittest.TestCase):
         cls.accountability = build_projection(tables["sources"], tables["source_monitors"])
         cls.registry = build_development_registry(inputs)
 
-    def test_all_failed_sources_resolved_restores_source_availability_only(self) -> None:
+    def test_route_and_lifecycle_resolution_restores_active_health(self) -> None:
         routes = route_report()
         report = evaluate_health(
             accountability=self.accountability,
@@ -111,12 +124,16 @@ class RouteAwareOperationalHealthTests(unittest.TestCase):
         )
         self.assertEqual(report["state"], DEGRADED)
         self.assertEqual(report["engineering_state"], ENGINEERING_READY)
+        self.assertEqual(report["source_resolution_state"], HEALTHY)
+        self.assertEqual(report["active_source_availability_state"], HEALTHY)
+        self.assertEqual(report["active_evidence_payload_availability_state"], HEALTHY)
         self.assertEqual(report["source_availability_state"], HEALTHY)
-        self.assertEqual(report["route_resilience"]["evidence_payload_availability_state"], DEGRADED)
+        self.assertEqual(report["route_resilience"]["lifecycle_resolved_failed_source_ids"], ["SRC-PR-015"])
         codes = {warning["code"] for warning in report["warnings"]}
         self.assertIn("TYPED_SOURCE_FAILURES_PRESENT", codes)
         self.assertIn("TYPED_SOURCE_FAILURES_RESOLVED_BY_REGISTERED_ROUTE", codes)
-        self.assertNotIn("FAILED_SOURCES_UNRESOLVED_AFTER_REGISTERED_ROUTE_FAILOVER", codes)
+        self.assertIn("TYPED_SOURCE_FAILURES_RESOLVED_AS_LIFECYCLE_CHANGE", codes)
+        self.assertNotIn("FAILED_SOURCES_UNRESOLVED_AFTER_REGISTERED_RESOLUTION", codes)
         verify_health_report(
             report,
             accountability=self.accountability,
@@ -125,7 +142,7 @@ class RouteAwareOperationalHealthTests(unittest.TestCase):
             route_resilience=routes,
         )
 
-    def test_missing_failed_source_keeps_source_availability_degraded(self) -> None:
+    def test_missing_failed_source_keeps_resolution_degraded(self) -> None:
         report = evaluate_health(
             accountability=self.accountability,
             development_registry=self.registry,
@@ -133,13 +150,13 @@ class RouteAwareOperationalHealthTests(unittest.TestCase):
             route_resilience=route_report(include_science=False),
         )
         self.assertEqual(report["engineering_state"], ENGINEERING_READY)
-        self.assertEqual(report["source_availability_state"], DEGRADED)
+        self.assertEqual(report["source_resolution_state"], DEGRADED)
         self.assertEqual(
             report["route_resilience"]["unresolved_failed_source_ids"],
             ["SRC-PR-015"],
         )
         self.assertIn(
-            "FAILED_SOURCES_UNRESOLVED_AFTER_REGISTERED_ROUTE_FAILOVER",
+            "FAILED_SOURCES_UNRESOLVED_AFTER_REGISTERED_RESOLUTION",
             {warning["code"] for warning in report["warnings"]},
         )
 
@@ -158,9 +175,9 @@ class RouteAwareOperationalHealthTests(unittest.TestCase):
             {alert["code"] for alert in report["blocking_alerts"]},
         )
 
-    def test_invalid_top_level_route_state_is_blocking(self) -> None:
+    def test_invalid_top_level_resolution_state_is_blocking(self) -> None:
         routes = route_report()
-        routes["source_availability_state"] = "UNKNOWN"
+        routes["source_resolution_state"] = "UNKNOWN"
         report = evaluate_health(
             accountability=self.accountability,
             development_registry=self.registry,
@@ -169,7 +186,7 @@ class RouteAwareOperationalHealthTests(unittest.TestCase):
         )
         self.assertEqual(report["engineering_state"], ENGINEERING_BLOCKED)
         self.assertIn(
-            "ROUTE_RESILIENCE_STATE_INVALID",
+            "SOURCE_RESOLUTION_STATE_INVALID",
             {alert["code"] for alert in report["blocking_alerts"]},
         )
 
