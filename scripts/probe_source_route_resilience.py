@@ -11,12 +11,6 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
-from neuroai_workbench.collector.config import CollectorConfig
-from neuroai_workbench.collector.errors import CollectionFailureError
-from neuroai_workbench.collector.http_client import HttpClient
-from neuroai_workbench.collector.source_routes import RouteSpec, run_registered_route_failover
-from neuroai_workbench.collector.transport import StdlibHttpTransport
-
 _HTTP_STATUS_RE = re.compile(r"\bstatus\s+(\d{3})\b", re.IGNORECASE)
 BOUNDARY = (
     "Live route probing evaluates operational availability through pre-registered official routes only. "
@@ -66,6 +60,12 @@ def _check_body(body: bytes, check: dict[str, str]) -> bool:
 
 
 def probe_policy(policy: dict[str, Any]) -> dict[str, Any]:
+    from neuroai_workbench.collector.config import CollectorConfig
+    from neuroai_workbench.collector.errors import CollectionFailureError
+    from neuroai_workbench.collector.http_client import HttpClient
+    from neuroai_workbench.collector.source_routes import RouteSpec, run_registered_route_failover
+    from neuroai_workbench.collector.transport import StdlibHttpTransport
+
     sources = policy.get("sources")
     if not isinstance(sources, list) or not sources:
         raise ValueError("route policy requires a non-empty sources array")
@@ -160,11 +160,14 @@ def probe_policy(policy: dict[str, Any]) -> dict[str, Any]:
             if item["availability_state"] == "AVAILABLE_FALLBACK" and item["evidence_substitution_allowed"] is False
         ),
     }
+    source_healthy = counts["UNRESOLVED"] == 0
+    evidence_healthy = source_healthy and all(item["evidence_substitution_allowed"] is True for item in reports)
     semantic = {
-        "schema_version": "1",
+        "schema_version": "2",
         "policy_sha256": sha256(policy),
         "source_count": len(reports),
-        "source_availability_state": "HEALTHY" if counts["UNRESOLVED"] == 0 else "DEGRADED",
+        "source_availability_state": "HEALTHY" if source_healthy else "DEGRADED",
+        "evidence_payload_availability_state": "HEALTHY" if evidence_healthy else "DEGRADED",
         "counts": counts,
         "source_reports": sorted(reports, key=lambda item: str(item["source_id"])),
         "boundary": BOUNDARY,
@@ -190,6 +193,7 @@ def main() -> int:
         + json.dumps(
             {
                 "source_availability_state": report["source_availability_state"],
+                "evidence_payload_availability_state": report["evidence_payload_availability_state"],
                 "counts": report["counts"],
                 "sources": [
                     {
