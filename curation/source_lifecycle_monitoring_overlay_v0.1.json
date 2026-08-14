@@ -1,0 +1,46 @@
+{
+  "metadata": {
+    "automatic_assessment_mutation": false,
+    "automatic_source_mutation": false,
+    "boundary": "Evidence-bound development monitoring transitions only. Historical source records and governing predecessor monitors remain unchanged. This overlay does not establish source truth beyond the bound official-route observation, human governance, canonical status, or publication authority.",
+    "route_policy_sha256": "069be7cc1fbc1230e611c4bf6314438df335accee94408ba07e40395c0b012e3",
+    "status": "DEVELOPMENT_LIFECYCLE_MONITORING_OVERLAY_NOT_CANONICAL",
+    "title": "Development source lifecycle monitoring overlay",
+    "transition_count": 1,
+    "version": "0.1"
+  },
+  "overlay_sha256": "f97f53fac0f0df2549241da34be3a602908576cae914bb40a42bcad72de73144",
+  "transitions": [
+    {
+      "boundary": "This transition changes only development monitoring eligibility. It preserves the historical source and evidence lineage and does not infer why the source disappeared, register a successor, mutate an assessment, or confer governance, canonical-release, or publication authority.",
+      "evidence_substitution_allowed": false,
+      "expected_identity": "Vision Rehabilitation Specialist, EU",
+      "lifecycle_assertion_sha256": "9fa92f5d970d7f709a897e72200b63201b7be5955de6b5886e57e94a3e646fca",
+      "lifecycle_state": "NO_LONGER_LISTED",
+      "live_evidence": {
+        "identity_equivalent_http_statuses": [
+          404
+        ],
+        "lifecycle_report_sha256": "49b1746f0dc0feb3ec0676f8e85cbd05a3fbe84a5736b5fa840fd08320061a28",
+        "observed_at": "2026-08-14T21:10:19.816945+00:00",
+        "primary_http_status": 404,
+        "publisher_listing_http_status": 200,
+        "publisher_listing_identity_present": false,
+        "resolution_state": "RESOLVED_LIFECYCLE_CHANGE",
+        "route_policy_sha256": "069be7cc1fbc1230e611c4bf6314438df335accee94408ba07e40395c0b012e3",
+        "route_report_sha256": "2a1886976f23e59d113dd08005fa0841d8bea47c80da14f95f54ca5360e1a50e",
+        "workflow_head_sha": "3ad4e30ad80082ae9a86c45c43c512110ff1bcce",
+        "workflow_run_id": 31841215730
+      },
+      "monitoring_state": "LIFECYCLE_RESOLVED_ARCHIVAL",
+      "primary_route_id": "SRC-PR-015:deep-page",
+      "publisher_listing_route_id": "SRC-PR-015:open-positions",
+      "route_source_sha256": "6721273c0bbf9c1e017c10ee5248afad7313b3bf536cb44acf7953b418346bf0",
+      "source_active_expected": false,
+      "source_id": "SRC-PR-015",
+      "source_url": "https://science.xyz/careers/vision-rehabilitation-specialist-eu-65",
+      "successor_discovery_watch_id": "DISC-SCIENCE-CAREERS-001",
+      "transition_sha256": "2140045cff2130ebfdb81d262d4e0130fd13f2f8d86856852a73e418efc89433"
+    }
+  ]
+}
