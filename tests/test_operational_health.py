@@ -22,10 +22,14 @@ from evaluate_operational_health import (  # noqa: E402
     evaluate_health,
     verify_health_report,
 )
+from source_lifecycle_overlay import load_verified_lifecycle_overlay  # noqa: E402
 
 
 def complete_run(*, failed: int = 0, retries: int = 0, exhausted: int = 0) -> dict:
     status = "COMPLETE_WITH_SOURCE_FAILURES" if failed else "COMPLETE"
+    outcomes = []
+    if failed:
+        outcomes.append({"source_id": "SRC-PR-002", "status": "FAILURE"})
     return {
         "run_id": "CRUN-test",
         "plan_id": "PLAN-test",
@@ -44,6 +48,7 @@ def complete_run(*, failed: int = 0, retries: int = 0, exhausted: int = 0) -> di
             "source_accountability_coverage": 1.0,
             "target_execution_coverage": 1.0,
         },
+        "outcomes": outcomes,
     }
 
 
@@ -55,9 +60,15 @@ class OperationalHealthTests(unittest.TestCase):
             supplemental_dir=(ROOT / "supplemental_records").resolve(),
         )
         tables = build_tables(inputs)
-        cls.accountability = build_projection(tables["sources"], tables["source_monitors"])
-        cls.registry = build_development_registry(inputs)
-        cls.plan = {"counts": {"due": 10, "manual": 0, "not_due": 217}}
+        source_ids = {str(row["record_id"]) for row in tables["sources"] if row.get("record_id")}
+        monitor_ids = {str(row["record_id"]) for row in tables["source_monitors"] if row.get("record_id")}
+        _, _, cls.transitions = load_verified_lifecycle_overlay(
+            effective_source_ids=source_ids,
+            governing_monitor_source_ids=monitor_ids,
+        )
+        cls.accountability = build_projection(tables["sources"], tables["source_monitors"], cls.transitions)
+        cls.registry = build_development_monitor_registry = build_development_registry(inputs, cls.transitions)
+        cls.plan = {"counts": {"due": 10, "manual": 0, "not_due": 216}}
 
     def test_exact_current_state_is_healthy_with_clean_complete_run(self) -> None:
         report = evaluate_health(
@@ -74,9 +85,11 @@ class OperationalHealthTests(unittest.TestCase):
         self.assertEqual(report["blocking_alerts"], [])
         self.assertEqual(report["warnings"], [])
         self.assertEqual(report["accountability"]["effective_sources"], 248)
-        self.assertEqual(report["registry"]["automatic_monitors"], 227)
+        self.assertEqual(report["accountability"]["lifecycle_resolved_source_ids"], ["SRC-PR-015"])
+        self.assertEqual(report["registry"]["automatic_monitors"], 226)
         self.assertEqual(report["registry"]["manual_on_change_sources"], 6)
         self.assertEqual(report["registry"]["archival_static_sources"], 15)
+        self.assertEqual(report["registry"]["lifecycle_resolved_sources"], 1)
         self.assertEqual(len(report["health_report_sha256"]), 64)
         verify_health_report(
             report,
@@ -88,12 +101,12 @@ class OperationalHealthTests(unittest.TestCase):
             performance_budget_seconds=60.0,
         )
 
-    def test_typed_source_failures_and_retries_degrade_sources_not_engineering(self) -> None:
+    def test_typed_active_source_failures_and_retries_degrade_sources_not_engineering(self) -> None:
         report = evaluate_health(
             accountability=self.accountability,
             development_registry=self.registry,
             plan=self.plan,
-            run=complete_run(failed=2, retries=3, exhausted=1),
+            run=complete_run(failed=1, retries=3, exhausted=1),
         )
         self.assertEqual(report["state"], DEGRADED)
         self.assertEqual(report["engineering_state"], ENGINEERING_READY)
@@ -108,7 +121,7 @@ class OperationalHealthTests(unittest.TestCase):
         report = evaluate_health(
             accountability=self.accountability,
             development_registry=self.registry,
-            plan={"counts": {"due": 1, "manual": 2, "not_due": 224}},
+            plan={"counts": {"due": 1, "manual": 2, "not_due": 223}},
             run=complete_run(),
         )
         self.assertEqual(report["state"], DEGRADED)
@@ -133,12 +146,13 @@ class OperationalHealthTests(unittest.TestCase):
             {"RUN_NOT_OPERATIONALLY_COMPLETE", "TARGET_EXECUTION_SLO_BREACH", "INCOMPLETE_SOURCE_OUTCOMES"},
         )
 
-    def test_namespace_or_registry_drift_is_unhealthy(self) -> None:
+    def test_namespace_registry_or_lifecycle_drift_is_unhealthy(self) -> None:
         accountability = copy.deepcopy(self.accountability)
         accountability["current"]["effective_source_count"] = 247
-        accountability["current"]["counts"]["GAP"] = 4
+        accountability["current"]["counts"]["GAP"] = 3
+        accountability["current"]["lifecycle_resolved_source_ids"] = []
         registry = copy.deepcopy(self.registry)
-        registry["metadata"]["record_count"] = 226
+        registry["metadata"]["record_count"] = 227
         report = evaluate_health(accountability=accountability, development_registry=registry)
         self.assertEqual(report["state"], UNHEALTHY)
         self.assertEqual(report["engineering_state"], ENGINEERING_BLOCKED)
@@ -146,6 +160,7 @@ class OperationalHealthTests(unittest.TestCase):
         self.assertTrue(
             {
                 "CURRENT_ACCOUNTABILITY_DECOMPOSITION_DRIFT",
+                "LIFECYCLE_RESOLVED_SOURCE_SET_DRIFT",
                 "EFFECTIVE_SOURCE_COUNT_DRIFT",
                 "DEVELOPMENT_REGISTRY_INVARIANT_DRIFT",
             }.issubset(codes)
@@ -164,7 +179,7 @@ class OperationalHealthTests(unittest.TestCase):
         report = evaluate_health(
             accountability=self.accountability,
             development_registry=self.registry,
-            plan={"counts": {"due": 1, "manual": 2, "not_due": 224}},
+            plan={"counts": {"due": 1, "manual": 2, "not_due": 223}},
             run=complete_run(),
             wall_clock_seconds=61.0,
             performance_budget_seconds=60.0,
