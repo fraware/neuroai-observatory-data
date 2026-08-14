@@ -69,6 +69,29 @@ jobs:
             --max-workers 12 \
             --max-workers-per-host 2 \
             --performance-budget-seconds 300
+      - name: Classify sanitized HTTP failure statuses
+        run: |
+          python - <<'PY'
+          import json, os, re
+          from pathlib import Path
+
+          root = Path(os.environ["RUNNER_TEMP"]) / "neuroai-live/workspace/quarantine/failures"
+          rows = []
+          for path in sorted(root.glob("*.json")):
+              failure = json.loads(path.read_text())
+              message = str(failure.get("failure_message") or "")
+              match = re.fullmatch(r"Unexpected HTTP status (\d{3})", message)
+              rows.append(
+                  {
+                      "source_id": failure.get("source_id"),
+                      "failure_class": failure.get("failure_class"),
+                      "http_status": int(match.group(1)) if match else None,
+                      "attempt_count": failure.get("retry_state", {}).get("attempt_count"),
+                      "exhausted": failure.get("retry_state", {}).get("exhausted"),
+                  }
+              )
+          print("SANITIZED_HTTP_FAILURES=" + json.dumps(rows, sort_keys=True))
+          PY
       - name: Enforce blocking operational invariants and emit sanitized metrics
         run: |
           python - <<'PY'
