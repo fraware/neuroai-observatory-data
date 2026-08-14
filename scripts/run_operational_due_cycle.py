@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Execute one controlled live due cycle against the noncanonical development registry in an ephemeral workspace."""
+"""Execute one controlled live due cycle against the lifecycle-aware noncanonical development registry."""
 
 from __future__ import annotations
 
@@ -23,13 +23,18 @@ from neuroai_workbench.collector.http_client import HttpRequest, HttpTransport
 from neuroai_workbench.collector.transport import StdlibHttpTransport
 from neuroai_workbench.monitoring import initialize_monitoring, plan_monitoring_run, validate_source_registry
 from probe_source_route_resilience import probe_policy
+from source_lifecycle_overlay import (
+    DEFAULT_LIFECYCLE_OVERLAY,
+    DEFAULT_ROUTE_POLICY,
+    build_active_route_policy,
+    load_verified_lifecycle_overlay,
+    sha256,
+)
 
-ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_ROUTE_POLICY = ROOT / "curation" / "source_route_resilience_v0.1.json"
 BOUNDARY = (
-    "This report is controlled operational evidence over the declared noncanonical development monitor view. "
-    "Network success/failure and narrow source lifecycle resolution are not assessment adjudication and do not "
-    "authorize canonical publication or human governance claims."
+    "This report is controlled operational evidence over the declared noncanonical lifecycle-aware development monitor "
+    "view. Network success/failure, lifecycle monitoring eligibility, and successor-discovery separation are not assessment "
+    "adjudication and do not authorize canonical publication or human governance claims."
 )
 
 
@@ -61,18 +66,11 @@ class CountingTransport:
 
 
 def _configuration_hash() -> str:
-    return hashlib.sha256(b"neuroai-operational-live-cycle-v2-route-lifecycle-resilience").hexdigest()
+    return hashlib.sha256(b"neuroai-operational-live-cycle-v3-lifecycle-active-monitoring").hexdigest()
 
 
 def _failure_status_counts(run: dict[str, Any]) -> dict[str, int]:
     return dict(sorted(Counter(str(item.get("status", "UNKNOWN")) for item in run.get("outcomes", [])).items()))
-
-
-def _load_route_policy(path: Path) -> dict[str, Any]:
-    payload = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(payload, dict):
-        raise ValueError("Source-route policy must be a JSON object")
-    return payload
 
 
 def _sanitize_route_observation(item: Any) -> dict[str, Any] | None:
@@ -98,19 +96,6 @@ def _sanitize_route_diagnostic(item: Any) -> dict[str, Any] | None:
     return {key: item.get(key) for key in sorted(allowed) if key in item}
 
 
-def _sanitize_lifecycle(item: Any) -> dict[str, Any] | None:
-    if not isinstance(item, dict):
-        return None
-    return {
-        "resolution_state": item.get("resolution_state"),
-        "lifecycle_state": item.get("lifecycle_state"),
-        "source_active_expected": item.get("source_active_expected"),
-        "evidence_substitution_allowed": item.get("evidence_substitution_allowed"),
-        "diagnostics": item.get("diagnostics", []),
-        "report_sha256": item.get("report_sha256"),
-    }
-
-
 def execute(
     *,
     records_dir: Path,
@@ -121,11 +106,20 @@ def execute(
     max_workers_per_host: int,
     performance_budget_seconds: float,
     route_policy_path: Path = DEFAULT_ROUTE_POLICY,
+    lifecycle_overlay_path: Path = DEFAULT_LIFECYCLE_OVERLAY,
 ) -> dict[str, Any]:
     inputs = load_inputs(records_dir.resolve(), supplemental_dir=supplemental_dir.resolve())
     tables = build_tables(inputs)
-    accountability = build_projection(tables["sources"], tables["source_monitors"])
-    registry = build_development_registry(inputs)
+    source_ids = {str(row["record_id"]) for row in tables["sources"] if row.get("record_id")}
+    governing_monitor_ids = {str(row["record_id"]) for row in tables["source_monitors"] if row.get("record_id")}
+    route_policy, lifecycle_overlay, transitions = load_verified_lifecycle_overlay(
+        route_policy_path=route_policy_path,
+        overlay_path=lifecycle_overlay_path,
+        effective_source_ids=source_ids,
+        governing_monitor_source_ids=governing_monitor_ids,
+    )
+    accountability = build_projection(tables["sources"], tables["source_monitors"], transitions)
+    registry = build_development_registry(inputs, transitions)
     verify_development_registry(registry)
 
     registry_validation = validate_source_registry(registry)
@@ -139,9 +133,13 @@ def execute(
     plan = plan_monitoring_run(workspace, as_of=as_of)
 
     source_index = {str(record["source_id"]): record for record in registry["sources"]}
+    forbidden_lifecycle_ids = set(transitions) & set(source_index)
+    if forbidden_lifecycle_ids:
+        raise ValueError(f"Lifecycle-resolved sources remain in active source index: {sorted(forbidden_lifecycle_ids)}")
+
     transport = CountingTransport()
     collector_config = CollectorConfig(
-        collector_version="0.3.0-dev-operational",
+        collector_version="0.3.0-dev-operational-lifecycle",
         configuration_hash=_configuration_hash(),
         connect_timeout_seconds=8.0,
         read_timeout_seconds=20.0,
@@ -209,8 +207,16 @@ def execute(
     if slo.get("source_accountability_coverage") != 1.0 or slo.get("target_execution_coverage") != 1.0:
         raise ValueError(f"Live cycle failed operational SLOs: {slo}")
 
-    route_policy = _load_route_policy(route_policy_path.resolve())
-    route_resilience = probe_policy(route_policy)
+    active_route_policy = build_active_route_policy(route_policy, transitions)
+    route_resilience = probe_policy(active_route_policy)
+    probed_source_ids = {
+        str(item.get("source_id"))
+        for item in route_resilience.get("source_reports", [])
+        if isinstance(item, dict) and item.get("source_id")
+    }
+    reprobed_lifecycle_ids = sorted(probed_source_ids & set(transitions))
+    if reprobed_lifecycle_ids:
+        raise ValueError(f"Lifecycle-resolved source was re-probed: {reprobed_lifecycle_ids}")
 
     health = evaluate_health(
         accountability=accountability,
@@ -222,22 +228,44 @@ def execute(
         performance_budget_seconds=performance_budget_seconds,
     )
 
+    lifecycle_rows = [
+        {
+            "source_id": source_id,
+            "lifecycle_state": transition["lifecycle_state"],
+            "monitoring_state": transition["monitoring_state"],
+            "successor_discovery_watch_id": transition["successor_discovery_watch_id"],
+            "transition_sha256": transition["transition_sha256"],
+            "route_report_sha256": transition["live_evidence"]["route_report_sha256"],
+            "lifecycle_report_sha256": transition["live_evidence"]["lifecycle_report_sha256"],
+        }
+        for source_id, transition in sorted(transitions.items())
+    ]
+
     report: dict[str, Any] = {
-        "schema_version": "3",
+        "schema_version": "4",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "as_of": as_of,
         "boundary": BOUNDARY,
         "registry": {
             "effective_sources": 248,
-            "automatic_monitors": 227,
+            "automatic_monitors": len(registry["sources"]),
             "manual_on_change_sources": 6,
             "archival_static_sources": 15,
+            "lifecycle_resolved_sources": len(transitions),
+            "lifecycle_resolved_source_ids": sorted(transitions),
             "registry_sha256": monitoring["registry_sha256"],
             "development_registry_view_sha256": registry["metadata"]["registry_view_sha256"],
+        },
+        "lifecycle_overlay": {
+            "overlay_sha256": lifecycle_overlay["overlay_sha256"],
+            "route_policy_sha256": sha256(route_policy),
+            "transition_count": len(transitions),
+            "transitions": lifecycle_rows,
         },
         "plan": {
             "plan_id": plan.get("plan_id"),
             "counts": plan.get("counts"),
+            "lifecycle_resolved_source_ids_excluded": sorted(transitions),
         },
         "execution": {
             "run_id": first.get("run_id"),
@@ -253,14 +281,15 @@ def execute(
             "wall_clock_seconds": round(first_wall, 6),
         },
         "route_resilience": {
-            "policy_sha256": route_resilience.get("policy_sha256"),
+            "original_policy_sha256": sha256(route_policy),
+            "active_policy_sha256": route_resilience.get("policy_sha256"),
             "report_sha256": route_resilience.get("report_sha256"),
             "source_resolution_state": route_resilience.get("source_resolution_state"),
             "active_source_availability_state": route_resilience.get("active_source_availability_state"),
             "active_evidence_payload_availability_state": route_resilience.get(
                 "active_evidence_payload_availability_state"
             ),
-            "lifecycle_transition_count": route_resilience.get("lifecycle_transition_count"),
+            "excluded_lifecycle_source_ids": sorted(transitions),
             "counts": route_resilience.get("counts"),
             "sources": [
                 {
@@ -270,7 +299,6 @@ def execute(
                     "selected_route_id": item.get("selected_route_id"),
                     "selected_route_class": item.get("selected_route_class"),
                     "evidence_substitution_allowed": item.get("evidence_substitution_allowed"),
-                    "lifecycle": _sanitize_lifecycle(item.get("lifecycle")),
                     "route_observations": [
                         cleaned
                         for raw in item.get("route_observations", [])
@@ -306,6 +334,7 @@ def main() -> int:
     parser.add_argument("--max-workers-per-host", type=int, default=2)
     parser.add_argument("--performance-budget-seconds", type=float, default=300.0)
     parser.add_argument("--route-policy", type=Path, default=DEFAULT_ROUTE_POLICY)
+    parser.add_argument("--lifecycle-overlay", type=Path, default=DEFAULT_LIFECYCLE_OVERLAY)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
 
@@ -318,6 +347,7 @@ def main() -> int:
         max_workers_per_host=args.max_workers_per_host,
         performance_budget_seconds=args.performance_budget_seconds,
         route_policy_path=args.route_policy,
+        lifecycle_overlay_path=args.lifecycle_overlay,
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -332,7 +362,8 @@ def main() -> int:
                 "active_evidence_payload_availability_state": report["health"][
                     "active_evidence_payload_availability_state"
                 ],
-                "lifecycle_transition_count": report["route_resilience"]["lifecycle_transition_count"],
+                "automatic_monitors": report["registry"]["automatic_monitors"],
+                "lifecycle_resolved_source_ids": report["registry"]["lifecycle_resolved_source_ids"],
                 "route_sources": report["route_resilience"]["sources"],
                 "source_accountability_coverage": report["execution"]["slo"]["source_accountability_coverage"],
                 "target_execution_coverage": report["execution"]["slo"]["target_execution_coverage"],
