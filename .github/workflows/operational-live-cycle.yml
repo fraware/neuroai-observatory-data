@@ -1,0 +1,203 @@
+name: Operational live due cycle
+
+on:
+  push:
+    branches:
+      - agent/operational-live-health
+    paths:
+      - "scripts/run_operational_due_cycle.py"
+      - "scripts/evaluate_operational_health.py"
+      - "scripts/build_monitoring_eligibility.py"
+      - "scripts/build_current_monitor_accountability.py"
+      - "scripts/build_development_monitor_registry.py"
+      - "tests/test_operational_health.py"
+      - "fixtures/source_monitor_registry_v1.5.json"
+      - "supplemental_records/**"
+      - ".github/workflows/operational-live-cycle.yml"
+  schedule:
+    - cron: "17 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: neuroai-operational-live-cycle
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Verify static accountability and health contracts
+        run: |
+          python -m unittest \
+            tests/test_current_monitor_accountability.py \
+            tests/test_development_monitor_registry.py \
+            tests/test_operational_health.py -v
+
+  live:
+    needs: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Checkout exact green workbench
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: fraware/neuroai-workbench
+          ref: 0bb460818e4bd9ee5ce23b1e6e91e4d1148f15bc
+          path: workbench
+      - name: Install hash-locked exact workbench runtime
+        run: |
+          python -m pip install --require-hashes -r workbench/requirements/constraints.txt
+          python -m pip install --no-deps ./workbench
+      - name: Execute controlled real due cycle and exact zero-send resume proof
+        run: |
+          rm -rf "$RUNNER_TEMP/neuroai-live"
+          mkdir -p "$RUNNER_TEMP/neuroai-live"
+          python scripts/run_operational_due_cycle.py \
+            --workspace "$RUNNER_TEMP/neuroai-live/workspace" \
+            --output "$RUNNER_TEMP/neuroai-live/operational-live-report.json" \
+            --max-workers 12 \
+            --max-workers-per-host 2 \
+            --performance-budget-seconds 300
+      - name: Classify sanitized HTTP failure statuses
+        run: |
+          python - <<'PY'
+          import json, os, re
+          from pathlib import Path
+
+          root = Path(os.environ["RUNNER_TEMP"]) / "neuroai-live/workspace/quarantine/failures"
+          rows = []
+          for path in sorted(root.glob("*.json")):
+              failure = json.loads(path.read_text())
+              message = str(failure.get("failure_message") or "")
+              match = re.fullmatch(r"Unexpected HTTP status (\d{3})", message)
+              rows.append(
+                  {
+                      "source_id": failure.get("source_id"),
+                      "failure_class": failure.get("failure_class"),
+                      "http_status": int(match.group(1)) if match else None,
+                      "attempt_count": failure.get("retry_state", {}).get("attempt_count"),
+                      "exhausted": failure.get("retry_state", {}).get("exhausted"),
+                  }
+              )
+          print("SANITIZED_HTTP_FAILURES=" + json.dumps(rows, sort_keys=True))
+          PY
+      - name: Enforce blocking operational invariants and emit sanitized metrics
+        run: |
+          python - <<'PY'
+          import json, os
+          from collections import Counter
+          from pathlib import Path
+
+          root = Path(os.environ["RUNNER_TEMP"]) / "neuroai-live"
+          report = json.loads((root / "operational-live-report.json").read_text())
+          health = report["health"]
+          execution = report["execution"]
+          resume = report["resume_proof"]
+
+          failure_classes = Counter()
+          failure_sources = []
+          target_root = root / "workspace/quarantine/run-ledgers" / execution["run_id"] / "targets"
+          for checkpoint_path in sorted(target_root.glob("*.json")):
+              checkpoint = json.loads(checkpoint_path.read_text())
+              if checkpoint.get("state") != "FAILURE":
+                  continue
+              outcome = checkpoint.get("outcome") if isinstance(checkpoint.get("outcome"), dict) else {}
+              failure_class = str(outcome.get("failure_class") or "UNKNOWN")
+              source_ids = checkpoint.get("target", {}).get("source_ids", [])
+              failure_classes[failure_class] += len(source_ids) or 1
+              failure_sources.append(
+                  {
+                      "source_ids": source_ids,
+                      "failure_class": failure_class,
+                      "attempt_count": len(checkpoint.get("attempts", [])),
+                      "retryable": bool(outcome.get("retryable")),
+                  }
+              )
+
+          sanitized = {
+              "registry": report["registry"],
+              "plan": report["plan"],
+              "execution_status": execution["execution_status"],
+              "execution_counts": execution["counts"],
+              "source_outcome_status_counts": execution["source_outcome_status_counts"],
+              "typed_failure_class_counts": dict(sorted(failure_classes.items())),
+              "typed_failure_sources": failure_sources,
+              "source_accountability_coverage": execution["slo"]["source_accountability_coverage"],
+              "target_execution_coverage": execution["slo"]["target_execution_coverage"],
+              "transport_sends": execution["transport_sends"],
+              "host_count": execution["host_count"],
+              "wall_clock_seconds": execution["wall_clock_seconds"],
+              "resume_additional_sends": resume["additional_transport_sends"],
+              "health_state": health["state"],
+              "blocking_alerts": health["blocking_alerts"],
+              "warnings": health["warnings"],
+              "semantic_summary_sha256": execution["semantic_summary_sha256"],
+          }
+          print("SANITIZED_OPERATIONAL_METRICS=" + json.dumps(sanitized, sort_keys=True))
+          if health["state"] == "UNHEALTHY":
+              raise SystemExit(f"blocking operational health alerts: {health['blocking_alerts']}")
+          if execution["slo"]["source_accountability_coverage"] != 1.0:
+              raise SystemExit("source-accountability SLO is below 1.0")
+          if execution["slo"]["target_execution_coverage"] != 1.0:
+              raise SystemExit("target-execution SLO is below 1.0")
+          if resume["additional_transport_sends"] != 0:
+              raise SystemExit("resume performed duplicate network work")
+          PY
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json, os
+          from collections import Counter
+          from pathlib import Path
+
+          root = Path(os.environ["RUNNER_TEMP"]) / "neuroai-live"
+          report = json.loads((root / "operational-live-report.json").read_text())
+          registry = report["registry"]
+          plan = report["plan"]
+          execution = report["execution"]
+          health = report["health"]
+          resume = report["resume_proof"]
+          failure_classes = Counter()
+          target_root = root / "workspace/quarantine/run-ledgers" / execution["run_id"] / "targets"
+          for checkpoint_path in sorted(target_root.glob("*.json")):
+              checkpoint = json.loads(checkpoint_path.read_text())
+              if checkpoint.get("state") == "FAILURE":
+                  outcome = checkpoint.get("outcome") if isinstance(checkpoint.get("outcome"), dict) else {}
+                  source_ids = checkpoint.get("target", {}).get("source_ids", [])
+                  failure_classes[str(outcome.get("failure_class") or "UNKNOWN")] += len(source_ids) or 1
+          print("## NeuroAI operational live-cycle health")
+          print(f"- Effective source universe: **{registry['effective_sources']}**")
+          print(f"- Automatic monitors: **{registry['automatic_monitors']}**")
+          print(f"- Manual/on-change: **{registry['manual_on_change_sources']}**")
+          print(f"- Archival-static: **{registry['archival_static_sources']}**")
+          print(f"- Due/manual/not-due: **{plan['counts']}**")
+          print(f"- Execution: **{execution['execution_status']}**")
+          print(f"- Source accountability SLO: **{execution['slo']['source_accountability_coverage']:.3f}**")
+          print(f"- Target execution SLO: **{execution['slo']['target_execution_coverage']:.3f}**")
+          print(f"- Typed failure classes: **{dict(sorted(failure_classes.items()))}**")
+          print(f"- Transport sends: **{execution['transport_sends']}** across **{execution['host_count']}** hosts")
+          print(f"- Wall clock: **{execution['wall_clock_seconds']:.2f}s**")
+          print(f"- Exact resume additional sends: **{resume['additional_transport_sends']}**")
+          print(f"- Operational health: **{health['state']}**")
+          print(f"- Blocking alerts: **{len(health['blocking_alerts'])}**")
+          print(f"- Warnings: **{len(health['warnings'])}**")
+          for warning in health["warnings"]:
+              print(f"  - `{warning['code']}`: {warning}")
+          print(f"- Run semantic SHA-256: `{execution['semantic_summary_sha256']}`")
+          print(f"- Development registry SHA-256: `{registry['development_registry_view_sha256']}`")
+          print("\nCapture bytes and quarantine records remain ephemeral under RUNNER_TEMP and are not uploaded.")
+          PY
+      - name: Prove protected capture material was not added to repository
+        run: |
+          rm -rf workbench
+          git status --porcelain
+          test -z "$(git status --porcelain)"
