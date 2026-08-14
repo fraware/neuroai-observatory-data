@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""One-shot diagnostic isolating ClinicalTrials.gov transport/header behavior."""
+"""One-shot diagnostic isolating ClinicalTrials.gov TLS/transport behavior."""
 
 from __future__ import annotations
 
@@ -19,35 +19,54 @@ def _identity(body: bytes) -> bool:
     return NCT_ID.encode() in body.upper()
 
 
-def probe_urllib() -> dict[str, object]:
+def probe_urllib(*, disable_proxy: bool = False) -> dict[str, object]:
+    variant = "urllib-no-proxy" if disable_proxy else "urllib-default"
     request = urllib.request.Request(URL, headers={"User-Agent": USER_AGENT, "Accept": "application/json"})
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({})) if disable_proxy else urllib.request.build_opener()
     try:
-        with urllib.request.urlopen(request, timeout=20) as response:  # noqa: S310 - fixed official URL only
+        with opener.open(request, timeout=20) as response:
             body = response.read(5 * 1024 * 1024)
             return {
-                "variant": "urllib-default",
+                "variant": variant,
                 "status": int(response.status),
                 "identity_present": _identity(body),
                 "final_host": urllib.parse.urlparse(response.geturl()).hostname,
             }
     except urllib.error.HTTPError as exc:
-        return {"variant": "urllib-default", "status": int(exc.code), "identity_present": False}
+        return {"variant": variant, "status": int(exc.code), "identity_present": False}
+    except (urllib.error.URLError, TimeoutError, OSError) as exc:
+        return {"variant": variant, "status": None, "identity_present": False, "error_class": type(exc).__name__}
 
 
-def probe_http_client(variant: str, extra_headers: dict[str, str]) -> dict[str, object]:
+def probe_http_client(
+    variant: str,
+    *,
+    context_mode: str,
+) -> dict[str, object]:
     parsed = urllib.parse.urlparse(URL)
-    connection = http.client.HTTPSConnection(
-        parsed.hostname,
-        parsed.port or 443,
-        timeout=20,
-        context=ssl.create_default_context(),
-    )
+    context: ssl.SSLContext | None
+    if context_mode == "custom-no-alpn":
+        context = ssl.create_default_context()
+    elif context_mode == "custom-http11-alpn":
+        context = ssl.create_default_context()
+        context.set_alpn_protocols(["http/1.1"])
+    elif context_mode == "implicit-default":
+        context = None
+    else:
+        raise ValueError(context_mode)
+
+    kwargs: dict[str, object] = {"timeout": 20}
+    if context is not None:
+        kwargs["context"] = context
+    connection = http.client.HTTPSConnection(parsed.hostname, parsed.port or 443, **kwargs)
     path = parsed.path + (f"?{parsed.query}" if parsed.query else "")
-    headers = {"User-Agent": USER_AGENT, "Accept": "application/json", **extra_headers}
+    headers = {"User-Agent": USER_AGENT, "Accept": "application/json", "Accept-Encoding": "gzip, deflate"}
     try:
         connection.connect()
+        selected_alpn = None
         if connection.sock is not None:
             connection.sock.settimeout(20)
+            selected_alpn = connection.sock.selected_alpn_protocol()
         connection.request("GET", path, headers=headers)
         response = connection.getresponse()
         body = response.read(5 * 1024 * 1024)
@@ -55,7 +74,7 @@ def probe_http_client(variant: str, extra_headers: dict[str, str]) -> dict[str, 
             "variant": variant,
             "status": int(response.status),
             "identity_present": _identity(body),
-            "content_encoding": response.getheader("content-encoding"),
+            "selected_alpn": selected_alpn,
             "content_type": response.getheader("content-type"),
         }
     except (OSError, TimeoutError, http.client.HTTPException) as exc:
@@ -72,12 +91,12 @@ def probe_http_client(variant: str, extra_headers: dict[str, str]) -> dict[str, 
 def main() -> int:
     results = [
         probe_urllib(),
-        probe_http_client("http-client-gzip-deflate", {"Accept-Encoding": "gzip, deflate"}),
-        probe_http_client("http-client-identity", {"Accept-Encoding": "identity"}),
-        probe_http_client("http-client-default-encoding", {}),
-        probe_http_client("http-client-gzip-deflate-connection-close", {"Accept-Encoding": "gzip, deflate", "Connection": "close"}),
+        probe_urllib(disable_proxy=True),
+        probe_http_client("http-client-custom-no-alpn", context_mode="custom-no-alpn"),
+        probe_http_client("http-client-custom-http11-alpn", context_mode="custom-http11-alpn"),
+        probe_http_client("http-client-implicit-default-context", context_mode="implicit-default"),
     ]
-    print("CTGOV_TRANSPORT_PROBE=" + json.dumps(results, sort_keys=True))
+    print("CTGOV_TLS_PROBE=" + json.dumps(results, sort_keys=True))
     return 0
 
 
