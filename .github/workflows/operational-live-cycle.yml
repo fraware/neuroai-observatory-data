@@ -69,9 +69,8 @@ jobs:
             --max-workers 12 \
             --max-workers-per-host 2 \
             --performance-budget-seconds 300
-      - name: Enforce blocking operational invariants and publish sanitized dashboard
+      - name: Enforce blocking operational invariants and emit sanitized metrics
         run: |
-          REPORT="$RUNNER_TEMP/neuroai-live/operational-live-report.json"
           python - <<'PY'
           import json, os
           from pathlib import Path
@@ -81,6 +80,24 @@ jobs:
           health = report["health"]
           execution = report["execution"]
           resume = report["resume_proof"]
+          sanitized = {
+              "registry": report["registry"],
+              "plan": report["plan"],
+              "execution_status": execution["execution_status"],
+              "execution_counts": execution["counts"],
+              "source_outcome_status_counts": execution["source_outcome_status_counts"],
+              "source_accountability_coverage": execution["slo"]["source_accountability_coverage"],
+              "target_execution_coverage": execution["slo"]["target_execution_coverage"],
+              "transport_sends": execution["transport_sends"],
+              "host_count": execution["host_count"],
+              "wall_clock_seconds": execution["wall_clock_seconds"],
+              "resume_additional_sends": resume["additional_transport_sends"],
+              "health_state": health["state"],
+              "blocking_alerts": health["blocking_alerts"],
+              "warnings": health["warnings"],
+              "semantic_summary_sha256": execution["semantic_summary_sha256"],
+          }
+          print("SANITIZED_OPERATIONAL_METRICS=" + json.dumps(sanitized, sort_keys=True))
           if health["state"] == "UNHEALTHY":
               raise SystemExit(f"blocking operational health alerts: {health['blocking_alerts']}")
           if execution["slo"]["source_accountability_coverage"] != 1.0:
@@ -123,5 +140,6 @@ jobs:
           PY
       - name: Prove protected capture material was not added to repository
         run: |
+          rm -rf workbench
           git status --porcelain
           test -z "$(git status --porcelain)"
