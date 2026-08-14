@@ -16,6 +16,12 @@ from build_analytical_projection import (
     build_tables,
     load_inputs,
 )
+from source_lifecycle_overlay import (
+    DEFAULT_LIFECYCLE_OVERLAY,
+    DEFAULT_ROUTE_POLICY,
+    MONITORING_STATE,
+    load_verified_lifecycle_overlay,
+)
 
 DEFAULT_OUTPUT_DIR = Path("analytics/current")
 
@@ -28,9 +34,6 @@ def _rule_for(source_class: Any, title: Any) -> tuple[str, str | None, str, str]
     source_token = _text(source_class)
     title_token = _text(title)
 
-    # Source class is the primary operational ontology. Dated/versioned artifact
-    # classes must not become living monitors solely because their titles contain
-    # words such as "trial" or "product".
     if "MANUAL" in source_token:
         return (
             "ARCHIVAL_STATIC",
@@ -83,8 +86,6 @@ def _rule_for(source_class: Any, title: Any) -> tuple[str, str | None, str, str]
             "Normative or procedural source changes infrequently but may alter interpretation or obligations.",
         )
 
-    # Title is retained for diagnostics/future policy refinement, but an unknown
-    # source class stays explicit ON_CHANGE instead of being upgraded by keywords.
     del title_token
     return (
         "ON_CHANGE",
@@ -97,7 +98,9 @@ def _rule_for(source_class: Any, title: Any) -> tuple[str, str | None, str, str]
 def classify_monitoring(
     sources: list[dict[str, Any]],
     monitors: list[dict[str, Any]],
+    lifecycle_transitions: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
+    transitions = lifecycle_transitions or {}
     monitor_by_source = {str(row["record_id"]): row for row in monitors if row.get("record_id")}
     rows: list[dict[str, Any]] = []
     seen: set[str] = set()
@@ -109,8 +112,19 @@ def classify_monitoring(
             raise ValueError(f"Duplicate effective source_id {source_id!r}")
         seen.add(source_id)
         monitor = monitor_by_source.get(source_id)
+        lifecycle = transitions.get(source_id)
         payload = source.get("payload") if isinstance(source.get("payload"), dict) else {}
-        if monitor is not None:
+        if lifecycle is not None:
+            if monitor is not None:
+                raise ValueError(f"Lifecycle transition cannot suppress governing monitor {source_id}")
+            mode = MONITORING_STATE
+            cadence = None
+            priority = "LOW"
+            reason = (
+                "Evidence-bound lifecycle transition marks the historical source inactive for recurring retrieval; "
+                "historical evidence remains preserved and successor discovery is tracked separately."
+            )
+        elif monitor is not None:
             monitor_payload = monitor.get("payload") if isinstance(monitor.get("payload"), dict) else {}
             mode = "EXISTING_MONITOR"
             cadence = monitor_payload.get("cadence")
@@ -131,9 +145,15 @@ def classify_monitoring(
                 "recommended_mode": mode,
                 "recommended_cadence": cadence,
                 "priority": priority,
+                "lifecycle_state": lifecycle.get("lifecycle_state") if lifecycle else None,
+                "successor_discovery_watch_id": lifecycle.get("successor_discovery_watch_id") if lifecycle else None,
+                "lifecycle_transition_sha256": lifecycle.get("transition_sha256") if lifecycle else None,
                 "reason": reason,
             }
         )
+    unknown_transition_ids = sorted(set(transitions) - seen)
+    if unknown_transition_ids:
+        raise ValueError(f"Lifecycle transitions reference unknown effective sources: {unknown_transition_ids}")
     rows.sort(key=lambda row: str(row["source_id"]))
     counts = Counter(str(row["recommended_mode"]) for row in rows)
     unmonitored = [row for row in rows if not row["monitor_present"]]
@@ -143,6 +163,7 @@ def classify_monitoring(
             "effective_source_count": len(rows),
             "monitor_registry_source_count": len(monitor_by_source),
             "unmonitored_effective_source_count": len(unmonitored),
+            "lifecycle_resolved_source_count": len(transitions),
             "automatic_registry_mutation": False,
         },
         "mode_counts": dict(sorted(counts.items())),
@@ -173,6 +194,9 @@ def write_outputs(result: dict[str, Any], output_dir: Path) -> dict[str, str]:
                 "recommended_mode",
                 "recommended_cadence",
                 "priority",
+                "lifecycle_state",
+                "successor_discovery_watch_id",
+                "lifecycle_transition_sha256",
                 "reason",
             ),
             lineterminator="\n",
@@ -186,16 +210,27 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--records-dir", type=Path, default=DEFAULT_RECORDS_DIR)
     parser.add_argument("--supplemental-dir", type=Path, default=DEFAULT_SUPPLEMENTAL_DIR)
+    parser.add_argument("--route-policy", type=Path, default=DEFAULT_ROUTE_POLICY)
+    parser.add_argument("--lifecycle-overlay", type=Path, default=DEFAULT_LIFECYCLE_OVERLAY)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     args = parser.parse_args()
     inputs = load_inputs(args.records_dir.resolve(), supplemental_dir=args.supplemental_dir.resolve())
     tables = build_tables(inputs)
-    result = classify_monitoring(tables["sources"], tables["source_monitors"])
+    source_ids = {str(row["record_id"]) for row in tables["sources"] if row.get("record_id")}
+    monitor_ids = {str(row["record_id"]) for row in tables["source_monitors"] if row.get("record_id")}
+    _, _, transitions = load_verified_lifecycle_overlay(
+        route_policy_path=args.route_policy,
+        overlay_path=args.lifecycle_overlay,
+        effective_source_ids=source_ids,
+        governing_monitor_source_ids=monitor_ids,
+    )
+    result = classify_monitoring(tables["sources"], tables["source_monitors"], transitions)
     outputs = write_outputs(result, args.output_dir.resolve())
     metadata = result["metadata"]
     print(
         f"effective={metadata['effective_source_count']} monitored={metadata['monitor_registry_source_count']} "
-        f"unmonitored={metadata['unmonitored_effective_source_count']}"
+        f"unmonitored={metadata['unmonitored_effective_source_count']} "
+        f"lifecycle_resolved={metadata['lifecycle_resolved_source_count']}"
     )
     print(f"json={outputs['json']} csv={outputs['csv']}")
     return 0
