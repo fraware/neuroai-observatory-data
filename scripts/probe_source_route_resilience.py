@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Probe pre-registered official routes and resolve source-level availability."""
+"""Probe pre-registered official routes and resolve source-level availability/lifecycle."""
 
 from __future__ import annotations
 
@@ -7,15 +7,17 @@ import argparse
 import hashlib
 import json
 import re
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
 _HTTP_STATUS_RE = re.compile(r"\bstatus\s+(\d{3})\b", re.IGNORECASE)
 BOUNDARY = (
-    "Live route probing evaluates operational availability through pre-registered official routes only. "
-    "It does not establish source truth, assessment validity, clinical/regulatory status, governance approval, "
-    "UNESCO endorsement, canonical release authority, or publication authority."
+    "Live route probing evaluates operational availability and narrow evidence-bound lifecycle transitions through "
+    "pre-registered official routes only. It does not establish source truth beyond the observed route/listing state, "
+    "assessment validity, clinical/regulatory status, governance approval, UNESCO endorsement, canonical release "
+    "authority, or publication authority."
 )
 
 
@@ -59,19 +61,26 @@ def _check_body(body: bytes, check: dict[str, str]) -> bool:
     raise ValueError(f"unsupported live route check kind {kind}")
 
 
-def probe_policy(policy: dict[str, Any]) -> dict[str, Any]:
+def _lifecycle_resolved(report: dict[str, Any]) -> bool:
+    lifecycle = report.get("lifecycle")
+    return isinstance(lifecycle, dict) and lifecycle.get("resolution_state") == "RESOLVED_LIFECYCLE_CHANGE"
+
+
+def probe_policy(policy: dict[str, Any], *, observed_at: str | None = None) -> dict[str, Any]:
     from neuroai_workbench.collector.config import CollectorConfig
     from neuroai_workbench.collector.errors import CollectionFailureError
     from neuroai_workbench.collector.http_client import HttpClient
+    from neuroai_workbench.collector.source_lifecycle import evaluate_source_lifecycle
     from neuroai_workbench.collector.source_routes import RouteSpec, run_registered_route_failover
     from neuroai_workbench.collector.transport import StdlibHttpTransport
 
     sources = policy.get("sources")
     if not isinstance(sources, list) or not sources:
         raise ValueError("route policy requires a non-empty sources array")
+    observation_time = observed_at or datetime.now(timezone.utc).isoformat()
 
     config = CollectorConfig(
-        collector_version="route-resilience-live-v0.1",
+        collector_version="route-resilience-live-v0.2",
         configuration_hash="0" * 64,
         max_response_bytes=5 * 1024 * 1024,
         max_redirects=8,
@@ -141,13 +150,31 @@ def probe_policy(policy: dict[str, Any]) -> dict[str, Any]:
             return observation
 
         report = run_registered_route_failover(source_record=raw_source, probe=probe)
+        lifecycle_policy = raw_source.get("lifecycle_resolution")
+        if report["availability_state"] == "UNRESOLVED" and lifecycle_policy is not None:
+            if not isinstance(lifecycle_policy, dict):
+                raise ValueError("lifecycle_resolution must be an object")
+            assertion = {
+                **lifecycle_policy,
+                "source_id": str(raw_source["source_id"]),
+                "asserted_at": observation_time,
+            }
+            report["lifecycle"] = evaluate_source_lifecycle(
+                route_report=report,
+                lifecycle_assertion=assertion,
+            )
+        else:
+            report["lifecycle"] = None
         reports.append(report)
 
+    available_states = {"AVAILABLE_PRIMARY", "AVAILABLE_FALLBACK"}
+    active_reports = [item for item in reports if not _lifecycle_resolved(item)]
     counts = {
         "AVAILABLE_PRIMARY": sum(1 for item in reports if item["availability_state"] == "AVAILABLE_PRIMARY"),
         "AVAILABLE_FALLBACK": sum(1 for item in reports if item["availability_state"] == "AVAILABLE_FALLBACK"),
         "UNRESOLVED": sum(1 for item in reports if item["availability_state"] == "UNRESOLVED"),
         "RETIRED": sum(1 for item in reports if item["availability_state"] == "RETIRED"),
+        "RESOLVED_LIFECYCLE_CHANGE": sum(1 for item in reports if _lifecycle_resolved(item)),
         "PRIMARY_DEGRADED": sum(1 for item in reports if item["primary_route_state"] == "DEGRADED"),
         "EVIDENCE_SUBSTITUTABLE_FALLBACK": sum(
             1
@@ -160,14 +187,23 @@ def probe_policy(policy: dict[str, Any]) -> dict[str, Any]:
             if item["availability_state"] == "AVAILABLE_FALLBACK" and item["evidence_substitution_allowed"] is False
         ),
     }
-    source_healthy = counts["UNRESOLVED"] == 0
-    evidence_healthy = source_healthy and all(item["evidence_substitution_allowed"] is True for item in reports)
+    resolution_healthy = all(item["availability_state"] in available_states or _lifecycle_resolved(item) for item in reports)
+    active_availability_healthy = all(item["availability_state"] in available_states for item in active_reports)
+    active_evidence_healthy = active_availability_healthy and all(
+        item["evidence_substitution_allowed"] is True for item in active_reports
+    )
     semantic = {
-        "schema_version": "2",
+        "schema_version": "3",
+        "observed_at": observation_time,
         "policy_sha256": sha256(policy),
         "source_count": len(reports),
-        "source_availability_state": "HEALTHY" if source_healthy else "DEGRADED",
-        "evidence_payload_availability_state": "HEALTHY" if evidence_healthy else "DEGRADED",
+        "active_source_count": len(active_reports),
+        "source_resolution_state": "HEALTHY" if resolution_healthy else "DEGRADED",
+        "active_source_availability_state": "HEALTHY" if active_availability_healthy else "DEGRADED",
+        "active_evidence_payload_availability_state": "HEALTHY" if active_evidence_healthy else "DEGRADED",
+        "source_availability_state": "HEALTHY" if active_availability_healthy else "DEGRADED",
+        "evidence_payload_availability_state": "HEALTHY" if active_evidence_healthy else "DEGRADED",
+        "lifecycle_transition_count": counts["RESOLVED_LIFECYCLE_CHANGE"],
         "counts": counts,
         "source_reports": sorted(reports, key=lambda item: str(item["source_id"])),
         "boundary": BOUNDARY,
@@ -192,8 +228,12 @@ def main() -> int:
         "SANITIZED_ROUTE_RESILIENCE="
         + json.dumps(
             {
-                "source_availability_state": report["source_availability_state"],
-                "evidence_payload_availability_state": report["evidence_payload_availability_state"],
+                "source_resolution_state": report["source_resolution_state"],
+                "active_source_availability_state": report["active_source_availability_state"],
+                "active_evidence_payload_availability_state": report[
+                    "active_evidence_payload_availability_state"
+                ],
+                "lifecycle_transition_count": report["lifecycle_transition_count"],
                 "counts": report["counts"],
                 "sources": [
                     {
@@ -203,6 +243,12 @@ def main() -> int:
                         "selected_route_id": item["selected_route_id"],
                         "selected_route_class": item["selected_route_class"],
                         "evidence_substitution_allowed": item["evidence_substitution_allowed"],
+                        "lifecycle_resolution_state": (
+                            item["lifecycle"].get("resolution_state") if isinstance(item.get("lifecycle"), dict) else None
+                        ),
+                        "lifecycle_state": (
+                            item["lifecycle"].get("lifecycle_state") if isinstance(item.get("lifecycle"), dict) else None
+                        ),
                     }
                     for item in report["source_reports"]
                 ],
@@ -211,7 +257,7 @@ def main() -> int:
             sort_keys=True,
         )
     )
-    return 0 if report["source_availability_state"] == "HEALTHY" else 2
+    return 0 if report["source_resolution_state"] == "HEALTHY" else 2
 
 
 if __name__ == "__main__":
