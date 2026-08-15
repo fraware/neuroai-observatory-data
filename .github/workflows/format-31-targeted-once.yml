@@ -51,6 +51,7 @@ jobs:
           )
           python -m ruff format "${files[@]}"
           python -m ruff check --fix --exit-zero "${files[@]}"
+          python -m ruff format "${files[@]}"
       - name: Commit mechanical changes
         run: |
           rm -rf workbench
@@ -61,5 +62,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add scripts tests
-          git commit -m "Apply Ruff to issue 31 operational surfaces"
+          git commit -m "Finalize Ruff on issue 31 operational surfaces"
           git push origin HEAD:agent/31-lifecycle-successor-discovery
