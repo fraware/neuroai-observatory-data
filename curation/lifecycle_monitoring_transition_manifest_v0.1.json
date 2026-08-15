@@ -1,0 +1,58 @@
+{
+  "accountability": {
+    "active_extension_monitor_count": 2,
+    "active_monitor_count": 226,
+    "archival_static_source_count": 15,
+    "coverage_fraction": 1.0,
+    "effective_source_count": 248,
+    "governing_predecessor_monitor_count": 224,
+    "lifecycle_resolved_source_count": 1,
+    "manual_on_change_source_count": 6
+  },
+  "lifecycle_transition": {
+    "active_recurring_monitor": false,
+    "lifecycle_state": "NO_LONGER_LISTED",
+    "monitoring_state": "LIFECYCLE_RESOLVED_ARCHIVAL",
+    "overlay_sha256": "f97f53fac0f0df2549241da34be3a602908576cae914bb40a42bcad72de73144",
+    "source_id": "SRC-PR-015",
+    "successor_discovery_watch_id": "DISC-SCIENCE-CAREERS-001",
+    "transition_sha256": "2140045cff2130ebfdb81d262d4e0130fd13f2f8d86856852a73e418efc89433"
+  },
+  "manifest_sha256": "ef6283bf9d35a3fd72fad0db55a9adb90da2aefb2dc3b3620c364c8786c02b31",
+  "metadata": {
+    "automatic_assessment_mutation": false,
+    "automatic_source_mutation": false,
+    "automatic_source_registration": false,
+    "boundary": "Development monitoring transition evidence only. Historical source records and the governing predecessor registry remain unchanged. This manifest does not establish open-world completeness, substantive source truth beyond the bound official-route observation, assessment validity, human governance, canonical promotion, release authority, or publication authority.",
+    "canonical_promotion_authorized": false,
+    "gate_revision": "final-exact-head-v1",
+    "human_governance_performed": false,
+    "issue_number": 31,
+    "publication_authorized": false,
+    "status": "DEVELOPMENT_MONITORING_TRANSITION_MANIFEST_NOT_CANONICAL",
+    "title": "Issue 31 lifecycle-aware monitoring transition",
+    "version": "0.1"
+  },
+  "pretransition_live_evidence": {
+    "lifecycle_report_sha256": "49b1746f0dc0feb3ec0676f8e85cbd05a3fbe84a5736b5fa840fd08320061a28",
+    "observed_at": "2026-08-14T21:10:19.816945+00:00",
+    "resume_additional_transport_sends": 0,
+    "route_policy_sha256": "069be7cc1fbc1230e611c4bf6314438df335accee94408ba07e40395c0b012e3",
+    "route_report_sha256": "2a1886976f23e59d113dd08005fa0841d8bea47c80da14f95f54ca5360e1a50e",
+    "source_accountability_coverage": 1.0,
+    "target_execution_coverage": 1.0,
+    "workflow_head_sha": "3ad4e30ad80082ae9a86c45c43c512110ff1bcce",
+    "workflow_run_id": 31841215730
+  },
+  "successor_discovery": {
+    "automatic_assessment_mutation": false,
+    "automatic_source_registration": false,
+    "candidate_only": true,
+    "official_host": "science.xyz",
+    "watch_id": "DISC-SCIENCE-CAREERS-001"
+  },
+  "workbench": {
+    "commit_sha": "428b4e8d797c0729bc4f36678daec88711688689",
+    "repository": "fraware/neuroai-workbench"
+  }
+}

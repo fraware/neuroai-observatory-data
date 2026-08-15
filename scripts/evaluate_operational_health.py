@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Evaluate registered-universe operational health without escalating retrieval into scientific claims."""
 
 from __future__ import annotations
@@ -14,16 +13,20 @@ DEGRADED = "DEGRADED"
 UNHEALTHY = "UNHEALTHY"
 ENGINEERING_READY = "READY"
 ENGINEERING_BLOCKED = "BLOCKED"
+LIFECYCLE_ACCOUNTABILITY_STATE = "LIFECYCLE_RESOLVED_ARCHIVAL"
 BOUNDARY = (
-    "Operational health covers execution, source resolution, and accountability over the declared effective source "
-    "namespace only. Typed retrieval failures and narrow lifecycle transitions do not establish assessment failure, "
-    "source falsity, scientific invalidity, regulatory/clinical status, governance approval, UNESCO endorsement, "
-    "or release authority."
+    "Operational health covers execution, source resolution, lifecycle-aware monitoring eligibility, and accountability "
+    "over the declared effective source namespace only. Typed retrieval failures and narrow lifecycle transitions do not "
+    "establish assessment failure, source falsity, scientific invalidity, regulatory/clinical status, governance approval, "
+    "UNESCO endorsement, or release authority."
 )
 
 
 def canonical_bytes(value: Any) -> bytes:
-    return (json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False) + "\n").encode("utf-8")
+    return (
+        json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+        + "\n"
+    ).encode("utf-8")
 
 
 def sha256(value: Any) -> str:
@@ -37,6 +40,19 @@ def _count(mapping: Any, key: str) -> int:
     return int(value) if isinstance(value, int | float) else 0
 
 
+def _executed_source_ids(run: dict[str, Any]) -> list[str]:
+    outcomes = run.get("outcomes")
+    if not isinstance(outcomes, list):
+        return []
+    return sorted(
+        {
+            str(item["source_id"])
+            for item in outcomes
+            if isinstance(item, dict) and item.get("source_id")
+        }
+    )
+
+
 def _failed_source_ids(run: dict[str, Any]) -> list[str]:
     outcomes = run.get("outcomes")
     if not isinstance(outcomes, list):
@@ -45,56 +61,73 @@ def _failed_source_ids(run: dict[str, Any]) -> list[str]:
         {
             str(item["source_id"])
             for item in outcomes
-            if isinstance(item, dict) and item.get("status") == "FAILURE" and item.get("source_id")
+            if isinstance(item, dict)
+            and item.get("status") == "FAILURE"
+            and item.get("source_id")
         }
     )
-
-
-def _lifecycle_resolved(item: dict[str, Any]) -> bool:
-    lifecycle = item.get("lifecycle")
-    return isinstance(lifecycle, dict) and lifecycle.get("resolution_state") == "RESOLVED_LIFECYCLE_CHANGE"
 
 
 def _route_resolution_summary(
     route_resilience: dict[str, Any],
     *,
     failed_source_ids: list[str],
+    lifecycle_resolved_source_ids: set[str],
     blocking: list[dict[str, Any]],
     warnings: list[dict[str, Any]],
 ) -> dict[str, Any]:
     reports = route_resilience.get("source_reports")
     if not isinstance(reports, list):
-        blocking.append({"code": "ROUTE_RESILIENCE_REPORT_INVALID", "reason": "source_reports must be an array"})
+        blocking.append(
+            {
+                "code": "ROUTE_RESILIENCE_REPORT_INVALID",
+                "reason": "source_reports must be an array",
+            }
+        )
         reports = []
 
     states: dict[str, str] = {}
     selected_routes: dict[str, str | None] = {}
-    lifecycle_states: dict[str, str | None] = {}
-    lifecycle_resolved_ids: set[str] = set()
     duplicate_ids: set[str] = set()
+    reprobed_lifecycle_ids: set[str] = set()
     for item in reports:
         if not isinstance(item, dict) or not isinstance(item.get("source_id"), str):
             blocking.append({"code": "ROUTE_RESILIENCE_SOURCE_REPORT_INVALID"})
             continue
         source_id = str(item["source_id"])
+        if source_id in lifecycle_resolved_source_ids:
+            reprobed_lifecycle_ids.add(source_id)
+            continue
         if source_id in states:
             duplicate_ids.add(source_id)
             continue
         states[source_id] = str(item.get("availability_state") or "UNRESOLVED")
         selected = item.get("selected_route_id")
-        selected_routes[source_id] = str(selected) if isinstance(selected, str) else None
-        lifecycle = item.get("lifecycle")
-        lifecycle_state = lifecycle.get("lifecycle_state") if isinstance(lifecycle, dict) else None
-        lifecycle_states[source_id] = str(lifecycle_state) if isinstance(lifecycle_state, str) else None
-        if _lifecycle_resolved(item):
-            lifecycle_resolved_ids.add(source_id)
+        selected_routes[source_id] = (
+            str(selected) if isinstance(selected, str) else None
+        )
     if duplicate_ids:
-        blocking.append({"code": "ROUTE_RESILIENCE_DUPLICATE_SOURCE_REPORT", "source_ids": sorted(duplicate_ids)})
+        blocking.append(
+            {
+                "code": "ROUTE_RESILIENCE_DUPLICATE_SOURCE_REPORT",
+                "source_ids": sorted(duplicate_ids),
+            }
+        )
+    if reprobed_lifecycle_ids:
+        blocking.append(
+            {
+                "code": "LIFECYCLE_RESOLVED_SOURCE_REPROBED",
+                "source_ids": sorted(reprobed_lifecycle_ids),
+            }
+        )
 
     available_states = {"AVAILABLE_PRIMARY", "AVAILABLE_FALLBACK"}
-    route_resolved_failed = {source_id for source_id in failed_source_ids if states.get(source_id) in available_states}
-    lifecycle_resolved_failed = set(failed_source_ids) & lifecycle_resolved_ids
-    resolved_failed = sorted(route_resolved_failed | lifecycle_resolved_failed)
+    route_resolved_failed = {
+        source_id
+        for source_id in failed_source_ids
+        if states.get(source_id) in available_states
+    }
+    resolved_failed = sorted(route_resolved_failed)
     unresolved_failed = sorted(set(failed_source_ids) - set(resolved_failed))
     if unresolved_failed:
         warnings.append(
@@ -110,20 +143,12 @@ def _route_resolution_summary(
                 "source_ids": sorted(route_resolved_failed),
             }
         )
-    if lifecycle_resolved_failed:
-        warnings.append(
-            {
-                "code": "TYPED_SOURCE_FAILURES_RESOLVED_AS_LIFECYCLE_CHANGE",
-                "source_ids": sorted(lifecycle_resolved_failed),
-                "lifecycle_states": {
-                    source_id: lifecycle_states.get(source_id) for source_id in sorted(lifecycle_resolved_failed)
-                },
-            }
-        )
 
     state_fields = {
         "source_resolution_state": route_resilience.get("source_resolution_state"),
-        "active_source_availability_state": route_resilience.get("active_source_availability_state"),
+        "active_source_availability_state": route_resilience.get(
+            "active_source_availability_state"
+        ),
         "active_evidence_payload_availability_state": route_resilience.get(
             "active_evidence_payload_availability_state"
         ),
@@ -136,14 +161,17 @@ def _route_resolution_summary(
         **state_fields,
         "report_sha256": route_resilience.get("report_sha256"),
         "counts": route_resilience.get("counts"),
-        "lifecycle_transition_count": route_resilience.get("lifecycle_transition_count"),
         "failed_source_ids": failed_source_ids,
         "resolved_failed_source_ids": resolved_failed,
         "route_resolved_failed_source_ids": sorted(route_resolved_failed),
-        "lifecycle_resolved_failed_source_ids": sorted(lifecycle_resolved_failed),
         "unresolved_failed_source_ids": unresolved_failed,
-        "selected_routes": {key: selected_routes[key] for key in sorted(selected_routes)},
-        "lifecycle_states": {key: lifecycle_states[key] for key in sorted(lifecycle_states)},
+        "selected_routes": {
+            key: selected_routes[key] for key in sorted(selected_routes)
+        },
+        "lifecycle_resolved_source_ids_excluded_from_probe": sorted(
+            lifecycle_resolved_source_ids
+        ),
+        "reprobed_lifecycle_source_ids": sorted(reprobed_lifecycle_ids),
     }
 
 
@@ -161,24 +189,50 @@ def evaluate_health(
     blocking: list[dict[str, Any]] = []
     warnings: list[dict[str, Any]] = []
 
-    current = accountability.get("current", {}) if isinstance(accountability, dict) else {}
+    current = (
+        accountability.get("current", {}) if isinstance(accountability, dict) else {}
+    )
     current_counts = current.get("counts", {}) if isinstance(current, dict) else {}
-    candidate = accountability.get("candidate_accountability", {}) if isinstance(accountability, dict) else {}
-    registry_meta = development_registry.get("metadata", {}) if isinstance(development_registry, dict) else {}
+    candidate = (
+        accountability.get("candidate_accountability", {})
+        if isinstance(accountability, dict)
+        else {}
+    )
+    registry_meta = (
+        development_registry.get("metadata", {})
+        if isinstance(development_registry, dict)
+        else {}
+    )
+    lifecycle_resolved_ids = {
+        str(item)
+        for item in current.get("lifecycle_resolved_source_ids", [])
+        if isinstance(item, str)
+    }
 
     expected_decomposition = {
         "MONITORED": 224,
         "EXEMPT_WITH_RATIONALE": 15,
         "MANUAL_ONLY": 6,
-        "GAP": 3,
+        "GAP": 2,
+        LIFECYCLE_ACCOUNTABILITY_STATE: 1,
     }
-    observed_decomposition = {key: _count(current_counts, key) for key in expected_decomposition}
+    observed_decomposition = {
+        key: _count(current_counts, key) for key in expected_decomposition
+    }
     if observed_decomposition != expected_decomposition:
         blocking.append(
             {
                 "code": "CURRENT_ACCOUNTABILITY_DECOMPOSITION_DRIFT",
                 "expected": expected_decomposition,
                 "observed": observed_decomposition,
+            }
+        )
+    if lifecycle_resolved_ids != {"SRC-PR-015"}:
+        blocking.append(
+            {
+                "code": "LIFECYCLE_RESOLVED_SOURCE_SET_DRIFT",
+                "expected": ["SRC-PR-015"],
+                "observed": sorted(lifecycle_resolved_ids),
             }
         )
     if current.get("effective_source_count") != 248:
@@ -199,15 +253,23 @@ def evaluate_health(
         )
 
     if registry_meta.get("status") != "DEVELOPMENT_MONITOR_REGISTRY_VIEW_NOT_CANONICAL":
-        blocking.append({"code": "DEVELOPMENT_REGISTRY_STATUS_INVALID", "observed": registry_meta.get("status")})
+        blocking.append(
+            {
+                "code": "DEVELOPMENT_REGISTRY_STATUS_INVALID",
+                "observed": registry_meta.get("status"),
+            }
+        )
     expected_registry_meta = {
-        "record_count": 227,
+        "record_count": 226,
         "predecessor_record_count": 224,
-        "extension_record_count": 3,
+        "extension_record_count": 2,
+        "lifecycle_resolved_source_count": 1,
         "effective_source_count": 248,
         "candidate_accountability_coverage_fraction": 1.0,
     }
-    observed_registry_meta = {key: registry_meta.get(key) for key in expected_registry_meta}
+    observed_registry_meta = {
+        key: registry_meta.get(key) for key in expected_registry_meta
+    }
     if observed_registry_meta != expected_registry_meta:
         blocking.append(
             {
@@ -216,13 +278,22 @@ def evaluate_health(
                 "observed": observed_registry_meta,
             }
         )
+    if registry_meta.get("lifecycle_resolved_source_ids") != ["SRC-PR-015"]:
+        blocking.append(
+            {
+                "code": "DEVELOPMENT_REGISTRY_LIFECYCLE_BINDING_DRIFT",
+                "observed": registry_meta.get("lifecycle_resolved_source_ids"),
+            }
+        )
 
     plan_counts: dict[str, int] = {"due": 0, "manual": 0, "not_due": 0}
     if plan is not None:
         raw_counts = plan.get("counts", {}) if isinstance(plan, dict) else {}
         plan_counts = {key: _count(raw_counts, key) for key in plan_counts}
         if plan_counts["manual"] > 0:
-            warnings.append({"code": "MANUAL_MONITOR_WORK_PRESENT", "count": plan_counts["manual"]})
+            warnings.append(
+                {"code": "MANUAL_MONITOR_WORK_PRESENT", "count": plan_counts["manual"]}
+            )
 
     run_metrics: dict[str, Any] | None = None
     failed_source_ids: list[str] = []
@@ -232,23 +303,54 @@ def evaluate_health(
         slo = run.get("slo", {}) if isinstance(run.get("slo"), dict) else {}
         counts = run.get("counts", {}) if isinstance(run.get("counts"), dict) else {}
         failed_count = _count(counts, "failed")
+        executed_source_ids = _executed_source_ids(run)
         failed_source_ids = _failed_source_ids(run)
+        lifecycle_execution_overlap = sorted(
+            set(executed_source_ids) & lifecycle_resolved_ids
+        )
+        if lifecycle_execution_overlap:
+            blocking.append(
+                {
+                    "code": "LIFECYCLE_RESOLVED_SOURCE_EXECUTED",
+                    "source_ids": lifecycle_execution_overlap,
+                }
+            )
         if execution_status not in {"COMPLETE", "COMPLETE_WITH_SOURCE_FAILURES"}:
-            blocking.append({"code": "RUN_NOT_OPERATIONALLY_COMPLETE", "execution_status": execution_status})
+            blocking.append(
+                {
+                    "code": "RUN_NOT_OPERATIONALLY_COMPLETE",
+                    "execution_status": execution_status,
+                }
+            )
         if slo.get("source_accountability_coverage") != 1.0:
             blocking.append(
-                {"code": "SOURCE_ACCOUNTABILITY_SLO_BREACH", "observed": slo.get("source_accountability_coverage")}
+                {
+                    "code": "SOURCE_ACCOUNTABILITY_SLO_BREACH",
+                    "observed": slo.get("source_accountability_coverage"),
+                }
             )
         if slo.get("target_execution_coverage") != 1.0:
             blocking.append(
-                {"code": "TARGET_EXECUTION_SLO_BREACH", "observed": slo.get("target_execution_coverage")}
+                {
+                    "code": "TARGET_EXECUTION_SLO_BREACH",
+                    "observed": slo.get("target_execution_coverage"),
+                }
             )
         if _count(counts, "incomplete") > 0:
-            blocking.append({"code": "INCOMPLETE_SOURCE_OUTCOMES", "count": _count(counts, "incomplete")})
+            blocking.append(
+                {
+                    "code": "INCOMPLETE_SOURCE_OUTCOMES",
+                    "count": _count(counts, "incomplete"),
+                }
+            )
         if failed_count > 0:
-            warnings.append({"code": "TYPED_SOURCE_FAILURES_PRESENT", "count": failed_count})
+            warnings.append(
+                {"code": "TYPED_SOURCE_FAILURES_PRESENT", "count": failed_count}
+            )
         if _count(counts, "retries") > 0:
-            warnings.append({"code": "RETRIES_PRESENT", "count": _count(counts, "retries")})
+            warnings.append(
+                {"code": "RETRIES_PRESENT", "count": _count(counts, "retries")}
+            )
         if _count(counts, "retryable_failures_exhausted") > 0:
             warnings.append(
                 {
@@ -262,25 +364,37 @@ def evaluate_health(
             "plan_id": run.get("plan_id"),
             "counts": counts,
             "slo": slo,
+            "executed_source_ids": executed_source_ids,
             "failed_source_ids": failed_source_ids,
         }
 
     route_summary: dict[str, Any] | None = None
     if route_resilience is not None:
         if not isinstance(route_resilience, dict):
-            blocking.append({"code": "ROUTE_RESILIENCE_REPORT_INVALID", "reason": "report must be an object"})
+            blocking.append(
+                {
+                    "code": "ROUTE_RESILIENCE_REPORT_INVALID",
+                    "reason": "report must be an object",
+                }
+            )
         else:
             route_summary = _route_resolution_summary(
                 route_resilience,
                 failed_source_ids=failed_source_ids,
+                lifecycle_resolved_source_ids=lifecycle_resolved_ids,
                 blocking=blocking,
                 warnings=warnings,
             )
 
     if wall_clock_seconds is not None:
         if wall_clock_seconds < 0:
-            blocking.append({"code": "INVALID_WALL_CLOCK", "observed": wall_clock_seconds})
-        elif performance_budget_seconds is not None and wall_clock_seconds > performance_budget_seconds:
+            blocking.append(
+                {"code": "INVALID_WALL_CLOCK", "observed": wall_clock_seconds}
+            )
+        elif (
+            performance_budget_seconds is not None
+            and wall_clock_seconds > performance_budget_seconds
+        ):
             warnings.append(
                 {
                     "code": "PERFORMANCE_BUDGET_EXCEEDED",
@@ -293,17 +407,24 @@ def evaluate_health(
     engineering_state = ENGINEERING_BLOCKED if blocking else ENGINEERING_READY
     source_resolution_state = HEALTHY if failed_count == 0 else DEGRADED
     active_source_availability_state = HEALTHY if failed_count == 0 else DEGRADED
-    active_evidence_payload_availability_state = HEALTHY if failed_count == 0 else DEGRADED
+    active_evidence_payload_availability_state = (
+        HEALTHY if failed_count == 0 else DEGRADED
+    )
     if route_summary is not None:
-        if not route_summary["unresolved_failed_source_ids"] and route_summary["source_resolution_state"] == HEALTHY:
+        if (
+            not route_summary["unresolved_failed_source_ids"]
+            and route_summary["source_resolution_state"] == HEALTHY
+        ):
             source_resolution_state = HEALTHY
-        active_source_availability_state = str(route_summary["active_source_availability_state"])
+        active_source_availability_state = str(
+            route_summary["active_source_availability_state"]
+        )
         active_evidence_payload_availability_state = str(
             route_summary["active_evidence_payload_availability_state"]
         )
 
     report: dict[str, Any] = {
-        "schema_version": "3",
+        "schema_version": "4",
         "state": state,
         "engineering_state": engineering_state,
         "source_resolution_state": source_resolution_state,
@@ -317,13 +438,19 @@ def evaluate_health(
             "current_counts": observed_decomposition,
             "candidate_coverage_fraction": candidate.get("coverage_fraction"),
             "candidate_gap_source_ids": candidate.get("gap_source_ids", []),
+            "lifecycle_resolved_source_ids": sorted(lifecycle_resolved_ids),
         },
         "registry": {
             "automatic_monitors": registry_meta.get("record_count"),
             "manual_on_change_sources": observed_decomposition["MANUAL_ONLY"],
             "archival_static_sources": observed_decomposition["EXEMPT_WITH_RATIONALE"],
+            "lifecycle_resolved_sources": observed_decomposition[
+                LIFECYCLE_ACCOUNTABILITY_STATE
+            ],
             "registry_view_sha256": registry_meta.get("registry_view_sha256"),
-            "predecessor_registry_sha256": registry_meta.get("predecessor_registry_sha256"),
+            "predecessor_registry_sha256": registry_meta.get(
+                "predecessor_registry_sha256"
+            ),
         },
         "plan_counts": plan_counts if plan is not None else None,
         "run": run_metrics,
@@ -361,7 +488,7 @@ def main() -> int:
             return None
         value = json.loads(path.read_text(encoding="utf-8"))
         if not isinstance(value, dict):
-            raise ValueError(f"Expected JSON object in {path}")
+            raise TypeError(f"Expected JSON object in {path}")
         return value
 
     accountability = load(args.accountability)
@@ -391,14 +518,18 @@ def main() -> int:
         performance_budget_seconds=args.performance_budget_seconds,
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    args.output.write_text(
+        json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     print(
         json.dumps(
             {
                 "state": report["state"],
                 "engineering_state": report["engineering_state"],
                 "source_resolution_state": report["source_resolution_state"],
-                "active_source_availability_state": report["active_source_availability_state"],
+                "active_source_availability_state": report[
+                    "active_source_availability_state"
+                ],
                 "active_evidence_payload_availability_state": report[
                     "active_evidence_payload_availability_state"
                 ],
