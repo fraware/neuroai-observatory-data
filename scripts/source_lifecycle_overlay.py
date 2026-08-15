@@ -11,7 +11,9 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_ROUTE_POLICY = ROOT / "curation" / "source_route_resilience_v0.1.json"
-DEFAULT_LIFECYCLE_OVERLAY = ROOT / "curation" / "source_lifecycle_monitoring_overlay_v0.1.json"
+DEFAULT_LIFECYCLE_OVERLAY = (
+    ROOT / "curation" / "source_lifecycle_monitoring_overlay_v0.1.json"
+)
 STATUS = "DEVELOPMENT_LIFECYCLE_MONITORING_OVERLAY_NOT_CANONICAL"
 LIFECYCLE_STATE = "NO_LONGER_LISTED"
 MONITORING_STATE = "LIFECYCLE_RESOLVED_ARCHIVAL"
@@ -20,7 +22,10 @@ _HEX64 = re.compile(r"^[0-9a-f]{64}$")
 
 
 def canonical_bytes(value: Any) -> bytes:
-    return (json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False) + "\n").encode("utf-8")
+    return (
+        json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+        + "\n"
+    ).encode("utf-8")
 
 
 def sha256(value: Any) -> str:
@@ -61,8 +66,13 @@ def verify_lifecycle_overlay(
         raise ValueError("Lifecycle overlay requires metadata and transitions")
     if metadata.get("status") != STATUS:
         raise ValueError("Lifecycle overlay lost its explicit noncanonical status")
-    if metadata.get("automatic_source_mutation") is not False or metadata.get("automatic_assessment_mutation") is not False:
-        raise ValueError("Lifecycle overlay must forbid automatic source and assessment mutation")
+    if (
+        metadata.get("automatic_source_mutation") is not False
+        or metadata.get("automatic_assessment_mutation") is not False
+    ):
+        raise ValueError(
+            "Lifecycle overlay must forbid automatic source and assessment mutation"
+        )
     if metadata.get("transition_count") != len(transitions):
         raise ValueError("Lifecycle overlay transition_count mismatch")
 
@@ -92,63 +102,120 @@ def verify_lifecycle_overlay(
         if source_id in by_source:
             raise ValueError(f"Duplicate lifecycle transition for {source_id}")
         if effective_source_ids is not None and source_id not in effective_source_ids:
-            raise ValueError(f"Lifecycle transition references unknown effective source {source_id}")
-        if governing_monitor_source_ids is not None and source_id in governing_monitor_source_ids:
-            raise ValueError(f"Lifecycle overlay cannot suppress governing predecessor monitor {source_id}")
+            raise ValueError(
+                f"Lifecycle transition references unknown effective source {source_id}"
+            )
+        if (
+            governing_monitor_source_ids is not None
+            and source_id in governing_monitor_source_ids
+        ):
+            raise ValueError(
+                f"Lifecycle overlay cannot suppress governing predecessor monitor {source_id}"
+            )
 
         source_policy = route_sources.get(source_id)
         if source_policy is None:
-            raise ValueError(f"Lifecycle transition {source_id} lacks route-policy source")
+            raise ValueError(
+                f"Lifecycle transition {source_id} lacks route-policy source"
+            )
         lifecycle = source_policy.get("lifecycle_resolution")
         if not isinstance(lifecycle, dict):
-            raise ValueError(f"Lifecycle transition {source_id} lacks route-policy lifecycle assertion")
+            raise ValueError(
+                f"Lifecycle transition {source_id} lacks route-policy lifecycle assertion"
+            )
 
         if transition.get("lifecycle_state") != LIFECYCLE_STATE:
-            raise ValueError(f"Lifecycle transition {source_id} has unsupported lifecycle state")
+            raise ValueError(
+                f"Lifecycle transition {source_id} has unsupported lifecycle state"
+            )
         if transition.get("monitoring_state") != MONITORING_STATE:
-            raise ValueError(f"Lifecycle transition {source_id} has unsupported monitoring state")
+            raise ValueError(
+                f"Lifecycle transition {source_id} has unsupported monitoring state"
+            )
         if transition.get("source_active_expected") is not False:
-            raise ValueError(f"Lifecycle transition {source_id} must mark source inactive")
+            raise ValueError(
+                f"Lifecycle transition {source_id} must mark source inactive"
+            )
         if transition.get("evidence_substitution_allowed") is not False:
-            raise ValueError(f"Lifecycle transition {source_id} must forbid evidence substitution")
+            raise ValueError(
+                f"Lifecycle transition {source_id} must forbid evidence substitution"
+            )
         if transition.get("source_url") != source_policy.get("url"):
             raise ValueError(f"Lifecycle transition {source_id} source URL drift")
         if transition.get("route_source_sha256") != sha256(source_policy):
-            raise ValueError(f"Lifecycle transition {source_id} route-source hash mismatch")
+            raise ValueError(
+                f"Lifecycle transition {source_id} route-source hash mismatch"
+            )
         if transition.get("lifecycle_assertion_sha256") != sha256(lifecycle):
-            raise ValueError(f"Lifecycle transition {source_id} lifecycle-assertion hash mismatch")
+            raise ValueError(
+                f"Lifecycle transition {source_id} lifecycle-assertion hash mismatch"
+            )
         if transition.get("expected_identity") != lifecycle.get("expected_identity"):
             raise ValueError(f"Lifecycle transition {source_id} identity drift")
         if transition.get("primary_route_id") != lifecycle.get("primary_route_id"):
             raise ValueError(f"Lifecycle transition {source_id} primary route drift")
-        if transition.get("publisher_listing_route_id") != lifecycle.get("publisher_listing_route_id"):
-            raise ValueError(f"Lifecycle transition {source_id} publisher-listing route drift")
+        if transition.get("publisher_listing_route_id") != lifecycle.get(
+            "publisher_listing_route_id"
+        ):
+            raise ValueError(
+                f"Lifecycle transition {source_id} publisher-listing route drift"
+            )
         if not str(transition.get("successor_discovery_watch_id") or ""):
-            raise ValueError(f"Lifecycle transition {source_id} requires successor discovery watch binding")
+            raise ValueError(
+                f"Lifecycle transition {source_id} requires successor discovery watch binding"
+            )
 
         evidence = transition.get("live_evidence")
         if not isinstance(evidence, dict):
             raise ValueError(f"Lifecycle transition {source_id} requires live_evidence")
-        if not isinstance(evidence.get("workflow_run_id"), int) or evidence["workflow_run_id"] <= 0:
-            raise ValueError(f"Lifecycle transition {source_id} requires positive workflow_run_id")
-        _require_commit_sha(evidence.get("workflow_head_sha"), f"{source_id}.workflow_head_sha")
+        if (
+            not isinstance(evidence.get("workflow_run_id"), int)
+            or evidence["workflow_run_id"] <= 0
+        ):
+            raise ValueError(
+                f"Lifecycle transition {source_id} requires positive workflow_run_id"
+            )
+        _require_commit_sha(
+            evidence.get("workflow_head_sha"), f"{source_id}.workflow_head_sha"
+        )
         if not str(evidence.get("observed_at") or ""):
             raise ValueError(f"Lifecycle transition {source_id} requires observed_at")
         if evidence.get("route_policy_sha256") != route_policy_sha:
-            raise ValueError(f"Lifecycle transition {source_id} live evidence policy hash mismatch")
-        _require_sha256(evidence.get("route_report_sha256"), f"{source_id}.route_report_sha256")
-        _require_sha256(evidence.get("lifecycle_report_sha256"), f"{source_id}.lifecycle_report_sha256")
+            raise ValueError(
+                f"Lifecycle transition {source_id} live evidence policy hash mismatch"
+            )
+        _require_sha256(
+            evidence.get("route_report_sha256"), f"{source_id}.route_report_sha256"
+        )
+        _require_sha256(
+            evidence.get("lifecycle_report_sha256"),
+            f"{source_id}.lifecycle_report_sha256",
+        )
         if evidence.get("primary_http_status") not in {404, 410}:
-            raise ValueError(f"Lifecycle transition {source_id} requires primary 404/410 evidence")
+            raise ValueError(
+                f"Lifecycle transition {source_id} requires primary 404/410 evidence"
+            )
         equivalent = evidence.get("identity_equivalent_http_statuses")
-        if not isinstance(equivalent, list) or not equivalent or any(status not in {404, 410} for status in equivalent):
-            raise ValueError(f"Lifecycle transition {source_id} requires identity-equivalent 404/410 evidence")
+        if (
+            not isinstance(equivalent, list)
+            or not equivalent
+            or any(status not in {404, 410} for status in equivalent)
+        ):
+            raise ValueError(
+                f"Lifecycle transition {source_id} requires identity-equivalent 404/410 evidence"
+            )
         if evidence.get("publisher_listing_http_status") != 200:
-            raise ValueError(f"Lifecycle transition {source_id} requires successful publisher listing evidence")
+            raise ValueError(
+                f"Lifecycle transition {source_id} requires successful publisher listing evidence"
+            )
         if evidence.get("publisher_listing_identity_present") is not False:
-            raise ValueError(f"Lifecycle transition {source_id} requires exact identity absence")
+            raise ValueError(
+                f"Lifecycle transition {source_id} requires exact identity absence"
+            )
         if evidence.get("resolution_state") != "RESOLVED_LIFECYCLE_CHANGE":
-            raise ValueError(f"Lifecycle transition {source_id} requires resolved lifecycle evidence")
+            raise ValueError(
+                f"Lifecycle transition {source_id} requires resolved lifecycle evidence"
+            )
 
         observed_transition_sha = transition.get("transition_sha256")
         unsigned_transition = json.loads(json.dumps(transition))
@@ -193,7 +260,8 @@ def build_active_route_policy(
     active_sources = [
         json.loads(json.dumps(item))
         for item in raw_sources
-        if isinstance(item, dict) and str(item.get("source_id") or "") not in lifecycle_transitions
+        if isinstance(item, dict)
+        and str(item.get("source_id") or "") not in lifecycle_transitions
     ]
     metadata = dict(route_policy.get("metadata") or {})
     metadata.update(

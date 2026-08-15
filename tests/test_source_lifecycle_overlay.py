@@ -10,8 +10,8 @@ SCRIPTS = ROOT / "scripts"
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
-from build_analytical_projection import build_tables, load_inputs  # noqa: E402
-from source_lifecycle_overlay import (  # noqa: E402
+from build_analytical_projection import build_tables, load_inputs
+from source_lifecycle_overlay import (
     DEFAULT_LIFECYCLE_OVERLAY,
     DEFAULT_ROUTE_POLICY,
     build_active_route_policy,
@@ -28,8 +28,14 @@ class SourceLifecycleOverlayTests(unittest.TestCase):
             supplemental_dir=(ROOT / "supplemental_records").resolve(),
         )
         tables = build_tables(inputs)
-        cls.source_ids = {str(row["record_id"]) for row in tables["sources"] if row.get("record_id")}
-        cls.monitor_ids = {str(row["record_id"]) for row in tables["source_monitors"] if row.get("record_id")}
+        cls.source_ids = {
+            str(row["record_id"]) for row in tables["sources"] if row.get("record_id")
+        }
+        cls.monitor_ids = {
+            str(row["record_id"])
+            for row in tables["source_monitors"]
+            if row.get("record_id")
+        }
         cls.route_policy = load_json(DEFAULT_ROUTE_POLICY)
         cls.overlay = load_json(DEFAULT_LIFECYCLE_OVERLAY)
 
@@ -49,10 +55,14 @@ class SourceLifecycleOverlayTests(unittest.TestCase):
         self.assertEqual(transition["monitoring_state"], "LIFECYCLE_RESOLVED_ARCHIVAL")
         self.assertFalse(transition["source_active_expected"])
         self.assertFalse(transition["evidence_substitution_allowed"])
-        self.assertEqual(transition["successor_discovery_watch_id"], "DISC-SCIENCE-CAREERS-001")
+        self.assertEqual(
+            transition["successor_discovery_watch_id"], "DISC-SCIENCE-CAREERS-001"
+        )
         evidence = transition["live_evidence"]
         self.assertEqual(evidence["workflow_run_id"], 31841215730)
-        self.assertEqual(evidence["workflow_head_sha"], "3ad4e30ad80082ae9a86c45c43c512110ff1bcce")
+        self.assertEqual(
+            evidence["workflow_head_sha"], "3ad4e30ad80082ae9a86c45c43c512110ff1bcce"
+        )
         self.assertEqual(evidence["primary_http_status"], 404)
         self.assertEqual(evidence["identity_equivalent_http_statuses"], [404])
         self.assertEqual(evidence["publisher_listing_http_status"], 200)
@@ -63,7 +73,9 @@ class SourceLifecycleOverlayTests(unittest.TestCase):
         active = build_active_route_policy(self.route_policy, transitions)
         ids = {row["source_id"] for row in active["sources"]}
         self.assertEqual(ids, {"SRC-PR-002"})
-        self.assertEqual(active["metadata"]["excluded_lifecycle_source_ids"], ["SRC-PR-015"])
+        self.assertEqual(
+            active["metadata"]["excluded_lifecycle_source_ids"], ["SRC-PR-015"]
+        )
         self.assertEqual(active["metadata"]["source_count"], 1)
 
     def test_route_policy_drift_fails_closed(self) -> None:
@@ -86,13 +98,17 @@ class SourceLifecycleOverlayTests(unittest.TestCase):
 
     def test_404_without_publisher_listing_success_fails_closed(self) -> None:
         overlay = copy.deepcopy(self.overlay)
-        overlay["transitions"][0]["live_evidence"]["publisher_listing_http_status"] = 503
+        overlay["transitions"][0]["live_evidence"]["publisher_listing_http_status"] = (
+            503
+        )
         with self.assertRaisesRegex(ValueError, "successful publisher listing"):
             self._verify(overlay=overlay)
 
     def test_identity_present_fails_closed(self) -> None:
         overlay = copy.deepcopy(self.overlay)
-        overlay["transitions"][0]["live_evidence"]["publisher_listing_identity_present"] = True
+        overlay["transitions"][0]["live_evidence"][
+            "publisher_listing_identity_present"
+        ] = True
         with self.assertRaisesRegex(ValueError, "exact identity absence"):
             self._verify(overlay=overlay)
 
@@ -100,7 +116,9 @@ class SourceLifecycleOverlayTests(unittest.TestCase):
         overlay = copy.deepcopy(self.overlay)
         transition = overlay["transitions"][0]
         transition["source_id"] = next(iter(sorted(self.monitor_ids)))
-        with self.assertRaisesRegex(ValueError, "cannot suppress governing predecessor monitor"):
+        with self.assertRaisesRegex(
+            ValueError, "cannot suppress governing predecessor monitor"
+        ):
             self._verify(overlay=overlay)
 
     def test_unknown_effective_source_fails_closed(self) -> None:

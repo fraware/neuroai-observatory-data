@@ -10,10 +10,10 @@ SCRIPTS = ROOT / "scripts"
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
-from build_analytical_projection import build_tables, load_inputs  # noqa: E402
-from build_current_monitor_accountability import build_projection  # noqa: E402
-from build_development_monitor_registry import build_development_registry  # noqa: E402
-from evaluate_operational_health import (  # noqa: E402
+from build_analytical_projection import build_tables, load_inputs
+from build_current_monitor_accountability import build_projection
+from build_development_monitor_registry import build_development_registry
+from evaluate_operational_health import (
     DEGRADED,
     ENGINEERING_BLOCKED,
     ENGINEERING_READY,
@@ -22,7 +22,7 @@ from evaluate_operational_health import (  # noqa: E402
     evaluate_health,
     verify_health_report,
 )
-from source_lifecycle_overlay import load_verified_lifecycle_overlay  # noqa: E402
+from source_lifecycle_overlay import load_verified_lifecycle_overlay
 
 
 def active_failed_run() -> dict:
@@ -90,13 +90,21 @@ class RouteAwareOperationalHealthTests(unittest.TestCase):
             supplemental_dir=(ROOT / "supplemental_records").resolve(),
         )
         tables = build_tables(inputs)
-        source_ids = {str(row["record_id"]) for row in tables["sources"] if row.get("record_id")}
-        monitor_ids = {str(row["record_id"]) for row in tables["source_monitors"] if row.get("record_id")}
+        source_ids = {
+            str(row["record_id"]) for row in tables["sources"] if row.get("record_id")
+        }
+        monitor_ids = {
+            str(row["record_id"])
+            for row in tables["source_monitors"]
+            if row.get("record_id")
+        }
         _, _, cls.transitions = load_verified_lifecycle_overlay(
             effective_source_ids=source_ids,
             governing_monitor_source_ids=monitor_ids,
         )
-        cls.accountability = build_projection(tables["sources"], tables["source_monitors"], cls.transitions)
+        cls.accountability = build_projection(
+            tables["sources"], tables["source_monitors"], cls.transitions
+        )
         cls.registry = build_development_registry(inputs, cls.transitions)
 
     def test_registered_active_route_resolution_restores_active_health(self) -> None:
@@ -112,9 +120,13 @@ class RouteAwareOperationalHealthTests(unittest.TestCase):
         self.assertEqual(report["source_resolution_state"], HEALTHY)
         self.assertEqual(report["active_source_availability_state"], HEALTHY)
         self.assertEqual(report["active_evidence_payload_availability_state"], HEALTHY)
-        self.assertEqual(report["route_resilience"]["resolved_failed_source_ids"], ["SRC-PR-002"])
         self.assertEqual(
-            report["route_resilience"]["lifecycle_resolved_source_ids_excluded_from_probe"],
+            report["route_resilience"]["resolved_failed_source_ids"], ["SRC-PR-002"]
+        )
+        self.assertEqual(
+            report["route_resilience"][
+                "lifecycle_resolved_source_ids_excluded_from_probe"
+            ],
             ["SRC-PR-015"],
         )
         codes = {warning["code"] for warning in report["warnings"]}
@@ -141,7 +153,9 @@ class RouteAwareOperationalHealthTests(unittest.TestCase):
         )
         self.assertEqual(report["engineering_state"], ENGINEERING_READY)
         self.assertEqual(report["source_resolution_state"], DEGRADED)
-        self.assertEqual(report["route_resilience"]["unresolved_failed_source_ids"], ["SRC-PR-002"])
+        self.assertEqual(
+            report["route_resilience"]["unresolved_failed_source_ids"], ["SRC-PR-002"]
+        )
         self.assertIn(
             "FAILED_SOURCES_UNRESOLVED_AFTER_REGISTERED_RESOLUTION",
             {warning["code"] for warning in report["warnings"]},

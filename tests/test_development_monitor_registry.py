@@ -10,14 +10,14 @@ SCRIPTS = ROOT / "scripts"
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
-from build_analytical_projection import build_tables, load_inputs  # noqa: E402
-from build_current_monitor_accountability import sha256  # noqa: E402
-from build_development_monitor_registry import (  # noqa: E402
+from build_analytical_projection import build_tables, load_inputs
+from build_current_monitor_accountability import sha256
+from build_development_monitor_registry import (
     STATUS,
     build_development_registry,
     verify_development_registry,
 )
-from source_lifecycle_overlay import load_verified_lifecycle_overlay  # noqa: E402
+from source_lifecycle_overlay import load_verified_lifecycle_overlay
 
 
 class DevelopmentMonitorRegistryTests(unittest.TestCase):
@@ -28,8 +28,14 @@ class DevelopmentMonitorRegistryTests(unittest.TestCase):
             supplemental_dir=(ROOT / "supplemental_records").resolve(),
         )
         tables = build_tables(cls.inputs)
-        source_ids = {str(row["record_id"]) for row in tables["sources"] if row.get("record_id")}
-        monitor_ids = {str(row["record_id"]) for row in tables["source_monitors"] if row.get("record_id")}
+        source_ids = {
+            str(row["record_id"]) for row in tables["sources"] if row.get("record_id")
+        }
+        monitor_ids = {
+            str(row["record_id"])
+            for row in tables["source_monitors"]
+            if row.get("record_id")
+        }
         _, cls.overlay, cls.transitions = load_verified_lifecycle_overlay(
             effective_source_ids=source_ids,
             governing_monitor_source_ids=monitor_ids,
@@ -52,7 +58,10 @@ class DevelopmentMonitorRegistryTests(unittest.TestCase):
 
     def test_predecessor_is_byte_semantically_unchanged(self) -> None:
         self.assertEqual(sha256(self.predecessor), self.predecessor_sha)
-        self.assertEqual(self.registry["metadata"]["predecessor_registry_sha256"], self.predecessor_sha)
+        self.assertEqual(
+            self.registry["metadata"]["predecessor_registry_sha256"],
+            self.predecessor_sha,
+        )
         self.assertEqual(self.registry["sources"][:224], self.predecessor)
 
     def test_only_exact_two_active_recurring_candidates_are_appended(self) -> None:
@@ -62,19 +71,32 @@ class DevelopmentMonitorRegistryTests(unittest.TestCase):
             {"SRC-PR-002", "SRC-PR-007"},
         )
         self.assertTrue(
-            all(record["current_status"] == "DEVELOPMENT_MONITOR_EXTENSION_NOT_CANONICAL" for record in extension)
+            all(
+                record["current_status"]
+                == "DEVELOPMENT_MONITOR_EXTENSION_NOT_CANONICAL"
+                for record in extension
+            )
         )
         self.assertTrue(all(record["cadence"] == "MONTHLY" for record in extension))
-        self.assertNotIn("SRC-PR-015", {record["source_id"] for record in self.registry["sources"]})
+        self.assertNotIn(
+            "SRC-PR-015", {record["source_id"] for record in self.registry["sources"]}
+        )
 
-    def test_lifecycle_source_remains_bound_in_metadata_not_monitor_records(self) -> None:
+    def test_lifecycle_source_remains_bound_in_metadata_not_monitor_records(
+        self,
+    ) -> None:
         metadata = self.registry["metadata"]
         self.assertEqual(metadata["lifecycle_resolved_source_ids"], ["SRC-PR-015"])
         self.assertEqual(
             metadata["lifecycle_transition_sha256s"],
             [self.transitions["SRC-PR-015"]["transition_sha256"]],
         )
-        self.assertFalse(any(record["source_id"] == "SRC-PR-015" for record in self.registry["sources"]))
+        self.assertFalse(
+            any(
+                record["source_id"] == "SRC-PR-015"
+                for record in self.registry["sources"]
+            )
+        )
 
     def test_monitor_and_source_bindings_are_unique(self) -> None:
         monitors = self.registry["sources"]

@@ -10,12 +10,12 @@ SCRIPTS = ROOT / "scripts"
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
-from run_successor_discovery import (  # noqa: E402
+from run_successor_discovery import (
     DEFAULT_WATCH_CONFIG,
     discover_from_html,
     verify_watch_config,
 )
-from source_lifecycle_overlay import DEFAULT_LIFECYCLE_OVERLAY, load_json  # noqa: E402
+from source_lifecycle_overlay import DEFAULT_LIFECYCLE_OVERLAY, load_json
 
 
 class SuccessorDiscoveryTests(unittest.TestCase):
@@ -37,11 +37,11 @@ class SuccessorDiscoveryTests(unittest.TestCase):
         self.assertEqual(self.watch["official_host"], "science.xyz")
 
     def test_relevant_official_link_creates_candidate_only(self) -> None:
-        body = b'''<html><body>
+        body = b"""<html><body>
         <a href="/careers/prima-vision-rehabilitation-research-specialist-99">
           PRIMA Vision Rehabilitation Research Specialist
         </a>
-        </body></html>'''
+        </body></html>"""
         candidates = discover_from_html(self.watch, body)
         self.assertEqual(len(candidates), 1)
         candidate = candidates[0]
@@ -53,25 +53,25 @@ class SuccessorDiscoveryTests(unittest.TestCase):
         self.assertFalse(candidate["registration_authorized"])
 
     def test_domain_only_or_context_only_links_are_not_candidates(self) -> None:
-        body = b'''<html><body>
+        body = b"""<html><body>
         <a href="/careers/vision-prima-retina-1">Vision PRIMA Retina</a>
         <a href="/careers/research-engineer-2">Research Engineer</a>
-        </body></html>'''
+        </body></html>"""
         self.assertEqual(discover_from_html(self.watch, body), [])
 
     def test_external_links_are_ignored(self) -> None:
-        body = b'''<html><body>
+        body = b"""<html><body>
         <a href="https://example.org/vision-rehabilitation-research-specialist">
           Vision Rehabilitation Research Specialist
         </a>
-        </body></html>'''
+        </body></html>"""
         self.assertEqual(discover_from_html(self.watch, body), [])
 
     def test_candidate_identity_is_deterministic_and_deduplicated(self) -> None:
-        body = b'''<html><body>
+        body = b"""<html><body>
         <a href="/careers/vision-rehabilitation-research-specialist-99">Vision Rehabilitation Research Specialist</a>
         <a href="/careers/vision-rehabilitation-research-specialist-99">Vision Rehabilitation Research Specialist</a>
-        </body></html>'''
+        </body></html>"""
         first = discover_from_html(self.watch, body)
         second = discover_from_html(self.watch, body)
         self.assertEqual(first, second)

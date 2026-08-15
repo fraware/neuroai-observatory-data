@@ -61,7 +61,11 @@ def _rule_for(source_class: Any, title: Any) -> tuple[str, str | None, str, str]
             "LOW",
             "Publication or dated event record is expected to remain fixed; monitor the underlying programme separately.",
         )
-    if "TRIAL_REGISTRY" in source_token or "CLINICALTRIAL" in source_token or "CLINICAL_TRIAL" in source_token:
+    if (
+        "TRIAL_REGISTRY" in source_token
+        or "CLINICALTRIAL" in source_token
+        or "CLINICAL_TRIAL" in source_token
+    ):
         return (
             "RECURRING",
             "MONTHLY",
@@ -70,7 +74,13 @@ def _rule_for(source_class: Any, title: Any) -> tuple[str, str | None, str, str]
         )
     if any(
         part in source_token
-        for part in ("TECHNOLOGY_PAGE", "PRODUCT_PAGE", "OPERATIONAL_CAPACITY", "RECRUIT", "CAREER")
+        for part in (
+            "TECHNOLOGY_PAGE",
+            "PRODUCT_PAGE",
+            "OPERATIONAL_CAPACITY",
+            "RECRUIT",
+            "CAREER",
+        )
     ):
         return (
             "RECURRING",
@@ -78,7 +88,10 @@ def _rule_for(source_class: Any, title: Any) -> tuple[str, str | None, str, str]
             "NORMAL",
             "Living official product/technology/operational page is useful for current-state monitoring.",
         )
-    if any(part in source_token for part in ("GUIDANCE", "LEGAL_TEXT", "REGULATION", "PROCEDURAL")):
+    if any(
+        part in source_token
+        for part in ("GUIDANCE", "LEGAL_TEXT", "REGULATION", "PROCEDURAL")
+    ):
         return (
             "ON_CHANGE",
             "QUARTERLY",
@@ -101,7 +114,9 @@ def classify_monitoring(
     lifecycle_transitions: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     transitions = lifecycle_transitions or {}
-    monitor_by_source = {str(row["record_id"]): row for row in monitors if row.get("record_id")}
+    monitor_by_source = {
+        str(row["record_id"]): row for row in monitors if row.get("record_id")
+    }
     rows: list[dict[str, Any]] = []
     seen: set[str] = set()
     for source in sources:
@@ -113,10 +128,14 @@ def classify_monitoring(
         seen.add(source_id)
         monitor = monitor_by_source.get(source_id)
         lifecycle = transitions.get(source_id)
-        payload = source.get("payload") if isinstance(source.get("payload"), dict) else {}
+        payload = (
+            source.get("payload") if isinstance(source.get("payload"), dict) else {}
+        )
         if lifecycle is not None:
             if monitor is not None:
-                raise ValueError(f"Lifecycle transition cannot suppress governing monitor {source_id}")
+                raise ValueError(
+                    f"Lifecycle transition cannot suppress governing monitor {source_id}"
+                )
             mode = MONITORING_STATE
             cadence = None
             priority = "LOW"
@@ -125,13 +144,19 @@ def classify_monitoring(
                 "historical evidence remains preserved and successor discovery is tracked separately."
             )
         elif monitor is not None:
-            monitor_payload = monitor.get("payload") if isinstance(monitor.get("payload"), dict) else {}
+            monitor_payload = (
+                monitor.get("payload")
+                if isinstance(monitor.get("payload"), dict)
+                else {}
+            )
             mode = "EXISTING_MONITOR"
             cadence = monitor_payload.get("cadence")
             priority = "NORMAL"
             reason = "Source already has a monitor-registry entry; preserve its explicit cadence until deliberately revised."
         else:
-            mode, cadence, priority, reason = _rule_for(source.get("source_class"), source.get("name"))
+            mode, cadence, priority, reason = _rule_for(
+                source.get("source_class"), source.get("name")
+            )
         rows.append(
             {
                 "source_id": source_id,
@@ -145,15 +170,25 @@ def classify_monitoring(
                 "recommended_mode": mode,
                 "recommended_cadence": cadence,
                 "priority": priority,
-                "lifecycle_state": lifecycle.get("lifecycle_state") if lifecycle else None,
-                "successor_discovery_watch_id": lifecycle.get("successor_discovery_watch_id") if lifecycle else None,
-                "lifecycle_transition_sha256": lifecycle.get("transition_sha256") if lifecycle else None,
+                "lifecycle_state": lifecycle.get("lifecycle_state")
+                if lifecycle
+                else None,
+                "successor_discovery_watch_id": lifecycle.get(
+                    "successor_discovery_watch_id"
+                )
+                if lifecycle
+                else None,
+                "lifecycle_transition_sha256": lifecycle.get("transition_sha256")
+                if lifecycle
+                else None,
                 "reason": reason,
             }
         )
     unknown_transition_ids = sorted(set(transitions) - seen)
     if unknown_transition_ids:
-        raise ValueError(f"Lifecycle transitions reference unknown effective sources: {unknown_transition_ids}")
+        raise ValueError(
+            f"Lifecycle transitions reference unknown effective sources: {unknown_transition_ids}"
+        )
     rows.sort(key=lambda row: str(row["source_id"]))
     counts = Counter(str(row["recommended_mode"]) for row in rows)
     unmonitored = [row for row in rows if not row["monitor_present"]]
@@ -178,7 +213,9 @@ def write_outputs(result: dict[str, Any], output_dir: Path) -> dict[str, str]:
     output_dir.mkdir(parents=True, exist_ok=True)
     json_path = output_dir / "monitoring-eligibility.json"
     csv_path = output_dir / "monitoring-eligibility.csv"
-    json_path.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    json_path.write_text(
+        json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     with csv_path.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(
             handle,
@@ -209,22 +246,36 @@ def write_outputs(result: dict[str, Any], output_dir: Path) -> dict[str, str]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--records-dir", type=Path, default=DEFAULT_RECORDS_DIR)
-    parser.add_argument("--supplemental-dir", type=Path, default=DEFAULT_SUPPLEMENTAL_DIR)
+    parser.add_argument(
+        "--supplemental-dir", type=Path, default=DEFAULT_SUPPLEMENTAL_DIR
+    )
     parser.add_argument("--route-policy", type=Path, default=DEFAULT_ROUTE_POLICY)
-    parser.add_argument("--lifecycle-overlay", type=Path, default=DEFAULT_LIFECYCLE_OVERLAY)
+    parser.add_argument(
+        "--lifecycle-overlay", type=Path, default=DEFAULT_LIFECYCLE_OVERLAY
+    )
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     args = parser.parse_args()
-    inputs = load_inputs(args.records_dir.resolve(), supplemental_dir=args.supplemental_dir.resolve())
+    inputs = load_inputs(
+        args.records_dir.resolve(), supplemental_dir=args.supplemental_dir.resolve()
+    )
     tables = build_tables(inputs)
-    source_ids = {str(row["record_id"]) for row in tables["sources"] if row.get("record_id")}
-    monitor_ids = {str(row["record_id"]) for row in tables["source_monitors"] if row.get("record_id")}
+    source_ids = {
+        str(row["record_id"]) for row in tables["sources"] if row.get("record_id")
+    }
+    monitor_ids = {
+        str(row["record_id"])
+        for row in tables["source_monitors"]
+        if row.get("record_id")
+    }
     _, _, transitions = load_verified_lifecycle_overlay(
         route_policy_path=args.route_policy,
         overlay_path=args.lifecycle_overlay,
         effective_source_ids=source_ids,
         governing_monitor_source_ids=monitor_ids,
     )
-    result = classify_monitoring(tables["sources"], tables["source_monitors"], transitions)
+    result = classify_monitoring(
+        tables["sources"], tables["source_monitors"], transitions
+    )
     outputs = write_outputs(result, args.output_dir.resolve())
     metadata = result["metadata"]
     print(

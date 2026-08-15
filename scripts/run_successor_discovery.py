@@ -29,7 +29,9 @@ class _LinkParser(HTMLParser):
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         if tag.lower() != "a":
             return
-        self._href = next((value for key, value in attrs if key.lower() == "href" and value), None)
+        self._href = next(
+            (value for key, value in attrs if key.lower() == "href" and value), None
+        )
         self._parts = []
 
     def handle_data(self, data: str) -> None:
@@ -49,7 +51,9 @@ def _normalized(value: str) -> str:
     return " ".join(value.casefold().split())
 
 
-def verify_watch_config(config: dict[str, Any], overlay: dict[str, Any]) -> dict[str, dict[str, Any]]:
+def verify_watch_config(
+    config: dict[str, Any], overlay: dict[str, Any]
+) -> dict[str, dict[str, Any]]:
     metadata = config.get("metadata")
     watches = config.get("watches")
     if not isinstance(metadata, dict) or not isinstance(watches, list):
@@ -57,9 +61,13 @@ def verify_watch_config(config: dict[str, Any], overlay: dict[str, Any]) -> dict
     if metadata.get("status") != STATUS:
         raise ValueError("Successor-discovery config lost its noncanonical status")
     if metadata.get("automatic_source_registration") is not False:
-        raise ValueError("Successor discovery must forbid automatic source registration")
+        raise ValueError(
+            "Successor discovery must forbid automatic source registration"
+        )
     if metadata.get("automatic_assessment_mutation") is not False:
-        raise ValueError("Successor discovery must forbid automatic assessment mutation")
+        raise ValueError(
+            "Successor discovery must forbid automatic assessment mutation"
+        )
     if metadata.get("watch_count") != len(watches):
         raise ValueError("Successor-discovery watch_count mismatch")
     if metadata.get("lifecycle_overlay_sha256") != overlay.get("overlay_sha256"):
@@ -79,28 +87,46 @@ def verify_watch_config(config: dict[str, Any], overlay: dict[str, Any]) -> dict
             raise ValueError("Successor-discovery watch must be an object")
         watch_id = str(watch.get("watch_id") or "")
         if not watch_id or watch_id in by_id:
-            raise ValueError("Successor-discovery watch_id must be unique and non-empty")
+            raise ValueError(
+                "Successor-discovery watch_id must be unique and non-empty"
+            )
         trigger_source_id = str(watch.get("trigger_source_id") or "")
         transition = transitions.get(trigger_source_id)
         if transition is None:
             raise ValueError(f"Watch {watch_id} lacks lifecycle trigger source")
         if watch.get("trigger_lifecycle_state") != transition.get("lifecycle_state"):
             raise ValueError(f"Watch {watch_id} lifecycle state drift")
-        if watch.get("trigger_transition_sha256") != transition.get("transition_sha256"):
+        if watch.get("trigger_transition_sha256") != transition.get(
+            "transition_sha256"
+        ):
             raise ValueError(f"Watch {watch_id} lifecycle transition hash mismatch")
         if watch.get("watch_id") != transition.get("successor_discovery_watch_id"):
             raise ValueError(f"Watch {watch_id} is not bound from lifecycle transition")
         url = str(watch.get("url") or "")
         host = (urlparse(url).hostname or "").lower()
-        if not url.startswith("https://") or host != str(watch.get("official_host") or "").lower():
-            raise ValueError(f"Watch {watch_id} must use its declared official HTTPS host")
+        if (
+            not url.startswith("https://")
+            or host != str(watch.get("official_host") or "").lower()
+        ):
+            raise ValueError(
+                f"Watch {watch_id} must use its declared official HTTPS host"
+            )
         relevance = watch.get("relevance_policy")
-        if not isinstance(relevance, dict) or relevance.get("rule") != "AT_LEAST_ONE_DOMAIN_AND_ONE_CONTEXT_TERM":
+        if (
+            not isinstance(relevance, dict)
+            or relevance.get("rule") != "AT_LEAST_ONE_DOMAIN_AND_ONE_CONTEXT_TERM"
+        ):
             raise ValueError(f"Watch {watch_id} has unsupported relevance policy")
         for field in ("domain_terms", "context_terms"):
             terms = relevance.get(field)
-            if not isinstance(terms, list) or not terms or not all(isinstance(item, str) and item.strip() for item in terms):
-                raise ValueError(f"Watch {watch_id}.{field} must be a non-empty string array")
+            if (
+                not isinstance(terms, list)
+                or not terms
+                or not all(isinstance(item, str) and item.strip() for item in terms)
+            ):
+                raise ValueError(
+                    f"Watch {watch_id}.{field} must be a non-empty string array"
+                )
         by_id[watch_id] = watch
     return by_id
 
@@ -110,8 +136,12 @@ def discover_from_html(watch: dict[str, Any], body: bytes) -> list[dict[str, Any
     parser = _LinkParser()
     parser.feed(text)
     official_host = str(watch["official_host"]).lower()
-    domain_terms = [_normalized(item) for item in watch["relevance_policy"]["domain_terms"]]
-    context_terms = [_normalized(item) for item in watch["relevance_policy"]["context_terms"]]
+    domain_terms = [
+        _normalized(item) for item in watch["relevance_policy"]["domain_terms"]
+    ]
+    context_terms = [
+        _normalized(item) for item in watch["relevance_policy"]["context_terms"]
+    ]
     candidates: dict[str, dict[str, Any]] = {}
     for href, label in parser.links:
         absolute = urljoin(str(watch["url"]), href)
@@ -124,9 +154,12 @@ def discover_from_html(watch: dict[str, Any], body: bytes) -> list[dict[str, Any
         if not matched_domain or not matched_context:
             continue
         canonical_url = parsed._replace(fragment="").geturl()
-        candidate_id = "DISC-CAND-" + hashlib.sha256(
-            f"{watch['watch_id']}\n{canonical_url}\n{label}".encode("utf-8")
-        ).hexdigest()[:20]
+        candidate_id = (
+            "DISC-CAND-"
+            + hashlib.sha256(
+                f"{watch['watch_id']}\n{canonical_url}\n{label}".encode()
+            ).hexdigest()[:20]
+        )
         candidates[candidate_id] = {
             "candidate_id": candidate_id,
             "watch_id": watch["watch_id"],
@@ -206,14 +239,18 @@ def run_discovery(config: dict[str, Any], overlay: dict[str, Any]) -> dict[str, 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--watch-config", type=Path, default=DEFAULT_WATCH_CONFIG)
-    parser.add_argument("--lifecycle-overlay", type=Path, default=DEFAULT_LIFECYCLE_OVERLAY)
+    parser.add_argument(
+        "--lifecycle-overlay", type=Path, default=DEFAULT_LIFECYCLE_OVERLAY
+    )
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     config = load_json(args.watch_config.resolve())
     overlay = load_json(args.lifecycle_overlay.resolve())
     report = run_discovery(config, overlay)
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    args.output.write_text(
+        json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     print(
         json.dumps(
             {
@@ -221,8 +258,12 @@ def main() -> int:
                 "watch_count": report["watch_count"],
                 "candidate_count": report["candidate_count"],
                 "report_sha256": report["report_sha256"],
-                "automatic_source_registration": report["automatic_source_registration"],
-                "automatic_assessment_mutation": report["automatic_assessment_mutation"],
+                "automatic_source_registration": report[
+                    "automatic_source_registration"
+                ],
+                "automatic_assessment_mutation": report[
+                    "automatic_assessment_mutation"
+                ],
             },
             sort_keys=True,
         )
