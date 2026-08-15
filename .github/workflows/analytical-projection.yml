@@ -5,6 +5,7 @@ on:
     paths:
       - "scripts/build_analytical_projection.py"
       - "scripts/build_monitoring_eligibility.py"
+      - "scripts/source_lifecycle_overlay.py"
       - "scripts/validate_legacy_source_registration.py"
       - "scripts/project_legacy_source_registration_impact.py"
       - "scripts/project_legacy_source_monitoring.py"
@@ -12,6 +13,7 @@ on:
       - "scripts/source_namespace_eligibility.py"
       - "tests/test_build_analytical_projection.py"
       - "tests/test_build_monitoring_eligibility.py"
+      - "tests/test_source_lifecycle_overlay.py"
       - "tests/test_build_legacy_source_registration.py"
       - "tests/test_build_legacy_source_registration_provenance.py"
       - "tests/test_build_legacy_source_registration_impact.py"
@@ -21,6 +23,8 @@ on:
       - "curation/legacy_assessment_source_registration_proposals_v0.1.json"
       - "curation/legacy_assessment_source_registration_provenance_v0.1.json"
       - "curation/source_namespace_eligibility_policy_v0.1.json"
+      - "curation/source_route_resilience_v0.1.json"
+      - "curation/source_lifecycle_monitoring_overlay_v0.1.json"
       - "schemas/legacy-source-registration-proposals.schema.json"
       - ".github/workflows/analytical-projection.yml"
   push:
@@ -28,6 +32,7 @@ on:
     paths:
       - "scripts/build_analytical_projection.py"
       - "scripts/build_monitoring_eligibility.py"
+      - "scripts/source_lifecycle_overlay.py"
       - "scripts/validate_legacy_source_registration.py"
       - "scripts/project_legacy_source_registration_impact.py"
       - "scripts/project_legacy_source_monitoring.py"
@@ -35,6 +40,7 @@ on:
       - "scripts/source_namespace_eligibility.py"
       - "tests/test_build_analytical_projection.py"
       - "tests/test_build_monitoring_eligibility.py"
+      - "tests/test_source_lifecycle_overlay.py"
       - "tests/test_build_legacy_source_registration.py"
       - "tests/test_build_legacy_source_registration_provenance.py"
       - "tests/test_build_legacy_source_registration_impact.py"
@@ -44,6 +50,8 @@ on:
       - "curation/legacy_assessment_source_registration_proposals_v0.1.json"
       - "curation/legacy_assessment_source_registration_provenance_v0.1.json"
       - "curation/source_namespace_eligibility_policy_v0.1.json"
+      - "curation/source_route_resilience_v0.1.json"
+      - "curation/source_lifecycle_monitoring_overlay_v0.1.json"
       - "schemas/legacy-source-registration-proposals.schema.json"
       - ".github/workflows/analytical-projection.yml"
 
@@ -54,8 +62,8 @@ jobs:
   test:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: "3.12"
       - name: Unit tests
@@ -402,15 +410,32 @@ jobs:
           assert metadata["effective_source_count"] == 248, metadata
           assert metadata["monitor_registry_source_count"] == 224, metadata
           assert metadata["unmonitored_effective_source_count"] == 24, metadata
+          assert metadata["lifecycle_resolved_source_count"] == 1, metadata
           assert len(rows) == 248, len(rows)
           assert len({row["source_id"] for row in rows}) == 248
           assert sum(not row["monitor_present"] for row in rows) == 24
-          assert set(payload["unmonitored_mode_counts"]).issubset({"RECURRING", "ON_CHANGE", "ARCHIVAL_STATIC"})
+          assert payload["unmonitored_mode_counts"] == {
+              "ARCHIVAL_STATIC": 15,
+              "LIFECYCLE_RESOLVED_ARCHIVAL": 1,
+              "ON_CHANGE": 6,
+              "RECURRING": 2,
+          }, payload["unmonitored_mode_counts"]
+
+          lifecycle = [
+              row for row in rows
+              if row["recommended_mode"] == "LIFECYCLE_RESOLVED_ARCHIVAL"
+          ]
+          assert len(lifecycle) == 1, lifecycle
+          assert lifecycle[0]["source_id"] == "SRC-PR-015", lifecycle[0]
+          assert lifecycle[0]["monitor_present"] is False, lifecycle[0]
+          assert lifecycle[0]["lifecycle_state"] == "NO_LONGER_LISTED", lifecycle[0]
+          assert lifecycle[0]["successor_discovery_watch_id"] == "DISC-SCIENCE-CAREERS-001", lifecycle[0]
 
           print("MONITORING ELIGIBILITY")
           print(f"effective: {metadata['effective_source_count']}")
           print(f"existing monitors: {metadata['monitor_registry_source_count']}")
           print(f"unmonitored effective: {metadata['unmonitored_effective_source_count']}")
+          print(f"lifecycle resolved: {metadata['lifecycle_resolved_source_count']}")
           for mode, count in payload["unmonitored_mode_counts"].items():
               print(f"{mode}: {count}")
           PY
