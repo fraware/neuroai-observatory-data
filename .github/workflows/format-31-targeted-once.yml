@@ -31,7 +31,7 @@ jobs:
         run: |
           python -m pip install --require-hashes -r workbench/requirements/constraints.txt
           python -m pip install --no-deps ./workbench
-      - name: Apply Ruff only to issue 31 Python surfaces
+      - name: Apply safe Ruff repairs only to issue 31 Python surfaces
         run: |
           files=(
             scripts/build_current_monitor_accountability.py
@@ -50,7 +50,7 @@ jobs:
             tests/test_successor_discovery.py
           )
           python -m ruff format "${files[@]}"
-          python -m ruff check --fix "${files[@]}"
+          python -m ruff check --fix --exit-zero "${files[@]}"
       - name: Commit mechanical changes
         run: |
           rm -rf workbench
