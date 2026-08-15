@@ -1,0 +1,131 @@
+name: Repair analytical lifecycle checkpoint once
+
+on:
+  push:
+    branches:
+      - fix/analytical-lifecycle-checkpoint
+    paths:
+      - ".github/workflows/repair-analytical-lifecycle-once.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: fix/analytical-lifecycle-checkpoint
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Repair analytical lifecycle contract
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          workflow = Path('.github/workflows/analytical-projection.yml')
+          text = workflow.read_text(encoding='utf-8')
+
+          text = text.replace(
+              '      - "scripts/build_monitoring_eligibility.py"\n',
+              '      - "scripts/build_monitoring_eligibility.py"\n'
+              '      - "scripts/source_lifecycle_overlay.py"\n',
+          )
+          text = text.replace(
+              '      - "tests/test_build_monitoring_eligibility.py"\n',
+              '      - "tests/test_build_monitoring_eligibility.py"\n'
+              '      - "tests/test_source_lifecycle_overlay.py"\n',
+          )
+          text = text.replace(
+              '      - "curation/source_namespace_eligibility_policy_v0.1.json"\n',
+              '      - "curation/source_namespace_eligibility_policy_v0.1.json"\n'
+              '      - "curation/source_route_resilience_v0.1.json"\n'
+              '      - "curation/source_lifecycle_monitoring_overlay_v0.1.json"\n',
+          )
+          text = text.replace(
+              '      - uses: actions/checkout@v4\n',
+              '      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1\n',
+          )
+          text = text.replace(
+              '      - uses: actions/setup-python@v5\n',
+              '      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97\n',
+          )
+
+          old = '''          assert metadata["effective_source_count"] == 248, metadata
+          assert metadata["monitor_registry_source_count"] == 224, metadata
+          assert metadata["unmonitored_effective_source_count"] == 24, metadata
+          assert len(rows) == 248, len(rows)
+          assert len({row["source_id"] for row in rows}) == 248
+          assert sum(not row["monitor_present"] for row in rows) == 24
+          assert set(payload["unmonitored_mode_counts"]).issubset({"RECURRING", "ON_CHANGE", "ARCHIVAL_STATIC"})
+'''
+          new = '''          assert metadata["effective_source_count"] == 248, metadata
+          assert metadata["monitor_registry_source_count"] == 224, metadata
+          assert metadata["unmonitored_effective_source_count"] == 24, metadata
+          assert metadata["lifecycle_resolved_source_count"] == 1, metadata
+          assert len(rows) == 248, len(rows)
+          assert len({row["source_id"] for row in rows}) == 248
+          assert sum(not row["monitor_present"] for row in rows) == 24
+          assert payload["unmonitored_mode_counts"] == {
+              "ARCHIVAL_STATIC": 15,
+              "LIFECYCLE_RESOLVED_ARCHIVAL": 1,
+              "ON_CHANGE": 6,
+              "RECURRING": 2,
+          }, payload["unmonitored_mode_counts"]
+
+          lifecycle = [
+              row for row in rows
+              if row["recommended_mode"] == "LIFECYCLE_RESOLVED_ARCHIVAL"
+          ]
+          assert len(lifecycle) == 1, lifecycle
+          assert lifecycle[0]["source_id"] == "SRC-PR-015", lifecycle[0]
+          assert lifecycle[0]["monitor_present"] is False, lifecycle[0]
+          assert lifecycle[0]["lifecycle_state"] == "NO_LONGER_LISTED", lifecycle[0]
+          assert lifecycle[0]["successor_discovery_watch_id"] == "DISC-SCIENCE-CAREERS-001", lifecycle[0]
+'''
+          if old not in text:
+              raise SystemExit('stale analytical checkpoint block not found exactly')
+          workflow.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          test = Path('tests/test_build_monitoring_eligibility.py')
+          source = test.read_text(encoding='utf-8')
+          marker = '    def test_duplicate_or_missing_effective_source_ids_fail(self) -> None:\n'
+          addition = '''    def test_lifecycle_transition_has_distinct_archival_state(self) -> None:
+        sources = [_source("SRC-LIFE", "COMPANY_OPERATIONAL_CAPACITY_SIGNAL")]
+        transition = {
+            "SRC-LIFE": {
+                "lifecycle_state": "NO_LONGER_LISTED",
+                "successor_discovery_watch_id": "DISC-TEST-001",
+                "transition_sha256": "a" * 64,
+            }
+        }
+        result = eligibility.classify_monitoring(sources, [], transition)
+        row = result["sources"][0]
+        self.assertFalse(row["monitor_present"])
+        self.assertEqual(row["recommended_mode"], "LIFECYCLE_RESOLVED_ARCHIVAL")
+        self.assertIsNone(row["recommended_cadence"])
+        self.assertEqual(row["lifecycle_state"], "NO_LONGER_LISTED")
+        self.assertEqual(row["successor_discovery_watch_id"], "DISC-TEST-001")
+        self.assertEqual(result["metadata"]["lifecycle_resolved_source_count"], 1)
+        self.assertEqual(
+            result["unmonitored_mode_counts"], {"LIFECYCLE_RESOLVED_ARCHIVAL": 1}
+        )
+
+'''
+          if marker not in source:
+              raise SystemExit('unit-test insertion marker not found')
+          if 'test_lifecycle_transition_has_distinct_archival_state' not in source:
+              source = source.replace(marker, addition + marker, 1)
+          test.write_text(source, encoding='utf-8')
+          PY
+          python -m unittest tests/test_build_monitoring_eligibility.py tests/test_source_lifecycle_overlay.py -v
+      - name: Commit repair
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/workflows/analytical-projection.yml tests/test_build_monitoring_eligibility.py
+          git diff --cached --check
+          git commit -m "Make analytical checkpoint lifecycle-aware"
+          git push origin HEAD:fix/analytical-lifecycle-checkpoint
