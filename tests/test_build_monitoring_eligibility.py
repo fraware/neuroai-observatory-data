@@ -78,6 +78,27 @@ class MonitoringEligibilityTests(unittest.TestCase):
         self.assertEqual(result["metadata"]["unmonitored_effective_source_count"], 9)
         self.assertFalse(result["metadata"]["automatic_registry_mutation"])
 
+    def test_lifecycle_transition_has_distinct_archival_state(self) -> None:
+        sources = [_source("SRC-LIFE", "COMPANY_OPERATIONAL_CAPACITY_SIGNAL")]
+        transition = {
+            "SRC-LIFE": {
+                "lifecycle_state": "NO_LONGER_LISTED",
+                "successor_discovery_watch_id": "DISC-TEST-001",
+                "transition_sha256": "a" * 64,
+            }
+        }
+        result = eligibility.classify_monitoring(sources, [], transition)
+        row = result["sources"][0]
+        self.assertFalse(row["monitor_present"])
+        self.assertEqual(row["recommended_mode"], "LIFECYCLE_RESOLVED_ARCHIVAL")
+        self.assertIsNone(row["recommended_cadence"])
+        self.assertEqual(row["lifecycle_state"], "NO_LONGER_LISTED")
+        self.assertEqual(row["successor_discovery_watch_id"], "DISC-TEST-001")
+        self.assertEqual(result["metadata"]["lifecycle_resolved_source_count"], 1)
+        self.assertEqual(
+            result["unmonitored_mode_counts"], {"LIFECYCLE_RESOLVED_ARCHIVAL": 1}
+        )
+
     def test_duplicate_or_missing_effective_source_ids_fail(self) -> None:
         row = _source("SRC-1", "OFFICIAL_PAGE")
         with self.assertRaisesRegex(ValueError, "Duplicate effective source_id"):
