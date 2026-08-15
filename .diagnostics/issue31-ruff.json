@@ -1,0 +1,249 @@
+[
+  {
+    "cell": null,
+    "code": "EXE001",
+    "end_location": {
+      "column": 23,
+      "row": 1
+    },
+    "filename": "/home/runner/work/neuroai-observatory-data/neuroai-observatory-data/scripts/run_successor_discovery.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 1
+    },
+    "message": "Shebang is present but file is not executable",
+    "name": "shebang-not-executable",
+    "noqa_row": 2,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/shebang-not-executable"
+  },
+  {
+    "cell": null,
+    "code": "TRY004",
+    "end_location": {
+      "column": 85,
+      "row": 60
+    },
+    "filename": "/home/runner/work/neuroai-observatory-data/neuroai-observatory-data/scripts/run_successor_discovery.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 60
+    },
+    "message": "Prefer `TypeError` exception for invalid type",
+    "name": "type-check-without-type-error",
+    "noqa_row": 60,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/type-check-without-type-error"
+  },
+  {
+    "cell": null,
+    "code": "TRY004",
+    "end_location": {
+      "column": 70,
+      "row": 78
+    },
+    "filename": "/home/runner/work/neuroai-observatory-data/neuroai-observatory-data/scripts/run_successor_discovery.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 78
+    },
+    "message": "Prefer `TypeError` exception for invalid type",
+    "name": "type-check-without-type-error",
+    "noqa_row": 78,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/type-check-without-type-error"
+  },
+  {
+    "cell": null,
+    "code": "TRY004",
+    "end_location": {
+      "column": 76,
+      "row": 87
+    },
+    "filename": "/home/runner/work/neuroai-observatory-data/neuroai-observatory-data/scripts/run_successor_discovery.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 87
+    },
+    "message": "Prefer `TypeError` exception for invalid type",
+    "name": "type-check-without-type-error",
+    "noqa_row": 87,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/type-check-without-type-error"
+  },
+  {
+    "cell": null,
+    "code": "EXE001",
+    "end_location": {
+      "column": 23,
+      "row": 1
+    },
+    "filename": "/home/runner/work/neuroai-observatory-data/neuroai-observatory-data/scripts/source_lifecycle_overlay.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 1
+    },
+    "message": "Shebang is present but file is not executable",
+    "name": "shebang-not-executable",
+    "noqa_row": 2,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/shebang-not-executable"
+  },
+  {
+    "cell": null,
+    "code": "TRY004",
+    "end_location": {
+      "column": 63,
+      "row": 38
+    },
+    "filename": "/home/runner/work/neuroai-observatory-data/neuroai-observatory-data/scripts/source_lifecycle_overlay.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 38
+    },
+    "message": "Prefer `TypeError` exception for invalid type",
+    "name": "type-check-without-type-error",
+    "noqa_row": 38,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/type-check-without-type-error"
+  },
+  {
+    "cell": null,
+    "code": "TRY004",
+    "end_location": {
+      "column": 80,
+      "row": 66
+    },
+    "filename": "/home/runner/work/neuroai-observatory-data/neuroai-observatory-data/scripts/source_lifecycle_overlay.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 66
+    },
+    "message": "Prefer `TypeError` exception for invalid type",
+    "name": "type-check-without-type-error",
+    "noqa_row": 66,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/type-check-without-type-error"
+  },
+  {
+    "cell": null,
+    "code": "TRY004",
+    "end_location": {
+      "column": 66,
+      "row": 85
+    },
+    "filename": "/home/runner/work/neuroai-observatory-data/neuroai-observatory-data/scripts/source_lifecycle_overlay.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 85
+    },
+    "message": "Prefer `TypeError` exception for invalid type",
+    "name": "type-check-without-type-error",
+    "noqa_row": 85,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/type-check-without-type-error"
+  },
+  {
+    "cell": null,
+    "code": "TRY004",
+    "end_location": {
+      "column": 85,
+      "row": 89
+    },
+    "filename": "/home/runner/work/neuroai-observatory-data/neuroai-observatory-data/scripts/source_lifecycle_overlay.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 89
+    },
+    "message": "Prefer `TypeError` exception for invalid type",
+    "name": "type-check-without-type-error",
+    "noqa_row": 89,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/type-check-without-type-error"
+  },
+  {
+    "cell": null,
+    "code": "TRY004",
+    "end_location": {
+      "column": 71,
+      "row": 98
+    },
+    "filename": "/home/runner/work/neuroai-observatory-data/neuroai-observatory-data/scripts/source_lifecycle_overlay.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 98
+    },
+    "message": "Prefer `TypeError` exception for invalid type",
+    "name": "type-check-without-type-error",
+    "noqa_row": 98,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/type-check-without-type-error"
+  },
+  {
+    "cell": null,
+    "code": "TRY004",
+    "end_location": {
+      "column": 14,
+      "row": 125
+    },
+    "filename": "/home/runner/work/neuroai-observatory-data/neuroai-observatory-data/scripts/source_lifecycle_overlay.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 123
+    },
+    "message": "Prefer `TypeError` exception for invalid type",
+    "name": "type-check-without-type-error",
+    "noqa_row": 123,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/type-check-without-type-error"
+  },
+  {
+    "cell": null,
+    "code": "TRY004",
+    "end_location": {
+      "column": 89,
+      "row": 170
+    },
+    "filename": "/home/runner/work/neuroai-observatory-data/neuroai-observatory-data/scripts/source_lifecycle_overlay.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 170
+    },
+    "message": "Prefer `TypeError` exception for invalid type",
+    "name": "type-check-without-type-error",
+    "noqa_row": 170,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/type-check-without-type-error"
+  },
+  {
+    "cell": null,
+    "code": "TRY004",
+    "end_location": {
+      "column": 58,
+      "row": 259
+    },
+    "filename": "/home/runner/work/neuroai-observatory-data/neuroai-observatory-data/scripts/source_lifecycle_overlay.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 259
+    },
+    "message": "Prefer `TypeError` exception for invalid type",
+    "name": "type-check-without-type-error",
+    "noqa_row": 259,
+    "severity": "error",
+    "url": "https://docs.astral.sh/ruff/rules/type-check-without-type-error"
+  }
+]
