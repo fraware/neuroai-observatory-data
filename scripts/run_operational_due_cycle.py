@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Execute one controlled live due cycle against the lifecycle-aware noncanonical development registry."""
 
 from __future__ import annotations

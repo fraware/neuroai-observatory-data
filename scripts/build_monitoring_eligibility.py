@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Classify effective NeuroAI sources by monitoring strategy without mutating the registry."""
 
 from __future__ import annotations

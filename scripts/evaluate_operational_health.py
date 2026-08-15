@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Evaluate registered-universe operational health without escalating retrieval into scientific claims."""
 
 from __future__ import annotations
@@ -489,7 +488,7 @@ def main() -> int:
             return None
         value = json.loads(path.read_text(encoding="utf-8"))
         if not isinstance(value, dict):
-            raise ValueError(f"Expected JSON object in {path}")
+            raise TypeError(f"Expected JSON object in {path}")
         return value
 
     accountability = load(args.accountability)

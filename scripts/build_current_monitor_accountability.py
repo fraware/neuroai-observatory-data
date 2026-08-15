@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Build current operational accountability with lifecycle and noncanonical monitor-extension state."""
 
 from __future__ import annotations

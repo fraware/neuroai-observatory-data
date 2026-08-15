@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Build the noncanonical active-monitor development registry over the 248-source universe."""
 
 from __future__ import annotations
@@ -63,7 +62,7 @@ def _validate_monitor(record: dict[str, Any], *, candidate: bool) -> None:
             f"Monitor {record['monitor_id']!r} has unsupported cadence {record['cadence']!r}"
         )
     if not isinstance(record["network_access_required"], bool):
-        raise ValueError(
+        raise TypeError(
             f"Monitor {record['monitor_id']!r} network_access_required must be boolean"
         )
     if (
