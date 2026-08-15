@@ -1,0 +1,65 @@
+name: Format issue 31 targeted once
+
+on:
+  push:
+    branches:
+      - agent/31-lifecycle-successor-discovery
+    paths:
+      - ".github/workflows/format-31-targeted-once.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: agent/31-lifecycle-successor-discovery
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Checkout exact merged workbench lifecycle stack
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: fraware/neuroai-workbench
+          ref: 428b4e8d797c0729bc4f36678daec88711688689
+          path: workbench
+      - name: Install hash-locked exact workbench runtime
+        run: |
+          python -m pip install --require-hashes -r workbench/requirements/constraints.txt
+          python -m pip install --no-deps ./workbench
+      - name: Apply Ruff only to issue 31 Python surfaces
+        run: |
+          files=(
+            scripts/build_current_monitor_accountability.py
+            scripts/build_development_monitor_registry.py
+            scripts/build_monitoring_eligibility.py
+            scripts/evaluate_operational_health.py
+            scripts/run_operational_due_cycle.py
+            scripts/run_successor_discovery.py
+            scripts/source_lifecycle_overlay.py
+            tests/test_current_monitor_accountability.py
+            tests/test_development_monitor_registry.py
+            tests/test_monitoring_transition_manifest.py
+            tests/test_operational_health.py
+            tests/test_operational_health_route_resilience.py
+            tests/test_source_lifecycle_overlay.py
+            tests/test_successor_discovery.py
+          )
+          python -m ruff format "${files[@]}"
+          python -m ruff check --fix "${files[@]}"
+      - name: Commit mechanical changes
+        run: |
+          rm -rf workbench
+          if git diff --quiet; then
+            echo "No changes required"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts tests
+          git commit -m "Apply Ruff to issue 31 operational surfaces"
+          git push origin HEAD:agent/31-lifecycle-successor-discovery
