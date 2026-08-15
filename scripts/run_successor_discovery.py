@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Run bounded official-surface successor discovery without mutating source or assessment state."""
 
 from __future__ import annotations
@@ -57,7 +56,7 @@ def verify_watch_config(
     metadata = config.get("metadata")
     watches = config.get("watches")
     if not isinstance(metadata, dict) or not isinstance(watches, list):
-        raise ValueError("Successor-discovery config requires metadata and watches")
+        raise TypeError("Successor-discovery config requires metadata and watches")
     if metadata.get("status") != STATUS:
         raise ValueError("Successor-discovery config lost its noncanonical status")
     if metadata.get("automatic_source_registration") is not False:
@@ -75,7 +74,7 @@ def verify_watch_config(
 
     transitions_raw = overlay.get("transitions")
     if not isinstance(transitions_raw, list):
-        raise ValueError("Lifecycle overlay transitions are missing")
+        raise TypeError("Lifecycle overlay transitions are missing")
     transitions = {
         str(item["source_id"]): item
         for item in transitions_raw
@@ -84,7 +83,7 @@ def verify_watch_config(
     by_id: dict[str, dict[str, Any]] = {}
     for watch in watches:
         if not isinstance(watch, dict):
-            raise ValueError("Successor-discovery watch must be an object")
+            raise TypeError("Successor-discovery watch must be an object")
         watch_id = str(watch.get("watch_id") or "")
         if not watch_id or watch_id in by_id:
             raise ValueError(
