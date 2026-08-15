@@ -3,6 +3,7 @@ name: Operational live due cycle
 on:
   push:
     branches:
+      - main
       - agent/31-lifecycle-successor-discovery
     paths:
       - "scripts/run_operational_due_cycle.py"
@@ -78,11 +79,27 @@ jobs:
         run: |
           python -m pip install --require-hashes -r workbench/requirements/constraints.txt
           python -m pip install --no-deps ./workbench
-      - name: Run repository-wide regression and quality gates
+      - name: Run full regression and issue-surface quality gates
         run: |
+          files=(
+            scripts/build_current_monitor_accountability.py
+            scripts/build_development_monitor_registry.py
+            scripts/build_monitoring_eligibility.py
+            scripts/evaluate_operational_health.py
+            scripts/run_operational_due_cycle.py
+            scripts/run_successor_discovery.py
+            scripts/source_lifecycle_overlay.py
+            tests/test_current_monitor_accountability.py
+            tests/test_development_monitor_registry.py
+            tests/test_monitoring_transition_manifest.py
+            tests/test_operational_health.py
+            tests/test_operational_health_route_resilience.py
+            tests/test_source_lifecycle_overlay.py
+            tests/test_successor_discovery.py
+          )
           python -m compileall -q scripts tests
-          python -m ruff format --check scripts tests
-          python -m ruff check scripts tests
+          python -m ruff format --check "${files[@]}"
+          python -m ruff check "${files[@]}"
           python -m unittest discover -s tests -v
       - name: Execute lifecycle-aware live due cycle and exact-resume proof
         run: |
