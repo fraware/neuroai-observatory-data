@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Validate evidence-bound source lifecycle overlays used by development monitoring."""
 
 from __future__ import annotations
@@ -35,7 +34,7 @@ def sha256(value: Any) -> str:
 def load_json(path: Path) -> dict[str, Any]:
     payload = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(payload, dict):
-        raise ValueError(f"{path} must contain a JSON object")
+        raise TypeError(f"{path} must contain a JSON object")
     return payload
 
 
@@ -63,7 +62,7 @@ def verify_lifecycle_overlay(
     metadata = overlay.get("metadata")
     transitions = overlay.get("transitions")
     if not isinstance(metadata, dict) or not isinstance(transitions, list):
-        raise ValueError("Lifecycle overlay requires metadata and transitions")
+        raise TypeError("Lifecycle overlay requires metadata and transitions")
     if metadata.get("status") != STATUS:
         raise ValueError("Lifecycle overlay lost its explicit noncanonical status")
     if (
@@ -82,11 +81,11 @@ def verify_lifecycle_overlay(
 
     route_sources_raw = route_policy.get("sources")
     if not isinstance(route_sources_raw, list):
-        raise ValueError("Route policy requires a sources array")
+        raise TypeError("Route policy requires a sources array")
     route_sources: dict[str, dict[str, Any]] = {}
     for item in route_sources_raw:
         if not isinstance(item, dict) or not isinstance(item.get("source_id"), str):
-            raise ValueError("Route policy source must be an object with source_id")
+            raise TypeError("Route policy source must be an object with source_id")
         source_id = str(item["source_id"])
         if source_id in route_sources:
             raise ValueError(f"Duplicate route-policy source_id {source_id!r}")
@@ -95,7 +94,7 @@ def verify_lifecycle_overlay(
     by_source: dict[str, dict[str, Any]] = {}
     for transition in transitions:
         if not isinstance(transition, dict):
-            raise ValueError("Lifecycle transition must be an object")
+            raise TypeError("Lifecycle transition must be an object")
         source_id = str(transition.get("source_id") or "")
         if not source_id:
             raise ValueError("Lifecycle transition requires source_id")
@@ -120,7 +119,7 @@ def verify_lifecycle_overlay(
             )
         lifecycle = source_policy.get("lifecycle_resolution")
         if not isinstance(lifecycle, dict):
-            raise ValueError(
+            raise TypeError(
                 f"Lifecycle transition {source_id} lacks route-policy lifecycle assertion"
             )
 
@@ -167,7 +166,7 @@ def verify_lifecycle_overlay(
 
         evidence = transition.get("live_evidence")
         if not isinstance(evidence, dict):
-            raise ValueError(f"Lifecycle transition {source_id} requires live_evidence")
+            raise TypeError(f"Lifecycle transition {source_id} requires live_evidence")
         if (
             not isinstance(evidence.get("workflow_run_id"), int)
             or evidence["workflow_run_id"] <= 0
@@ -256,7 +255,7 @@ def build_active_route_policy(
 ) -> dict[str, Any]:
     raw_sources = route_policy.get("sources")
     if not isinstance(raw_sources, list):
-        raise ValueError("Route policy requires sources")
+        raise TypeError("Route policy requires sources")
     active_sources = [
         json.loads(json.dumps(item))
         for item in raw_sources
