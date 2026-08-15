@@ -68,6 +68,14 @@ class SourceLifecycleOverlayTests(unittest.TestCase):
         self.assertEqual(evidence["publisher_listing_http_status"], 200)
         self.assertFalse(evidence["publisher_listing_identity_present"])
 
+    def test_transition_is_non_mutating_and_does_not_register_successor(self) -> None:
+        self.assertFalse(self.overlay["metadata"]["automatic_source_mutation"])
+        self.assertFalse(self.overlay["metadata"]["automatic_assessment_mutation"])
+        transition = self.overlay["transitions"][0]
+        self.assertEqual(transition["source_id"], "SRC-PR-015")
+        self.assertFalse(transition["evidence_substitution_allowed"])
+        self.assertNotIn("successor_source_id", transition)
+
     def test_active_route_policy_excludes_lifecycle_source_only(self) -> None:
         transitions = self._verify()
         active = build_active_route_policy(self.route_policy, transitions)
