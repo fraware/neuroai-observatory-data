@@ -16,6 +16,7 @@ from source_lifecycle_overlay import (
     DEFAULT_ROUTE_POLICY,
     build_active_route_policy,
     load_json,
+    sha256,
     verify_lifecycle_overlay,
 )
 
@@ -85,6 +86,16 @@ class SourceLifecycleOverlayTests(unittest.TestCase):
             active["metadata"]["excluded_lifecycle_source_ids"], ["SRC-PR-015"]
         )
         self.assertEqual(active["metadata"]["source_count"], 1)
+
+    def test_active_route_policy_is_exactly_bound_to_parent_policy(self) -> None:
+        transitions = self._verify()
+        active = build_active_route_policy(self.route_policy, transitions)
+        self.assertEqual(
+            active["metadata"]["status"], "DERIVED_ACTIVE_ROUTE_POLICY_NOT_CANONICAL"
+        )
+        self.assertEqual(
+            active["metadata"]["derived_from_policy_sha256"], sha256(self.route_policy)
+        )
 
     def test_route_policy_drift_fails_closed(self) -> None:
         policy = copy.deepcopy(self.route_policy)
