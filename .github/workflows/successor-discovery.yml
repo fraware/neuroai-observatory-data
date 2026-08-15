@@ -3,6 +3,7 @@ name: Successor discovery
 on:
   push:
     branches:
+      - main
       - agent/31-lifecycle-successor-discovery
     paths:
       - "scripts/run_successor_discovery.py"
