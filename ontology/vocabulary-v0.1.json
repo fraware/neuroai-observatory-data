@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "vocabulary_id": "NEUROAI-OBSERVATORY-VNEXT-VOCABULARY",
+  "version": "0.1.0",
+  "status": "PROPOSED",
+  "authority_boundary": "Architecture vocabulary only. This file creates no production-data, scientific, clinical, regulatory, conformance, institutional, release, or UNESCO authority.",
+  "canonical_object_types": [
+    "ORGANIZATION",
+    "PERSON",
+    "SYSTEM",
+    "PRODUCT",
+    "MODEL",
+    "DATASET",
+    "PUBLICATION",
+    "TRIAL",
+    "GRANT",
+    "PATENT_FAMILY",
+    "PATENT_DOCUMENT",
+    "FACILITY",
+    "REGULATORY_EVENT",
+    "SAFETY_EVENT",
+    "FUNDING_EVENT",
+    "PARTNERSHIP_EVENT",
+    "SOURCE",
+    "SOURCE_OBSERVATION",
+    "ASSERTION",
+    "RELATIONSHIP",
+    "DERIVED_INDICATOR"
+  ],
+  "record_kinds": [
+    "ENTITY",
+    "ASSERTION",
+    "RELATIONSHIP",
+    "EVENT",
+    "SOURCE",
+    "SOURCE_OBSERVATION",
+    "SOURCE_UNIVERSE",
+    "IDENTITY_BINDING",
+    "RESOLUTION_CASE",
+    "COVERAGE_REPORT",
+    "DERIVED_INDICATOR"
+  ],
+  "evidence_states": [
+    "OFFICIAL_PRIMARY_SOURCE",
+    "PEER_REVIEWED_SOURCE",
+    "REGISTRY_SOURCE",
+    "COMPANY_STATED",
+    "SECONDARY_CORROBORATED",
+    "SECONDARY_ONLY",
+    "CONFLICTED",
+    "INACCESSIBLE",
+    "UNRESOLVED",
+    "SUPERSEDED"
+  ],
+  "rights_classes": [
+    "PUBLIC_OPEN",
+    "PUBLIC_TERMS",
+    "LICENSED",
+    "PROTECTED",
+    "UNKNOWN"
+  ],
+  "resolution_states": [
+    "CANDIDATE",
+    "ACCEPTED",
+    "REJECTED",
+    "CONFLICTED",
+    "UNRESOLVED",
+    "SUPERSEDED",
+    "WITHDRAWN"
+  ],
+  "source_universe_priorities": [
+    "P0",
+    "P1",
+    "P2"
+  ],
+  "temporal_semantics": {
+    "valid_time_fields": [
+      "valid_from",
+      "valid_to"
+    ],
+    "transaction_time_fields": [
+      "accepted_at",
+      "superseded_at"
+    ],
+    "source_observation_time_fields": [
+      "retrieved_at",
+      "source_data_timestamp"
+    ],
+    "rule": "Missing or unknown temporal bounds remain explicit unknowns; retrieval time must not substitute for valid time or canonical acceptance time."
+  },
+  "authority_rules": [
+    "A source observation records source state and does not establish scientific truth.",
+    "A relationship or graph path does not establish assessment conformance, safety, efficacy, or regulatory authorization beyond the exact underlying decision.",
+    "Derived indicators are reproducible analytical outputs and cannot silently mutate canonical records.",
+    "Approximate entity matching cannot silently merge canonical identities.",
+    "Historical governing releases are immutable; corrections create successors.",
+    "Coverage claims are scoped to an identified source-universe version."
+  ]
+}

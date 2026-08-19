@@ -24,14 +24,26 @@ Checksum verification, schema validation, and signed release mechanics confirm *
 
 Missing or inaccessible public evidence is typed explicitly; it is never converted into automatic failure by manifest tooling alone.
 
+## vNext intelligence graph
+
+The vNext programme evolves the observatory from an organization-centric corpus into a source-controlled **entity–event–evidence graph** spanning science, clinical and regulatory development, public funding, patents/IP, capital, and neural-data infrastructure.
+
+The architecture is governed by [ADR 0001](docs/adr/0001-vnext-knowledge-graph-architecture.md). Its machine-readable vocabulary skeleton is in [`ontology/vocabulary-v0.1.json`](ontology/vocabulary-v0.1.json), and the initial migration boundaries are recorded in [vNext migration non-goals](docs/migration/vnext-non-goals.md).
+
+The architecture change does not mutate production data or authorize a new governing release. Existing releases remain immutable predecessors.
+
 ## Layout
 
 ```text
-schemas/                 JSON Schema for release descriptors and future record types
-releases/                Release descriptors (metadata + manifest references)
+schemas/                 JSON Schema for release descriptors and canonical record types
+ontology/                Versioned vNext controlled vocabulary and interoperability mappings
+releases/                Release descriptors, records, manifests, and verification material
 fixtures/                Synthetic public examples only; never production captures
-scripts/                 Deterministic SHA-256 manifest generation and verification
-docs/                    Branch protection and signed-release policy
+curation/                Controlled curation and transition records
+supplemental_records/    Public supplemental records outside governing release sets
+scripts/                 Deterministic build, analysis, SHA-256 manifest, and verification tooling
+docs/                    Architecture decisions, migration constraints, governance, and release policy
+tests/                   Deterministic and adversarial validation
 WORKBENCH_VERSION        Pinned compatible neuroai-workbench package version
 ```
 
