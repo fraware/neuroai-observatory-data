@@ -3,8 +3,8 @@
   "vocabulary_id": "NEUROAI-OBSERVATORY-VNEXT-VOCABULARY",
   "version": "0.1.0",
   "status": "PROPOSED",
-  "authority_boundary": "Architecture vocabulary only. This file creates no production-data, scientific, clinical, regulatory, conformance, institutional, release, or UNESCO authority.",
-  "canonical_object_types": [
+  "authority_boundary": "Architecture and schema vocabulary only. This file creates no production-data, scientific, clinical, regulatory, conformance, institutional, release, or UNESCO authority.",
+  "entity_types": [
     "ORGANIZATION",
     "PERSON",
     "SYSTEM",
@@ -16,16 +16,30 @@
     "GRANT",
     "PATENT_FAMILY",
     "PATENT_DOCUMENT",
-    "FACILITY",
-    "REGULATORY_EVENT",
-    "SAFETY_EVENT",
-    "FUNDING_EVENT",
-    "PARTNERSHIP_EVENT",
-    "SOURCE",
-    "SOURCE_OBSERVATION",
-    "ASSERTION",
-    "RELATIONSHIP",
-    "DERIVED_INDICATOR"
+    "FACILITY"
+  ],
+  "event_types": [
+    "REGULATORY_DECISION",
+    "FINANCING",
+    "GRANT_AWARD",
+    "TRIAL_STATUS_CHANGE",
+    "SAFETY_ACTION",
+    "PARTNERSHIP",
+    "ACQUISITION",
+    "PUBLICATION_UPDATE",
+    "DATASET_RELEASE",
+    "PATENT_LEGAL_STATUS_CHANGE",
+    "OTHER"
+  ],
+  "value_types": [
+    "STRING",
+    "NUMBER",
+    "INTEGER",
+    "BOOLEAN",
+    "DATE",
+    "DATETIME",
+    "URI",
+    "IDENTIFIER"
   ],
   "record_kinds": [
     "ENTITY",
@@ -79,6 +93,7 @@
       "valid_to"
     ],
     "transaction_time_fields": [
+      "recorded_at",
       "accepted_at",
       "superseded_at"
     ],

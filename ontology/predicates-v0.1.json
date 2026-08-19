@@ -1,0 +1,183 @@
+{
+  "predicate_registry_id": "NEUROAI-OBSERVATORY-VNEXT-PREDICATES",
+  "version": "0.1.0",
+  "status": "PROPOSED",
+  "authority_boundary": "Predicate typing constrains graph structure. It does not establish the truth, weight, applicability, safety, efficacy, authorization, or conformance of any edge.",
+  "predicates": [
+    {
+      "id": "CANONICAL_NAME",
+      "object_mode": "VALUE",
+      "value_types": [
+        "STRING"
+      ],
+      "subject_types": [
+        "ORGANIZATION",
+        "PERSON",
+        "SYSTEM",
+        "PRODUCT",
+        "MODEL",
+        "DATASET",
+        "PUBLICATION",
+        "TRIAL",
+        "GRANT",
+        "PATENT_FAMILY",
+        "PATENT_DOCUMENT",
+        "FACILITY"
+      ]
+    },
+    {
+      "id": "WEBSITE",
+      "object_mode": "VALUE",
+      "value_types": [
+        "URI"
+      ],
+      "subject_types": [
+        "ORGANIZATION",
+        "SYSTEM",
+        "PRODUCT",
+        "DATASET",
+        "FACILITY"
+      ]
+    },
+    {
+      "id": "DEVELOPS",
+      "object_mode": "ENTITY",
+      "subject_types": [
+        "ORGANIZATION"
+      ],
+      "object_types": [
+        "SYSTEM",
+        "PRODUCT",
+        "MODEL"
+      ]
+    },
+    {
+      "id": "EVALUATED_IN",
+      "object_mode": "ENTITY",
+      "subject_types": [
+        "SYSTEM",
+        "PRODUCT",
+        "MODEL"
+      ],
+      "object_types": [
+        "TRIAL",
+        "PUBLICATION"
+      ]
+    },
+    {
+      "id": "USES_MODEL",
+      "object_mode": "ENTITY",
+      "subject_types": [
+        "SYSTEM",
+        "PRODUCT"
+      ],
+      "object_types": [
+        "MODEL"
+      ]
+    },
+    {
+      "id": "USES_DATASET",
+      "object_mode": "ENTITY",
+      "subject_types": [
+        "MODEL",
+        "PUBLICATION",
+        "SYSTEM"
+      ],
+      "object_types": [
+        "DATASET"
+      ]
+    },
+    {
+      "id": "CONDUCTED_AT",
+      "object_mode": "ENTITY",
+      "subject_types": [
+        "TRIAL"
+      ],
+      "object_types": [
+        "FACILITY"
+      ]
+    },
+    {
+      "id": "AUTHORED_BY",
+      "object_mode": "ENTITY",
+      "subject_types": [
+        "PUBLICATION"
+      ],
+      "object_types": [
+        "PERSON"
+      ]
+    },
+    {
+      "id": "AFFILIATED_WITH",
+      "object_mode": "ENTITY",
+      "subject_types": [
+        "PERSON"
+      ],
+      "object_types": [
+        "ORGANIZATION",
+        "FACILITY"
+      ]
+    },
+    {
+      "id": "FUNDED_BY",
+      "object_mode": "ENTITY",
+      "subject_types": [
+        "GRANT",
+        "PUBLICATION",
+        "TRIAL",
+        "ORGANIZATION",
+        "PERSON"
+      ],
+      "object_types": [
+        "ORGANIZATION"
+      ]
+    },
+    {
+      "id": "ASSIGNED_TO",
+      "object_mode": "ENTITY",
+      "subject_types": [
+        "PATENT_FAMILY",
+        "PATENT_DOCUMENT"
+      ],
+      "object_types": [
+        "ORGANIZATION",
+        "PERSON"
+      ]
+    },
+    {
+      "id": "INVENTED_BY",
+      "object_mode": "ENTITY",
+      "subject_types": [
+        "PATENT_FAMILY",
+        "PATENT_DOCUMENT"
+      ],
+      "object_types": [
+        "PERSON"
+      ]
+    },
+    {
+      "id": "INVESTED_IN",
+      "object_mode": "ENTITY",
+      "subject_types": [
+        "ORGANIZATION",
+        "PERSON"
+      ],
+      "object_types": [
+        "ORGANIZATION"
+      ]
+    },
+    {
+      "id": "PRODUCED_BY",
+      "object_mode": "ENTITY",
+      "subject_types": [
+        "DATASET",
+        "PUBLICATION",
+        "MODEL"
+      ],
+      "object_types": [
+        "ORGANIZATION",
+        "PERSON"
+      ]
+    }
+  ]
+}

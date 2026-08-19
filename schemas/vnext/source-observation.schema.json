@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/fraware/neuroai-observatory-data/schemas/vnext/source-observation.schema.json",
+  "title": "vNext source observation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "record_kind",
+    "source_observation_id",
+    "source_universe_id",
+    "retrieved_at",
+    "request_fingerprint",
+    "content_sha256",
+    "retrieval_state",
+    "rights_class",
+    "parser_version"
+  ],
+  "properties": {
+    "record_kind": {
+      "const": "SOURCE_OBSERVATION"
+    },
+    "source_observation_id": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9-]{2,127}$"
+    },
+    "source_universe_id": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9-]{2,127}$"
+    },
+    "source_native_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "retrieved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source_data_timestamp": {
+      "type": "string",
+      "minLength": 1
+    },
+    "request_fingerprint": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "content_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "retrieval_state": {
+      "enum": [
+        "SUCCESS",
+        "NOT_MODIFIED",
+        "HTTP_ERROR",
+        "TIMEOUT",
+        "ACCESS_DENIED",
+        "PARSE_ERROR",
+        "NOT_APPLICABLE"
+      ]
+    },
+    "rights_class": {
+      "enum": [
+        "PUBLIC_OPEN",
+        "PUBLIC_TERMS",
+        "LICENSED",
+        "PROTECTED",
+        "UNKNOWN"
+      ]
+    },
+    "source_locator": {
+      "type": "string",
+      "minLength": 1
+    },
+    "custody_pointer": {
+      "type": "string",
+      "minLength": 1
+    },
+    "content_available": {
+      "type": "boolean"
+    },
+    "parser_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "supersedes_observation_id": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9-]{2,127}$"
+    }
+  }
+}

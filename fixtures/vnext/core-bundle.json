@@ -1,0 +1,129 @@
+{
+  "bundle_id": "VNX-SYNTHETIC-CORE-001",
+  "authority_boundary": "Synthetic contract fixture only; no real-world claim or canonical release authority.",
+  "source_observations": [
+    {
+      "record_kind": "SOURCE_OBSERVATION",
+      "source_observation_id": "OBS-SYN-0001",
+      "source_universe_id": "SU-SYNTHETIC-CORE-V1",
+      "source_native_id": "synthetic-source-1",
+      "retrieved_at": "2026-08-19T18:10:00Z",
+      "source_data_timestamp": "2026-08-19",
+      "request_fingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "retrieval_state": "SUCCESS",
+      "rights_class": "PUBLIC_OPEN",
+      "source_locator": "https://example.invalid/neuroai-synthetic-source",
+      "custody_pointer": "fixture://synthetic-source-1",
+      "content_available": true,
+      "parser_version": "synthetic-1"
+    }
+  ],
+  "entities": [
+    {
+      "record_kind": "ENTITY",
+      "entity_id": "ORG-SYN-0001",
+      "entity_type": "ORGANIZATION",
+      "canonical_name": "Synthetic Neurotech Laboratory",
+      "resolution_state": "ACCEPTED",
+      "recorded_at": "2026-08-19T18:10:00Z",
+      "accepted_at": "2026-08-19T18:10:00Z",
+      "source_observation_ids": [
+        "OBS-SYN-0001"
+      ]
+    },
+    {
+      "record_kind": "ENTITY",
+      "entity_id": "SYS-SYN-0001",
+      "entity_type": "SYSTEM",
+      "canonical_name": "Synthetic Interface System",
+      "resolution_state": "ACCEPTED",
+      "recorded_at": "2026-08-19T18:10:00Z",
+      "accepted_at": "2026-08-19T18:10:00Z",
+      "source_observation_ids": [
+        "OBS-SYN-0001"
+      ]
+    },
+    {
+      "record_kind": "ENTITY",
+      "entity_id": "TRL-SYN-0001",
+      "entity_type": "TRIAL",
+      "canonical_name": "Synthetic Interface Study",
+      "resolution_state": "ACCEPTED",
+      "recorded_at": "2026-08-19T18:10:00Z",
+      "accepted_at": "2026-08-19T18:10:00Z",
+      "source_observation_ids": [
+        "OBS-SYN-0001"
+      ]
+    }
+  ],
+  "assertions": [
+    {
+      "record_kind": "ASSERTION",
+      "assertion_id": "AST-SYN-0001",
+      "subject_id": "ORG-SYN-0001",
+      "predicate": "CANONICAL_NAME",
+      "value_type": "STRING",
+      "value": "Synthetic Neurotech Laboratory",
+      "evidence_state": "OFFICIAL_PRIMARY_SOURCE",
+      "resolution_state": "ACCEPTED",
+      "recorded_at": "2026-08-19T18:10:00Z",
+      "accepted_at": "2026-08-19T18:10:00Z",
+      "source_observation_ids": [
+        "OBS-SYN-0001"
+      ]
+    },
+    {
+      "record_kind": "ASSERTION",
+      "assertion_id": "AST-SYN-0002",
+      "subject_id": "SYS-SYN-0001",
+      "predicate": "EVALUATED_IN",
+      "object_id": "TRL-SYN-0001",
+      "evidence_state": "REGISTRY_SOURCE",
+      "resolution_state": "ACCEPTED",
+      "recorded_at": "2026-08-19T18:10:00Z",
+      "accepted_at": "2026-08-19T18:10:00Z",
+      "source_observation_ids": [
+        "OBS-SYN-0001"
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "record_kind": "RELATIONSHIP",
+      "relationship_id": "REL-SYN-0001",
+      "subject_id": "ORG-SYN-0001",
+      "predicate": "DEVELOPS",
+      "object_id": "SYS-SYN-0001",
+      "evidence_state": "OFFICIAL_PRIMARY_SOURCE",
+      "resolution_state": "ACCEPTED",
+      "recorded_at": "2026-08-19T18:10:00Z",
+      "accepted_at": "2026-08-19T18:10:00Z",
+      "source_observation_ids": [
+        "OBS-SYN-0001"
+      ]
+    }
+  ],
+  "events": [
+    {
+      "record_kind": "EVENT",
+      "event_id": "EVT-SYN-0001",
+      "event_type": "REGULATORY_DECISION",
+      "participants": [
+        {
+          "entity_id": "SYS-SYN-0001",
+          "role": "SUBJECT"
+        }
+      ],
+      "occurred_at": "2026-08-19",
+      "evidence_state": "OFFICIAL_PRIMARY_SOURCE",
+      "resolution_state": "ACCEPTED",
+      "recorded_at": "2026-08-19T18:10:00Z",
+      "accepted_at": "2026-08-19T18:10:00Z",
+      "source_observation_ids": [
+        "OBS-SYN-0001"
+      ],
+      "summary": "Synthetic event used only to exercise the vNext core contract."
+    }
+  ]
+}
