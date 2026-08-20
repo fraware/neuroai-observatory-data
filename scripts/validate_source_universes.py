@@ -27,6 +27,7 @@ def _load(name):
 
 SU_VALIDATOR=Draft202012Validator(_load("source-universe.schema.json"), format_checker=FormatChecker())
 COV_VALIDATOR=Draft202012Validator(_load("coverage-report.schema.json"), format_checker=FormatChecker())
+REG_VALIDATOR=Draft202012Validator(_load("source-universe-registry.schema.json"), format_checker=FormatChecker())
 
 def _structural(validator,obj,label):
     errors=sorted(validator.iter_errors(obj), key=lambda e:list(e.path))
@@ -60,8 +61,12 @@ def validate_universe(obj):
     return True
 
 def validate_registry(registry):
+    _structural(REG_VALIDATOR,registry,registry.get("registry_id","SOURCE_UNIVERSE_REGISTRY"))
     if registry.get("status")!="PLANNING_CONTROL_METADATA_NOT_CANONICAL_PRODUCTION_DATA":
         raise ValueError("registry authority state must remain planning-only")
+    fragment_paths=[f["path"] for f in registry["fragments"]]
+    if len(fragment_paths)!=len(set(fragment_paths)):
+        raise ValueError("duplicate registry fragment path")
     records=load_registry_records(registry)
     seen=set()
     for obj in records:
@@ -82,13 +87,7 @@ def _expected_rates(c):
     if eligible==0:
         return {k:None for k in ("discovery","resolution","sourcing","temporal_verification","linkage")}
     s=c["states"]
-    return {
-        "discovery":s["discovered"]/eligible,
-        "resolution":s["resolved"]/eligible,
-        "sourcing":s["sourced"]/eligible,
-        "temporal_verification":s["temporally_verified"]/eligible,
-        "linkage":s["linked"]/eligible,
-    }
+    return {"discovery":s["discovered"]/eligible,"resolution":s["resolved"]/eligible,"sourcing":s["sourced"]/eligible,"temporal_verification":s["temporally_verified"]/eligible,"linkage":s["linked"]/eligible}
 
 def validate_coverage(c,universe=None):
     _structural(COV_VALIDATOR,c,c.get("coverage_id","COVERAGE_REPORT"))
