@@ -1,0 +1,42 @@
+{
+  "fragment_id": "SU-FRAGMENT-CLINICAL-REGULATORY-V0-1",
+  "schema_version": "0.1.0",
+  "records": [
+    {
+      "universe_id": "SU-CLIN-CTGOV", "schema_version": "0.1.0", "name": "ClinicalTrials.gov registered studies", "domain": "CLINICAL", "priority": "P0", "planning_state": "VERIFIED_INTERFACE",
+      "provider": {"name": "U.S. National Library of Medicine", "documentation_url": "https://clinicaltrials.gov/data-api/about-api", "jurisdiction": null},
+      "interface": {"access_mode": "REST_API", "base_url": "https://clinicaltrials.gov/api/v2/studies", "authentication_class": "NONE_PUBLIC_READ", "pagination_or_exhaustion": "Freeze the exact request or extraction contract and exhaust the provider-defined result traversal; record every page, cursor, export, or release boundary.", "machine_readable": true},
+      "rights": {"access_rights_class": "OPEN_PUBLIC", "redistribution_rights_class": "SOURCE_TERMS_GOVERN", "raw_bytes_publication": "REQUIRES_CASE_REVIEW", "rights_note": "Source terms remain controlling; public graph releases publish only fields permitted for redistribution."},
+      "freeze": {"freeze_unit": "API_DATABASE_STATE", "query_or_extract_identity": "frozen query parameters plus page-token exhaustion", "source_state_identity": "ClinicalTrials.gov dataTimestamp plus retrieval timestamp", "content_digest_required": true},
+      "temporal_scope": {"valid_time_model": "TRIAL_LIFECYCLE", "transaction_time_required": true},
+      "update_semantics": {"cadence_state": "WEEKDAY", "change_detection": "VERSION_DIFF"},
+      "closure": {"closure_type": "ENUMERABLE_QUERY_RESULT", "denominator_method": "API_TOTAL", "allowed_completeness_claim": "COMPLETE_WITHIN_FROZEN_QUERY"},
+      "limitations": ["Registry coverage does not imply every NeuroAI study is registered or discoverable under one terminology query."],
+      "authority_boundary": "Registry inclusion defines an acquisition and coverage control surface only. It does not establish source truth, scientific validity, regulatory authorization, safety, conformance, institutional endorsement, or production ingestion."
+    },
+    {
+      "universe_id": "SU-REG-OPENFDA-DEVICE", "schema_version": "0.1.0", "name": "openFDA device regulatory datasets", "domain": "REGULATORY", "priority": "P0", "planning_state": "VERIFIED_INTERFACE",
+      "provider": {"name": "U.S. Food and Drug Administration", "documentation_url": "https://open.fda.gov/apis/device/", "jurisdiction": null},
+      "interface": {"access_mode": "REST_API", "base_url": "https://api.fda.gov/device", "authentication_class": "NONE_PUBLIC_READ", "pagination_or_exhaustion": "Freeze the exact request or extraction contract and exhaust the provider-defined result traversal; record every page, cursor, export, or release boundary.", "machine_readable": true},
+      "rights": {"access_rights_class": "OPEN_PUBLIC", "redistribution_rights_class": "SOURCE_TERMS_GOVERN", "raw_bytes_publication": "REQUIRES_CASE_REVIEW", "rights_note": "Source terms remain controlling; public graph releases publish only fields permitted for redistribution."},
+      "freeze": {"freeze_unit": "QUERY", "query_or_extract_identity": "endpoint-specific frozen search/count contract; each device dataset is a distinct child extraction", "source_state_identity": "endpoint dataset update state plus retrieval timestamp", "content_digest_required": true},
+      "temporal_scope": {"valid_time_model": "REGULATORY_LIFECYCLE", "transaction_time_required": true},
+      "update_semantics": {"cadence_state": "PROVIDER_DEFINED", "change_detection": "EVENT_INCREMENT"},
+      "closure": {"closure_type": "ENUMERABLE_QUERY_RESULT", "denominator_method": "API_TOTAL", "allowed_completeness_claim": "COMPLETE_WITHIN_FROZEN_QUERY"},
+      "limitations": ["510(k), PMA, classification, UDI, recall, enforcement and adverse-event datasets have different semantics and must remain typed separately."],
+      "authority_boundary": "Registry inclusion defines an acquisition and coverage control surface only. It does not establish source truth, scientific validity, regulatory authorization, safety, conformance, institutional endorsement, or production ingestion."
+    },
+    {
+      "universe_id": "SU-REG-EUDAMED-PUBLIC", "schema_version": "0.1.0", "name": "EUDAMED public medical-device modules", "domain": "REGULATORY", "priority": "P0", "planning_state": "VERIFIED_INTERFACE",
+      "provider": {"name": "European Commission", "documentation_url": "https://health.ec.europa.eu/medical-devices-eudamed/overview_en", "jurisdiction": null},
+      "interface": {"access_mode": "WEB_EXPORT", "base_url": "https://ec.europa.eu/tools/eudamed/", "authentication_class": "NONE_PUBLIC_READ", "pagination_or_exhaustion": "Freeze the exact request or extraction contract and exhaust the provider-defined result traversal; record every page, cursor, export, or release boundary.", "machine_readable": true},
+      "rights": {"access_rights_class": "PUBLIC_WITH_TERMS", "redistribution_rights_class": "SOURCE_TERMS_GOVERN", "raw_bytes_publication": "REQUIRES_CASE_REVIEW", "rights_note": "Source terms remain controlling; public graph releases publish only fields permitted for redistribution."},
+      "freeze": {"freeze_unit": "API_DATABASE_STATE", "query_or_extract_identity": "module-specific public search or export contract with exact module identity", "source_state_identity": "module state plus retrieval timestamp", "content_digest_required": true},
+      "temporal_scope": {"valid_time_model": "REGULATORY_LIFECYCLE", "transaction_time_required": true},
+      "update_semantics": {"cadence_state": "PROVIDER_DEFINED", "change_detection": "VERSION_DIFF"},
+      "closure": {"closure_type": "DECLARED_SEARCH_UNIVERSE", "denominator_method": "DECLARED_CANDIDATE_SET", "allowed_completeness_claim": "COMPLETE_WITHIN_DECLARED_CANDIDATE_SET"},
+      "limitations": ["Module maturity and public export capabilities vary; registry scope must identify the exact EUDAMED module and date."],
+      "authority_boundary": "Registry inclusion defines an acquisition and coverage control surface only. It does not establish source truth, scientific validity, regulatory authorization, safety, conformance, institutional endorsement, or production ingestion."
+    }
+  ]
+}
