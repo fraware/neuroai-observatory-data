@@ -1,0 +1,42 @@
+{
+  "fragment_id": "SU-FRAGMENT-SCIENCE-V0-1",
+  "schema_version": "0.1.0",
+  "records": [
+    {
+      "universe_id": "SU-SCI-CROSSREF", "schema_version": "0.1.0", "name": "Crossref scholarly metadata", "domain": "SCIENCE", "priority": "P0", "planning_state": "VERIFIED_INTERFACE",
+      "provider": {"name": "Crossref", "documentation_url": "https://www.crossref.org/documentation/retrieve-metadata/rest-api/", "jurisdiction": null},
+      "interface": {"access_mode": "REST_API", "base_url": "https://api.crossref.org/works", "authentication_class": "NONE_PUBLIC_READ", "pagination_or_exhaustion": "Freeze the exact request or extraction contract and exhaust the provider-defined result traversal; record every page, cursor, export, or release boundary.", "machine_readable": true},
+      "rights": {"access_rights_class": "PUBLIC_WITH_TERMS", "redistribution_rights_class": "SOURCE_TERMS_GOVERN", "raw_bytes_publication": "REQUIRES_CASE_REVIEW", "rights_note": "Source terms remain controlling; public graph releases publish only fields permitted for redistribution."},
+      "freeze": {"freeze_unit": "QUERY", "query_or_extract_identity": "normalized filter/query, cursor contract, selected fields and client identity", "source_state_identity": "retrieval timestamp plus provider response identity", "content_digest_required": true},
+      "temporal_scope": {"valid_time_model": "PUBLICATION_DATE", "transaction_time_required": true},
+      "update_semantics": {"cadence_state": "CONTINUOUS_OR_DAILY", "change_detection": "CURSOR_DELTA"},
+      "closure": {"closure_type": "ENUMERABLE_QUERY_RESULT", "denominator_method": "API_TOTAL", "allowed_completeness_claim": "COMPLETE_WITHIN_FROZEN_QUERY"},
+      "limitations": ["Coverage follows Crossref registration and metadata quality; NeuroAI relevance requires a separately frozen inclusion query and adjudication."],
+      "authority_boundary": "Registry inclusion defines an acquisition and coverage control surface only. It does not establish source truth, scientific validity, regulatory authorization, safety, conformance, institutional endorsement, or production ingestion."
+    },
+    {
+      "universe_id": "SU-SCI-OPENALEX", "schema_version": "0.1.0", "name": "OpenAlex scholarly graph", "domain": "SCIENCE", "priority": "P0", "planning_state": "VERIFIED_INTERFACE",
+      "provider": {"name": "OurResearch / OpenAlex", "documentation_url": "https://docs.openalex.org/", "jurisdiction": null},
+      "interface": {"access_mode": "HYBRID", "base_url": "https://api.openalex.org/works", "authentication_class": "FREE_API_KEY", "pagination_or_exhaustion": "Freeze the exact request or extraction contract and exhaust the provider-defined result traversal; record every page, cursor, export, or release boundary.", "machine_readable": true},
+      "rights": {"access_rights_class": "PUBLIC_WITH_TERMS", "redistribution_rights_class": "SOURCE_TERMS_GOVERN", "raw_bytes_publication": "REQUIRES_CASE_REVIEW", "rights_note": "Source terms remain controlling; public graph releases publish only fields permitted for redistribution."},
+      "freeze": {"freeze_unit": "SNAPSHOT", "query_or_extract_identity": "frozen API filter or snapshot release plus extraction code version", "source_state_identity": "API database state or snapshot release identifier", "content_digest_required": true},
+      "temporal_scope": {"valid_time_model": "PUBLICATION_DATE", "transaction_time_required": true},
+      "update_semantics": {"cadence_state": "QUARTERLY", "change_detection": "SNAPSHOT_DIFF"},
+      "closure": {"closure_type": "ENUMERABLE_RELEASE", "denominator_method": "RELEASE_RECORD_COUNT", "allowed_completeness_claim": "COMPLETE_WITHIN_PROVIDER_RELEASE"},
+      "limitations": ["API and snapshot have distinct access and update properties and must not be conflated; NeuroAI relevance is a separate controlled selection layer."],
+      "authority_boundary": "Registry inclusion defines an acquisition and coverage control surface only. It does not establish source truth, scientific validity, regulatory authorization, safety, conformance, institutional endorsement, or production ingestion."
+    },
+    {
+      "universe_id": "SU-SCI-EUROPEPMC", "schema_version": "0.1.0", "name": "Europe PMC literature and citation metadata", "domain": "SCIENCE", "priority": "P0", "planning_state": "VERIFIED_INTERFACE",
+      "provider": {"name": "Europe PMC", "documentation_url": "https://europepmc.org/RestfulWebService", "jurisdiction": null},
+      "interface": {"access_mode": "REST_API", "base_url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search", "authentication_class": "NONE_PUBLIC_READ", "pagination_or_exhaustion": "Freeze the exact request or extraction contract and exhaust the provider-defined result traversal; record every page, cursor, export, or release boundary.", "machine_readable": true},
+      "rights": {"access_rights_class": "OPEN_PUBLIC", "redistribution_rights_class": "SOURCE_TERMS_GOVERN", "raw_bytes_publication": "REQUIRES_CASE_REVIEW", "rights_note": "Source terms remain controlling; public graph releases publish only fields permitted for redistribution."},
+      "freeze": {"freeze_unit": "QUERY", "query_or_extract_identity": "frozen query syntax, cursor/page traversal and result format", "source_state_identity": "retrieval timestamp and provider response state", "content_digest_required": true},
+      "temporal_scope": {"valid_time_model": "PUBLICATION_DATE", "transaction_time_required": true},
+      "update_semantics": {"cadence_state": "PROVIDER_DEFINED", "change_detection": "CURSOR_DELTA"},
+      "closure": {"closure_type": "ENUMERABLE_QUERY_RESULT", "denominator_method": "API_TOTAL", "allowed_completeness_claim": "COMPLETE_WITHIN_FROZEN_QUERY"},
+      "limitations": ["Biomedical coverage is broad but not equivalent to the entire NeuroAI literature universe."],
+      "authority_boundary": "Registry inclusion defines an acquisition and coverage control surface only. It does not establish source truth, scientific validity, regulatory authorization, safety, conformance, institutional endorsement, or production ingestion."
+    }
+  ]
+}
