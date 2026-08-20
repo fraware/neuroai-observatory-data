@@ -1,0 +1,11 @@
+{
+  "coverage_id": "COV-SCI-CROSSREF-SYNTHETIC-001",
+  "schema_version": "0.1.0",
+  "universe_id": "SU-SCI-CROSSREF",
+  "frozen_at": "2026-08-20T08:30:00Z",
+  "denominator": {"eligible": 100, "method": "API_TOTAL"},
+  "states": {"discovered": 100, "resolved": 90, "sourced": 88, "temporally_verified": 80, "linked": 75, "stale": 5, "conflicted": 2, "inaccessible": 3, "excluded": 4},
+  "rates": {"discovery": 1.0, "resolution": 0.9, "sourcing": 0.88, "temporal_verification": 0.8, "linkage": 0.75},
+  "exclusions": [{"reason": "synthetic example outside frozen NeuroAI inclusion criteria", "count": 4}],
+  "authority_boundary": "Synthetic coverage example only. Metrics describe processing-state accounting and establish no source truth, scientific conclusion, or production coverage claim."
+}
