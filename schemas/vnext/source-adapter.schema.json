@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/fraware/neuroai-observatory-data/schemas/vnext/source-adapter.schema.json",
+  "title": "NeuroAI vNext source adapter contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["adapter_id","schema_version","provider","source_universe_id","adapter_version","state","transport","pagination","field_mapping","raw_preservation","authority_boundary"],
+  "properties": {
+    "adapter_id": {"type":"string","pattern":"^ADAPTER-[A-Z0-9-]{3,80}$"},
+    "schema_version": {"const":"0.1.0"},
+    "provider": {"enum":["CROSSREF","EUROPE_PMC","OPENALEX"]},
+    "source_universe_id": {"enum":["SU-SCI-CROSSREF","SU-SCI-EUROPEPMC","SU-SCI-OPENALEX"]},
+    "adapter_version": {"type":"string","pattern":"^0\\.1\\.0$"},
+    "state": {"enum":["READY","CREDENTIAL_REQUIRED","DEFERRED"]},
+    "transport": {"type":"object","additionalProperties":false,"required":["interface","base_url","authentication_class"],"properties":{"interface":{"enum":["REST_API","BULK_SNAPSHOT","HYBRID"]},"base_url":{"type":"string","format":"uri"},"authentication_class":{"enum":["NONE_PUBLIC_READ","FREE_API_KEY"]}}},
+    "pagination": {"type":"object","additionalProperties":false,"required":["mode","exhaustion_rule"],"properties":{"mode":{"enum":["CURSOR","PAGE_TOKEN","PROVIDER_SNAPSHOT"]},"cursor_parameter":{"type":["string","null"]},"exhaustion_rule":{"type":"string","minLength":10}}},
+    "field_mapping": {"type":"array","minItems":1,"items":{"type":"object","additionalProperties":false,"required":["provider_field","target_field","required_for_candidate"],"properties":{"provider_field":{"type":"string","minLength":1},"target_field":{"type":"string","minLength":1},"required_for_candidate":{"type":"boolean"}}}},
+    "raw_preservation": {"type":"object","additionalProperties":false,"required":["digest_algorithm","raw_bytes_commit_allowed","storage_class"],"properties":{"digest_algorithm":{"const":"SHA-256"},"raw_bytes_commit_allowed":{"const":false},"storage_class":{"enum":["OUTSIDE_GIT_CONTENT_ADDRESSED","PROVIDER_SNAPSHOT_REFERENCE"]}}},
+    "authority_boundary": {"type":"string","minLength":30}
+  }
+}
