@@ -15,8 +15,17 @@ class SourceUniverseContractTests(unittest.TestCase):
         self.assertTrue(m.validate_registry(copy.deepcopy(REG)))
 
     def test_all_required_domains_present(self):
-        self.assertEqual({r["domain"] for r in RECORDS if r["priority"]=="P0"},
-            {"SCIENCE","CLINICAL","REGULATORY","PUBLIC_FUNDING","PATENT_IP","CAPITAL","NEURAL_DATA"})
+        self.assertEqual({r["domain"] for r in RECORDS if r["priority"]=="P0"},{"SCIENCE","CLINICAL","REGULATORY","PUBLIC_FUNDING","PATENT_IP","CAPITAL","NEURAL_DATA"})
+
+    def test_fragment_path_traversal_fails(self):
+        x=copy.deepcopy(REG); x["fragments"][0]["path"]="../outside.json"
+        with self.assertRaises(ValueError):
+            m.validate_registry(x)
+
+    def test_duplicate_fragment_path_fails(self):
+        x=copy.deepcopy(REG); x["fragments"].append(copy.deepcopy(x["fragments"][0]))
+        with self.assertRaisesRegex(ValueError,"duplicate registry fragment path"):
+            m.validate_registry(x)
 
     def test_duplicate_id_fails(self):
         x=copy.deepcopy(REG)
@@ -49,14 +58,7 @@ class SourceUniverseContractTests(unittest.TestCase):
             m.validate_universe(x)
 
     def coverage(self):
-        return {
-          "coverage_id":"COV-TEST-001","schema_version":"0.1.0","universe_id":"SU-SCI-CROSSREF",
-          "frozen_at":"2026-08-20T08:30:00Z","denominator":{"eligible":100,"method":"API_TOTAL"},
-          "states":{"discovered":100,"resolved":90,"sourced":88,"temporally_verified":80,"linked":75,"stale":5,"conflicted":2,"inaccessible":3,"excluded":4},
-          "rates":{"discovery":1.0,"resolution":0.9,"sourcing":0.88,"temporal_verification":0.8,"linkage":0.75},
-          "exclusions":[{"reason":"outside frozen NeuroAI inclusion criteria","count":4}],
-          "authority_boundary":"Coverage metrics measure processing state only and establish no substantive truth or assessment conclusion."
-        }
+        return {"coverage_id":"COV-TEST-001","schema_version":"0.1.0","universe_id":"SU-SCI-CROSSREF","frozen_at":"2026-08-20T08:30:00Z","denominator":{"eligible":100,"method":"API_TOTAL"},"states":{"discovered":100,"resolved":90,"sourced":88,"temporally_verified":80,"linked":75,"stale":5,"conflicted":2,"inaccessible":3,"excluded":4},"rates":{"discovery":1.0,"resolution":0.9,"sourcing":0.88,"temporal_verification":0.8,"linkage":0.75},"exclusions":[{"reason":"outside frozen NeuroAI inclusion criteria","count":4}],"authority_boundary":"Coverage metrics measure processing state only and establish no substantive truth or assessment conclusion."}
 
     def test_verified_interface_rejects_unknown_rights(self):
         x=copy.deepcopy(RECORDS[0]); x["rights"]["redistribution_rights_class"]="UNKNOWN_PENDING_REVIEW"
@@ -64,8 +66,7 @@ class SourceUniverseContractTests(unittest.TestCase):
             m.validate_universe(x)
 
     def test_zero_denominator_requires_null_rates(self):
-        x=self.coverage(); x["denominator"]["eligible"]=0; x["denominator"]["method"]="NO_GLOBAL_DENOMINATOR"
-        x["states"]={k:0 for k in x["states"]}; x["rates"]={k:None for k in x["rates"]}; x["exclusions"]=[]
+        x=self.coverage(); x["denominator"]["eligible"]=0; x["denominator"]["method"]="NO_GLOBAL_DENOMINATOR"; x["states"]={k:0 for k in x["states"]}; x["rates"]={k:None for k in x["rates"]}; x["exclusions"]=[]
         self.assertTrue(m.validate_coverage(x))
 
     def test_coverage_reconciles(self):
