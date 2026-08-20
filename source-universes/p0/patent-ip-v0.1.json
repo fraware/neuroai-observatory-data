@@ -1,0 +1,18 @@
+{
+  "fragment_id": "SU-FRAGMENT-PATENT-IP-V0-1",
+  "schema_version": "0.1.0",
+  "records": [
+    {
+      "universe_id": "SU-IP-EPO-OPS", "schema_version": "0.1.0", "name": "EPO Open Patent Services", "domain": "PATENT_IP", "priority": "P0", "planning_state": "VERIFIED_INTERFACE",
+      "provider": {"name": "European Patent Office", "documentation_url": "https://developers.epo.org/", "jurisdiction": null},
+      "interface": {"access_mode": "REST_API", "base_url": "https://ops.epo.org/3.2/rest-services", "authentication_class": "OAUTH_CLIENT", "pagination_or_exhaustion": "Freeze the exact request or extraction contract and exhaust the provider-defined result traversal; record every page, cursor, export, or release boundary.", "machine_readable": true},
+      "rights": {"access_rights_class": "REGISTERED_ACCESS", "redistribution_rights_class": "SOURCE_TERMS_GOVERN", "raw_bytes_publication": "PROHIBITED", "rights_note": "Source terms remain controlling; public graph releases publish only fields permitted for redistribution."},
+      "freeze": {"freeze_unit": "QUERY", "query_or_extract_identity": "frozen CQL/search contract plus family and legal-status extraction contract", "source_state_identity": "retrieval timestamp plus provider response identity", "content_digest_required": true},
+      "temporal_scope": {"valid_time_model": "EVENT_DATE", "transaction_time_required": true},
+      "update_semantics": {"cadence_state": "PROVIDER_DEFINED", "change_detection": "VERSION_DIFF"},
+      "closure": {"closure_type": "ENUMERABLE_QUERY_RESULT", "denominator_method": "API_TOTAL", "allowed_completeness_claim": "COMPLETE_WITHIN_FROZEN_QUERY"},
+      "limitations": ["Patent-family interpretation, legal status and NeuroAI relevance require separate adjudication; automated access remains subject to EPO terms and quotas."],
+      "authority_boundary": "Registry inclusion defines an acquisition and coverage control surface only. It does not establish source truth, scientific validity, regulatory authorization, safety, conformance, institutional endorsement, or production ingestion."
+    }
+  ]
+}
