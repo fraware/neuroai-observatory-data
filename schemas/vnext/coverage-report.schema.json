@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/fraware/neuroai-observatory-data/schemas/vnext/coverage-report.schema.json",
+  "title": "NeuroAI vNext source-universe coverage report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["coverage_id", "schema_version", "universe_id", "frozen_at", "denominator", "states", "rates", "exclusions", "authority_boundary"],
+  "properties": {
+    "coverage_id": {"type": "string", "pattern": "^COV-[A-Z0-9-]{3,64}$"},
+    "schema_version": {"const": "0.1.0"},
+    "universe_id": {"type": "string", "pattern": "^SU-[A-Z0-9-]{3,64}$"},
+    "frozen_at": {"type": "string", "format": "date-time"},
+    "denominator": {
+      "type": "object", "additionalProperties": false, "required": ["eligible", "method"],
+      "properties": {
+        "eligible": {"type": "integer", "minimum": 0},
+        "method": {"enum": ["API_TOTAL", "EXHAUSTED_CURSOR_COUNT", "RELEASE_RECORD_COUNT", "REGISTRY_RECORD_COUNT", "DECLARED_CANDIDATE_SET", "DELIVERY_RECORD_COUNT", "NO_GLOBAL_DENOMINATOR"]}
+      }
+    },
+    "states": {
+      "type": "object", "additionalProperties": false,
+      "required": ["discovered", "resolved", "sourced", "temporally_verified", "linked", "stale", "conflicted", "inaccessible", "excluded"],
+      "properties": {
+        "discovered": {"type": "integer", "minimum": 0},
+        "resolved": {"type": "integer", "minimum": 0},
+        "sourced": {"type": "integer", "minimum": 0},
+        "temporally_verified": {"type": "integer", "minimum": 0},
+        "linked": {"type": "integer", "minimum": 0},
+        "stale": {"type": "integer", "minimum": 0},
+        "conflicted": {"type": "integer", "minimum": 0},
+        "inaccessible": {"type": "integer", "minimum": 0},
+        "excluded": {"type": "integer", "minimum": 0}
+      }
+    },
+    "rates": {
+      "type": "object", "additionalProperties": false, "required": ["discovery", "resolution", "sourcing", "temporal_verification", "linkage"],
+      "properties": {
+        "discovery": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "resolution": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "sourcing": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "temporal_verification": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "linkage": {"type": ["number", "null"], "minimum": 0, "maximum": 1}
+      }
+    },
+    "exclusions": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["reason", "count"],
+        "properties": {"reason": {"type": "string", "minLength": 3}, "count": {"type": "integer", "minimum": 0}}
+      }
+    },
+    "authority_boundary": {"type": "string", "minLength": 20}
+  }
+}
