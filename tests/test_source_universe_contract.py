@@ -8,33 +8,43 @@ m=importlib.util.module_from_spec(SPEC)
 assert SPEC and SPEC.loader
 SPEC.loader.exec_module(m)
 REG=json.loads((ROOT/"source-universes"/"p0-registry-v0.1.json").read_text())
+RECORDS=m.load_registry_records(REG)
 
 class SourceUniverseContractTests(unittest.TestCase):
     def test_registry_passes(self):
         self.assertTrue(m.validate_registry(copy.deepcopy(REG)))
 
     def test_all_required_domains_present(self):
-        self.assertEqual({r["domain"] for r in REG["records"] if r["priority"]=="P0"},
+        self.assertEqual({r["domain"] for r in RECORDS if r["priority"]=="P0"},
             {"SCIENCE","CLINICAL","REGULATORY","PUBLIC_FUNDING","PATENT_IP","CAPITAL","NEURAL_DATA"})
 
     def test_duplicate_id_fails(self):
-        x=copy.deepcopy(REG); x["records"].append(copy.deepcopy(x["records"][0]))
-        with self.assertRaisesRegex(ValueError,"duplicate"):
-            m.validate_registry(x)
+        x=copy.deepcopy(REG)
+        frag_path=ROOT/x["fragments"][0]["path"]
+        payload=json.loads(frag_path.read_text())
+        duplicate=copy.deepcopy(payload["records"][0])
+        temp=ROOT/"source-universes"/"p0"/"_duplicate-test.json"
+        temp.write_text(json.dumps({"fragment_id":"TEST","schema_version":"0.1.0","records":[duplicate]}))
+        try:
+            x["fragments"].append({"path":"source-universes/p0/_duplicate-test.json","domains":[duplicate["domain"]],"record_count":1})
+            with self.assertRaisesRegex(ValueError,"duplicate"):
+                m.validate_registry(x)
+        finally:
+            temp.unlink(missing_ok=True)
 
     def test_open_world_cannot_claim_completeness(self):
-        x=copy.deepcopy(REG["records"][0]); x["closure"]["closure_type"]="OPEN_WORLD_DISCOVERY"
+        x=copy.deepcopy(RECORDS[0]); x["closure"]["closure_type"]="OPEN_WORLD_DISCOVERY"
         with self.assertRaisesRegex(ValueError,"open-world"):
             m.validate_universe(x)
 
     def test_license_and_access_remain_separate(self):
-        x=next(copy.deepcopy(r) for r in REG["records"] if r["universe_id"]=="SU-CAP-PRIVATE-LICENSED")
+        x=next(copy.deepcopy(r) for r in RECORDS if r["universe_id"]=="SU-CAP-PRIVATE-LICENSED")
         self.assertEqual(x["interface"]["authentication_class"],"LICENSE_REQUIRED")
         self.assertEqual(x["rights"]["redistribution_rights_class"],"NO_REDISSEMINATION")
         self.assertTrue(m.validate_universe(x))
 
     def test_verified_interface_requires_base_url(self):
-        x=copy.deepcopy(REG["records"][0]); x["interface"]["base_url"]=None
+        x=copy.deepcopy(RECORDS[0]); x["interface"]["base_url"]=None
         with self.assertRaisesRegex(ValueError,"base_url"):
             m.validate_universe(x)
 
@@ -49,7 +59,7 @@ class SourceUniverseContractTests(unittest.TestCase):
         }
 
     def test_verified_interface_rejects_unknown_rights(self):
-        x=copy.deepcopy(REG["records"][0]); x["rights"]["redistribution_rights_class"]="UNKNOWN_PENDING_REVIEW"
+        x=copy.deepcopy(RECORDS[0]); x["rights"]["redistribution_rights_class"]="UNKNOWN_PENDING_REVIEW"
         with self.assertRaisesRegex(ValueError,"unknown rights"):
             m.validate_universe(x)
 
@@ -59,7 +69,7 @@ class SourceUniverseContractTests(unittest.TestCase):
         self.assertTrue(m.validate_coverage(x))
 
     def test_coverage_reconciles(self):
-        u=next(r for r in REG["records"] if r["universe_id"]=="SU-SCI-CROSSREF")
+        u=next(r for r in RECORDS if r["universe_id"]=="SU-SCI-CROSSREF")
         self.assertTrue(m.validate_coverage(self.coverage(),u))
 
     def test_bad_rate_fails(self):
@@ -74,7 +84,7 @@ class SourceUniverseContractTests(unittest.TestCase):
 
     def test_bad_denominator_method_fails_against_universe(self):
         x=self.coverage(); x["denominator"]["method"]="REGISTRY_RECORD_COUNT"
-        u=next(r for r in REG["records"] if r["universe_id"]=="SU-SCI-CROSSREF")
+        u=next(r for r in RECORDS if r["universe_id"]=="SU-SCI-CROSSREF")
         with self.assertRaisesRegex(ValueError,"denominator method"):
             m.validate_coverage(x,u)
 
