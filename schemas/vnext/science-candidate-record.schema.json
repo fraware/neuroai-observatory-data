@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/fraware/neuroai-observatory-data/schemas/vnext/science-candidate-record.schema.json",
+  "title": "NeuroAI vNext science discovery candidate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["record_kind","candidate_id","provider","provider_record_id","source_universe_id","acquisition_freeze_id","title","identifiers","discovery_query_family_ids","selection_state","canonical_effect","source_record_sha256","observed_at"],
+  "properties": {
+    "record_kind": {"const":"SCIENCE_DISCOVERY_CANDIDATE"},
+    "candidate_id": {"type":"string","pattern":"^SCI-CAND-[A-Z0-9-]{3,100}$"},
+    "provider": {"enum":["CROSSREF","EUROPE_PMC","OPENALEX"]},
+    "provider_record_id": {"type":"string","minLength":1},
+    "source_universe_id": {"type":"string","pattern":"^SU-SCI-[A-Z0-9-]+$"},
+    "acquisition_freeze_id": {"type":"string","pattern":"^AF-[A-Z0-9-]{3,100}$"},
+    "title": {"type":"string","minLength":1},
+    "publication_date": {"type":["string","null"],"pattern":"^\\d{4}(-\\d{2}(-\\d{2})?)?$"},
+    "identifiers": {"type":"object","additionalProperties":false,"properties":{"doi":{"type":["string","null"]},"pmid":{"type":["string","null"]},"pmcid":{"type":["string","null"]},"openalex":{"type":["string","null"]}}},
+    "discovery_query_family_ids": {"type":"array","minItems":1,"uniqueItems":true,"items":{"type":"string","pattern":"^QF-[A-Z0-9-]{2,40}$"}},
+    "selection_state": {"const":"DISCOVERED_CANDIDATE"},
+    "canonical_effect": {"const":"NONE_REQUIRES_RELEVANCE_ADJUDICATION"},
+    "source_record_sha256": {"type":"string","pattern":"^[0-9a-f]{64}$"},
+    "observed_at": {"type":"string","format":"date-time"}
+  }
+}
