@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/fraware/neuroai-observatory-data/schemas/vnext/external-identifier.schema.json",
+  "title": "NeuroAI vNext external identifier record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["record_kind","identifier_record_id","entity_id","namespace_id","observed_value","normalized_value","normalization_rule_version","source_observation_id","observed_at","resolution_state"],
+  "properties": {
+    "record_kind": {"const": "EXTERNAL_IDENTIFIER"},
+    "identifier_record_id": {"type": "string", "pattern": "^XID-[A-Z0-9-]{3,120}$"},
+    "entity_id": {"type": "string", "pattern": "^[A-Z][A-Z0-9-]{2,127}$"},
+    "namespace_id": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]{1,63}$"},
+    "observed_value": {"type": "string", "minLength": 1},
+    "normalized_value": {"type": "string", "minLength": 1},
+    "normalization_rule_version": {"const": "NORM-0.1"},
+    "source_observation_id": {"type": "string", "pattern": "^[A-Z][A-Z0-9-]{2,127}$"},
+    "observed_at": {"type": "string", "format": "date-time"},
+    "resolution_state": {"enum": ["CANDIDATE","ACCEPTED","CONFLICTED","REJECTED","SUPERSEDED"]},
+    "accepted_at": {"type": "string", "format": "date-time"},
+    "superseded_at": {"type": "string", "format": "date-time"},
+    "successor_record_id": {"type": "string", "pattern": "^XID-[A-Z0-9-]{3,120}$"}
+  },
+  "allOf": [
+    {"if": {"properties": {"resolution_state": {"const": "ACCEPTED"}}}, "then": {"required": ["accepted_at"]}},
+    {"if": {"properties": {"resolution_state": {"const": "SUPERSEDED"}}}, "then": {"required": ["accepted_at","superseded_at","successor_record_id"]}}
+  ]
+}
