@@ -1,0 +1,39 @@
+{
+  "fixture_id": "IDENTITY-BUNDLE-SYNTHETIC-V0.1",
+  "synthetic": true,
+  "entity_types": {
+    "PERSON-SYN-001": "PERSON",
+    "PERSON-SYN-002": "PERSON",
+    "ORG-SYN-001": "ORGANIZATION",
+    "ORG-SYN-002": "ORGANIZATION",
+    "PUB-SYN-001": "PUBLICATION",
+    "TRIAL-SYN-001": "TRIAL",
+    "GRANT-SYN-001": "GRANT",
+    "SYSTEM-SYN-001": "SYSTEM",
+    "PRODUCT-SYN-001": "PRODUCT",
+    "PATDOC-SYN-001": "PATENT_DOCUMENT",
+    "PATFAM-SYN-001": "PATENT_FAMILY",
+    "DATASET-SYN-001": "DATASET",
+    "DATASET-SYN-002": "DATASET"
+  },
+  "source_observation_ids": ["OBS-SYN-001","OBS-SYN-002","OBS-SYN-003","OBS-SYN-004","OBS-SYN-005","OBS-SYN-006","OBS-SYN-007","OBS-SYN-008","OBS-SYN-009","OBS-SYN-010","OBS-SYN-011","OBS-SYN-012"],
+  "external_identifiers": [
+    {"record_kind":"EXTERNAL_IDENTIFIER","identifier_record_id":"XID-ORCID-SYN-001","entity_id":"PERSON-SYN-001","namespace_id":"ORCID","observed_value":" https://orcid.org/0000-0002-1825-0097 ","normalized_value":"0000-0002-1825-0097","normalization_rule_version":"NORM-0.1","source_observation_id":"OBS-SYN-001","observed_at":"2026-08-20T08:30:00Z","resolution_state":"ACCEPTED","accepted_at":"2026-08-20T08:35:00Z"},
+    {"record_kind":"EXTERNAL_IDENTIFIER","identifier_record_id":"XID-ROR-SYN-001","entity_id":"ORG-SYN-001","namespace_id":"ROR","observed_value":"https://ror.org/03yrm5c26","normalized_value":"03yrm5c26","normalization_rule_version":"NORM-0.1","source_observation_id":"OBS-SYN-002","observed_at":"2026-08-20T08:30:00Z","resolution_state":"ACCEPTED","accepted_at":"2026-08-20T08:35:00Z"},
+    {"record_kind":"EXTERNAL_IDENTIFIER","identifier_record_id":"XID-DOI-SYN-001","entity_id":"PUB-SYN-001","namespace_id":"DOI","observed_value":"DOI:10.9999/SYNTHETIC.001","normalized_value":"10.9999/synthetic.001","normalization_rule_version":"NORM-0.1","source_observation_id":"OBS-SYN-003","observed_at":"2026-08-20T08:30:00Z","resolution_state":"ACCEPTED","accepted_at":"2026-08-20T08:35:00Z"},
+    {"record_kind":"EXTERNAL_IDENTIFIER","identifier_record_id":"XID-NCT-SYN-001","entity_id":"TRIAL-SYN-001","namespace_id":"NCT","observed_value":"nct12345678","normalized_value":"NCT12345678","normalization_rule_version":"NORM-0.1","source_observation_id":"OBS-SYN-004","observed_at":"2026-08-20T08:30:00Z","resolution_state":"ACCEPTED","accepted_at":"2026-08-20T08:35:00Z"},
+    {"record_kind":"EXTERNAL_IDENTIFIER","identifier_record_id":"XID-NIH-SYN-001","entity_id":"GRANT-SYN-001","namespace_id":"NIH_PROJECT","observed_value":" r01ns123456 ","normalized_value":"R01NS123456","normalization_rule_version":"NORM-0.1","source_observation_id":"OBS-SYN-005","observed_at":"2026-08-20T08:30:00Z","resolution_state":"ACCEPTED","accepted_at":"2026-08-20T08:35:00Z"},
+    {"record_kind":"EXTERNAL_IDENTIFIER","identifier_record_id":"XID-FDAK-SYN-001","entity_id":"SYSTEM-SYN-001","namespace_id":"FDA_KNUMBER","observed_value":"k123456","normalized_value":"K123456","normalization_rule_version":"NORM-0.1","source_observation_id":"OBS-SYN-006","observed_at":"2026-08-20T08:30:00Z","resolution_state":"ACCEPTED","accepted_at":"2026-08-20T08:35:00Z"},
+    {"record_kind":"EXTERNAL_IDENTIFIER","identifier_record_id":"XID-FDAP-SYN-001","entity_id":"PRODUCT-SYN-001","namespace_id":"FDA_PMA","observed_value":"p123456","normalized_value":"P123456","normalization_rule_version":"NORM-0.1","source_observation_id":"OBS-SYN-007","observed_at":"2026-08-20T08:30:00Z","resolution_state":"ACCEPTED","accepted_at":"2026-08-20T08:35:00Z"},
+    {"record_kind":"EXTERNAL_IDENTIFIER","identifier_record_id":"XID-EPOPUB-SYN-001","entity_id":"PATDOC-SYN-001","namespace_id":"EPO_PUBLICATION","observed_value":"ep1234567a1","normalized_value":"EP1234567A1","normalization_rule_version":"NORM-0.1","source_observation_id":"OBS-SYN-008","observed_at":"2026-08-20T08:30:00Z","resolution_state":"ACCEPTED","accepted_at":"2026-08-20T08:35:00Z"},
+    {"record_kind":"EXTERNAL_IDENTIFIER","identifier_record_id":"XID-EPOFAM-SYN-001","entity_id":"PATFAM-SYN-001","namespace_id":"EPO_FAMILY","observed_value":"123456789","normalized_value":"123456789","normalization_rule_version":"NORM-0.1","source_observation_id":"OBS-SYN-009","observed_at":"2026-08-20T08:30:00Z","resolution_state":"ACCEPTED","accepted_at":"2026-08-20T08:35:00Z"},
+    {"record_kind":"EXTERNAL_IDENTIFIER","identifier_record_id":"XID-DANDI-SYN-001","entity_id":"DATASET-SYN-001","namespace_id":"DANDISET","observed_value":"000123","normalized_value":"000123","normalization_rule_version":"NORM-0.1","source_observation_id":"OBS-SYN-010","observed_at":"2026-08-20T08:30:00Z","resolution_state":"ACCEPTED","accepted_at":"2026-08-20T08:35:00Z"},
+    {"record_kind":"EXTERNAL_IDENTIFIER","identifier_record_id":"XID-OPENNEURO-SYN-001","entity_id":"DATASET-SYN-002","namespace_id":"OPENNEURO","observed_value":"DS000123","normalized_value":"ds000123","normalization_rule_version":"NORM-0.1","source_observation_id":"OBS-SYN-011","observed_at":"2026-08-20T08:30:00Z","resolution_state":"ACCEPTED","accepted_at":"2026-08-20T08:35:00Z"}
+  ],
+  "resolution_candidates": [
+    {"record_kind":"ENTITY_RESOLUTION_CANDIDATE","candidate_id":"ERC-ORG-SYN-001","left_entity_id":"ORG-SYN-001","right_entity_id":"ORG-SYN-002","method":"NAME_SIMILARITY","signals":[{"signal_type":"NAME","description":"Synthetic names deliberately resemble one another for contract testing.","evidence_references":["OBS-SYN-002","OBS-SYN-012"]}],"similarity_score":0.91,"created_at":"2026-08-20T08:40:00Z","candidate_state":"ADJUDICATED","automatic_merge_permitted":false}
+  ],
+  "resolution_decisions": [
+    {"record_kind":"ENTITY_RESOLUTION_DECISION","decision_id":"ERD-ORG-SYN-001","candidate_id":"ERC-ORG-SYN-001","left_entity_id":"ORG-SYN-001","right_entity_id":"ORG-SYN-002","disposition":"KEEP_DISTINCT","authority_mode":"HUMAN_ADJUDICATED","decided_by":"SYNTHETIC-REVIEWER","decided_at":"2026-08-20T08:45:00Z","rationale":"Synthetic evidence is intentionally insufficient to establish that the two organization records denote one entity.","evidence_references":["OBS-SYN-002","OBS-SYN-012"],"canonical_effect":"NO_MERGE","automatic_mutation_performed":false}
+  ]
+}
