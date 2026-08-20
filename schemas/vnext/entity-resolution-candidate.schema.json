@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/fraware/neuroai-observatory-data/schemas/vnext/entity-resolution-candidate.schema.json",
+  "title": "NeuroAI vNext entity resolution candidate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["record_kind","candidate_id","left_entity_id","right_entity_id","method","signals","created_at","candidate_state","automatic_merge_permitted"],
+  "properties": {
+    "record_kind": {"const": "ENTITY_RESOLUTION_CANDIDATE"},
+    "candidate_id": {"type": "string", "pattern": "^ERC-[A-Z0-9-]{3,120}$"},
+    "left_entity_id": {"type": "string", "pattern": "^[A-Z][A-Z0-9-]{2,127}$"},
+    "right_entity_id": {"type": "string", "pattern": "^[A-Z][A-Z0-9-]{2,127}$"},
+    "method": {"enum": ["EXACT_IDENTIFIER","DETERMINISTIC_RULE","NAME_SIMILARITY","GRAPH_SIGNAL","MANUAL_PROPOSAL","MULTI_SIGNAL"]},
+    "signals": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["signal_type","description","evidence_references"],
+        "properties": {
+          "signal_type": {"enum": ["EXACT_IDENTIFIER","NAME","DOMAIN","AFFILIATION","COAUTHORSHIP","GRAPH_NEIGHBORHOOD","MANUAL_EVIDENCE","OTHER"]},
+          "description": {"type": "string", "minLength": 3},
+          "evidence_references": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^[A-Z][A-Z0-9-]{2,127}$"}}
+        }
+      }
+    },
+    "similarity_score": {"type": "number", "minimum": 0, "maximum": 1},
+    "created_at": {"type": "string", "format": "date-time"},
+    "candidate_state": {"enum": ["OPEN","ADJUDICATED","WITHDRAWN"]},
+    "automatic_merge_permitted": {"const": false}
+  }
+}
