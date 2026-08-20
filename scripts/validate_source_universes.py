@@ -7,6 +7,21 @@ ROOT=Path(__file__).parents[1]
 SCHEMAS=ROOT/"schemas"/"vnext"
 REGISTRY=ROOT/"source-universes"/"p0-registry-v0.1.json"
 
+def load_registry_records(registry):
+    records=[]
+    for fragment in registry["fragments"]:
+        path=ROOT/fragment["path"]
+        if not path.is_file():
+            raise ValueError(f"missing registry fragment: {fragment['path']}")
+        payload=json.loads(path.read_text())
+        if len(payload.get("records",[]))!=fragment["record_count"]:
+            raise ValueError(f"fragment record_count mismatch: {fragment['path']}")
+        actual_domains=sorted({r["domain"] for r in payload["records"]})
+        if actual_domains!=sorted(fragment["domains"]):
+            raise ValueError(f"fragment domain declaration mismatch: {fragment['path']}")
+        records.extend(payload["records"])
+    return records
+
 def _load(name):
     return json.loads((SCHEMAS/name).read_text())
 
@@ -47,15 +62,16 @@ def validate_universe(obj):
 def validate_registry(registry):
     if registry.get("status")!="PLANNING_CONTROL_METADATA_NOT_CANONICAL_PRODUCTION_DATA":
         raise ValueError("registry authority state must remain planning-only")
+    records=load_registry_records(registry)
     seen=set()
-    for obj in registry["records"]:
+    for obj in records:
         validate_universe(obj)
         uid=obj["universe_id"]
         if uid in seen:
             raise ValueError(f"duplicate universe_id: {uid}")
         seen.add(uid)
-    required={"SCIENCE","CLINICAL","REGULATORY","PUBLIC_FUNDING","PATENT_IP","CAPITAL","NEURAL_DATA"}
-    present={r["domain"] for r in registry["records"] if r["priority"]=="P0"}
+    required=set(registry["required_p0_domains"])
+    present={r["domain"] for r in records if r["priority"]=="P0"}
     missing=required-present
     if missing:
         raise ValueError(f"missing P0 domains: {sorted(missing)}")
@@ -103,7 +119,7 @@ def validate_coverage(c,universe=None):
 def main():
     registry=json.loads(REGISTRY.read_text())
     validate_registry(registry)
-    print(f"PASS source-universe registry: {len(registry['records'])} universes")
+    print(f"PASS source-universe registry: {len(load_registry_records(registry))} universes")
 
 if __name__=="__main__":
     main()
