@@ -1,0 +1,30 @@
+{
+  "fragment_id": "SU-FRAGMENT-PUBLIC-FUNDING-V0-1",
+  "schema_version": "0.1.0",
+  "records": [
+    {
+      "universe_id": "SU-FUND-NIH-REPORTER", "schema_version": "0.1.0", "name": "NIH RePORTER and ExPORTER funded-project universe", "domain": "PUBLIC_FUNDING", "priority": "P0", "planning_state": "VERIFIED_INTERFACE",
+      "provider": {"name": "U.S. National Institutes of Health", "documentation_url": "https://api.reporter.nih.gov/", "jurisdiction": null},
+      "interface": {"access_mode": "HYBRID", "base_url": "https://api.reporter.nih.gov/v2/projects/search", "authentication_class": "NONE_PUBLIC_READ", "pagination_or_exhaustion": "Freeze the exact request or extraction contract and exhaust the provider-defined result traversal; record every page, cursor, export, or release boundary.", "machine_readable": true},
+      "rights": {"access_rights_class": "OPEN_PUBLIC", "redistribution_rights_class": "SOURCE_TERMS_GOVERN", "raw_bytes_publication": "REQUIRES_CASE_REVIEW", "rights_note": "Source terms remain controlling; public graph releases publish only fields permitted for redistribution."},
+      "freeze": {"freeze_unit": "QUERY", "query_or_extract_identity": "frozen project-search criteria or ExPORTER release selection", "source_state_identity": "request timestamp plus fiscal or project release identity", "content_digest_required": true},
+      "temporal_scope": {"valid_time_model": "AWARD_PERIOD", "transaction_time_required": true},
+      "update_semantics": {"cadence_state": "PROVIDER_DEFINED", "change_detection": "VERSION_DIFF"},
+      "closure": {"closure_type": "ENUMERABLE_QUERY_RESULT", "denominator_method": "API_TOTAL", "allowed_completeness_claim": "COMPLETE_WITHIN_FROZEN_QUERY"},
+      "limitations": ["NeuroAI relevance requires controlled inclusion criteria; participating-agency scope must be recorded per extraction."],
+      "authority_boundary": "Registry inclusion defines an acquisition and coverage control surface only. It does not establish source truth, scientific validity, regulatory authorization, safety, conformance, institutional endorsement, or production ingestion."
+    },
+    {
+      "universe_id": "SU-FUND-CORDIS", "schema_version": "0.1.0", "name": "CORDIS EU research-project universe", "domain": "PUBLIC_FUNDING", "priority": "P0", "planning_state": "VERIFIED_INTERFACE",
+      "provider": {"name": "European Commission", "documentation_url": "https://cordis.europa.eu/about/open-data", "jurisdiction": null},
+      "interface": {"access_mode": "HYBRID", "base_url": "https://cordis.europa.eu/", "authentication_class": "NONE_PUBLIC_READ", "pagination_or_exhaustion": "Freeze the exact request or extraction contract and exhaust the provider-defined result traversal; record every page, cursor, export, or release boundary.", "machine_readable": true},
+      "rights": {"access_rights_class": "OPEN_PUBLIC", "redistribution_rights_class": "SOURCE_TERMS_GOVERN", "raw_bytes_publication": "REQUIRES_CASE_REVIEW", "rights_note": "Source terms remain controlling; public graph releases publish only fields permitted for redistribution."},
+      "freeze": {"freeze_unit": "EXPORT", "query_or_extract_identity": "frozen CORDIS query/export or open-data release plus field selection", "source_state_identity": "dataset or export state plus retrieval timestamp", "content_digest_required": true},
+      "temporal_scope": {"valid_time_model": "AWARD_PERIOD", "transaction_time_required": true},
+      "update_semantics": {"cadence_state": "PROVIDER_DEFINED", "change_detection": "VERSION_DIFF"},
+      "closure": {"closure_type": "ENUMERABLE_RELEASE", "denominator_method": "RELEASE_RECORD_COUNT", "allowed_completeness_claim": "COMPLETE_WITHIN_PROVIDER_RELEASE"},
+      "limitations": ["CORDIS covers EU framework-programme projects; it is not a denominator for all European or national NeuroAI public funding."],
+      "authority_boundary": "Registry inclusion defines an acquisition and coverage control surface only. It does not establish source truth, scientific validity, regulatory authorization, safety, conformance, institutional endorsement, or production ingestion."
+    }
+  ]
+}
