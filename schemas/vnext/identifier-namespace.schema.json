@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/fraware/neuroai-observatory-data/schemas/vnext/identifier-namespace.schema.json",
+  "title": "NeuroAI vNext external identifier namespace",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "namespace_id",
+    "schema_version",
+    "display_name",
+    "state",
+    "allowed_entity_types",
+    "pattern",
+    "normalization",
+    "collision_policy",
+    "authority_url"
+  ],
+  "properties": {
+    "namespace_id": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+    },
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "display_name": {
+      "type": "string",
+      "minLength": 2
+    },
+    "state": {
+      "enum": [
+        "ACTIVE",
+        "DEPRECATED"
+      ]
+    },
+    "allowed_entity_types": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "ORGANIZATION",
+          "PERSON",
+          "SYSTEM",
+          "PRODUCT",
+          "MODEL",
+          "DATASET",
+          "PUBLICATION",
+          "TRIAL",
+          "GRANT",
+          "PATENT_FAMILY",
+          "PATENT_DOCUMENT",
+          "FACILITY"
+        ]
+      }
+    },
+    "pattern": {
+      "type": "string",
+      "minLength": 3
+    },
+    "normalization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rule_version",
+        "trim",
+        "case",
+        "strip_prefixes"
+      ],
+      "properties": {
+        "rule_version": {
+          "const": "NORM-0.1"
+        },
+        "trim": {
+          "const": true
+        },
+        "case": {
+          "enum": [
+            "PRESERVE",
+            "LOWER",
+            "UPPER"
+          ]
+        },
+        "strip_prefixes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "collision_policy": {
+      "enum": [
+        "UNIQUE_ACCEPTED_PER_ENTITY",
+        "CONFLICT_ON_MULTI_ENTITY_ACCEPTANCE"
+      ]
+    },
+    "authority_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}
