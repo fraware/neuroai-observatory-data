@@ -1,0 +1,40 @@
+{
+  "protocol_id": "SCIENCE-DISCOVERY-PROTOCOL-V0.1",
+  "schema_version": "0.1.0",
+  "status": "FROZEN_PROTOCOL_NO_PRODUCTION_ACQUISITION_YET",
+  "evidence_cutoff": "2026-08-20T00:00:00Z",
+  "baseline_strategy": {
+    "priority_window": {"from":"2015-01-01","through":"2026-08-20"},
+    "historical_backfill": [
+      {"priority":"P1","from":"2000-01-01","through":"2014-12-31"},
+      {"priority":"P2","from":null,"through":"1999-12-31"}
+    ],
+    "claim_boundary": "Window priority controls acquisition order only. It does not imply that pre-2015 literature is scientifically less important."
+  },
+  "query_families": [
+    {"query_family_id":"QF-NEURAL-INTERFACE","label":"Neural interfaces and brain-computer interfaces","discovery_terms":["brain-computer interface","brain machine interface","neural interface","intracortical interface","electrocorticography interface","neuroprosthesis","neural prosthesis"],"rationale":"Captures direct neural input/output systems and neuroprosthetic interfaces."},
+    {"query_family_id":"QF-NEURAL-DECODING","label":"Neural decoding and encoding","discovery_terms":["neural decoding","brain decoding","neural speech decoding","motor decoding","neural encoding model","neural decoder"],"rationale":"Captures computational inference from or prediction of neural signals."},
+    {"query_family_id":"QF-CLOSED-LOOP","label":"Closed-loop and adaptive neuromodulation","discovery_terms":["closed-loop neurostimulation","adaptive deep brain stimulation","closed-loop deep brain stimulation","responsive neurostimulation","adaptive neuromodulation"],"rationale":"Captures sensing-to-control neurotechnology with adaptive or responsive intervention."},
+    {"query_family_id":"QF-ML-NEURAL-DATA","label":"Machine learning for neural data","discovery_terms":["machine learning neural data","deep learning neural signals","artificial intelligence EEG","machine learning electrophysiology","foundation model neural data"],"rationale":"Captures ML systems materially operating on neural measurements."},
+    {"query_family_id":"QF-NONINVASIVE-DECODING","label":"Non-invasive neural sensing and decoding","discovery_terms":["EEG decoding","MEG decoding","fNIRS decoding","functional MRI decoding","ear EEG decoding"],"rationale":"Captures non-invasive neural-measurement systems where decoding is a central method."},
+    {"query_family_id":"QF-NEURAL-DATA-INFRA","label":"Neural datasets and benchmarks","discovery_terms":["neural dataset benchmark","neurophysiology dataset machine learning","brain-computer interface dataset","neural decoding benchmark"],"rationale":"Captures public data and benchmarking infrastructure relevant to model and system evidence."}
+  ],
+  "candidate_inclusion": {
+    "discovery_rule": "A provider record enters candidate state when it matches at least one frozen query family under that provider's deterministic query compilation.",
+    "relevance_adjudication_required": true,
+    "core_relevance_dimensions": ["NEURAL_MEASUREMENT_OR_INTERVENTION","COMPUTATIONAL_MODEL_OR_CONTROL","HUMAN_OR_BIOLOGICAL_NEURAL_SYSTEM"],
+    "context_strata": ["NEUROAI_CORE","NEUROTECH_CONTEXT","METHODS_CONTEXT","DATA_INFRASTRUCTURE_CONTEXT","OUT_OF_SCOPE"],
+    "automatic_canonical_inclusion": false
+  },
+  "deduplication": {
+    "exact_identifier_precedence": ["DOI","PMID","PMCID","OPENALEX"],
+    "fuzzy_title_author_matching": "CANDIDATE_ONLY",
+    "cross_provider_conflicts": "PRESERVE_AND_ADJUDICATE"
+  },
+  "provider_policy": {
+    "required_for_first_candidate_acquisition": ["CROSSREF","EUROPE_PMC"],
+    "optional_until_credentials_available": ["OPENALEX"],
+    "provider_absence_effect": "NONE"
+  },
+  "authority_boundary": "This protocol defines discovery and acquisition scope. Candidate retrieval, counts, citations, venue, or prominence establish no scientific truth, relevance adjudication, system conformance, or institutional authority."
+}
