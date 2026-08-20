@@ -1,0 +1,30 @@
+{
+  "fragment_id": "SU-FRAGMENT-CAPITAL-V0-1",
+  "schema_version": "0.1.0",
+  "records": [
+    {
+      "universe_id": "SU-CAP-SEC-EDGAR", "schema_version": "0.1.0", "name": "SEC EDGAR public-company filings and structured data", "domain": "CAPITAL", "priority": "P0", "planning_state": "VERIFIED_INTERFACE",
+      "provider": {"name": "U.S. Securities and Exchange Commission", "documentation_url": "https://www.sec.gov/search-filings/edgar-application-programming-interfaces", "jurisdiction": null},
+      "interface": {"access_mode": "REST_API", "base_url": "https://data.sec.gov/", "authentication_class": "NONE_PUBLIC_READ", "pagination_or_exhaustion": "Freeze the exact request or extraction contract and exhaust the provider-defined result traversal; record every page, cursor, export, or release boundary.", "machine_readable": true},
+      "rights": {"access_rights_class": "OPEN_PUBLIC", "redistribution_rights_class": "SOURCE_TERMS_GOVERN", "raw_bytes_publication": "REQUIRES_CASE_REVIEW", "rights_note": "Source terms remain controlling; public graph releases publish only fields permitted for redistribution."},
+      "freeze": {"freeze_unit": "API_DATABASE_STATE", "query_or_extract_identity": "frozen issuer and filing universe plus submissions or companyfacts extraction contract", "source_state_identity": "filing accession or source state plus retrieval timestamp", "content_digest_required": true},
+      "temporal_scope": {"valid_time_model": "FILING_DATE", "transaction_time_required": true},
+      "update_semantics": {"cadence_state": "CONTINUOUS_OR_DAILY", "change_detection": "EVENT_INCREMENT"},
+      "closure": {"closure_type": "ENUMERABLE_REGISTRY", "denominator_method": "REGISTRY_RECORD_COUNT", "allowed_completeness_claim": "COMPLETE_WITHIN_DECLARED_REGISTRY"},
+      "limitations": ["Covers SEC-reporting issuers and filings, not the private NeuroAI capital market."],
+      "authority_boundary": "Registry inclusion defines an acquisition and coverage control surface only. It does not establish source truth, scientific validity, regulatory authorization, safety, conformance, institutional endorsement, or production ingestion."
+    },
+    {
+      "universe_id": "SU-CAP-PRIVATE-LICENSED", "schema_version": "0.1.0", "name": "Private-market capital enrichment", "domain": "CAPITAL", "priority": "P0", "planning_state": "PROVIDER_SELECTION_PENDING",
+      "provider": {"name": "TO_BE_SELECTED", "documentation_url": "https://github.com/fraware/neuroai-observatory-data/issues/40", "jurisdiction": null},
+      "interface": {"access_mode": "LICENSED_EXPORT", "base_url": null, "authentication_class": "LICENSE_REQUIRED", "pagination_or_exhaustion": "Freeze the exact request or extraction contract and exhaust the provider-defined result traversal; record every page, cursor, export, or release boundary.", "machine_readable": true},
+      "rights": {"access_rights_class": "LICENSED_RESTRICTED", "redistribution_rights_class": "NO_REDISSEMINATION", "raw_bytes_publication": "PROHIBITED", "rights_note": "Source terms remain controlling; public graph releases publish only fields permitted for redistribution."},
+      "freeze": {"freeze_unit": "LICENSED_DELIVERY", "query_or_extract_identity": "provider/export contract to be frozen only after procurement and rights review", "source_state_identity": "licensed delivery identifier and digest", "content_digest_required": true},
+      "temporal_scope": {"valid_time_model": "EVENT_DATE", "transaction_time_required": true},
+      "update_semantics": {"cadence_state": "ON_DEMAND", "change_detection": "PROVIDER_DELTA"},
+      "closure": {"closure_type": "LICENSED_DELIVERY", "denominator_method": "DELIVERY_RECORD_COUNT", "allowed_completeness_claim": "COMPLETE_WITHIN_LICENSED_DELIVERY"},
+      "limitations": ["Provider selection, field rights, retention and redistribution terms are intentionally unresolved."],
+      "authority_boundary": "Registry inclusion defines an acquisition and coverage control surface only. It does not establish source truth, scientific validity, regulatory authorization, safety, conformance, institutional endorsement, or production ingestion."
+    }
+  ]
+}
