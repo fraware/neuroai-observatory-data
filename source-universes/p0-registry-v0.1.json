@@ -1,0 +1,16 @@
+{
+  "registry_id": "SOURCE-UNIVERSE-REGISTRY-V0.1",
+  "schema_version": "0.1.0",
+  "status": "PLANNING_CONTROL_METADATA_NOT_CANONICAL_PRODUCTION_DATA",
+  "created_at": "2026-08-20T08:15:00Z",
+  "required_p0_domains": ["SCIENCE", "CLINICAL", "REGULATORY", "PUBLIC_FUNDING", "PATENT_IP", "CAPITAL", "NEURAL_DATA"],
+  "fragments": [
+    {"path": "source-universes/p0/science-v0.1.json", "domains": ["SCIENCE"], "record_count": 3},
+    {"path": "source-universes/p0/clinical-regulatory-v0.1.json", "domains": ["CLINICAL", "REGULATORY"], "record_count": 3},
+    {"path": "source-universes/p0/public-funding-v0.1.json", "domains": ["PUBLIC_FUNDING"], "record_count": 2},
+    {"path": "source-universes/p0/patent-ip-v0.1.json", "domains": ["PATENT_IP"], "record_count": 1},
+    {"path": "source-universes/p0/capital-v0.1.json", "domains": ["CAPITAL"], "record_count": 2},
+    {"path": "source-universes/p0/neural-data-v0.1.json", "domains": ["NEURAL_DATA"], "record_count": 2}
+  ],
+  "authority_boundary": "Registry inclusion defines an acquisition and coverage control surface only. It does not establish source truth, scientific validity, regulatory authorization, safety, conformance, institutional endorsement, or production ingestion."
+}
