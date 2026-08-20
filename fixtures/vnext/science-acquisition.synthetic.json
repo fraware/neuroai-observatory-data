@@ -1,0 +1,45 @@
+{
+  "fixture_id": "SCIENCE-ACQUISITION-SYNTHETIC-V0.1",
+  "synthetic": true,
+  "freezes": [
+    {
+      "freeze_id": "AF-SCI-CROSSREF-SYN-001",
+      "schema_version": "0.1.0",
+      "source_universe_id": "SU-SCI-CROSSREF",
+      "adapter_id": "ADAPTER-CROSSREF-WORKS",
+      "adapter_version": "0.1.0",
+      "protocol_id": "SCIENCE-DISCOVERY-PROTOCOL-V0.1",
+      "query_family_ids": ["QF-NEURAL-INTERFACE"],
+      "retrieval_cutoff": "2026-08-20T00:00:00Z",
+      "source_state_identity": "SYNTHETIC-NO-PROVIDER-STATE",
+      "request_identity_sha256": "0d1e2e58d184316408630708964247021f3030b578c603e037481c58964c681d",
+      "raw_response_manifest_sha256": "94b70b93dbbb69a315c1b0cb95a8ef82f4cb52d8410170f0a51b7a5860a57b8f",
+      "raw_bytes_location_class": "OUTSIDE_GIT_CONTENT_ADDRESSED",
+      "records_observed": 1,
+      "exhaustion_state": "COMPLETE",
+      "continuation_state": null,
+      "failure_reason": null,
+      "canonical_effect": "NONE_CANDIDATE_DISCOVERY_ONLY",
+      "created_at": "2026-08-20T09:00:00Z",
+      "authority_boundary": "Synthetic acquisition freeze only; it proves schema behavior and no provider acquisition, relevance, scientific validity, or canonical evidence."
+    }
+  ],
+  "candidates": [
+    {
+      "record_kind": "SCIENCE_DISCOVERY_CANDIDATE",
+      "candidate_id": "SCI-CAND-SYN-001",
+      "provider": "CROSSREF",
+      "provider_record_id": "SYNTHETIC-RECORD-001",
+      "source_universe_id": "SU-SCI-CROSSREF",
+      "acquisition_freeze_id": "AF-SCI-CROSSREF-SYN-001",
+      "title": "Synthetic neural interface record",
+      "publication_date": "2026-01-01",
+      "identifiers": {"doi":"10.9999/synthetic.science.001","pmid":null,"pmcid":null,"openalex":null},
+      "discovery_query_family_ids": ["QF-NEURAL-INTERFACE"],
+      "selection_state": "DISCOVERED_CANDIDATE",
+      "canonical_effect": "NONE_REQUIRES_RELEVANCE_ADJUDICATION",
+      "source_record_sha256": "36d601d5f86f739cc66dc61f66778100334fe48871f80d8c0ae7133250db8b18",
+      "observed_at": "2026-08-20T09:00:00Z"
+    }
+  ]
+}
