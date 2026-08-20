@@ -1,0 +1,69 @@
+{
+  "registry_id": "SCIENCE-ADAPTER-REGISTRY-V0.1",
+  "schema_version": "0.1.0",
+  "status": "CONTROLLED_ADAPTER_CONTRACTS_NOT_ACQUISITION_RESULTS",
+  "records": [
+    {
+      "adapter_id": "ADAPTER-CROSSREF-WORKS",
+      "schema_version": "0.1.0",
+      "provider": "CROSSREF",
+      "source_universe_id": "SU-SCI-CROSSREF",
+      "adapter_version": "0.1.0",
+      "state": "READY",
+      "transport": {"interface":"REST_API","base_url":"https://api.crossref.org/works","authentication_class":"NONE_PUBLIC_READ"},
+      "pagination": {"mode":"CURSOR","cursor_parameter":"cursor","exhaustion_rule":"Continue the frozen cursor traversal until the provider returns no further records; preserve request order and cursor states."},
+      "field_mapping": [
+        {"provider_field":"DOI","target_field":"identifiers.doi","required_for_candidate":false},
+        {"provider_field":"title","target_field":"title","required_for_candidate":true},
+        {"provider_field":"published","target_field":"publication_date","required_for_candidate":false},
+        {"provider_field":"author","target_field":"raw_authorship","required_for_candidate":false},
+        {"provider_field":"funder","target_field":"raw_funding","required_for_candidate":false},
+        {"provider_field":"relation","target_field":"raw_relations","required_for_candidate":false}
+      ],
+      "raw_preservation": {"digest_algorithm":"SHA-256","raw_bytes_commit_allowed":false,"storage_class":"OUTSIDE_GIT_CONTENT_ADDRESSED"},
+      "authority_boundary": "Adapter output is provider-attributed discovery metadata. Retrieval does not establish NeuroAI relevance, scientific validity, canonical identity, or assessment authority."
+    },
+    {
+      "adapter_id": "ADAPTER-EUROPEPMC-SEARCH",
+      "schema_version": "0.1.0",
+      "provider": "EUROPE_PMC",
+      "source_universe_id": "SU-SCI-EUROPEPMC",
+      "adapter_version": "0.1.0",
+      "state": "READY",
+      "transport": {"interface":"REST_API","base_url":"https://www.ebi.ac.uk/europepmc/webservices/rest/search","authentication_class":"NONE_PUBLIC_READ"},
+      "pagination": {"mode":"CURSOR","cursor_parameter":"cursorMark","exhaustion_rule":"Continue the frozen cursor traversal until the provider cursor no longer advances or the declared result universe is exhausted; record every cursor state."},
+      "field_mapping": [
+        {"provider_field":"id","target_field":"provider_record_id","required_for_candidate":true},
+        {"provider_field":"doi","target_field":"identifiers.doi","required_for_candidate":false},
+        {"provider_field":"pmid","target_field":"identifiers.pmid","required_for_candidate":false},
+        {"provider_field":"pmcid","target_field":"identifiers.pmcid","required_for_candidate":false},
+        {"provider_field":"title","target_field":"title","required_for_candidate":true},
+        {"provider_field":"pubYear","target_field":"publication_date","required_for_candidate":false},
+        {"provider_field":"authorList","target_field":"raw_authorship","required_for_candidate":false}
+      ],
+      "raw_preservation": {"digest_algorithm":"SHA-256","raw_bytes_commit_allowed":false,"storage_class":"OUTSIDE_GIT_CONTENT_ADDRESSED"},
+      "authority_boundary": "Adapter output is provider-attributed discovery metadata. Retrieval does not establish NeuroAI relevance, scientific validity, canonical identity, or assessment authority."
+    },
+    {
+      "adapter_id": "ADAPTER-OPENALEX-WORKS",
+      "schema_version": "0.1.0",
+      "provider": "OPENALEX",
+      "source_universe_id": "SU-SCI-OPENALEX",
+      "adapter_version": "0.1.0",
+      "state": "CREDENTIAL_REQUIRED",
+      "transport": {"interface":"HYBRID","base_url":"https://api.openalex.org/works","authentication_class":"FREE_API_KEY"},
+      "pagination": {"mode":"CURSOR","cursor_parameter":"cursor","exhaustion_rule":"For API acquisition, exhaust the frozen cursor traversal. For snapshot acquisition, bind the provider snapshot release and enumerate the declared partition set."},
+      "field_mapping": [
+        {"provider_field":"id","target_field":"identifiers.openalex","required_for_candidate":true},
+        {"provider_field":"doi","target_field":"identifiers.doi","required_for_candidate":false},
+        {"provider_field":"title","target_field":"title","required_for_candidate":true},
+        {"provider_field":"publication_date","target_field":"publication_date","required_for_candidate":false},
+        {"provider_field":"authorships","target_field":"raw_authorship","required_for_candidate":false},
+        {"provider_field":"topics","target_field":"raw_topics","required_for_candidate":false}
+      ],
+      "raw_preservation": {"digest_algorithm":"SHA-256","raw_bytes_commit_allowed":false,"storage_class":"PROVIDER_SNAPSHOT_REFERENCE"},
+      "authority_boundary": "Adapter output is provider-attributed discovery metadata. Retrieval does not establish NeuroAI relevance, scientific validity, canonical identity, or assessment authority."
+    }
+  ],
+  "authority_boundary": "Adapter registry defines deterministic provider-to-candidate mappings only. It is not evidence that an acquisition occurred."
+}
