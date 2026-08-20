@@ -1,0 +1,30 @@
+{
+  "fragment_id": "SU-FRAGMENT-NEURAL-DATA-V0-1",
+  "schema_version": "0.1.0",
+  "records": [
+    {
+      "universe_id": "SU-DATA-DANDI", "schema_version": "0.1.0", "name": "DANDI neurophysiology data archive", "domain": "NEURAL_DATA", "priority": "P0", "planning_state": "VERIFIED_INTERFACE",
+      "provider": {"name": "DANDI Archive", "documentation_url": "https://docs.dandiarchive.org/api/rest-api/", "jurisdiction": null},
+      "interface": {"access_mode": "REST_API", "base_url": "https://api.dandiarchive.org/api/", "authentication_class": "NONE_PUBLIC_READ", "pagination_or_exhaustion": "Freeze the exact request or extraction contract and exhaust the provider-defined result traversal; record every page, cursor, export, or release boundary.", "machine_readable": true},
+      "rights": {"access_rights_class": "OPEN_PUBLIC", "redistribution_rights_class": "SOURCE_TERMS_GOVERN", "raw_bytes_publication": "REQUIRES_CASE_REVIEW", "rights_note": "Source terms remain controlling; public graph releases publish only fields permitted for redistribution."},
+      "freeze": {"freeze_unit": "PROVIDER_RELEASE", "query_or_extract_identity": "frozen Dandiset/version enumeration contract plus metadata field set", "source_state_identity": "Dandiset version identifiers plus retrieval timestamp", "content_digest_required": true},
+      "temporal_scope": {"valid_time_model": "DATASET_VERSION", "transaction_time_required": true},
+      "update_semantics": {"cadence_state": "PROVIDER_DEFINED", "change_detection": "VERSION_DIFF"},
+      "closure": {"closure_type": "ENUMERABLE_REGISTRY", "denominator_method": "REGISTRY_RECORD_COUNT", "allowed_completeness_claim": "COMPLETE_WITHIN_DECLARED_REGISTRY"},
+      "limitations": ["DANDI is a neurophysiology archive, not a denominator for all neural datasets."],
+      "authority_boundary": "Registry inclusion defines an acquisition and coverage control surface only. It does not establish source truth, scientific validity, regulatory authorization, safety, conformance, institutional endorsement, or production ingestion."
+    },
+    {
+      "universe_id": "SU-DATA-OPENNEURO", "schema_version": "0.1.0", "name": "OpenNeuro public neuroimaging datasets", "domain": "NEURAL_DATA", "priority": "P0", "planning_state": "VERIFIED_INTERFACE",
+      "provider": {"name": "OpenNeuro", "documentation_url": "https://docs.openneuro.org/api.html", "jurisdiction": null},
+      "interface": {"access_mode": "GRAPHQL_API", "base_url": "https://openneuro.org/crn/graphql", "authentication_class": "NONE_PUBLIC_READ", "pagination_or_exhaustion": "Freeze the exact request or extraction contract and exhaust the provider-defined result traversal; record every page, cursor, export, or release boundary.", "machine_readable": true},
+      "rights": {"access_rights_class": "OPEN_PUBLIC", "redistribution_rights_class": "SOURCE_TERMS_GOVERN", "raw_bytes_publication": "REQUIRES_CASE_REVIEW", "rights_note": "Source terms remain controlling; public graph releases publish only fields permitted for redistribution."},
+      "freeze": {"freeze_unit": "API_DATABASE_STATE", "query_or_extract_identity": "frozen GraphQL dataset-enumeration query, field selection and pagination", "source_state_identity": "dataset snapshot or version identifiers plus retrieval timestamp", "content_digest_required": true},
+      "temporal_scope": {"valid_time_model": "DATASET_VERSION", "transaction_time_required": true},
+      "update_semantics": {"cadence_state": "PROVIDER_DEFINED", "change_detection": "VERSION_DIFF"},
+      "closure": {"closure_type": "ENUMERABLE_REGISTRY", "denominator_method": "REGISTRY_RECORD_COUNT", "allowed_completeness_claim": "COMPLETE_WITHIN_DECLARED_REGISTRY"},
+      "limitations": ["OpenNeuro coverage is primarily BIDS neuroimaging and is not a denominator for all neural-data resources."],
+      "authority_boundary": "Registry inclusion defines an acquisition and coverage control surface only. It does not establish source truth, scientific validity, regulatory authorization, safety, conformance, institutional endorsement, or production ingestion."
+    }
+  ]
+}
