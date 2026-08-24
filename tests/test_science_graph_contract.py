@@ -69,11 +69,11 @@ class ScienceGraphContractTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             m.validate_adapters(x, copy.deepcopy(UNIVERSES))
 
-    def test_credential_required_state_is_fail_closed(self):
+    def test_credential_required_state_requires_key_auth_class(self):
         x = copy.deepcopy(ADAPTERS)
         openalex = next(r for r in x["records"] if r["provider"] == "OPENALEX")
-        openalex["state"] = "READY"
-        with self.assertRaisesRegex(ValueError, "credentialed adapter cannot be READY"):
+        openalex["transport"]["authentication_class"] = "NONE_PUBLIC_READ"
+        with self.assertRaisesRegex(ValueError, "CREDENTIAL_REQUIRED must bind FREE_API_KEY"):
             m.validate_adapters(x, copy.deepcopy(UNIVERSES))
 
     def test_freeze_unknown_query_family_fails(self):
