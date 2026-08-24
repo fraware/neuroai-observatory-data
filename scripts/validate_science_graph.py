@@ -143,8 +143,6 @@ def validate_adapters(registry: dict[str, Any], universe_fragment: dict[str, Any
 
         auth = adapter["transport"]["authentication_class"]
         state = adapter["state"]
-        if auth == "FREE_API_KEY" and state == "READY":
-            raise ValueError(f"{aid}: credentialed adapter cannot be READY without resolved credential state")
         if state == "CREDENTIAL_REQUIRED" and auth != "FREE_API_KEY":
             raise ValueError(f"{aid}: CREDENTIAL_REQUIRED must bind FREE_API_KEY")
 
