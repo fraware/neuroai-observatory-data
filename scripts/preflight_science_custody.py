@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import errno
 import hashlib
 import json
 import os
@@ -15,6 +16,7 @@ PREFLIGHT_DIRNAME = "preflight"
 MANIFEST_NAME = "preflight-manifest.json"
 PERSISTENCE_REPORT_NAME = "persistence-verification.json"
 RESTORE_REPORT_NAME = "restore-comparison.json"
+_DENIED_ERRNOS = {errno.EACCES, errno.EPERM, errno.EROFS}
 
 
 def _canonical_bytes(value: Any) -> bytes:
@@ -248,24 +250,174 @@ def compare_restore(
     return report
 
 
-def assert_read_only(custody_root: Path, preflight_id: str) -> None:
-    acquisition.validate_output_root(custody_root)
-    preflight_root = _resolve_preflight(custody_root, preflight_id)
-    probe = preflight_root / f".auditor-write-probe-{os.getpid()}-{secrets.token_hex(4)}"
+def _is_permission_denied(exc: OSError) -> bool:
+    return isinstance(exc, PermissionError) or exc.errno in _DENIED_ERRNOS
+
+
+def _probe_create(preflight_root: Path) -> bool:
+    probe = preflight_root / f".verifier-create-probe-{os.getpid()}-{secrets.token_hex(4)}"
     try:
         with probe.open("xb") as handle:
-            handle.write(b"write-probe\n")
-    except PermissionError:
-        return
+            handle.write(b"create-probe\n")
+            handle.flush()
+            os.fsync(handle.fileno())
     except OSError as exc:
-        if exc.errno in {13, 30}:  # EACCES or EROFS
-            return
+        if _is_permission_denied(exc):
+            return False
         raise
-    else:
-        try:
-            probe.unlink()
-        finally:
-            raise RuntimeError("auditor identity can create files in custody evidence directory")
+    try:
+        probe.unlink()
+    except OSError as exc:
+        raise RuntimeError(
+            "verifier create probe succeeded but its synthetic probe file could not be removed"
+        ) from exc
+    return True
+
+
+def _probe_write_existing(path: Path) -> bool:
+    original = path.read_bytes()
+    if not original:
+        raise ValueError(f"write probe requires non-empty file: {path}")
+    try:
+        with path.open("r+b", buffering=0) as handle:
+            handle.seek(0)
+            handle.write(original[:1])
+            handle.flush()
+            os.fsync(handle.fileno())
+    except OSError as exc:
+        if _is_permission_denied(exc):
+            return False
+        raise
+    if path.read_bytes() != original:
+        raise RuntimeError("same-byte verifier write probe changed file content")
+    return True
+
+
+def _probe_truncate(path: Path) -> bool:
+    original = path.read_bytes()
+    if len(original) < 2:
+        raise ValueError(f"truncate probe requires at least two bytes: {path}")
+    mutated = False
+    try:
+        with path.open("r+b", buffering=0) as handle:
+            handle.truncate(len(original) - 1)
+            handle.flush()
+            os.fsync(handle.fileno())
+            mutated = True
+    except OSError as exc:
+        if _is_permission_denied(exc):
+            return False
+        raise
+    finally:
+        if mutated:
+            try:
+                acquisition._atomic_write(path, original)
+            except Exception as exc:
+                raise RuntimeError(
+                    "verifier truncate probe succeeded and original synthetic bytes could not be restored"
+                ) from exc
+    return True
+
+
+def _probe_rename(path: Path) -> bool:
+    target = path.with_name(f".{path.name}.verifier-rename-probe-{secrets.token_hex(4)}")
+    renamed = False
+    try:
+        path.rename(target)
+        renamed = True
+    except OSError as exc:
+        if _is_permission_denied(exc):
+            return False
+        raise
+    finally:
+        if renamed:
+            try:
+                target.rename(path)
+            except Exception as exc:
+                raise RuntimeError(
+                    "verifier rename probe succeeded and original synthetic path could not be restored"
+                ) from exc
+    return True
+
+
+def _probe_delete(path: Path) -> bool:
+    original = path.read_bytes()
+    deleted = False
+    try:
+        path.unlink()
+        deleted = True
+    except OSError as exc:
+        if _is_permission_denied(exc):
+            return False
+        raise
+    finally:
+        if deleted:
+            try:
+                acquisition._atomic_write(path, original)
+            except Exception as exc:
+                raise RuntimeError(
+                    "verifier delete probe succeeded and original synthetic bytes could not be restored"
+                ) from exc
+    return True
+
+
+def assert_read_only(
+    custody_root: Path,
+    preflight_id: str,
+    *,
+    clock_fn: Callable[[], str] = acquisition._utc_now,
+) -> dict[str, Any]:
+    acquisition.validate_output_root(custody_root)
+    preflight_root = _resolve_preflight(custody_root, preflight_id)
+    manifest_path = preflight_root / MANIFEST_NAME
+    manifest = _read_json(manifest_path)
+    _verify_manifest_files(custody_root, manifest, require_original_root=True)
+
+    probes: list[tuple[str, Callable[[], bool]]] = [
+        ("CREATE_FILE", lambda: _probe_create(preflight_root)),
+        (
+            "WRITE_EXISTING_FILE",
+            lambda: _probe_write_existing(preflight_root / "atomic-replace.txt"),
+        ),
+        ("TRUNCATE_FILE", lambda: _probe_truncate(preflight_root / "atomic-replace.txt")),
+        ("RENAME_FILE", lambda: _probe_rename(preflight_root / "nested" / "state.json")),
+        ("DELETE_FILE", lambda: _probe_delete(preflight_root / "payload.bin")),
+    ]
+
+    unexpectedly_allowed: list[str] = []
+    blocked: list[str] = []
+    for name, probe in probes:
+        if probe():
+            unexpectedly_allowed.append(name)
+        else:
+            blocked.append(name)
+
+    # Destructive probes restore their synthetic targets when a misconfiguration
+    # permits mutation. Re-verify exact bytes before reporting the authorization result.
+    _verify_manifest_files(custody_root, manifest, require_original_root=True)
+
+    if unexpectedly_allowed:
+        raise RuntimeError(
+            "verifier identity permits custody mutation operations: "
+            + ", ".join(unexpectedly_allowed)
+        )
+
+    report_basis = {
+        "schema_version": SCHEMA_VERSION,
+        "preflight_id": preflight_id,
+        "verified_at": clock_fn(),
+        "manifest_file_sha256": _sha256_bytes(manifest_path.read_bytes()),
+        "manifest_sha256": manifest["manifest_sha256"],
+        "blocked_operations": blocked,
+        "status": "READ_ONLY_MUTATION_BOUNDARY_VERIFIED",
+        "authority_boundary": (
+            "This proves only that the executing identity was denied the tested create, existing-file write, "
+            "truncate, rename, and delete operations on this mounted preflight tree. It does not establish "
+            "the identity's IAM provenance, administrator separation, backup immutability, or provider acquisition."
+        ),
+    }
+    report_sha = _sha256_bytes(_canonical_bytes(report_basis))
+    return {**report_basis, "verification_sha256": report_sha}
 
 
 def _print_report(report: dict[str, Any]) -> None:
@@ -303,8 +455,7 @@ def main() -> None:
     elif args.command == "compare-restore":
         _print_report(compare_restore(args.primary_root, args.restored_root, args.preflight_id))
     elif args.command == "assert-read-only":
-        assert_read_only(args.custody_root, args.preflight_id)
-        print("READ_ONLY_PASS")
+        _print_report(assert_read_only(args.custody_root, args.preflight_id))
     else:
         raise AssertionError(f"unhandled command: {args.command}")
 
