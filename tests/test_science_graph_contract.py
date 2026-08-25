@@ -15,6 +15,7 @@ SPEC.loader.exec_module(m)
 PROTOCOL = json.loads((ROOT / "science" / "discovery-protocol-v0.1.json").read_text())
 ADAPTERS = json.loads((ROOT / "science" / "adapters-v0.1.json").read_text())
 UNIVERSES = json.loads((ROOT / "source-universes" / "p0" / "science-v0.1.json").read_text())
+NAMESPACES = json.loads((ROOT / "identity" / "namespaces-v0.1.json").read_text())
 BUNDLE = json.loads((ROOT / "fixtures" / "vnext" / "science-acquisition.synthetic.json").read_text())
 
 
@@ -25,6 +26,15 @@ def adapters():
 class ScienceGraphContractTests(unittest.TestCase):
     def test_valid_repository_state(self):
         self.assertTrue(m.validate_repository_state())
+
+    def test_required_science_identifier_namespaces_present(self):
+        self.assertTrue(m.validate_identifier_namespaces(copy.deepcopy(NAMESPACES)))
+
+    def test_missing_science_identifier_namespace_fails(self):
+        x = copy.deepcopy(NAMESPACES)
+        x["records"] = [row for row in x["records"] if row["namespace_id"] != "PMCID"]
+        with self.assertRaisesRegex(ValueError, "missing science identifier namespaces"):
+            m.validate_identifier_namespaces(x)
 
     def test_protocol_requires_relevance_adjudication(self):
         x = copy.deepcopy(PROTOCOL)
@@ -40,7 +50,7 @@ class ScienceGraphContractTests(unittest.TestCase):
 
     def test_protocol_identifier_precedence_is_frozen(self):
         x = copy.deepcopy(PROTOCOL)
-        x["deduplication"]["exact_identifier_precedence"] = ["PMID", "DOI", "PMCID", "OPENALEX"]
+        x["deduplication"]["exact_identifier_precedence"] = ["PMID", "DOI", "PMCID", "OPENALEX_WORK"]
         with self.assertRaisesRegex(ValueError, "identifier precedence"):
             m.validate_protocol(x)
 
