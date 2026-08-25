@@ -13,6 +13,18 @@ import validate_source_universes as coverage_contract
 import verify_science_candidate_provenance as provenance_contract
 
 RELEASE_INELIGIBLE = "NOT_RELEASE_ELIGIBLE_UNTIL_DURABLE_CUSTODY_AND_RIGHTS_REVIEW"
+RESPONSE_EVIDENCE_KEYS = (
+    "response_index",
+    "requested_at",
+    "observed_at",
+    "request_url_sha256",
+    "cursor_in",
+    "http_status",
+    "response_headers",
+    "content_sha256",
+    "byte_count",
+    "raw_custody_pointer",
+)
 
 
 def _canonical_bytes(value: Any) -> bytes:
@@ -94,78 +106,125 @@ def validate_plan(plan: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return acquisition_contract.validate_plan_integrity(plan)
 
 
+def _parse_raw_page(provider: str, raw: bytes, unit_id: str) -> tuple[int, list[dict[str, Any]], str | None]:
+    try:
+        payload = json.loads(raw)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError(f"{unit_id}: parsed page points to invalid raw JSON") from exc
+    if not isinstance(payload, dict):
+        raise ValueError(f"{unit_id}: parsed page raw JSON root must be object")
+    try:
+        if provider == "CROSSREF":
+            return acquisition_contract._crossref_page(payload)
+        if provider == "EUROPE_PMC":
+            return acquisition_contract._europe_pmc_page(payload)
+    except RuntimeError as exc:
+        raise ValueError(f"{unit_id}: parsed page does not satisfy provider response contract") from exc
+    raise ValueError(f"{unit_id}: unsupported provider during raw-page verification")
+
+
 def _validate_raw_custody(
     run_dir: Path,
     result: dict[str, Any],
     unit: dict[str, Any],
 ) -> None:
     unit_id = unit["query_unit_id"]
+    responses = result.get("response_manifest")
     pages = result.get("page_manifest")
-    if not isinstance(pages, list):
-        raise ValueError(f"{unit_id}: page_manifest must be an array")
+    if not isinstance(responses, list) or not isinstance(pages, list):
+        raise ValueError(f"{unit_id}: response_manifest and page_manifest must be arrays")
 
     freeze = result["freeze"]
-    manifest_sha = _sha256_json(pages)
-    if freeze.get("raw_response_manifest_sha256") != manifest_sha:
+    response_manifest_sha = _sha256_json(responses)
+    if freeze.get("raw_response_manifest_sha256") != response_manifest_sha:
         raise ValueError(f"{unit_id}: raw response manifest digest mismatch")
-    if freeze.get("source_state_identity") != f"OBSERVED-{manifest_sha[:32].upper()}":
-        raise ValueError(f"{unit_id}: source_state_identity does not match page manifest")
+    if freeze.get("source_state_identity") != f"OBSERVED-{response_manifest_sha[:32].upper()}":
+        raise ValueError(f"{unit_id}: source_state_identity does not match response manifest")
+
+    page_by_response: dict[int, dict[str, Any]] = {}
+    for expected_page_index, page in enumerate(pages, start=1):
+        if not isinstance(page, dict):
+            raise ValueError(f"{unit_id}: page manifest row must be object")
+        if page.get("page_index") != expected_page_index:
+            raise ValueError(f"{unit_id}: page_index sequence mismatch")
+        response_index = page.get("response_index")
+        if response_index != expected_page_index:
+            raise ValueError(f"{unit_id}: parsed pages must be a prefix of response observations")
+        if response_index in page_by_response:
+            raise ValueError(f"{unit_id}: duplicate parsed response index")
+        page_by_response[response_index] = page
 
     provider = unit["provider"]
     cursor_parameter = "cursor" if provider == "CROSSREF" else "cursorMark"
     expected_cursor = unit["parameters"][cursor_parameter]
     parameters = dict(unit["parameters"])
     provider_totals: list[int] = []
-    record_count = 0
+    parsed_record_count = 0
 
-    for expected_index, page in enumerate(pages, start=1):
-        if not isinstance(page, dict):
-            raise ValueError(f"{unit_id}: page manifest row must be object")
-        if page.get("page_index") != expected_index:
-            raise ValueError(f"{unit_id}: page_index sequence mismatch")
-        if page.get("cursor_in") != expected_cursor:
-            raise ValueError(f"{unit_id}: cursor chain mismatch")
+    for expected_response_index, response in enumerate(responses, start=1):
+        if not isinstance(response, dict):
+            raise ValueError(f"{unit_id}: response manifest row must be object")
+        if response.get("response_index") != expected_response_index:
+            raise ValueError(f"{unit_id}: response_index sequence mismatch")
+        if response.get("cursor_in") != expected_cursor:
+            raise ValueError(f"{unit_id}: response cursor chain mismatch")
 
         parameters[cursor_parameter] = expected_cursor
         expected_url = acquisition_contract._build_url(unit["endpoint"], parameters)
         expected_url_sha = _sha256_bytes(expected_url.encode("utf-8"))
-        if page.get("request_url_sha256") != expected_url_sha:
-            raise ValueError(f"{unit_id}: page request URL digest mismatch")
+        if response.get("request_url_sha256") != expected_url_sha:
+            raise ValueError(f"{unit_id}: response request URL digest mismatch")
 
-        requested_at = _parse_time(page.get("requested_at"), f"{unit_id}:requested_at")
-        observed_at = _parse_time(page.get("observed_at"), f"{unit_id}:observed_at")
+        requested_at = _parse_time(response.get("requested_at"), f"{unit_id}:requested_at")
+        observed_at = _parse_time(response.get("observed_at"), f"{unit_id}:observed_at")
         if observed_at < requested_at:
             raise ValueError(f"{unit_id}: observed_at precedes requested_at")
+        if response.get("http_status") != 200:
+            raise ValueError(f"{unit_id}: recorded successful acquisition response is not HTTP 200")
 
-        current_total = page.get("provider_total")
-        current_count = page.get("record_count")
-        if not isinstance(current_total, int) or current_total < 0:
-            raise ValueError(f"{unit_id}: invalid page provider_total")
-        if not isinstance(current_count, int) or current_count < 0:
-            raise ValueError(f"{unit_id}: invalid page record_count")
-        provider_totals.append(current_total)
-        record_count += current_count
-
-        pointer = page.get("raw_custody_pointer")
-        digest = page.get("content_sha256")
+        pointer = response.get("raw_custody_pointer")
+        digest = response.get("content_sha256")
         if not isinstance(pointer, str) or not isinstance(digest, str):
             raise ValueError(f"{unit_id}: invalid raw custody entry")
         raw_path = _resolve_inside(run_dir, pointer)
         _verify_file_sha(raw_path, digest, "raw response")
         if raw_path.name != f"{digest}.json":
             raise ValueError(f"{unit_id}: raw custody filename is not content-addressed")
+        raw_bytes = raw_path.read_bytes()
+        if response.get("byte_count") != len(raw_bytes):
+            raise ValueError(f"{unit_id}: response byte_count mismatch")
 
-        expected_cursor = page.get("cursor_out")
+        page = page_by_response.get(expected_response_index)
+        if page is None:
+            if expected_response_index != len(responses):
+                raise ValueError(f"{unit_id}: unparsed response may occur only as the final response")
+            continue
+        for key in RESPONSE_EVIDENCE_KEYS:
+            if page.get(key) != response.get(key):
+                raise ValueError(f"{unit_id}: page/response observation mismatch for {key}")
+
+        total, records, next_cursor = _parse_raw_page(provider, raw_bytes, unit_id)
+        if page.get("provider_total") != total:
+            raise ValueError(f"{unit_id}: page provider_total does not match raw response")
+        if page.get("record_count") != len(records):
+            raise ValueError(f"{unit_id}: page record_count does not match raw response")
+        if page.get("cursor_out") != next_cursor:
+            raise ValueError(f"{unit_id}: page cursor_out does not match raw response")
+        provider_totals.append(total)
+        parsed_record_count += len(records)
+        expected_cursor = next_cursor
 
     if result.get("status") == "COMPLETE":
+        if len(pages) != len(responses):
+            raise ValueError(f"{unit_id}: complete result has unparsed response observations")
         if not provider_totals:
             raise ValueError(f"{unit_id}: complete result has no page/provider-total evidence")
         if len(set(provider_totals)) != 1:
             raise ValueError(f"{unit_id}: complete result contains provider_total drift")
         if provider_totals[0] != result.get("provider_total"):
-            raise ValueError(f"{unit_id}: result provider_total differs from page evidence")
-        if record_count != result.get("candidate_count"):
-            raise ValueError(f"{unit_id}: complete page record counts do not reconcile to candidates")
+            raise ValueError(f"{unit_id}: result provider_total differs from raw page evidence")
+        if parsed_record_count != result.get("candidate_count"):
+            raise ValueError(f"{unit_id}: complete raw page record counts do not reconcile to candidates")
 
 
 def _validate_result(
