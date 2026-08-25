@@ -237,7 +237,42 @@ class ScienceAcquisitionVerificationTests(unittest.TestCase):
             result["candidates_sha256"] = acquisition._sha256_bytes(candidate_bytes)
             _rewrite_json(epmc_result_path, result)
             _refresh_run_id(root)
-            with self.assertRaisesRegex(ValueError, "provider identity/observation does not match"):
+            with self.assertRaisesRegex(ValueError, "does not resolve uniquely"):
+                verification.verify_acquisition(plan, root)
+
+    def test_structurally_valid_coverage_forgery_fails_recomputation(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            plan = _build_verified_run(root)
+            manifest = json.loads((root / "run-manifest.json").read_text())
+            result_path = root / manifest["query_unit_result_paths"][0]
+            result = json.loads(result_path.read_text())
+            result["coverage"]["states"]["resolved"] = 1
+            result["coverage"]["rates"]["resolution"] = 1.0
+            _rewrite_json(result_path, result)
+            _refresh_run_id(root)
+            with self.assertRaisesRegex(ValueError, "coverage record does not reproduce"):
+                verification.verify_acquisition(plan, root)
+
+    def test_deduplication_forgery_fails_recomputation_even_if_manifest_digest_is_updated(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            plan = _build_verified_run(root)
+            dedup_path = root / "dedup-report.json"
+            dedup = json.loads(dedup_path.read_text())
+            dedup["duplicate_identifier_groups"]["DOI"].append(
+                {
+                    "normalized_identifier": "10.9999/forged",
+                    "candidate_ids": ["SCI-CAND-FORGED-A", "SCI-CAND-FORGED-B"],
+                    "candidate_count": 2,
+                }
+            )
+            _rewrite_json(dedup_path, dedup)
+            manifest_path = root / "run-manifest.json"
+            manifest = json.loads(manifest_path.read_text())
+            manifest["dedup_report_sha256"] = acquisition._sha256_json(dedup)
+            _rewrite_json(manifest_path, manifest)
+            with self.assertRaisesRegex(ValueError, "dedup report does not reproduce"):
                 verification.verify_acquisition(plan, root)
 
     def test_release_eligibility_mutation_fails_verification(self):
