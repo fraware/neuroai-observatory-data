@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import importlib.util
 import json
 import tempfile
@@ -18,8 +19,12 @@ def _load_module(name: str, path: Path):
 
 
 m = _load_module("acquire_science_candidates", ROOT / "scripts" / "acquire_science_candidates.py")
+compiler = _load_module("compile_science_queries_for_acquisition_tests", ROOT / "scripts" / "compile_science_queries.py")
 science_validator = _load_module("validate_science_graph_for_acquisition_tests", ROOT / "scripts" / "validate_science_graph.py")
 coverage_validator = _load_module("validate_source_universes_for_acquisition_tests", ROOT / "scripts" / "validate_source_universes.py")
+
+PROTOCOL = json.loads((ROOT / "science" / "discovery-protocol-v0.1.json").read_text())
+COMPILATION = json.loads((ROOT / "science" / "query-compilation-v0.1.json").read_text())
 
 
 class FakeTransport:
@@ -49,49 +54,51 @@ class Clock:
         return value
 
 
+def frozen_plan():
+    return compiler.compile_plan(copy.deepcopy(PROTOCOL), copy.deepcopy(COMPILATION))
+
+
+def provider_unit(provider):
+    plan = frozen_plan()
+    unit = copy.deepcopy(next(row for row in plan["query_units"] if row["provider"] == provider))
+    unit["evidence_cutoff"] = plan["evidence_cutoff"]
+    return unit
+
+
 def crossref_unit():
-    return {
-        "query_unit_id": "QUNIT-CROSSREF-AAAAAAAAAAAAAAAAAAAA",
-        "provider": "CROSSREF",
-        "endpoint": "https://api.crossref.org/works",
-        "parameters": {
-            "query.title": "brain-computer interface",
-            "filter": "from-pub-date:2015-01-01,until-pub-date:2015-12-31",
-            "rows": "1000",
-            "cursor": "*",
-        },
-        "query_family_id": "QF-NEURAL-INTERFACE",
-        "term_index": 1,
-        "term": "brain-computer interface",
-        "window": {"from": "2015-01-01", "through": "2015-12-31"},
-        "adapter_id": "ADAPTER-CROSSREF-WORKS",
-        "source_universe_id": "SU-SCI-CROSSREF",
-        "request_identity_sha256": "a" * 64,
-        "evidence_cutoff": "2026-08-20T00:00:00Z",
-    }
+    return provider_unit("CROSSREF")
 
 
 def europe_pmc_unit():
-    return {
-        "query_unit_id": "QUNIT-EUROPE_PMC-BBBBBBBBBBBBBBBBBBBB",
-        "provider": "EUROPE_PMC",
-        "endpoint": "https://www.ebi.ac.uk/europepmc/webservices/rest/search",
-        "parameters": {
-            "query": '(TITLE:"brain-computer interface" OR ABSTRACT:"brain-computer interface") AND FIRST_PDATE:[2015-01-01 TO 2015-12-31]',
-            "resultType": "core",
-            "format": "json",
-            "pageSize": "1000",
-            "cursorMark": "*",
+    return provider_unit("EUROPE_PMC")
+
+
+def crossref_response(*, total=1, doi="10.1/a", title="A", next_cursor="done"):
+    return (
+        200,
+        {
+            "message": {
+                "total-results": total,
+                "items": [{"DOI": doi, "title": [title]}],
+                "next-cursor": next_cursor,
+            }
         },
-        "query_family_id": "QF-NEURAL-INTERFACE",
-        "term_index": 1,
-        "term": "brain-computer interface",
-        "window": {"from": "2015-01-01", "through": "2015-12-31"},
-        "adapter_id": "ADAPTER-EUROPEPMC-SEARCH",
-        "source_universe_id": "SU-SCI-EUROPEPMC",
-        "request_identity_sha256": "b" * 64,
-        "evidence_cutoff": "2026-08-20T00:00:00Z",
-    }
+        {"content-type": "application/json"},
+    )
+
+
+def epmc_response(*, total=1, record=None, next_cursor="done"):
+    if record is None:
+        record = {"source": "MED", "id": "123", "doi": "10.1/b", "title": "B", "pubYear": "2015"}
+    return (
+        200,
+        {
+            "hitCount": total,
+            "nextCursorMark": next_cursor,
+            "resultList": {"result": [record]},
+        },
+        {"content-type": "application/json"},
+    )
 
 
 class ScienceAcquisitionTests(unittest.TestCase):
@@ -129,22 +136,57 @@ class ScienceAcquisitionTests(unittest.TestCase):
             self.assertEqual(candidates[0]["publication_date"], "2015-02-03")
             self.assertEqual(candidates[1]["publication_date"], "2015")
             self.assertEqual(len(list((root / "raw" / "sha256").rglob("*.json"))), 2)
+            self.assertLess(result["page_manifest"][0]["requested_at"], result["page_manifest"][0]["observed_at"])
             self.assert_generated_contracts_validate(result, root)
 
-    def test_europe_pmc_identifiers_normalize_and_ids_are_schema_safe(self):
-        responses = [(200, {"hitCount": 1, "nextCursorMark": "cursor-2", "resultList": {"result": [{"id": "123456", "doi": "https://doi.org/10.5555/ABC", "pmid": "123456", "pmcid": "pmc999", "title": "Example", "pubYear": "2015"}]}}, {"content-type": "application/json"})]
+    def test_europe_pmc_identity_is_source_aware_and_schema_safe(self):
+        record = {
+            "source": "med",
+            "id": "123456",
+            "doi": "https://doi.org/10.5555/ABC",
+            "pmid": "123456",
+            "pmcid": "pmc999",
+            "title": "Example",
+            "pubYear": "2015",
+        }
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            result = m.acquire_query_unit(europe_pmc_unit(), output_root=root, transport=FakeTransport(responses), sleep_fn=lambda _: None, clock_fn=Clock())
+            result = m.acquire_query_unit(europe_pmc_unit(), output_root=root, transport=FakeTransport([epmc_response(record=record)]), sleep_fn=lambda _: None, clock_fn=Clock())
             candidate = next(m._load_jsonl(root / result["candidates_path"]))
             self.assertEqual(result["status"], "COMPLETE")
+            self.assertEqual(candidate["provider_record_source"], "MED")
+            self.assertEqual(candidate["provider_record_id"], "123456")
             self.assertTrue(candidate["candidate_id"].startswith("SCI-CAND-EUROPE-PMC-"))
-            self.assertTrue(result["freeze"]["freeze_id"].startswith("AF-SCI-EUROPE-PMC-"))
-            self.assertTrue(result["coverage"]["coverage_id"].startswith("COV-EUROPE-PMC-"))
             self.assertEqual(candidate["identifiers"]["doi"], "10.5555/abc")
             self.assertEqual(candidate["identifiers"]["pmid"], "123456")
             self.assertEqual(candidate["identifiers"]["pmcid"], "PMC999")
             self.assert_generated_contracts_validate(result, root)
+
+    def test_europe_pmc_same_bare_id_different_sources_are_distinct_provider_records(self):
+        records = [
+            {"source": "MED", "id": "123", "title": "Published record", "pubYear": "2015"},
+            {"source": "PPR", "id": "123", "title": "Preprint record", "pubYear": "2015"},
+        ]
+        response = (
+            200,
+            {"hitCount": 2, "nextCursorMark": "done", "resultList": {"result": records}},
+            {"content-type": "application/json"},
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            result = m.acquire_query_unit(europe_pmc_unit(), output_root=root, transport=FakeTransport([response]), sleep_fn=lambda _: None, clock_fn=Clock())
+            candidates = list(m._load_jsonl(root / result["candidates_path"]))
+            self.assertEqual(result["status"], "COMPLETE")
+            self.assertEqual({(row["provider_record_source"], row["provider_record_id"]) for row in candidates}, {("MED", "123"), ("PPR", "123")})
+            self.assertEqual(len({row["candidate_id"] for row in candidates}), 2)
+
+    def test_europe_pmc_missing_source_fails_closed(self):
+        record = {"id": "123", "title": "Missing source", "pubYear": "2015"}
+        with tempfile.TemporaryDirectory() as tmp:
+            result = m.acquire_query_unit(europe_pmc_unit(), output_root=Path(tmp), transport=FakeTransport([epmc_response(record=record)]), sleep_fn=lambda _: None, clock_fn=Clock())
+            self.assertEqual(result["status"], "PARTIAL")
+            self.assertIn("provider source database code", result["freeze"]["failure_reason"])
+            self.assertIsNone(result["coverage"])
 
     def test_cursor_stall_is_partial_and_coverage_is_not_issued(self):
         responses = [(200, {"message": {"total-results": 2, "items": [{"DOI": "10.1/a", "title": ["A"]}], "next-cursor": "*"}}, {})]
@@ -176,31 +218,99 @@ class ScienceAcquisitionTests(unittest.TestCase):
         self.assertEqual(len(transport.urls), 2)
 
     def test_scoped_plan_cannot_claim_full_plan_completion(self):
-        plan = {"status": "FROZEN_QUERY_PLAN_NO_ACQUISITION_EXECUTED", "plan_id": "SCIENCE-QUERY-PLAN-TEST", "plan_sha256": "c" * 64, "evidence_cutoff": "2026-08-20T00:00:00Z", "query_units": [crossref_unit(), europe_pmc_unit()]}
-        response = (200, {"message": {"total-results": 1, "items": [{"DOI": "10.1/a", "title": ["A"]}], "next-cursor": "done"}}, {})
+        plan = frozen_plan()
         with tempfile.TemporaryDirectory() as tmp:
-            manifest = m.acquire_plan(plan, output_root=Path(tmp), transport=FakeTransport([response]), max_units=1, sleep_fn=lambda _: None, clock_fn=Clock())
+            manifest = m.acquire_plan(plan, output_root=Path(tmp), transport=FakeTransport([crossref_response()]), max_units=1, sleep_fn=lambda _: None, clock_fn=Clock())
             self.assertEqual(manifest["complete_query_units"], 1)
             self.assertFalse(manifest["selected_is_full_plan"])
             self.assertFalse(manifest["full_plan_complete"])
             self.assertEqual(manifest["status"], "PARTIAL_OR_SCOPED_ACQUISITION")
 
     def test_exact_doi_dedup_is_candidate_only(self):
-        plan = {"status": "FROZEN_QUERY_PLAN_NO_ACQUISITION_EXECUTED", "plan_id": "SCIENCE-QUERY-PLAN-TEST", "plan_sha256": "c" * 64, "evidence_cutoff": "2026-08-20T00:00:00Z", "query_units": [crossref_unit(), europe_pmc_unit()]}
+        plan = frozen_plan()
+        crossref = next(unit for unit in plan["query_units"] if unit["provider"] == "CROSSREF")
+        epmc = next(unit for unit in plan["query_units"] if unit["provider"] == "EUROPE_PMC")
         responses = [
-            (200, {"message": {"total-results": 1, "items": [{"DOI": "10.1/shared", "title": ["Shared"]}], "next-cursor": "done"}}, {}),
-            (200, {"hitCount": 1, "nextCursorMark": "done", "resultList": {"result": [{"id": "123", "doi": "10.1/shared", "title": "Shared", "pubYear": "2015"}]}}, {}),
+            crossref_response(doi="10.1/shared", title="Shared"),
+            epmc_response(record={"source": "MED", "id": "123", "doi": "10.1/shared", "title": "Shared", "pubYear": "2015"}),
         ]
         with tempfile.TemporaryDirectory() as tmp:
-            manifest = m.acquire_plan(plan, output_root=Path(tmp), transport=FakeTransport(responses), sleep_fn=lambda _: None, clock_fn=Clock())
-            self.assertTrue(manifest["full_plan_complete"])
-            report = json.loads((Path(tmp) / "dedup-report.json").read_text())
+            root = Path(tmp)
+            manifest = m.acquire_plan(
+                plan,
+                output_root=root,
+                transport=FakeTransport(responses),
+                query_unit_ids={crossref["query_unit_id"], epmc["query_unit_id"]},
+                sleep_fn=lambda _: None,
+                clock_fn=Clock(),
+            )
+            self.assertFalse(manifest["full_plan_complete"])
+            report = json.loads((root / "dedup-report.json").read_text())
             doi_groups = report["duplicate_identifier_groups"]["DOI"]
             self.assertEqual(len(doi_groups), 1)
             self.assertEqual(doi_groups[0]["normalized_identifier"], "10.1/shared")
             self.assertEqual(doi_groups[0]["candidate_count"], 2)
             self.assertFalse(report["canonical_merge_performed"])
             self.assertFalse(report["fuzzy_matching_performed"])
+
+    def test_internally_rehashed_subset_cannot_impersonate_frozen_full_plan(self):
+        plan = frozen_plan()
+        x = copy.deepcopy(plan)
+        x["query_units"] = x["query_units"][:2]
+        x["unit_count"] = 2
+        x["provider_counts"] = {"CROSSREF": 2, "EUROPE_PMC": 0}
+        x["plan_sha256"] = m._sha256_json(m._plan_basis(x))
+        x["plan_id"] = f"SCIENCE-QUERY-PLAN-{x['plan_sha256'][:20].upper()}"
+        with self.assertRaisesRegex(ValueError, "does not match the frozen Phase 4 v0.1 plan identity"):
+            m.validate_plan_integrity(x)
+
+    def test_unknown_query_unit_selection_fails_instead_of_silently_dropping(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(ValueError, "unknown ids"):
+                m.acquire_plan(
+                    frozen_plan(),
+                    output_root=Path(tmp),
+                    transport=FakeTransport([]),
+                    query_unit_ids={"QUNIT-CROSSREF-NOTDECLARED"},
+                    sleep_fn=lambda _: None,
+                    clock_fn=Clock(),
+                )
+
+    def test_complete_result_tampering_blocks_resume_before_network(self):
+        plan = frozen_plan()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            first = m.acquire_plan(plan, output_root=root, transport=FakeTransport([crossref_response()]), max_units=1, sleep_fn=lambda _: None, clock_fn=Clock())
+            result_path = root / first["query_unit_result_paths"][0]
+            result = json.loads(result_path.read_text())
+            candidate_path = root / result["candidates_path"]
+            candidate_path.write_text(candidate_path.read_text() + "{}\n", encoding="utf-8")
+            transport = FakeTransport([])
+            with self.assertRaisesRegex(ValueError, "candidate file digest mismatch"):
+                m.acquire_plan(plan, output_root=root, transport=transport, max_units=1, sleep_fn=lambda _: None, clock_fn=Clock())
+            self.assertEqual(transport.urls, [])
+
+    def test_incomplete_attempt_is_archived_before_clean_retry(self):
+        plan = frozen_plan()
+        partial_response = (200, {"message": {"total-results": 2, "items": [{"DOI": "10.1/a", "title": ["A"]}], "next-cursor": "*"}}, {})
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            first = m.acquire_plan(plan, output_root=root, transport=FakeTransport([partial_response]), max_units=1, sleep_fn=lambda _: None, clock_fn=Clock())
+            self.assertEqual(first["partial_query_units"], 1)
+            second = m.acquire_plan(plan, output_root=root, transport=FakeTransport([crossref_response()]), max_units=1, sleep_fn=lambda _: None, clock_fn=Clock())
+            self.assertEqual(second["complete_query_units"], 1)
+            archives = list((root / "units").rglob("attempt.json"))
+            self.assertEqual(len(archives), 1)
+            archived = json.loads(archives[0].read_text())
+            self.assertEqual(archived["archived_status"], "PARTIAL")
+            self.assertTrue((root / archived["candidate_snapshot_path"]).is_file())
+            self.assertTrue((root / "runs" / first["run_id"] / "run-manifest.json").is_file())
+
+    def test_live_transport_user_agent_drift_is_rejected_before_network(self):
+        transport = m.UrllibTransport(user_agent="different-client")
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(ValueError, "User-Agent differs"):
+                m.acquire_plan(frozen_plan(), output_root=Path(tmp), transport=transport, max_units=1, sleep_fn=lambda _: None, clock_fn=Clock())
 
     def test_repository_output_is_rejected(self):
         with self.assertRaisesRegex(ValueError, "outside the Git repository"):
