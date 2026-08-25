@@ -123,6 +123,10 @@ Recommended controls:
 - audit logging for mount/volume configuration and destructive operations;
 - no provider credentials embedded in the repository or custody artifacts; the frozen v0.2 public API path requires none.
 
+Access-control review must reason over **effective permissions**, not one policy document in isolation. Where the storage provider combines identity policies, resource policies, session policies, permissions boundaries, organization-level controls, filesystem permissions, network controls, or equivalent mechanisms, the production review must determine their composed effect. A resource-level grant naming the intended writer/verifier identities does not by itself prove exclusivity when another applicable policy can independently authorize access.
+
+The verifier mutation boundary must fail closed under the composed policy state. If the provider supports explicit denial, use it or an equivalently strong mechanism so that a separate allow cannot silently recover write/delete/root capability. The production evidence must show that the actual verifier identity is unable to create, write, truncate, rename, or delete custody evidence. The writer path must likewise be reviewed for unintended principals that could independently obtain usable client access.
+
 ## 6. Retention and deletion policy
 
 Before production retrieval, record:
@@ -170,7 +174,9 @@ Before any live provider pilot, perform a storage-only preflight on the selected
 7. snapshot/backup the custody root;
 8. restore to a separate verification location;
 9. confirm all test bytes, paths, and hashes are identical;
-10. verify that the read-only auditor identity cannot mutate the restored or primary evidence.
+10. under the real verifier identity, verify that create, existing-file write, truncate, rename, and delete operations are all blocked on the primary evidence;
+11. repeat the verifier mutation-boundary check on the restored evidence where the restore architecture is intended to expose read-only verification;
+12. preserve an independent record of the verifier identity/session that executed the checks.
 
 Destroy only the synthetic preflight artifacts after evidence has been recorded.
 
@@ -220,6 +226,8 @@ custody administrator identity:
 retention policy:
 backup frequency:
 capacity allocated:
+effective access-policy audit evidence:
+verifier mutation-boundary evidence:
 preflight evidence location:
 interruption/restart drill execution ID(s):
 post-restart verification envelope ID:
@@ -235,8 +243,9 @@ Issue #49 may close only after a real environment—not this design document alo
 2. raw content-addressed response bytes survive interruption/restart;
 3. filesystem semantics satisfy the current implementation's atomic-write and verification assumptions;
 4. a backup/restore check preserves exact bytes and paths;
-5. access controls separate writer, verifier, and administrative capabilities;
-6. the two-provider scoped pilot and recovery drill complete with independently verifiable evidence;
-7. the resulting mixed-provider package remains release-ineligible and rights-restricted as required.
+5. composed access controls separate writer, verifier, and administrative capabilities, with no unreviewed policy path that silently restores verifier mutation or unintended writer access;
+6. the real verifier identity blocks create, write, truncate, rename, and delete operations on custody evidence;
+7. the two-provider scoped pilot and recovery drill complete with independently verifiable evidence;
+8. the resulting mixed-provider package remains release-ineligible and rights-restricted as required.
 
 Until those conditions are demonstrated, #49 remains an open production-acquisition blocker.
