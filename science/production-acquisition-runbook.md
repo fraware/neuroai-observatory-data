@@ -22,7 +22,7 @@ The historical v0.1 compilation remains reproducible control state and is not ac
 
 Do not start a live provider acquisition until all of the following are true:
 
-1. The exact branch/head intended for execution has passed the Phase 4 validator/compiler/test sequence in an approved environment. GitHub-hosted validation infrastructure is tracked in #48.
+1. The exact branch/head intended for execution has passed the Phase 4 validator/compiler/test sequence in an approved environment. Hosted validation infrastructure is tracked in #48.
 2. The acquisition output root is on durable external storage satisfying #49. It must not be inside the Git repository or on ephemeral session storage.
 3. The operator has confirmed that automatic HTTP redirects are disabled. The production entrypoint enforces `FAIL_CLOSED_NO_AUTO_FOLLOW`.
 4. The execution environment can reach only the intended public Crossref and Europe PMC interfaces without a proxy or middleware that silently rewrites the effective endpoint, request parameters, or User-Agent identity.
@@ -78,14 +78,18 @@ a9b8b8999861882c4bc78b27f40f48e476f7cafbbb347b00a0a6cd897406db56
 
 Do not edit and re-hash a plan in order to make it pass. The acquisition and verification layers reject a different internally consistent plan identity.
 
-## 3. Validate the execution environment
+## 3. Validate the exact execution state
 
-Use the workflow-declared validation environment where possible: Python 3.12 and `jsonschema[format]==4.26.0`.
+Use Python 3.12 with `jsonschema[format]==4.26.0`. The exact checkout must be clean and must equal the reviewed commit.
 
-Run:
+Run the workflow-equivalent sequence:
 
 ```bash
+python scripts/validate_vnext_core.py
+python -m unittest tests/test_vnext_core_contract.py -v
 python scripts/validate_science_graph.py
+python scripts/compile_science_queries.py \
+  --output /path/outside/repository/science-query-plan-v0.2.json
 python -m unittest \
   tests/test_science_graph_contract.py \
   tests/test_science_query_compilation.py \
@@ -97,10 +101,25 @@ python -m unittest \
   tests/test_science_http_transport.py \
   tests/test_run_science_acquisition.py \
   tests/test_science_custody_preflight.py \
+  tests/test_phase4_validation_harness.py \
   -v
 ```
 
-A validator/test failure is a stop condition. A CI job that fails before any workflow step is instantiated is not a validator/test failure and is not a pass.
+For an auditable exact-head evidence package, use the strict validation harness with a new empty evidence directory outside the repository:
+
+```bash
+EXPECTED_COMMIT="$(git rev-parse HEAD)"
+VALIDATION_EVIDENCE_DIR="/path/outside/repository/phase4-validation-$EXPECTED_COMMIT"
+
+python scripts/run_phase4_validation.py \
+  --repo-root "$(git rev-parse --show-toplevel)" \
+  --evidence-dir "$VALIDATION_EVIDENCE_DIR" \
+  --expected-commit "$EXPECTED_COMMIT"
+```
+
+The harness fails closed if the checkout differs from the full expected SHA, the worktree is dirty, the runtime differs from the declared Python/dependency contract, the evidence directory is inside the repository or already populated, the frozen query-plan identity drifts, or any declared validation command fails. Preserve the resulting report and step stdout/stderr digests as validation evidence.
+
+A validator/test failure is a stop condition. A hosted job that fails before any workflow step is instantiated is not a validator/test failure and is not a pass.
 
 ## 4. Verify durable custody before network retrieval
 
@@ -145,15 +164,19 @@ python scripts/preflight_science_custody.py compare-restore \
   --preflight-id "$PREFLIGHT_ID"
 ```
 
-Under the intended read-only verifier/auditor identity, require the write probe to fail:
+Under the intended read-only verifier/auditor identity, capture the mutation-boundary report to an evidence location that is **outside** the read-only custody mount:
 
 ```bash
+VERIFIER_EVIDENCE_DIR="/path/outside/custody/verifier-evidence"
+mkdir -p "$VERIFIER_EVIDENCE_DIR"
+
 python scripts/preflight_science_custody.py assert-read-only \
   --custody-root "$CUSTODY_ROOT" \
-  --preflight-id "$PREFLIGHT_ID"
+  --preflight-id "$PREFLIGHT_ID" \
+  > "$VERIFIER_EVIDENCE_DIR/read-only-verification.json"
 ```
 
-`READ_ONLY_PASS` means only that the identity executing that command could not create a probe file in the evidence directory. Record which identity executed it.
+A successful report has status `READ_ONLY_MUTATION_BOUNDARY_VERIFIED` and records five independently blocked operation classes: create, existing-file write, truncate, rename, and delete. The command first revalidates the preflight manifest, executes all five probes, restores the original synthetic bytes when a misconfiguration permits a destructive probe and restoration remains possible, and revalidates the manifest before accepting the result. Any permitted mutation fails the command. Preserve the report, its SHA-256, and independent evidence identifying the verifier role/session that executed it. The report does not itself establish IAM provenance, administrator separation, backup immutability, or provider acquisition.
 
 If the AWS reference deployment is selected, `infra/aws-phase4-custody/` provisions the intended Regional encrypted EFS and AWS Backup topology. Terraform configuration or successful provisioning is not itself #49 evidence; the exact storage preflight, restore comparison, identity test, and live recovery drill remain mandatory.
 
