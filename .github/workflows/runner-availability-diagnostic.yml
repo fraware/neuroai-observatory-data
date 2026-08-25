@@ -1,7 +1,6 @@
 name: Runner availability diagnostic
 
 on:
-  pull_request:
   workflow_dispatch:
 
 permissions:

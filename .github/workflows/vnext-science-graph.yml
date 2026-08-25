@@ -70,20 +70,72 @@ on:
 permissions:
   contents: read
 
+env:
+  VALIDATION_REF: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+
 jobs:
   verify:
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ env.VALIDATION_REF }}
+          persist-credentials: false
+      - name: Assert checked-out commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$VALIDATION_REF"
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: "3.12"
       - name: Install schema validator
         run: python -m pip install "jsonschema[format]==4.26.0"
+      - name: Verify validation runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import sys
+          from importlib.metadata import version
+
+          if sys.version_info[:2] != (3, 12):
+              raise SystemExit(f"expected Python 3.12, observed {sys.version.split()[0]}")
+          observed = version("jsonschema")
+          if observed != "4.26.0":
+              raise SystemExit(f"expected jsonschema 4.26.0, observed {observed}")
+          print(f"python={sys.version.split()[0]}")
+          print(f"jsonschema={observed}")
+          PY
+          python -m pip check
       - name: Validate science graph contract
         run: python scripts/validate_science_graph.py
       - name: Compile frozen provider query plan
         run: python scripts/compile_science_queries.py --output "$RUNNER_TEMP/science-query-plan.json"
+      - name: Assert frozen query plan identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          path = Path(os.environ["RUNNER_TEMP"]) / "science-query-plan.json"
+          plan = json.loads(path.read_text(encoding="utf-8"))
+          expected = {
+              "plan_id": "SCIENCE-QUERY-PLAN-A9B8B8999861882C4BC7",
+              "plan_sha256": "a9b8b8999861882c4bc78b27f40f48e476f7cafbbb347b00a0a6cd897406db56",
+              "unit_count": 768,
+              "provider_counts": {"CROSSREF": 384, "EUROPE_PMC": 384},
+          }
+          for key, value in expected.items():
+              if plan.get(key) != value:
+                  raise SystemExit(f"frozen query plan mismatch for {key}: {plan.get(key)!r}")
+          print(plan["plan_id"])
+          print(plan["plan_sha256"])
+          PY
       - name: Contract, compiler, acquisition, custody, gated-runner, transport, retry-custody, provenance, and storage-preflight tests
         run: >-
           python -m unittest
@@ -101,12 +153,28 @@ jobs:
 
   terraform_custody_reference:
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ env.VALIDATION_REF }}
+          persist-credentials: false
+      - name: Assert checked-out commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$VALIDATION_REF"
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: "1.15.8"
           terraform_wrapper: false
+      - name: Verify Terraform runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          observed="$(terraform version -json | python3 -c 'import json, sys; print(json.load(sys.stdin)["terraform_version"])')"
+          test "$observed" = "1.15.8"
+          echo "terraform=$observed"
       - name: Check Terraform formatting
         run: terraform fmt -check -recursive infra/aws-phase4-custody
       - name: Initialize Terraform provider dependencies without a backend
