@@ -33,6 +33,7 @@ SCIENCE_TEST_MODULES = (
     "tests/test_science_http_transport.py",
     "tests/test_run_science_acquisition.py",
     "tests/test_science_custody_preflight.py",
+    "tests/test_phase4_custody_terraform_contract.py",
     "tests/test_phase4_validation_harness.py",
 )
 
