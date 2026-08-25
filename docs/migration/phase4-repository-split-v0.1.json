@@ -1,10 +1,11 @@
 {
   "schema_version": "0.1.0",
   "manifest_id": "PHASE4-REPOSITORY-SPLIT-V0.1",
-  "status": "PATH_CLASSIFICATION_COMPLETE_BLOB_RECONCILIATION_PENDING",
+  "status": "SOURCE_BLOBS_RECONCILED_DESTINATIONS_PENDING",
   "source_repository": "fraware/neuroai-observatory-data",
   "source_branch": "vnext-science-graph",
   "source_head_sha": "ee51f6fcbd679d2b0ed5aeb4593424543201e496",
+  "source_tree_sha": "c8671f41518ecd259c7c08c25b1aed74aeb896c5",
   "source_base_sha": "58a1ed02f5e1d506a3f692b3332dd55d34916f8c",
   "source_compare": {
     "ahead_by": 116,
@@ -15,7 +16,13 @@
   },
   "control_issue": 51,
   "workbench_control_issue": "fraware/neuroai-workbench#209",
-  "blob_reconciliation_state": "PENDING_EXACT_SOURCE_BLOB_AND_DESTINATION_COMMIT_BINDING",
+  "blob_reconciliation_state": "SOURCE_BLOBS_VERIFIED_DESTINATION_BINDING_PENDING",
+  "source_blob_reconciliation": {
+    "entry_count": 46,
+    "source_blob_sha_count": 46,
+    "null_source_blob_sha_count": 0,
+    "method": "Exact Git blob identities read from the recursive tree of source head ee51f6fcbd679d2b0ed5aeb4593424543201e496. Destination commit/blob identities remain unset until actual successor files are committed."
+  },
   "allowed_dispositions": [
     "RETAINED_IN_DATA_REPO",
     "MOVED_TO_WORKBENCH",
@@ -25,328 +32,328 @@
   "entries": [
     {
       "path": ".github/workflows/runner-availability-diagnostic.yml",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "ba59b4915facb653ed695cabbfa0c36afde2e9ca",
       "disposition": "DELETED_AS_DIAGNOSTIC",
       "proposed_destination": null,
       "rationale": "Temporary hosted-runner diagnosis is not part of the canonical data publication surface or permanent Phase 4 functionality. Preserve commit history and issue evidence; do not carry the diagnostic workflow forward."
     },
     {
       "path": ".github/workflows/vnext-core-schema.yml",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "0c6d2750d3d243f4942adba8ac03efc7a0279584",
       "disposition": "SUPERSEDED",
       "proposed_destination": null,
       "rationale": "Phase 4 modifications to the core-graph workflow should not be retained as an implicit change to the Phase 3 validation contract. Restore or successor-review the exact Phase 3 workflow independently."
     },
     {
       "path": ".github/workflows/vnext-science-graph.yml",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "4b55490c171170587ea43459b038d940a3737774",
       "disposition": "SUPERSEDED",
       "proposed_destination": "fraware/neuroai-workbench CI integration",
       "rationale": "The workflow mixes data-surface validation with executable acquisition/custody/infrastructure tests. Replace with separate data-repository publication checks and workbench operational validation."
     },
     {
       "path": "fixtures/vnext/science-acquisition.synthetic.json",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "f9f581eb2e0e591fc5b8eb5dd5b30151044caa3c",
       "disposition": "RETAINED_IN_DATA_REPO",
       "proposed_destination": "fixtures/vnext/science-acquisition.synthetic.json",
       "rationale": "Synthetic public fixture exercises publication-facing acquisition-freeze and candidate record contracts without provider bytes."
     },
     {
       "path": "identity/namespaces-v0.1.json",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "57be1ee3fc1c1e551dcaf9ec3f59a634adac80c4",
       "disposition": "RETAINED_IN_DATA_REPO",
       "proposed_destination": "identity/namespaces-v0.1.json",
       "rationale": "DOI/PMID/PMCID/OpenAlex identifier namespace semantics are part of the canonical/public identity contract."
     },
     {
       "path": "infra/aws-phase4-custody/README.md",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "b618d4c6be20405b234c8869fbe20c30b706b522",
       "disposition": "MOVED_TO_WORKBENCH",
       "proposed_destination": "fraware/neuroai-workbench/infra/observatory-custody/aws/README.md",
       "rationale": "Deployment/reference infrastructure is S1 operational software; deployed custody bytes remain S3."
     },
     {
       "path": "infra/aws-phase4-custody/main.tf",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "3ed53436e075e62c9c42d42948d4b6d151f44ef1",
       "disposition": "MOVED_TO_WORKBENCH",
       "proposed_destination": "fraware/neuroai-workbench/infra/observatory-custody/aws/main.tf",
       "rationale": "Terraform custody provisioning belongs to the software/deployment authority domain."
     },
     {
       "path": "infra/aws-phase4-custody/outputs.tf",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "33acb2d2b08107c73f035456c67c263ff1a5b947",
       "disposition": "MOVED_TO_WORKBENCH",
       "proposed_destination": "fraware/neuroai-workbench/infra/observatory-custody/aws/outputs.tf",
       "rationale": "Terraform custody provisioning belongs to the software/deployment authority domain."
     },
     {
       "path": "infra/aws-phase4-custody/variables.tf",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "cef210e337352b0b8b80c569bc72d2927b2da06c",
       "disposition": "MOVED_TO_WORKBENCH",
       "proposed_destination": "fraware/neuroai-workbench/infra/observatory-custody/aws/variables.tf",
       "rationale": "Terraform custody provisioning belongs to the software/deployment authority domain."
     },
     {
       "path": "infra/aws-phase4-custody/versions.tf",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "806751e89c2257cf1df4fb557566c77af1841bba",
       "disposition": "MOVED_TO_WORKBENCH",
       "proposed_destination": "fraware/neuroai-workbench/infra/observatory-custody/aws/versions.tf",
       "rationale": "Terraform custody provisioning belongs to the software/deployment authority domain."
     },
     {
       "path": "schemas/vnext/acquisition-freeze.schema.json",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "c55ada3c719b7645efd05ae7a38124f30d8215ff",
       "disposition": "RETAINED_IN_DATA_REPO",
       "proposed_destination": "schemas/vnext/acquisition-freeze.schema.json",
       "rationale": "A public release may carry acquisition-freeze identity and coverage metadata; the publication-facing record contract belongs in S2."
     },
     {
       "path": "schemas/vnext/science-candidate-record.schema.json",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "56398e02801382e838a4560d9e5c465204bf2df5",
       "disposition": "RETAINED_IN_DATA_REPO",
       "proposed_destination": "schemas/vnext/science-candidate-record.schema.json",
       "rationale": "Candidate records are part of the public curation/publication surface and explicitly remain noncanonical until adjudication."
     },
     {
       "path": "schemas/vnext/source-adapter.schema.json",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "1a12aa9b636c7c0a7c8d57f08f01359152521055",
       "disposition": "RETAINED_IN_DATA_REPO",
       "proposed_destination": "schemas/vnext/source-adapter.schema.json",
       "rationale": "The declarative adapter/version/source-universe binding is release provenance. Executable adapter implementations move to S1."
     },
     {
       "path": "science/README.md",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "8815c76853551af85c34da925e7eced6871a65ca",
       "disposition": "SUPERSEDED",
       "proposed_destination": "science/README.md",
       "rationale": "Replace the mixed operational/public README with a data-repository README limited to declarative contracts, candidate semantics, rights, and release boundaries."
     },
     {
       "path": "science/acquisition-rights-decision-v0.1.md",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "d46b0f54d447bc20583d2ee5e18ab32ed1923b51",
       "disposition": "RETAINED_IN_DATA_REPO",
       "proposed_destination": "science/acquisition-rights-decision-v0.1.md",
       "rationale": "Artifact-level redistribution classification constrains the public release surface and should remain adjacent to S2 publication policy."
     },
     {
       "path": "science/adapters-v0.1.json",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "92f597890592ebedb819efde3c89a5350be659b8",
       "disposition": "RETAINED_IN_DATA_REPO",
       "proposed_destination": "science/adapters-v0.1.json",
       "rationale": "Declarative provider/adapter identity, version, rights, and source-universe binding are release provenance; executable code moves separately."
     },
     {
       "path": "science/discovery-protocol-v0.1.json",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "0803b1b9aef1f0ace975149dbaad7b031818d263",
       "disposition": "RETAINED_IN_DATA_REPO",
       "proposed_destination": "science/discovery-protocol-v0.1.json",
       "rationale": "The frozen discovery protocol defines the bounded candidate universe and must remain reproducible with the data release lineage."
     },
     {
       "path": "science/durable-custody-architecture-v0.1.md",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "da56bf6c9957b994f4c7fccb881ed4250ce7e745",
       "disposition": "MOVED_TO_WORKBENCH",
       "proposed_destination": "fraware/neuroai-workbench/docs/operations/observatory-science-custody.md",
       "rationale": "Custody deployment and operational acceptance are S1/S3 concerns, not canonical data."
     },
     {
       "path": "science/production-acquisition-runbook.md",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "187a8acc559503908cc90b7b98cef77a8dd4cc2c",
       "disposition": "MOVED_TO_WORKBENCH",
       "proposed_destination": "fraware/neuroai-workbench/docs/operations/observatory-science-acquisition.md",
       "rationale": "The live acquisition procedure is operational software/runbook material."
     },
     {
       "path": "science/query-compilation-v0.1.json",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "6d9b380bae2199a1d91835e09e49745f019e3509",
       "disposition": "RETAINED_IN_DATA_REPO",
       "proposed_destination": "science/query-compilation-v0.1.json",
       "rationale": "Historical frozen query configuration is part of acquisition identity and release reproducibility."
     },
     {
       "path": "science/query-compilation-v0.2.json",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "8cc2ef2f0111812fffcf4e033a2ba89a87a781ab",
       "disposition": "RETAINED_IN_DATA_REPO",
       "proposed_destination": "science/query-compilation-v0.2.json",
       "rationale": "Current minimized frozen query configuration is part of acquisition identity and release reproducibility."
     },
     {
       "path": "science/validation-evidence-procedure-v0.1.md",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "4cfb2bf9d4af085c8203b933871cc3d9f9e1fb0b",
       "disposition": "MOVED_TO_WORKBENCH",
       "proposed_destination": "fraware/neuroai-workbench/docs/operations/observatory-phase4-validation-evidence.md",
       "rationale": "Execution-environment validation evidence is an S1 operational control. S2 should retain only release-verification facts and compatible version pins."
     },
     {
       "path": "scripts/acquire_science_candidates.py",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "5aecc94d943313e94f6dbde2665a7cac085ff911",
       "disposition": "MOVED_TO_WORKBENCH",
       "proposed_destination": "fraware/neuroai-workbench/src/neuroai_workbench/observatory/science/acquisition.py",
       "rationale": "Provider acquisition and candidate materialization are executable operational logic."
     },
     {
       "path": "scripts/acquire_science_candidates_strict.py",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "6cd4941241585e84bb3f937d8314ac7b41f0e718",
       "disposition": "MOVED_TO_WORKBENCH",
       "proposed_destination": "fraware/neuroai-workbench/src/neuroai_workbench/observatory/science/acquisition_strict.py",
       "rationale": "Strict response custody/retry execution is executable operational logic."
     },
     {
       "path": "scripts/audit_phase4_aws_custody.py",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "d00b9ec54b491302e529a590ae7a7ba1a29adf46",
       "disposition": "MOVED_TO_WORKBENCH",
       "proposed_destination": "fraware/neuroai-workbench/src/neuroai_workbench/observatory/science/custody_audit.py",
       "rationale": "Deployed custody policy audit is an S1/S3 operational control."
     },
     {
       "path": "scripts/compile_science_queries.py",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "32bf7d7dddefada48d0fd6df4d54224a8afb8284",
       "disposition": "MOVED_TO_WORKBENCH",
       "proposed_destination": "fraware/neuroai-workbench/src/neuroai_workbench/observatory/science/query_compiler.py",
       "rationale": "Compilation/execution of declarative discovery configuration is reusable software. The frozen input/output identities remain in S2."
     },
     {
       "path": "scripts/preflight_science_custody.py",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "fe6dc012d88a912cbc07a537d71e3bc363d6ac13",
       "disposition": "MOVED_TO_WORKBENCH",
       "proposed_destination": "fraware/neuroai-workbench/src/neuroai_workbench/observatory/science/custody_preflight.py",
       "rationale": "Storage persistence and verifier mutation-boundary checks are operational controls."
     },
     {
       "path": "scripts/run_phase4_validation.py",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "09464c7e70907a50dcfeaacce1938fc30b678521",
       "disposition": "MOVED_TO_WORKBENCH",
       "proposed_destination": "fraware/neuroai-workbench/src/neuroai_workbench/observatory/science/validation_evidence.py",
       "rationale": "Exact-execution validation harness is S1 operational tooling."
     },
     {
       "path": "scripts/run_science_acquisition.py",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "4e82cb617f7720198fc2d13e330767cbbdacffdb",
       "disposition": "MOVED_TO_WORKBENCH",
       "proposed_destination": "fraware/neuroai-workbench/src/neuroai_workbench/observatory/science/runner.py",
       "rationale": "Gated production acquisition orchestration is executable operational logic."
     },
     {
       "path": "scripts/science_http_transport.py",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "933e92b723a6e28bbe20f4f3b8f6aba01a309c44",
       "disposition": "MOVED_TO_WORKBENCH",
       "proposed_destination": "fraware/neuroai-workbench/src/neuroai_workbench/observatory/science/http_transport.py",
       "rationale": "Network transport and redirect policy belong to the collector/acquisition software boundary."
     },
     {
       "path": "scripts/validate_science_graph.py",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "d18b515f5f7bf22b883788af1f35560d56731514",
       "disposition": "SUPERSEDED",
       "proposed_destination": "data-repository publication validator plus workbench semantic validator",
       "rationale": "The current validator mixes operational and publication contracts. Replace it with a narrow S2 release validator and an S1 operational/semantic validator."
     },
     {
       "path": "scripts/verify_science_acquisition.py",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "471faa562b8902e9e7a90378d63381e4d4483185",
       "disposition": "MOVED_TO_WORKBENCH",
       "proposed_destination": "fraware/neuroai-workbench/src/neuroai_workbench/observatory/science/acquisition_verifier.py",
       "rationale": "Raw-custody/acquisition-state verification is operational logic."
     },
     {
       "path": "scripts/verify_science_candidate_provenance.py",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "4a7d833e274fcd70a2744ba2df5772dfe635db75",
       "disposition": "MOVED_TO_WORKBENCH",
       "proposed_destination": "fraware/neuroai-workbench/src/neuroai_workbench/observatory/science/provenance_verifier.py",
       "rationale": "Reconstruction of provider records from protected custody is operational verification; S2 receives permitted provenance results."
     },
     {
       "path": "scripts/verify_science_retry_custody.py",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "243f85f07e6766647da01b485da0499acb43f4d6",
       "disposition": "MOVED_TO_WORKBENCH",
       "proposed_destination": "fraware/neuroai-workbench/src/neuroai_workbench/observatory/science/retry_custody_verifier.py",
       "rationale": "Attempt-level response custody verification is operational logic."
     },
     {
       "path": "tests/test_phase4_custody_terraform_contract.py",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "a4ba0d3d121328aa1ebfb922a824c577acb19edd",
       "disposition": "MOVED_TO_WORKBENCH",
       "proposed_destination": "fraware/neuroai-workbench/tests/observatory/science/test_custody_terraform_contract.py",
       "rationale": "Tests operational/deployment infrastructure owned by S1."
     },
     {
       "path": "tests/test_phase4_validation_harness.py",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "d9eabdb8c4591622d2eef1b01d3754340277473f",
       "disposition": "MOVED_TO_WORKBENCH",
       "proposed_destination": "fraware/neuroai-workbench/tests/observatory/science/test_validation_evidence.py",
       "rationale": "Tests the operational exact-execution validation harness."
     },
     {
       "path": "tests/test_run_science_acquisition.py",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "d7cb27b666db765269724396cb004867f7286129",
       "disposition": "MOVED_TO_WORKBENCH",
       "proposed_destination": "fraware/neuroai-workbench/tests/observatory/science/test_runner.py",
       "rationale": "Tests production acquisition orchestration."
     },
     {
       "path": "tests/test_science_acquisition.py",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "b541623ff2b3cd0a84d0141cc1ba25b2d231568d",
       "disposition": "MOVED_TO_WORKBENCH",
       "proposed_destination": "fraware/neuroai-workbench/tests/observatory/science/test_acquisition.py",
       "rationale": "Tests executable provider acquisition behavior."
     },
     {
       "path": "tests/test_science_acquisition_verification.py",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "9884f69f0400ce33250ed964ddb57cdb11cccee6",
       "disposition": "MOVED_TO_WORKBENCH",
       "proposed_destination": "fraware/neuroai-workbench/tests/observatory/science/test_acquisition_verifier.py",
       "rationale": "Tests protected-custody/acquisition verification."
     },
     {
       "path": "tests/test_science_candidate_provenance.py",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "ded0e8df081b176604facdc5c741cdae85131844",
       "disposition": "MOVED_TO_WORKBENCH",
       "proposed_destination": "fraware/neuroai-workbench/tests/observatory/science/test_provenance_verifier.py",
       "rationale": "Tests provider-record reconstruction from protected custody."
     },
     {
       "path": "tests/test_science_custody_preflight.py",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "c056d8f752ae3cf2607740ee35266684346f7378",
       "disposition": "MOVED_TO_WORKBENCH",
       "proposed_destination": "fraware/neuroai-workbench/tests/observatory/science/test_custody_preflight.py",
       "rationale": "Tests storage and verifier mutation-boundary behavior."
     },
     {
       "path": "tests/test_science_graph_contract.py",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "f7060ec78438ac1fcd1312c965916221105bc18d",
       "disposition": "RETAINED_IN_DATA_REPO",
       "proposed_destination": "tests/test_science_graph_contract.py",
       "rationale": "Publication-facing contract semantics and synthetic candidate/freeze invariants remain testable in S2. Operational assertions may be removed in the successor version."
     },
     {
       "path": "tests/test_science_http_transport.py",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "c6412e93424f803377e7f2036bc79dbd9310d1a1",
       "disposition": "MOVED_TO_WORKBENCH",
       "proposed_destination": "fraware/neuroai-workbench/tests/observatory/science/test_http_transport.py",
       "rationale": "Tests network transport and redirect policy."
     },
     {
       "path": "tests/test_science_query_compilation.py",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "dd3ac65f54d1087e939604dce1e6c5629def5095",
       "disposition": "MOVED_TO_WORKBENCH",
       "proposed_destination": "fraware/neuroai-workbench/tests/observatory/science/test_query_compiler.py",
       "rationale": "Tests executable query compilation; S2 will receive a smaller static frozen-plan identity/release test."
     },
     {
       "path": "tests/test_science_response_custody.py",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "68a3ac7f0bc28918a873ea8e64c7d5dc19d16d1d",
       "disposition": "MOVED_TO_WORKBENCH",
       "proposed_destination": "fraware/neuroai-workbench/tests/observatory/science/test_response_custody.py",
       "rationale": "Tests protected raw-response custody behavior."
     },
     {
       "path": "tests/test_science_retry_custody.py",
-      "original_git_blob_sha": null,
+      "original_git_blob_sha": "4638a558feadf6564d50b23c43242ec0f25497d8",
       "disposition": "MOVED_TO_WORKBENCH",
       "proposed_destination": "fraware/neuroai-workbench/tests/observatory/science/test_retry_custody.py",
       "rationale": "Tests attempt-level retry-response custody and binding."
     }
   ],
   "entry_count": 46,
-  "next_required_action": "Resolve every original_git_blob_sha against source head ee51f6fcbd679d2b0ed5aeb4593424543201e496, then bind every moved/retained destination to an exact successor commit/blob before PR #45 can be closed as superseded.",
-  "authority_boundary": "This draft manifest classifies repository ownership only. Proposed destination paths are not proof that migration has occurred. Null source blob identities explicitly mean reconciliation is incomplete. No production acquisition, canonical successor, assessment mutation, scientific conclusion, or release authorization is created by this file."
+  "next_required_action": "Create verified successor files in the workbench and reduced data-repository surface. Bind every retained/moved entry to exact destination commit/blob identity before PR #45 can be closed as superseded.",
+  "authority_boundary": "This manifest now verifies exact source blob identities and repository-ownership classification. Proposed destination paths are not proof that migration has occurred; destination commit/blob identities remain pending. No production acquisition, canonical successor, assessment mutation, scientific conclusion, or release authorization is created by this file."
 }
