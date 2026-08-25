@@ -9,6 +9,7 @@ import acquire_science_candidates as base
 import acquire_science_candidates_strict as strict
 import science_http_transport
 import verify_science_acquisition
+import verify_science_candidate_provenance
 import verify_science_retry_custody
 
 REQUIRED_REDIRECT_POLICY = "FAIL_CLOSED_NO_AUTO_FOLLOW"
@@ -16,6 +17,7 @@ VERIFIED_EXECUTION_PRODUCTS = (
     "run-manifest.json",
     "dedup-report.json",
     "retry-custody-verification.json",
+    "candidate-provenance-verification.json",
     "candidate-manifest.json",
     "coverage-index.json",
     "verification-envelope.json",
@@ -96,6 +98,25 @@ def run_acquisition(
         coverage_index,
     )
 
+    provenance_report = verify_science_candidate_provenance.verify_candidate_provenance(
+        output_root
+    )
+    if (
+        provenance_report["provenance_verification_id"]
+        != candidate_manifest["provenance_verification_id"]
+        or provenance_report["provenance_verification_sha256"]
+        != candidate_manifest["provenance_verification_sha256"]
+        or provenance_report["status"]
+        != candidate_manifest["provenance_verification_status"]
+    ):
+        raise ValueError(
+            "persisted candidate provenance verification does not match candidate manifest"
+        )
+    _write_json(
+        output_root / "candidate-provenance-verification.json",
+        provenance_report,
+    )
+
     verification_basis = {
         "result_state_id": manifest["result_state_id"],
         "execution_id": manifest["execution_id"],
@@ -115,6 +136,12 @@ def run_acquisition(
         "candidate_manifest_sha256": candidate_manifest["candidate_manifest_sha256"],
         "coverage_index_id": coverage_index["coverage_index_id"],
         "coverage_index_sha256": coverage_index["coverage_index_sha256"],
+        "provenance_verification_id": provenance_report[
+            "provenance_verification_id"
+        ],
+        "provenance_verification_sha256": provenance_report[
+            "provenance_verification_sha256"
+        ],
         "retry_custody_verification_id": retry_report["retry_custody_verification_id"],
         "retry_custody_verification_sha256": retry_report["retry_custody_verification_sha256"],
     }
