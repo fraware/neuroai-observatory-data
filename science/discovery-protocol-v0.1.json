@@ -27,7 +27,7 @@
     "automatic_canonical_inclusion": false
   },
   "deduplication": {
-    "exact_identifier_precedence": ["DOI","PMID","PMCID","OPENALEX"],
+    "exact_identifier_precedence": ["DOI","PMID","PMCID","OPENALEX_WORK"],
     "fuzzy_title_author_matching": "CANDIDATE_ONLY",
     "cross_provider_conflicts": "PRESERVE_AND_ADJUDICATE"
   },
