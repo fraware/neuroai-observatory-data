@@ -26,7 +26,7 @@ Do not start a live provider acquisition until all of the following are true:
 2. The acquisition output root is on durable external storage satisfying #49. It must not be inside the Git repository or on ephemeral session storage.
 3. The operator has confirmed that automatic HTTP redirects are disabled. The production entrypoint enforces `FAIL_CLOSED_NO_AUTO_FOLLOW`.
 4. The execution environment can reach only the intended public Crossref and Europe PMC interfaces without a proxy or middleware that silently rewrites the effective endpoint, request parameters, or User-Agent identity.
-5. The operator understands that every result remains `NOT_RELEASE_ELIGIBLE_UNTIL_DURABLE_CUSTODY_AND_RIGHTS_REVIEW`. Public redistribution is separately controlled by #50.
+5. The operator has reviewed `science/acquisition-rights-decision-v0.1.md` and confirmed that it still applies to the exact frozen request fields. Raw Europe PMC responses remain `INTERNAL_CUSTODY_ONLY`, normalized Europe PMC record-level fields remain `PER_RECORD_OR_CASE_REVIEW`, and the mixed-provider package must retain the global release-ineligible state.
 6. The durable output root has a documented retention/access policy and sufficient capacity. Capacity must be based on observed evidence or provider-supported estimates; overlapping query-unit denominators must not be summed as a corpus-size estimate.
 
 ## 1. Pin and record the code state
@@ -38,7 +38,7 @@ git rev-parse HEAD
 git status --short
 ```
 
-The working tree must contain no unreviewed modifications to the Phase 4 protocol, compilation, adapters, schemas, acquisition/verification scripts, or source-universe contracts.
+The working tree must contain no unreviewed modifications to the Phase 4 protocol, compilation, adapters, schemas, acquisition/verification scripts, source-universe contracts, runbook, or rights decision.
 
 If the execution commit differs from the reviewed PR head, re-run the full validation sequence before continuing.
 
@@ -137,7 +137,7 @@ python scripts/run_science_acquisition.py \
   --query-unit-id QUNIT-EUROPE_PMC-109422C08331E6C38F9D
 ```
 
-Do not substitute `scripts/acquire_science_candidates.py` as the production entrypoint. The gated runner is responsible for the no-auto-follow transport, strict retry-response custody, independent verification, and verification envelope.
+Do not substitute `scripts/acquire_science_candidates.py` as the production entrypoint. The gated runner is responsible for the no-auto-follow transport, strict retry-response custody, independent verification, persisted provenance verification, and verification envelope.
 
 A successful two-unit pilot is still a scoped acquisition. `selected_is_full_plan` and `full_plan_complete` must remain false.
 
@@ -147,6 +147,7 @@ Inspect, at minimum:
 
 - `run-manifest.json`;
 - `retry-custody-verification.json`;
+- `candidate-provenance-verification.json`;
 - `candidate-manifest.json`;
 - `coverage-index.json`;
 - `verification-envelope.json`;
@@ -210,18 +211,23 @@ For every execution, preserve the immutable `executions/<execution_id>/` snapsho
 
 Do not mutate raw objects or historical execution snapshots to repair a later inconsistency. A corrected acquisition is a new execution/evidence state.
 
-## 10. Apply the rights gate before any public release
+## 10. Apply the artifact-level rights decision before any public release
 
-Complete #50 before publishing provider-derived artifacts. Internal durable custody and successful technical verification do not themselves authorize redistribution.
+The engineering/data-governance decision is recorded in `science/acquisition-rights-decision-v0.1.md`. Technical verification and internal durable custody do not expand those permissions.
 
-Until the rights decision explicitly clears an artifact class:
+For the frozen v0.2 plan:
 
-- keep production raw response bytes outside Git;
-- do not publish a provider-derived candidate corpus;
-- do not change `release_eligibility`;
-- do not treat public API access as a redistribution license.
+- minimized Crossref raw responses and normalized `DOI,title,published` derivatives are `PUBLIC_REDISTRIBUTION_PERMITTED` under the conditions in the rights decision;
+- raw Europe PMC `lite` response bytes are `INTERNAL_CUSTODY_ONLY`;
+- normalized Europe PMC record-level fields are `PER_RECORD_OR_CASE_REVIEW`;
+- aggregate project-generated verification facts may be public only when they contain no provider-derived fields whose classification is more restrictive;
+- immutable mixed-provider execution snapshots remain internal custody objects.
 
-Any later release must preserve the frozen source-universe limitations, provider attribution/provenance, scoped completeness semantics, and the distinction between discovery candidates and adjudicated/canonical scientific records.
+The mixed-provider acquisition must therefore continue to report `NOT_RELEASE_ELIGIBLE_UNTIL_DURABLE_CUSTODY_AND_RIGHTS_REVIEW`. Do not change that flag merely because one provider's minimized metadata is cleared.
+
+A later Crossref-only public derivative may be considered only after #49 is satisfied and the derivative is independently verified to contain exclusively the fields/classes cleared by the rights decision. Such a derivative remains a discovery-candidate artifact, not a relevance-adjudicated or canonical scientific dataset.
+
+Any release including Europe PMC record-level material requires the additional provider/legal/source-specific authority defined by the rights decision.
 
 ## Stop conditions
 
@@ -237,4 +243,5 @@ Stop the production procedure immediately if any of the following occurs:
 - retry-attempt evidence is missing, reordered, or fails request/cursor binding;
 - a scoped run is being represented as full-plan complete;
 - overlapping query totals are being aggregated as a global denominator;
-- a release is proposed before its artifact class is explicitly cleared by the rights review.
+- a release is proposed for an artifact class that is not explicitly `PUBLIC_REDISTRIBUTION_PERMITTED` under the current rights decision;
+- the rights decision no longer matches the exact provider fields, access method, or terms in force.
