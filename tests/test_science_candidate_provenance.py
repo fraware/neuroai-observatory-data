@@ -104,7 +104,7 @@ def _build_run(root: Path, *, epmc_source="MED"):
 
 
 class ScienceCandidateProvenanceTests(unittest.TestCase):
-    def test_every_candidate_identity_and_hash_resolve_to_captured_raw_record(self):
+    def test_every_candidate_is_exactly_reproduced_from_captured_raw_record(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             _build_run(root)
@@ -135,6 +135,25 @@ class ScienceCandidateProvenanceTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "source_record_sha256 is not present"):
                 provenance.verify_candidate_provenance(root)
 
+    def test_candidate_normalized_metadata_tampering_fails_even_with_valid_source_hash(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _build_run(root)
+            candidate_file = next(
+                path
+                for path in (root / "units").rglob("candidates.jsonl")
+                if any(
+                    json.loads(line).get("provider") == "CROSSREF"
+                    for line in path.read_text().splitlines()
+                    if line.strip()
+                )
+            )
+            rows = [json.loads(line) for line in candidate_file.read_text().splitlines() if line.strip()]
+            rows[0]["title"] = "Forged normalized title"
+            candidate_file.write_text("\n".join(json.dumps(row) for row in rows) + "\n", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "normalization does not reproduce exactly"):
+                provenance.verify_candidate_provenance(root)
+
     def test_europe_pmc_provider_source_tampering_fails(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -151,7 +170,7 @@ class ScienceCandidateProvenanceTests(unittest.TestCase):
             rows = [json.loads(line) for line in candidate_file.read_text().splitlines() if line.strip()]
             rows[0]["provider_record_source"] = "PPR"
             candidate_file.write_text("\n".join(json.dumps(row) for row in rows) + "\n", encoding="utf-8")
-            with self.assertRaisesRegex(ValueError, "provider identity/observation does not match"):
+            with self.assertRaisesRegex(ValueError, "does not resolve uniquely"):
                 provenance.verify_candidate_provenance(root)
 
     def test_europe_pmc_source_database_code_is_required_for_provenance(self):
