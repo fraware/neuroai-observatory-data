@@ -1,17 +1,25 @@
 from __future__ import annotations
 
+import importlib.util
 import json
 import tempfile
 import unittest
 from pathlib import Path
 
-import importlib.util
-
 ROOT = Path(__file__).parents[1]
-SPEC = importlib.util.spec_from_file_location("acquire_science_candidates", ROOT / "scripts" / "acquire_science_candidates.py")
-m = importlib.util.module_from_spec(SPEC)
-assert SPEC and SPEC.loader
-SPEC.loader.exec_module(m)
+
+
+def _load_module(name: str, path: Path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    assert spec and spec.loader
+    spec.loader.exec_module(module)
+    return module
+
+
+m = _load_module("acquire_science_candidates", ROOT / "scripts" / "acquire_science_candidates.py")
+science_validator = _load_module("validate_science_graph_for_acquisition_tests", ROOT / "scripts" / "validate_science_graph.py")
+coverage_validator = _load_module("validate_source_universes_for_acquisition_tests", ROOT / "scripts" / "validate_source_universes.py")
 
 
 class FakeTransport:
@@ -87,30 +95,48 @@ def europe_pmc_unit():
 
 
 class ScienceAcquisitionTests(unittest.TestCase):
+    def assert_generated_contracts_validate(self, result, output_root):
+        science_validator._structural(
+            science_validator.FREEZE_VALIDATOR,
+            result["freeze"],
+            result["freeze"]["freeze_id"],
+        )
+        for candidate in m._load_jsonl(output_root / result["candidates_path"]):
+            science_validator._structural(
+                science_validator.CANDIDATE_VALIDATOR,
+                candidate,
+                candidate["candidate_id"],
+            )
+        if result["coverage"] is not None:
+            self.assertTrue(coverage_validator.validate_coverage(result["coverage"]))
+
     def test_crossref_complete_two_page_query_unit(self):
         responses = [
             (200, {"message": {"total-results": 2, "items": [{"DOI": "10.1234/A", "title": ["First"], "published": {"date-parts": [[2015, 2, 3]]}}], "next-cursor": "cursor-2"}}, {"content-type": "application/json"}),
             (200, {"message": {"total-results": 2, "items": [{"DOI": "10.1234/B", "title": ["Second"], "published": {"date-parts": [[2015]]}}], "next-cursor": "cursor-3"}}, {"content-type": "application/json"}),
         ]
         with tempfile.TemporaryDirectory() as tmp:
-            result = m.acquire_query_unit(crossref_unit(), output_root=Path(tmp), transport=FakeTransport(responses), sleep_fn=lambda _: None, clock_fn=Clock())
+            root = Path(tmp)
+            result = m.acquire_query_unit(crossref_unit(), output_root=root, transport=FakeTransport(responses), sleep_fn=lambda _: None, clock_fn=Clock())
             self.assertEqual(result["status"], "COMPLETE")
             self.assertEqual(result["candidate_count"], 2)
             self.assertEqual(result["provider_total"], 2)
             self.assertEqual(result["coverage_state"], "ISSUED_COMPLETE_QUERY_UNIT")
             self.assertEqual(result["coverage"]["rates"]["discovery"], 1.0)
             self.assertEqual(result["freeze"]["retrieval_cutoff"], "2026-08-20T00:00:00Z")
-            candidates = list(m._load_jsonl(Path(tmp) / result["candidates_path"]))
+            candidates = list(m._load_jsonl(root / result["candidates_path"]))
             self.assertEqual([row["identifiers"]["doi"] for row in candidates], ["10.1234/a", "10.1234/b"])
             self.assertEqual(candidates[0]["publication_date"], "2015-02-03")
             self.assertEqual(candidates[1]["publication_date"], "2015")
-            self.assertEqual(len(list((Path(tmp) / "raw" / "sha256").rglob("*.json"))), 2)
+            self.assertEqual(len(list((root / "raw" / "sha256").rglob("*.json"))), 2)
+            self.assert_generated_contracts_validate(result, root)
 
     def test_europe_pmc_identifiers_normalize_and_ids_are_schema_safe(self):
         responses = [(200, {"hitCount": 1, "nextCursorMark": "cursor-2", "resultList": {"result": [{"id": "123456", "doi": "https://doi.org/10.5555/ABC", "pmid": "123456", "pmcid": "pmc999", "title": "Example", "pubYear": "2015"}]}}, {"content-type": "application/json"})]
         with tempfile.TemporaryDirectory() as tmp:
-            result = m.acquire_query_unit(europe_pmc_unit(), output_root=Path(tmp), transport=FakeTransport(responses), sleep_fn=lambda _: None, clock_fn=Clock())
-            candidate = next(m._load_jsonl(Path(tmp) / result["candidates_path"]))
+            root = Path(tmp)
+            result = m.acquire_query_unit(europe_pmc_unit(), output_root=root, transport=FakeTransport(responses), sleep_fn=lambda _: None, clock_fn=Clock())
+            candidate = next(m._load_jsonl(root / result["candidates_path"]))
             self.assertEqual(result["status"], "COMPLETE")
             self.assertTrue(candidate["candidate_id"].startswith("SCI-CAND-EUROPE-PMC-"))
             self.assertTrue(result["freeze"]["freeze_id"].startswith("AF-SCI-EUROPE-PMC-"))
@@ -118,15 +144,18 @@ class ScienceAcquisitionTests(unittest.TestCase):
             self.assertEqual(candidate["identifiers"]["doi"], "10.5555/abc")
             self.assertEqual(candidate["identifiers"]["pmid"], "123456")
             self.assertEqual(candidate["identifiers"]["pmcid"], "PMC999")
+            self.assert_generated_contracts_validate(result, root)
 
     def test_cursor_stall_is_partial_and_coverage_is_not_issued(self):
         responses = [(200, {"message": {"total-results": 2, "items": [{"DOI": "10.1/a", "title": ["A"]}], "next-cursor": "*"}}, {})]
         with tempfile.TemporaryDirectory() as tmp:
-            result = m.acquire_query_unit(crossref_unit(), output_root=Path(tmp), transport=FakeTransport(responses), sleep_fn=lambda _: None, clock_fn=Clock())
+            root = Path(tmp)
+            result = m.acquire_query_unit(crossref_unit(), output_root=root, transport=FakeTransport(responses), sleep_fn=lambda _: None, clock_fn=Clock())
             self.assertEqual(result["status"], "PARTIAL")
             self.assertEqual(result["freeze"]["failure_reason"], "CURSOR_DID_NOT_ADVANCE_BEFORE_PROVIDER_TOTAL")
             self.assertIsNone(result["coverage"])
             self.assertEqual(result["coverage_state"], "NOT_ISSUED_INCOMPLETE_QUERY_UNIT")
+            self.assert_generated_contracts_validate(result, root)
 
     def test_provider_total_change_is_partial(self):
         responses = [
