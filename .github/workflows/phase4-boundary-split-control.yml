@@ -4,7 +4,9 @@ on:
   pull_request:
     paths:
       - "docs/migration/phase4-repository-split-v0.1.json"
+      - "docs/migration/phase4-repository-split-destination-amendment-v0.2.json"
       - "tests/test_phase4_repository_split_control.py"
+      - "tests/test_phase4_destination_amendment.py"
       - ".github/workflows/phase4-boundary-split-control.yml"
 
 permissions:
@@ -30,7 +32,7 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: "3.12"
-      - name: Verify runtime and split manifest
+      - name: Verify runtime and split records
         shell: bash
         run: |
           set -euo pipefail
@@ -41,12 +43,20 @@ jobs:
 
           if sys.version_info[:2] != (3, 12):
               raise SystemExit(f"expected Python 3.12, observed {sys.version.split()[0]}")
-          path = Path("docs/migration/phase4-repository-split-v0.1.json")
-          manifest = json.loads(path.read_text(encoding="utf-8"))
+
+          manifest = json.loads(Path("docs/migration/phase4-repository-split-v0.1.json").read_text(encoding="utf-8"))
+          amendment = json.loads(
+              Path("docs/migration/phase4-repository-split-destination-amendment-v0.2.json").read_text(encoding="utf-8")
+          )
           if manifest.get("status") != "SOURCE_BLOBS_RECONCILED_DESTINATIONS_PENDING":
               raise SystemExit(f"unexpected split state: {manifest.get('status')!r}")
+          if amendment.get("status") != "DESTINATION_NAMESPACE_CORRECTED_MIGRATION_PENDING":
+              raise SystemExit(f"unexpected destination amendment state: {amendment.get('status')!r}")
           print(manifest["manifest_id"])
           print(manifest["source_head_sha"])
+          print(amendment["amendment_id"])
           PY
       - name: Run split control tests
-        run: python -m unittest tests/test_phase4_repository_split_control.py -v
+        run: |
+          python -m unittest tests/test_phase4_repository_split_control.py -v
+          python -m unittest tests/test_phase4_destination_amendment.py -v
