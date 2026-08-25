@@ -1,0 +1,44 @@
+name: vNext science graph contract
+
+on:
+  pull_request:
+    paths:
+      - "science/**"
+      - "schemas/vnext/source-adapter.schema.json"
+      - "schemas/vnext/acquisition-freeze.schema.json"
+      - "schemas/vnext/science-candidate-record.schema.json"
+      - "fixtures/vnext/science-acquisition.synthetic.json"
+      - "scripts/validate_science_graph.py"
+      - "tests/test_science_graph_contract.py"
+      - "source-universes/p0/science-v0.1.json"
+      - ".github/workflows/vnext-science-graph.yml"
+  push:
+    branches: [main]
+    paths:
+      - "science/**"
+      - "schemas/vnext/source-adapter.schema.json"
+      - "schemas/vnext/acquisition-freeze.schema.json"
+      - "schemas/vnext/science-candidate-record.schema.json"
+      - "fixtures/vnext/science-acquisition.synthetic.json"
+      - "scripts/validate_science_graph.py"
+      - "tests/test_science_graph_contract.py"
+      - "source-universes/p0/science-v0.1.json"
+      - ".github/workflows/vnext-science-graph.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Install schema validator
+        run: python -m pip install "jsonschema[format]==4.26.0"
+      - name: Validate science graph contract
+        run: python scripts/validate_science_graph.py
+      - name: Contract and adversarial tests
+        run: python -m unittest tests/test_science_graph_contract.py -v
