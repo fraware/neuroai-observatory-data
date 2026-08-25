@@ -89,7 +89,7 @@ resource "aws_efs_access_point" "verifier" {
 
   # Use the same enforced POSIX identity as the writer so read access does not
   # depend on the acquisition host's umask. IAM client authorization below is
-  # the mutation boundary: verifier principals are denied ClientWrite.
+  # the mutation boundary: verifier access is denied ClientWrite.
   posix_user {
     uid = 1000
     gid = 1000
@@ -136,6 +136,40 @@ resource "aws_efs_file_system_policy" "custody" {
         Resource  = aws_efs_file_system.custody.arn
       },
       {
+        Sid       = "DenyClientAccessOutsideApprovedAccessPoints"
+        Effect    = "Deny"
+        Principal = "*"
+        Action = [
+          "elasticfilesystem:ClientMount",
+          "elasticfilesystem:ClientWrite",
+          "elasticfilesystem:ClientRootAccess",
+        ]
+        Resource = aws_efs_file_system.custody.arn
+        Condition = {
+          StringNotEquals = {
+            "elasticfilesystem:AccessPointArn" = [
+              aws_efs_access_point.custody.arn,
+              aws_efs_access_point.verifier.arn,
+            ]
+          }
+        }
+      },
+      {
+        Sid       = "DenyWriteThroughVerifierAccessPoint"
+        Effect    = "Deny"
+        Principal = "*"
+        Action = [
+          "elasticfilesystem:ClientWrite",
+          "elasticfilesystem:ClientRootAccess",
+        ]
+        Resource = aws_efs_file_system.custody.arn
+        Condition = {
+          StringEquals = {
+            "elasticfilesystem:AccessPointArn" = aws_efs_access_point.verifier.arn
+          }
+        }
+      },
+      {
         Sid    = "AllowAcquisitionWriter"
         Effect = "Allow"
         Principal = {
@@ -148,7 +182,7 @@ resource "aws_efs_file_system_policy" "custody" {
         Resource = aws_efs_file_system.custody.arn
         Condition = {
           Bool = {
-            "aws:SecureTransport"                    = "true"
+            "aws:SecureTransport"                      = "true"
             "elasticfilesystem:AccessedViaMountTarget" = "true"
           }
           StringEquals = {
@@ -166,7 +200,7 @@ resource "aws_efs_file_system_policy" "custody" {
         Resource = aws_efs_file_system.custody.arn
         Condition = {
           Bool = {
-            "aws:SecureTransport"                    = "true"
+            "aws:SecureTransport"                      = "true"
             "elasticfilesystem:AccessedViaMountTarget" = "true"
           }
           StringEquals = {
