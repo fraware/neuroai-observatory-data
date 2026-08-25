@@ -19,8 +19,13 @@ output "efs_dns_name" {
 }
 
 output "efs_access_point_id" {
-  description = "Access point whose root is /phase4."
+  description = "Writer access point whose root is /phase4."
   value       = aws_efs_access_point.custody.id
+}
+
+output "efs_verifier_access_point_id" {
+  description = "Read-only verifier access point whose root is /phase4."
+  value       = aws_efs_access_point.verifier.id
 }
 
 output "efs_security_group_id" {
@@ -44,6 +49,16 @@ output "backup_plan_id" {
 }
 
 output "mount_command_template" {
-  description = "Template mount command. The acquisition host must use amazon-efs-utils and TLS."
-  value       = "sudo mount -t efs -o tls,accesspoint=${aws_efs_access_point.custody.id} ${aws_efs_file_system.custody.id}:/ /mnt/neuroai-phase4-custody"
+  description = "Writer mount template retained for compatibility. IAM authorization and TLS are mandatory."
+  value       = "sudo mount -t efs -o tls,iam,accesspoint=${aws_efs_access_point.custody.id} ${aws_efs_file_system.custody.id}:/ /mnt/neuroai-phase4-custody"
+}
+
+output "writer_mount_command_template" {
+  description = "Acquisition-writer mount template using IAM authorization, TLS, and the writer access point."
+  value       = "sudo mount -t efs -o tls,iam,accesspoint=${aws_efs_access_point.custody.id} ${aws_efs_file_system.custody.id}:/ /mnt/neuroai-phase4-custody"
+}
+
+output "verifier_mount_command_template" {
+  description = "Read-only verifier mount template using IAM authorization, TLS, and the verifier access point."
+  value       = "sudo mount -t efs -o tls,iam,accesspoint=${aws_efs_access_point.verifier.id} ${aws_efs_file_system.custody.id}:/ /mnt/neuroai-phase4-custody-readonly"
 }

@@ -1,21 +1,6 @@
+data "aws_caller_identity" "current" {}
+
 data "aws_partition" "current" {}
-
-check "backup_retention_within_vault_lock" {
-  assert {
-    condition = (
-      var.vault_lock_min_retention_days <= var.backup_retention_days &&
-      var.backup_retention_days <= var.vault_lock_max_retention_days
-    )
-    error_message = "backup_retention_days must fall within the Backup Vault Lock retention bounds."
-  }
-}
-
-check "vault_lock_bounds" {
-  assert {
-    condition     = var.vault_lock_min_retention_days <= var.vault_lock_max_retention_days
-    error_message = "vault_lock_min_retention_days must not exceed vault_lock_max_retention_days."
-  }
-}
 
 resource "aws_kms_key" "efs" {
   description             = "Encryption key for Phase 4 acquisition custody EFS"
@@ -60,13 +45,6 @@ resource "aws_vpc_security_group_ingress_rule" "efs_from_clients" {
   description                  = "NFS from approved acquisition/verifier clients"
 }
 
-resource "aws_vpc_security_group_egress_rule" "efs_return" {
-  security_group_id = aws_security_group.efs.id
-  cidr_ipv4         = "0.0.0.0/0"
-  ip_protocol       = "-1"
-  description       = "Stateful return traffic"
-}
-
 resource "aws_efs_file_system" "custody" {
   creation_token   = "${var.name_prefix}-custody"
   encrypted        = true
@@ -106,6 +84,28 @@ resource "aws_efs_access_point" "custody" {
   }
 }
 
+resource "aws_efs_access_point" "verifier" {
+  file_system_id = aws_efs_file_system.custody.id
+
+  # Use the same enforced POSIX identity as the writer so read access does not
+  # depend on the acquisition host's umask. IAM client authorization below is
+  # the mutation boundary: verifier principals are denied ClientWrite.
+  posix_user {
+    uid = 1000
+    gid = 1000
+  }
+
+  root_directory {
+    path = "/phase4"
+
+    creation_info {
+      owner_uid   = 1000
+      owner_gid   = 1000
+      permissions = "0750"
+    }
+  }
+}
+
 resource "aws_efs_file_system_policy" "custody" {
   file_system_id = aws_efs_file_system.custody.id
 
@@ -113,7 +113,7 @@ resource "aws_efs_file_system_policy" "custody" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid       = "DenyUnencryptedTransport"
+        Sid       = "DenyUnencryptedClientTransport"
         Effect    = "Deny"
         Principal = "*"
         Action = [
@@ -127,7 +127,65 @@ resource "aws_efs_file_system_policy" "custody" {
             "aws:SecureTransport" = "false"
           }
         }
-      }
+      },
+      {
+        Sid       = "DenyRootClientAccess"
+        Effect    = "Deny"
+        Principal = "*"
+        Action    = "elasticfilesystem:ClientRootAccess"
+        Resource  = aws_efs_file_system.custody.arn
+      },
+      {
+        Sid    = "AllowAcquisitionWriter"
+        Effect = "Allow"
+        Principal = {
+          AWS = sort(tolist(var.writer_principal_arns))
+        }
+        Action = [
+          "elasticfilesystem:ClientMount",
+          "elasticfilesystem:ClientWrite",
+        ]
+        Resource = aws_efs_file_system.custody.arn
+        Condition = {
+          Bool = {
+            "aws:SecureTransport"                    = "true"
+            "elasticfilesystem:AccessedViaMountTarget" = "true"
+          }
+          StringEquals = {
+            "elasticfilesystem:AccessPointArn" = aws_efs_access_point.custody.arn
+          }
+        }
+      },
+      {
+        Sid    = "AllowReadOnlyVerifier"
+        Effect = "Allow"
+        Principal = {
+          AWS = sort(tolist(var.verifier_principal_arns))
+        }
+        Action   = "elasticfilesystem:ClientMount"
+        Resource = aws_efs_file_system.custody.arn
+        Condition = {
+          Bool = {
+            "aws:SecureTransport"                    = "true"
+            "elasticfilesystem:AccessedViaMountTarget" = "true"
+          }
+          StringEquals = {
+            "elasticfilesystem:AccessPointArn" = aws_efs_access_point.verifier.arn
+          }
+        }
+      },
+      {
+        Sid    = "DenyVerifierMutation"
+        Effect = "Deny"
+        Principal = {
+          AWS = sort(tolist(var.verifier_principal_arns))
+        }
+        Action = [
+          "elasticfilesystem:ClientWrite",
+          "elasticfilesystem:ClientRootAccess",
+        ]
+        Resource = aws_efs_file_system.custody.arn
+      },
     ]
   })
 }

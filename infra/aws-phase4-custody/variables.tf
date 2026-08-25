@@ -35,6 +35,47 @@ variable "client_security_group_ids" {
   }
 }
 
+variable "writer_principal_arns" {
+  description = "IAM role ARNs permitted to mount the writer access point and perform EFS client writes."
+  type        = set(string)
+
+  validation {
+    condition = (
+      length(var.writer_principal_arns) > 0 &&
+      alltrue([
+        for arn in var.writer_principal_arns :
+        can(regex("^arn:[^:]+:iam::[0-9]{12}:role/.+$", arn))
+      ])
+    )
+    error_message = "writer_principal_arns must contain one or more full IAM role ARNs."
+  }
+}
+
+variable "verifier_principal_arns" {
+  description = "IAM role ARNs permitted to mount the read-only verifier access point."
+  type        = set(string)
+
+  validation {
+    condition = (
+      length(var.verifier_principal_arns) > 0 &&
+      alltrue([
+        for arn in var.verifier_principal_arns :
+        can(regex("^arn:[^:]+:iam::[0-9]{12}:role/.+$", arn))
+      ])
+    )
+    error_message = "verifier_principal_arns must contain one or more full IAM role ARNs."
+  }
+}
+
+check "writer_and_verifier_principals_are_disjoint" {
+  assert {
+    condition = length(
+      setintersection(var.writer_principal_arns, var.verifier_principal_arns)
+    ) == 0
+    error_message = "Writer and verifier IAM principal sets must be disjoint."
+  }
+}
+
 variable "backup_retention_days" {
   description = "Retention for scheduled EFS recovery points."
   type        = number
@@ -62,6 +103,19 @@ variable "vault_lock_max_retention_days" {
   description = "Maximum recovery-point retention enforced by Backup Vault Lock."
   type        = number
   default     = 3650
+}
+
+check "backup_retention_within_vault_lock_bounds" {
+  assert {
+    condition = (
+      var.vault_lock_min_retention_days >= 1 &&
+      var.vault_lock_max_retention_days >= var.vault_lock_min_retention_days &&
+      var.vault_lock_max_retention_days <= 36500 &&
+      var.backup_retention_days >= var.vault_lock_min_retention_days &&
+      var.backup_retention_days <= var.vault_lock_max_retention_days
+    )
+    error_message = "Backup retention must fall within valid Vault Lock minimum/maximum bounds."
+  }
 }
 
 variable "tags" {
