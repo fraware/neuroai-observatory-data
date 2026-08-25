@@ -104,7 +104,7 @@ def _build_run(root: Path, *, epmc_source="MED"):
 
 
 class ScienceCandidateProvenanceTests(unittest.TestCase):
-    def test_every_candidate_hash_resolves_to_captured_raw_record(self):
+    def test_every_candidate_identity_and_hash_resolve_to_captured_raw_record(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             _build_run(root)
@@ -112,18 +112,46 @@ class ScienceCandidateProvenanceTests(unittest.TestCase):
             self.assertEqual(report["status"], "RAW_RESPONSE_PROVENANCE_VERIFIED")
             self.assertEqual(report["verified_candidates"], 2)
             self.assertEqual(report["verified_raw_records"], 2)
-            self.assertEqual(report["europe_pmc_distinct_ids"], 1)
+            self.assertEqual(report["europe_pmc_distinct_source_ids"], 1)
             self.assertEqual(report["canonical_effect"], "NONE")
 
     def test_candidate_source_hash_tampering_fails(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             _build_run(root)
-            candidate_file = next((root / "units").rglob("candidates.jsonl"))
+            candidate_files = sorted((root / "units").rglob("candidates.jsonl"))
+            candidate_file = next(
+                path
+                for path in candidate_files
+                if any(
+                    json.loads(line).get("provider") == "CROSSREF"
+                    for line in path.read_text().splitlines()
+                    if line.strip()
+                )
+            )
             rows = [json.loads(line) for line in candidate_file.read_text().splitlines() if line.strip()]
             rows[0]["source_record_sha256"] = "0" * 64
             candidate_file.write_text("\n".join(json.dumps(row) for row in rows) + "\n", encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "source_record_sha256 is not present"):
+                provenance.verify_candidate_provenance(root)
+
+    def test_europe_pmc_provider_source_tampering_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _build_run(root)
+            candidate_file = next(
+                path
+                for path in (root / "units").rglob("candidates.jsonl")
+                if any(
+                    json.loads(line).get("provider") == "EUROPE_PMC"
+                    for line in path.read_text().splitlines()
+                    if line.strip()
+                )
+            )
+            rows = [json.loads(line) for line in candidate_file.read_text().splitlines() if line.strip()]
+            rows[0]["provider_record_source"] = "PPR"
+            candidate_file.write_text("\n".join(json.dumps(row) for row in rows) + "\n", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "provider identity/observation does not match"):
                 provenance.verify_candidate_provenance(root)
 
     def test_europe_pmc_source_database_code_is_required_for_provenance(self):
