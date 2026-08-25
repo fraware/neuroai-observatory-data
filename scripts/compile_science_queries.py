@@ -9,10 +9,15 @@ from typing import Any
 
 ROOT = Path(__file__).parents[1]
 PROTOCOL_PATH = ROOT / "science" / "discovery-protocol-v0.1.json"
-COMPILATION_PATH = ROOT / "science" / "query-compilation-v0.1.json"
+COMPILATION_PATH = ROOT / "science" / "query-compilation-v0.2.json"
 
 PLAN_STATUS = "FROZEN_QUERY_PLAN_NO_ACQUISITION_EXECUTED"
+CURRENT_COMPILATION_ID = "SCIENCE-QUERY-COMPILATION-V0.2"
+PREDECESSOR_COMPILATION_ID = "SCIENCE-QUERY-COMPILATION-V0.1"
+SUPPORTED_COMPILATION_IDS = {PREDECESSOR_COMPILATION_ID, CURRENT_COMPILATION_ID}
 EXPECTED_USER_AGENT = "neuroai-observatory-data/0.1 (+https://github.com/fraware/neuroai-observatory-data)"
+EXPECTED_CROSSREF_SELECT = "DOI,title,published"
+EXPECTED_EUROPE_PMC_RESULT_TYPE = "lite"
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -56,15 +61,52 @@ def _escape_europe_pmc_phrase(term: str) -> str:
     return term.replace("\\", "\\\\").replace('"', '\\"')
 
 
+def _validate_current_minimization(compilation: dict[str, Any]) -> None:
+    supersedes = compilation.get("supersedes")
+    if not isinstance(supersedes, dict):
+        raise ValueError("current query compilation requires explicit predecessor state")
+    if supersedes.get("compilation_id") != PREDECESSOR_COMPILATION_ID:
+        raise ValueError("current query compilation predecessor id mismatch")
+    if supersedes.get("acquisition_state") != "NO_PROVIDER_ACQUISITION_EXECUTED":
+        raise ValueError("predecessor cannot be superseded after provider acquisition")
+    if supersedes.get("reason") != "PRE_ACQUISITION_DATA_MINIMIZATION_AND_RIGHTS_REVIEW":
+        raise ValueError("current query compilation supersession reason mismatch")
+
+    providers = compilation["providers"]
+    crossref_fixed = providers["CROSSREF"].get("fixed_parameters")
+    if crossref_fixed != {"rows": "1000", "select": EXPECTED_CROSSREF_SELECT}:
+        raise ValueError("current Crossref request fields must remain minimized")
+    europe_fixed = providers["EUROPE_PMC"].get("fixed_parameters")
+    if europe_fixed != {
+        "resultType": EXPECTED_EUROPE_PMC_RESULT_TYPE,
+        "format": "json",
+        "pageSize": "1000",
+    }:
+        raise ValueError("current Europe PMC response contract must remain lite/minimized")
+
+    minimization = compilation.get("data_minimization")
+    if not isinstance(minimization, dict):
+        raise ValueError("current query compilation requires data_minimization metadata")
+    if minimization.get("state") != "PRE_ACQUISITION_MINIMIZED":
+        raise ValueError("current query compilation minimization state mismatch")
+    if minimization.get("crossref_selected_fields") != ["DOI", "title", "published"]:
+        raise ValueError("Crossref selected-field declaration mismatch")
+    if minimization.get("europe_pmc_result_type") != EXPECTED_EUROPE_PMC_RESULT_TYPE:
+        raise ValueError("Europe PMC minimization declaration mismatch")
+
+
 def validate_inputs(protocol: dict[str, Any], compilation: dict[str, Any]) -> bool:
     if protocol.get("protocol_id") != compilation.get("protocol_id"):
         raise ValueError("query compilation protocol_id mismatch")
     if compilation.get("status") != "FROZEN_COMPILATION_NO_PRODUCTION_ACQUISITION_YET":
         raise ValueError("query compilation must remain explicitly pre-acquisition")
+    compilation_id = compilation.get("compilation_id")
+    if compilation_id not in SUPPORTED_COMPILATION_IDS:
+        raise ValueError(f"unsupported query compilation: {compilation_id}")
     if compilation.get("partitioning", {}).get("mode") != "CALENDAR_YEAR":
-        raise ValueError("only CALENDAR_YEAR partitioning is supported in v0.1")
+        raise ValueError("only CALENDAR_YEAR partitioning is supported")
     if compilation.get("partitioning", {}).get("inclusive") is not True:
-        raise ValueError("v0.1 partitioning must be inclusive")
+        raise ValueError("query compilation partitioning must be inclusive")
 
     priority = protocol.get("baseline_strategy", {}).get("priority_window", {})
     partition = compilation.get("partitioning", {})
@@ -73,7 +115,7 @@ def validate_inputs(protocol: dict[str, Any], compilation: dict[str, Any]) -> bo
 
     provider_scope = compilation.get("provider_scope")
     if provider_scope != ["CROSSREF", "EUROPE_PMC"]:
-        raise ValueError("v0.1 first-acquisition provider order must be CROSSREF then EUROPE_PMC")
+        raise ValueError("first-acquisition provider order must be CROSSREF then EUROPE_PMC")
     provider_specs = compilation.get("providers", {})
     if set(provider_specs) != set(provider_scope):
         raise ValueError("provider_scope does not match provider compilation records")
@@ -82,9 +124,12 @@ def validate_inputs(protocol: dict[str, Any], compilation: dict[str, Any]) -> bo
         if not isinstance(client_identity, dict):
             raise ValueError(f"{provider}: missing client_identity")
         if client_identity.get("access_class") != "PUBLIC":
-            raise ValueError(f"{provider}: v0.1 client access class must be PUBLIC")
+            raise ValueError(f"{provider}: client access class must be PUBLIC")
         if client_identity.get("user_agent") != EXPECTED_USER_AGENT:
             raise ValueError(f"{provider}: unexpected client user_agent")
+
+    if compilation_id == CURRENT_COMPILATION_ID:
+        _validate_current_minimization(compilation)
 
     families = protocol.get("query_families")
     if not isinstance(families, list) or not families:
@@ -219,7 +264,7 @@ def write_plan(plan: dict[str, Any], output: Path) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Compile the frozen Phase 4 science discovery protocol into exact provider query units.")
+    parser = argparse.ArgumentParser(description="Compile a frozen Phase 4 science discovery compilation into exact provider query units.")
     parser.add_argument("--protocol", type=Path, default=PROTOCOL_PATH)
     parser.add_argument("--compilation", type=Path, default=COMPILATION_PATH)
     parser.add_argument("--output", type=Path, required=True)
@@ -229,7 +274,7 @@ def main() -> None:
     write_plan(plan, args.output)
     print(
         f"PASS query compilation: {plan['unit_count']} units; "
-        f"plan_sha256={plan['plan_sha256']}"
+        f"compilation={plan['compilation_id']}; plan_sha256={plan['plan_sha256']}"
     )
 
 
