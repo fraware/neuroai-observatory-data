@@ -18,11 +18,21 @@ def _load_module(name: str, path: Path):
     return module
 
 
-compiler = _load_module("compile_science_queries_for_response_custody_tests", SCRIPTS / "compile_science_queries.py")
-acquisition = _load_module("acquire_science_candidates_for_response_custody_tests", SCRIPTS / "acquire_science_candidates.py")
+compiler = _load_module(
+    "compile_science_queries_for_response_custody_tests",
+    SCRIPTS / "compile_science_queries.py",
+)
+acquisition = _load_module(
+    "acquire_science_candidates_for_response_custody_tests",
+    SCRIPTS / "acquire_science_candidates.py",
+)
 
-PROTOCOL = json.loads((ROOT / "science" / "discovery-protocol-v0.1.json").read_text())
-COMPILATION = json.loads((ROOT / "science" / "query-compilation-v0.1.json").read_text())
+PROTOCOL = json.loads(
+    (ROOT / "science" / "discovery-protocol-v0.1.json").read_text()
+)
+COMPILATION = json.loads(
+    (ROOT / "science" / "query-compilation-v0.2.json").read_text()
+)
 
 
 class FakeTransport:
@@ -56,7 +66,9 @@ class Clock:
 
 def crossref_unit():
     plan = compiler.compile_plan(PROTOCOL, COMPILATION)
-    unit = dict(next(row for row in plan["query_units"] if row["provider"] == "CROSSREF"))
+    unit = dict(
+        next(row for row in plan["query_units"] if row["provider"] == "CROSSREF")
+    )
     unit["evidence_cutoff"] = plan["evidence_cutoff"]
     return unit
 
@@ -79,7 +91,10 @@ class ScienceResponseCustodyTests(unittest.TestCase):
             response = result["response_manifest"][0]
             raw_path = root / response["raw_custody_pointer"]
             self.assertTrue(raw_path.is_file())
-            self.assertEqual(acquisition._sha256_bytes(raw_path.read_bytes()), response["content_sha256"])
+            self.assertEqual(
+                acquisition._sha256_bytes(raw_path.read_bytes()),
+                response["content_sha256"],
+            )
             self.assertEqual(
                 result["freeze"]["raw_response_manifest_sha256"],
                 acquisition._sha256_json(result["response_manifest"]),
@@ -113,11 +128,19 @@ class ScienceResponseCustodyTests(unittest.TestCase):
                 clock_fn=Clock(),
             )
             self.assertEqual(result["status"], "PARTIAL")
-            self.assertEqual(result["freeze"]["failure_reason"], "PROVIDER_TOTAL_CHANGED_DURING_TRAVERSAL")
+            self.assertEqual(
+                result["freeze"]["failure_reason"],
+                "PROVIDER_TOTAL_CHANGED_DURING_TRAVERSAL",
+            )
             self.assertEqual(len(result["response_manifest"]), 2)
             self.assertEqual(len(result["page_manifest"]), 2)
-            self.assertEqual([page["provider_total"] for page in result["page_manifest"]], [3, 4])
-            self.assertEqual(len(list((root / "raw" / "sha256").rglob("*.json"))), 2)
+            self.assertEqual(
+                [page["provider_total"] for page in result["page_manifest"]],
+                [3, 4],
+            )
+            self.assertEqual(
+                len(list((root / "raw" / "sha256").rglob("*.json"))), 2
+            )
             self.assertEqual(
                 result["freeze"]["raw_response_manifest_sha256"],
                 acquisition._sha256_json(result["response_manifest"]),
