@@ -17,6 +17,7 @@ on:
       - "scripts/acquire_science_candidates_strict.py"
       - "scripts/science_http_transport.py"
       - "scripts/run_science_acquisition.py"
+      - "scripts/run_phase4_validation.py"
       - "scripts/verify_science_acquisition.py"
       - "scripts/verify_science_candidate_provenance.py"
       - "scripts/verify_science_retry_custody.py"
@@ -31,6 +32,7 @@ on:
       - "tests/test_science_http_transport.py"
       - "tests/test_run_science_acquisition.py"
       - "tests/test_science_custody_preflight.py"
+      - "tests/test_phase4_validation_harness.py"
       - "source-universes/p0/science-v0.1.json"
       - ".github/workflows/vnext-science-graph.yml"
   push:
@@ -50,6 +52,7 @@ on:
       - "scripts/acquire_science_candidates_strict.py"
       - "scripts/science_http_transport.py"
       - "scripts/run_science_acquisition.py"
+      - "scripts/run_phase4_validation.py"
       - "scripts/verify_science_acquisition.py"
       - "scripts/verify_science_candidate_provenance.py"
       - "scripts/verify_science_retry_custody.py"
@@ -64,6 +67,7 @@ on:
       - "tests/test_science_http_transport.py"
       - "tests/test_run_science_acquisition.py"
       - "tests/test_science_custody_preflight.py"
+      - "tests/test_phase4_validation_harness.py"
       - "source-universes/p0/science-v0.1.json"
       - ".github/workflows/vnext-science-graph.yml"
 
@@ -136,7 +140,7 @@ jobs:
           print(plan["plan_id"])
           print(plan["plan_sha256"])
           PY
-      - name: Contract, compiler, acquisition, custody, gated-runner, transport, retry-custody, provenance, and storage-preflight tests
+      - name: Contract, compiler, acquisition, custody, gated-runner, transport, retry-custody, provenance, storage-preflight, and validation-harness tests
         run: >-
           python -m unittest
           tests/test_science_graph_contract.py
@@ -149,6 +153,7 @@ jobs:
           tests/test_science_http_transport.py
           tests/test_run_science_acquisition.py
           tests/test_science_custody_preflight.py
+          tests/test_phase4_validation_harness.py
           -v
 
   terraform_custody_reference:
