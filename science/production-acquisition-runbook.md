@@ -96,6 +96,7 @@ python -m unittest \
   tests/test_science_retry_custody.py \
   tests/test_science_http_transport.py \
   tests/test_run_science_acquisition.py \
+  tests/test_science_custody_preflight.py \
   -v
 ```
 
@@ -115,6 +116,46 @@ At minimum, the environment must preserve:
 - `executions/<execution_id>/` snapshots.
 
 Do not use `/tmp`, a disposable notebook/session directory, or a repository subdirectory for production custody.
+
+The repository includes a provider-neutral storage-semantic preflight using the same atomic-write primitive as the acquisition engine. Run the preparation stage on the selected durable root:
+
+```bash
+python scripts/preflight_science_custody.py prepare \
+  --custody-root "$CUSTODY_ROOT"
+```
+
+Record the returned `preflight_id`. The preparation stage writes synthetic evidence only; it is not a provider acquisition.
+
+Terminate the preparation process. In a fresh process/session, and after any host/session restart required by the selected deployment design, verify persistence and exact bytes:
+
+```bash
+python scripts/preflight_science_custody.py verify-persistence \
+  --custody-root "$CUSTODY_ROOT" \
+  --preflight-id "$PREFLIGHT_ID"
+```
+
+The command verifies the content-addressed test payloads, manifest digest, byte counts, nested paths, and final state of a same-path `os.replace` operation. Its report explicitly does not claim that a restart happened; the operator must provide that execution-context evidence separately.
+
+After a real backup/recovery point has been created, restore the synthetic preflight tree to a separate durable location and compare the restored paths and bytes:
+
+```bash
+python scripts/preflight_science_custody.py compare-restore \
+  --primary-root "$CUSTODY_ROOT" \
+  --restored-root "$RESTORED_CUSTODY_ROOT" \
+  --preflight-id "$PREFLIGHT_ID"
+```
+
+Under the intended read-only verifier/auditor identity, require the write probe to fail:
+
+```bash
+python scripts/preflight_science_custody.py assert-read-only \
+  --custody-root "$CUSTODY_ROOT" \
+  --preflight-id "$PREFLIGHT_ID"
+```
+
+`READ_ONLY_PASS` means only that the identity executing that command could not create a probe file in the evidence directory. Record which identity executed it.
+
+If the AWS reference deployment is selected, `infra/aws-phase4-custody/` provisions the intended Regional encrypted EFS and AWS Backup topology. Terraform configuration or successful provisioning is not itself #49 evidence; the exact storage preflight, restore comparison, identity test, and live recovery drill remain mandatory.
 
 ## 5. Execute a two-provider scoped pilot
 
@@ -241,6 +282,7 @@ Stop the production procedure immediately if any of the following occurs:
 - cursor progression or provider response structure violates the frozen contract;
 - candidate normalization or raw provenance cannot be independently reproduced;
 - retry-attempt evidence is missing, reordered, or fails request/cursor binding;
+- the storage preflight, post-restart persistence check, restore comparison, or read-only identity check fails;
 - a scoped run is being represented as full-plan complete;
 - overlapping query totals are being aggregated as a global denominator;
 - a release is proposed for an artifact class that is not explicitly `PUBLIC_REDISTRIBUTION_PERMITTED` under the current rights decision;
