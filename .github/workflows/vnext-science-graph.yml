@@ -12,8 +12,10 @@ on:
       - "fixtures/vnext/science-acquisition.synthetic.json"
       - "scripts/validate_science_graph.py"
       - "scripts/compile_science_queries.py"
+      - "scripts/acquire_science_candidates.py"
       - "tests/test_science_graph_contract.py"
       - "tests/test_science_query_compilation.py"
+      - "tests/test_science_acquisition.py"
       - "source-universes/p0/science-v0.1.json"
       - ".github/workflows/vnext-science-graph.yml"
   push:
@@ -28,8 +30,10 @@ on:
       - "fixtures/vnext/science-acquisition.synthetic.json"
       - "scripts/validate_science_graph.py"
       - "scripts/compile_science_queries.py"
+      - "scripts/acquire_science_candidates.py"
       - "tests/test_science_graph_contract.py"
       - "tests/test_science_query_compilation.py"
+      - "tests/test_science_acquisition.py"
       - "source-universes/p0/science-v0.1.json"
       - ".github/workflows/vnext-science-graph.yml"
 
@@ -50,5 +54,13 @@ jobs:
         run: python scripts/validate_science_graph.py
       - name: Compile frozen provider query plan
         run: python scripts/compile_science_queries.py --output "$RUNNER_TEMP/science-query-plan.json"
-      - name: Contract and adversarial tests
-        run: python -m unittest tests/test_science_graph_contract.py tests/test_science_query_compilation.py -v
+      - name: Contract, compiler, and acquisition-mechanics tests
+        run: >-
+          python -m unittest
+          tests/test_science_graph_contract.py
+          tests/test_science_query_compilation.py
+          tests/test_science_acquisition.py
+          -v
+
+# Deliberately no live provider acquisition in CI. Live Crossref/Europe PMC runs
+# require explicit execution, durable raw-byte custody, and separate rights review.
