@@ -13,14 +13,17 @@ on:
       - "scripts/validate_science_graph.py"
       - "scripts/compile_science_queries.py"
       - "scripts/acquire_science_candidates.py"
+      - "scripts/acquire_science_candidates_strict.py"
       - "scripts/verify_science_acquisition.py"
       - "scripts/verify_science_candidate_provenance.py"
+      - "scripts/verify_science_retry_custody.py"
       - "tests/test_science_graph_contract.py"
       - "tests/test_science_query_compilation.py"
       - "tests/test_science_acquisition.py"
       - "tests/test_science_response_custody.py"
       - "tests/test_science_acquisition_verification.py"
       - "tests/test_science_candidate_provenance.py"
+      - "tests/test_science_retry_custody.py"
       - "source-universes/p0/science-v0.1.json"
       - ".github/workflows/vnext-science-graph.yml"
   push:
@@ -36,14 +39,17 @@ on:
       - "scripts/validate_science_graph.py"
       - "scripts/compile_science_queries.py"
       - "scripts/acquire_science_candidates.py"
+      - "scripts/acquire_science_candidates_strict.py"
       - "scripts/verify_science_acquisition.py"
       - "scripts/verify_science_candidate_provenance.py"
+      - "scripts/verify_science_retry_custody.py"
       - "tests/test_science_graph_contract.py"
       - "tests/test_science_query_compilation.py"
       - "tests/test_science_acquisition.py"
       - "tests/test_science_response_custody.py"
       - "tests/test_science_acquisition_verification.py"
       - "tests/test_science_candidate_provenance.py"
+      - "tests/test_science_retry_custody.py"
       - "source-universes/p0/science-v0.1.json"
       - ".github/workflows/vnext-science-graph.yml"
 
@@ -64,7 +70,7 @@ jobs:
         run: python scripts/validate_science_graph.py
       - name: Compile frozen provider query plan
         run: python scripts/compile_science_queries.py --output "$RUNNER_TEMP/science-query-plan.json"
-      - name: Contract, compiler, acquisition, custody, and provenance tests
+      - name: Contract, compiler, acquisition, custody, retry-custody, and provenance tests
         run: >-
           python -m unittest
           tests/test_science_graph_contract.py
@@ -73,6 +79,7 @@ jobs:
           tests/test_science_response_custody.py
           tests/test_science_acquisition_verification.py
           tests/test_science_candidate_provenance.py
+          tests/test_science_retry_custody.py
           -v
 
 # Deliberately no live provider acquisition in CI. Live Crossref/Europe PMC runs
