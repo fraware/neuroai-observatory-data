@@ -545,6 +545,31 @@ def validate_plan_integrity(plan: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return by_id
 
 
+def _response_observation(
+    *,
+    response_index: int,
+    requested_at: str,
+    observed_at: str,
+    url: str,
+    cursor_in: str | None,
+    result: HttpResult,
+    raw_sha: str,
+    raw_pointer: str,
+) -> dict[str, Any]:
+    return {
+        "response_index": response_index,
+        "requested_at": requested_at,
+        "observed_at": observed_at,
+        "request_url_sha256": _sha256_bytes(url.encode("utf-8")),
+        "cursor_in": cursor_in,
+        "http_status": result.status,
+        "response_headers": _selected_headers(result.headers),
+        "content_sha256": raw_sha,
+        "byte_count": len(result.body),
+        "raw_custody_pointer": raw_pointer,
+    }
+
+
 def acquire_query_unit(
     unit: dict[str, Any],
     *,
@@ -570,6 +595,7 @@ def acquire_query_unit(
     provider = unit["provider"]
     cursor_parameter = "cursor" if provider == "CROSSREF" else "cursorMark"
 
+    responses: list[dict[str, Any]] = []
     pages: list[dict[str, Any]] = []
     candidates: list[dict[str, Any]] = []
     seen_provider_keys: set[tuple[str | None, str]] = set()
@@ -589,11 +615,32 @@ def acquire_query_unit(
             )
             observed_at = clock_fn()
             raw_sha, raw_pointer = _store_raw(raw_root, result.body)
+            response = _response_observation(
+                response_index=page_index,
+                requested_at=requested_at,
+                observed_at=observed_at,
+                url=url,
+                cursor_in=parameters.get(cursor_parameter),
+                result=result,
+                raw_sha=raw_sha,
+                raw_pointer=raw_pointer,
+            )
+            responses.append(response)
+
             payload = _json_body(result.body, f"{provider}:{unit['query_unit_id']}:page-{page_index}")
             if provider == "CROSSREF":
                 total, records, next_cursor = _crossref_page(payload)
             else:
                 total, records, next_cursor = _europe_pmc_page(payload)
+
+            page_manifest = {
+                **response,
+                "page_index": page_index,
+                "provider_total": total,
+                "record_count": len(records),
+                "cursor_out": next_cursor,
+            }
+            pages.append(page_manifest)
 
             if expected_total is None:
                 expected_total = total
@@ -601,23 +648,6 @@ def acquire_query_unit(
                 failure_reason = "PROVIDER_TOTAL_CHANGED_DURING_TRAVERSAL"
                 continuation_state = parameters.get(cursor_parameter)
                 break
-
-            page_manifest = {
-                "page_index": page_index,
-                "requested_at": requested_at,
-                "observed_at": observed_at,
-                "request_url_sha256": _sha256_bytes(url.encode("utf-8")),
-                "cursor_in": parameters.get(cursor_parameter),
-                "http_status": result.status,
-                "response_headers": _selected_headers(result.headers),
-                "content_sha256": raw_sha,
-                "byte_count": len(result.body),
-                "raw_custody_pointer": raw_pointer,
-                "provider_total": total,
-                "record_count": len(records),
-                "cursor_out": next_cursor,
-            }
-            pages.append(page_manifest)
 
             for record in records:
                 if provider == "CROSSREF":
@@ -672,7 +702,7 @@ def acquire_query_unit(
 
     complete = failure_reason is None and len(candidates) == expected_total
     exhaustion_state = "COMPLETE" if complete else ("FAILED" if not pages else "PARTIAL")
-    page_manifest_sha = _sha256_json(pages)
+    response_manifest_sha = _sha256_json(responses)
     freeze = {
         "freeze_id": freeze_id,
         "schema_version": "0.1.0",
@@ -682,9 +712,9 @@ def acquire_query_unit(
         "protocol_id": "SCIENCE-DISCOVERY-PROTOCOL-V0.1",
         "query_family_ids": [unit["query_family_id"]],
         "retrieval_cutoff": unit["evidence_cutoff"],
-        "source_state_identity": f"OBSERVED-{page_manifest_sha[:32].upper()}",
+        "source_state_identity": f"OBSERVED-{response_manifest_sha[:32].upper()}",
         "request_identity_sha256": unit["request_identity_sha256"],
-        "raw_response_manifest_sha256": page_manifest_sha,
+        "raw_response_manifest_sha256": response_manifest_sha,
         "raw_bytes_location_class": "OUTSIDE_GIT_CONTENT_ADDRESSED",
         "records_observed": len(candidates),
         "exhaustion_state": exhaustion_state,
@@ -718,6 +748,7 @@ def acquire_query_unit(
         "freeze": freeze,
         "coverage": coverage,
         "coverage_state": "ISSUED_COMPLETE_QUERY_UNIT" if complete else "NOT_ISSUED_INCOMPLETE_QUERY_UNIT",
+        "response_manifest": responses,
         "page_manifest": pages,
         "candidates_path": f"units/{unit['query_unit_id']}/candidates.jsonl",
         "candidates_sha256": candidates_sha,
@@ -744,6 +775,18 @@ def _load_jsonl(path: Path) -> Iterable[dict[str, Any]]:
             yield row
 
 
+def _validate_response_custody(response: dict[str, Any], *, unit_id: str, output_root: Path) -> None:
+    pointer = response.get("raw_custody_pointer")
+    digest = response.get("content_sha256")
+    if not isinstance(pointer, str) or not isinstance(digest, str):
+        raise ValueError(f"{unit_id}: existing raw custody entry invalid")
+    raw_path = _resolve_inside(output_root, pointer)
+    if not raw_path.is_file() or _sha256_bytes(raw_path.read_bytes()) != digest:
+        raise ValueError(f"{unit_id}: existing raw custody digest mismatch")
+    if raw_path.name != f"{digest}.json":
+        raise ValueError(f"{unit_id}: existing raw custody path is not content-addressed")
+
+
 def _validate_existing_result_integrity(
     existing: dict[str, Any],
     *,
@@ -763,8 +806,32 @@ def _validate_existing_result_integrity(
         raise ValueError(f"{unit_id}: existing result lacks freeze")
     if freeze.get("request_identity_sha256") != unit["request_identity_sha256"]:
         raise ValueError(f"{unit_id}: existing freeze request identity mismatch")
-    if freeze.get("raw_response_manifest_sha256") != _sha256_json(existing.get("page_manifest")):
-        raise ValueError(f"{unit_id}: existing page manifest digest mismatch")
+
+    responses = existing.get("response_manifest")
+    pages = existing.get("page_manifest")
+    if not isinstance(responses, list) or not isinstance(pages, list):
+        raise ValueError(f"{unit_id}: existing response/page manifests must be arrays")
+    response_manifest_sha = _sha256_json(responses)
+    if freeze.get("raw_response_manifest_sha256") != response_manifest_sha:
+        raise ValueError(f"{unit_id}: existing raw response manifest digest mismatch")
+    if freeze.get("source_state_identity") != f"OBSERVED-{response_manifest_sha[:32].upper()}":
+        raise ValueError(f"{unit_id}: existing source_state_identity mismatch")
+
+    response_by_index: dict[int, dict[str, Any]] = {}
+    for expected_index, response in enumerate(responses, start=1):
+        if not isinstance(response, dict) or response.get("response_index") != expected_index:
+            raise ValueError(f"{unit_id}: existing response manifest sequence mismatch")
+        response_by_index[expected_index] = response
+        _validate_response_custody(response, unit_id=unit_id, output_root=output_root)
+    for page in pages:
+        if not isinstance(page, dict):
+            raise ValueError(f"{unit_id}: existing page manifest row must be object")
+        response = response_by_index.get(page.get("response_index"))
+        if response is None:
+            raise ValueError(f"{unit_id}: existing page lacks matching response observation")
+        for key, value in response.items():
+            if page.get(key) != value:
+                raise ValueError(f"{unit_id}: existing page/response observation mismatch")
 
     candidate_relative = existing.get("candidates_path")
     candidate_sha = existing.get("candidates_sha256")
@@ -782,28 +849,16 @@ def _validate_existing_result_integrity(
     if freeze.get("records_observed") != candidate_count:
         raise ValueError(f"{unit_id}: existing freeze records_observed mismatch")
 
-    pages = existing.get("page_manifest")
-    if not isinstance(pages, list):
-        raise ValueError(f"{unit_id}: existing page_manifest must be an array")
-    for page in pages:
-        if not isinstance(page, dict):
-            raise ValueError(f"{unit_id}: existing page manifest row must be object")
-        pointer = page.get("raw_custody_pointer")
-        digest = page.get("content_sha256")
-        if not isinstance(pointer, str) or not isinstance(digest, str):
-            raise ValueError(f"{unit_id}: existing raw custody entry invalid")
-        raw_path = _resolve_inside(output_root, pointer)
-        if not raw_path.is_file() or _sha256_bytes(raw_path.read_bytes()) != digest:
-            raise ValueError(f"{unit_id}: existing raw custody digest mismatch")
-        if raw_path.name != f"{digest}.json":
-            raise ValueError(f"{unit_id}: existing raw custody path is not content-addressed")
-
     status = existing.get("status")
     if status == "COMPLETE":
         if freeze.get("exhaustion_state") != "COMPLETE":
             raise ValueError(f"{unit_id}: existing COMPLETE result has non-complete freeze")
         if existing.get("provider_total") != candidate_count:
             raise ValueError(f"{unit_id}: existing COMPLETE result does not reconcile to provider total")
+        if len(pages) != len(responses):
+            raise ValueError(f"{unit_id}: existing COMPLETE result has unparsed response observations")
+        if sum(page.get("record_count", -1) for page in pages) != candidate_count:
+            raise ValueError(f"{unit_id}: existing COMPLETE page counts do not reconcile")
         if existing.get("coverage_state") != "ISSUED_COMPLETE_QUERY_UNIT" or not isinstance(existing.get("coverage"), dict):
             raise ValueError(f"{unit_id}: existing COMPLETE result lacks coverage")
     elif status in {"PARTIAL", "FAILED"}:
@@ -828,6 +883,7 @@ def _archive_incomplete_attempt(
         "request_identity_sha256": unit["request_identity_sha256"],
         "status": existing["status"],
         "freeze": existing["freeze"],
+        "response_manifest": existing["response_manifest"],
         "page_manifest": existing["page_manifest"],
         "candidates_sha256": existing["candidates_sha256"],
     }
@@ -895,6 +951,21 @@ def _archive_previous_run(output_root: Path) -> None:
                 raise RuntimeError(f"run dedup archive identity collision: {run_id}")
         else:
             _atomic_write(archived_dedup, dedup_path.read_bytes())
+
+    for name in (
+        "candidate-manifest.json",
+        "coverage-index.json",
+        "candidate-provenance-verification.json",
+    ):
+        source = output_root / name
+        if not source.exists():
+            continue
+        target = archive_dir / name
+        if target.exists():
+            if target.read_bytes() != source.read_bytes():
+                raise RuntimeError(f"run derived-product archive identity collision: {run_id}:{name}")
+        else:
+            _atomic_write(target, source.read_bytes())
 
 
 def build_dedup_report(output_root: Path, unit_results: list[dict[str, Any]]) -> dict[str, Any]:
