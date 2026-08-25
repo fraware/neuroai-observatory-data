@@ -10,12 +10,15 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 from typing import Any, Callable, Iterable, NamedTuple
 
 ROOT = Path(__file__).parents[1]
 DEFAULT_USER_AGENT = "neuroai-observatory-data/0.1 (+https://github.com/fraware/neuroai-observatory-data)"
 TRANSIENT_HTTP_STATUSES = {429, 500, 502, 503, 504}
+RELEASE_INELIGIBLE = "NOT_RELEASE_ELIGIBLE_UNTIL_DURABLE_CUSTODY_AND_RIGHTS_REVIEW"
+SUPPORTED_PROVIDERS = {"CROSSREF", "EUROPE_PMC"}
 
 
 def _canonical_bytes(value: Any) -> bytes:
@@ -69,6 +72,14 @@ def validate_output_root(output_root: Path) -> None:
         raise ValueError("acquisition output must remain outside the Git repository")
 
 
+def _resolve_inside(root: Path, relative: str) -> Path:
+    root_r = root.resolve()
+    path = (root_r / relative).resolve()
+    if path != root_r and root_r not in path.parents:
+        raise ValueError(f"path escapes acquisition root: {relative}")
+    return path
+
+
 class HttpResult(NamedTuple):
     status: int
     headers: dict[str, str]
@@ -110,7 +121,14 @@ def _retry_delay(headers: dict[str, str], attempt: int) -> float:
         try:
             return max(0.0, min(float(retry_after), 120.0))
         except ValueError:
-            pass
+            try:
+                retry_at = parsedate_to_datetime(retry_after)
+                if retry_at.tzinfo is None:
+                    retry_at = retry_at.replace(tzinfo=timezone.utc)
+                seconds = (retry_at - datetime.now(timezone.utc)).total_seconds()
+                return max(0.0, min(seconds, 120.0))
+            except (TypeError, ValueError, OverflowError):
+                pass
     return min(2 ** (attempt - 1), 30.0)
 
 
@@ -147,7 +165,14 @@ def _build_url(endpoint: str, parameters: dict[str, Any]) -> str:
 
 
 def _selected_headers(headers: dict[str, str]) -> dict[str, str]:
-    allow = ("date", "etag", "last-modified", "content-type", "x-api-pool")
+    allow = (
+        "date",
+        "etag",
+        "last-modified",
+        "content-type",
+        "retry-after",
+        "x-api-pool",
+    )
     return {key: headers[key] for key in allow if key in headers}
 
 
@@ -288,10 +313,16 @@ def _provider_slug(provider: str) -> str:
     return provider.replace("_", "-")
 
 
-def _candidate_id(provider: str, provider_record_id: str, query_unit_id: str) -> str:
+def _candidate_id(
+    provider: str,
+    provider_record_id: str,
+    query_unit_id: str,
+    provider_record_source: str | None = None,
+) -> str:
     digest = _sha256_json(
         {
             "provider": provider,
+            "provider_record_source": provider_record_source,
             "provider_record_id": provider_record_id,
             "query_unit_id": query_unit_id,
         }
@@ -340,21 +371,31 @@ def _europe_pmc_candidate(
     freeze_id: str,
     observed_at: str,
 ) -> dict[str, Any]:
+    source = record.get("source")
+    if not isinstance(source, str) or not source.strip():
+        raise RuntimeError("EUROPE_PMC: record lacks provider source database code")
+    provider_source = source.strip().upper()
     provider_id = record.get("id")
     if provider_id is None or not str(provider_id).strip():
         raise RuntimeError("EUROPE_PMC: record lacks provider id")
     provider_id = str(provider_id).strip()
     title = record.get("title")
     if not isinstance(title, str) or not title.strip():
-        raise RuntimeError(f"EUROPE_PMC:{provider_id}: missing required title")
+        raise RuntimeError(f"EUROPE_PMC:{provider_source}:{provider_id}: missing required title")
     pub_year = record.get("pubYear")
     publication_date = str(pub_year).strip() if pub_year is not None else None
     if publication_date is not None and (len(publication_date) != 4 or not publication_date.isdigit()):
         publication_date = None
     return {
         "record_kind": "SCIENCE_DISCOVERY_CANDIDATE",
-        "candidate_id": _candidate_id("EUROPE_PMC", provider_id, unit["query_unit_id"]),
+        "candidate_id": _candidate_id(
+            "EUROPE_PMC",
+            provider_id,
+            unit["query_unit_id"],
+            provider_source,
+        ),
         "provider": "EUROPE_PMC",
+        "provider_record_source": provider_source,
         "provider_record_id": provider_id,
         "source_universe_id": unit["source_universe_id"],
         "acquisition_freeze_id": freeze_id,
@@ -423,6 +464,73 @@ def _freeze_id(unit: dict[str, Any]) -> str:
     return f"AF-SCI-{_provider_slug(unit['provider'])}-{unit['request_identity_sha256'][:20].upper()}"
 
 
+def _request_basis(unit: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "provider": unit["provider"],
+        "endpoint": unit["endpoint"],
+        "parameters": unit["parameters"],
+        "query_family_id": unit["query_family_id"],
+        "term_index": unit["term_index"],
+        "term": unit["term"],
+        "window": unit["window"],
+        "adapter_id": unit["adapter_id"],
+        "source_universe_id": unit["source_universe_id"],
+    }
+
+
+def _plan_basis(plan: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "protocol_id": plan["protocol_id"],
+        "compilation_id": plan["compilation_id"],
+        "evidence_cutoff": plan["evidence_cutoff"],
+        "priority_window": plan["priority_window"],
+        "query_units": plan["query_units"],
+    }
+
+
+def validate_plan_integrity(plan: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    if plan.get("status") != "FROZEN_QUERY_PLAN_NO_ACQUISITION_EXECUTED":
+        raise ValueError("input plan is not a frozen pre-acquisition query plan")
+    units = plan.get("query_units")
+    if not isinstance(units, list) or not units:
+        raise ValueError("query plan requires query units")
+    if plan.get("unit_count") != len(units):
+        raise ValueError("query plan unit_count mismatch")
+
+    expected_plan_sha = _sha256_json(_plan_basis(plan))
+    if plan.get("plan_sha256") != expected_plan_sha:
+        raise ValueError("query plan SHA-256 mismatch")
+    expected_plan_id = f"SCIENCE-QUERY-PLAN-{expected_plan_sha[:20].upper()}"
+    if plan.get("plan_id") != expected_plan_id:
+        raise ValueError("query plan id mismatch")
+
+    by_id: dict[str, dict[str, Any]] = {}
+    provider_counts = {provider: 0 for provider in SUPPORTED_PROVIDERS}
+    for unit in units:
+        provider = unit.get("provider")
+        if provider not in SUPPORTED_PROVIDERS:
+            raise ValueError(f"unsupported first-acquisition provider: {provider}")
+        request_sha = _sha256_json(_request_basis(unit))
+        if unit.get("request_identity_sha256") != request_sha:
+            raise ValueError(f"{unit.get('query_unit_id')}: request identity SHA-256 mismatch")
+        expected_unit_id = f"QUNIT-{provider}-{request_sha[:20].upper()}"
+        if unit.get("query_unit_id") != expected_unit_id:
+            raise ValueError(f"{unit.get('query_unit_id')}: query-unit id mismatch")
+        if unit.get("coverage_denominator_method") != "API_TOTAL":
+            raise ValueError(f"{expected_unit_id}: denominator method drift")
+        if unit.get("canonical_effect") != "NONE_DISCOVERY_QUERY_ONLY":
+            raise ValueError(f"{expected_unit_id}: query unit crossed canonical authority boundary")
+        if expected_unit_id in by_id:
+            raise ValueError(f"duplicate query_unit_id: {expected_unit_id}")
+        by_id[expected_unit_id] = unit
+        provider_counts[provider] += 1
+
+    expected_counts = plan.get("provider_counts")
+    if not isinstance(expected_counts, dict) or expected_counts != provider_counts:
+        raise ValueError("query plan provider_counts mismatch")
+    return by_id
+
+
 def acquire_query_unit(
     unit: dict[str, Any],
     *,
@@ -443,11 +551,13 @@ def acquire_query_unit(
     unit_started_at = clock_fn()
     parameters = dict(unit["parameters"])
     provider = unit["provider"]
+    if provider not in SUPPORTED_PROVIDERS:
+        raise ValueError(f"unsupported acquisition provider: {provider}")
     cursor_parameter = "cursor" if provider == "CROSSREF" else "cursorMark"
 
     pages: list[dict[str, Any]] = []
     candidates: list[dict[str, Any]] = []
-    seen_provider_ids: set[str] = set()
+    seen_provider_keys: set[tuple[str | None, str]] = set()
     expected_total: int | None = None
     failure_reason: str | None = None
     continuation_state: str | None = None
@@ -455,21 +565,20 @@ def acquire_query_unit(
     try:
         for page_index in range(1, max_pages + 1):
             url = _build_url(unit["endpoint"], parameters)
-            observed_at = clock_fn()
+            requested_at = clock_fn()
             result = fetch_with_retries(
                 transport,
                 url,
                 max_attempts=max_attempts,
                 sleep_fn=sleep_fn,
             )
+            observed_at = clock_fn()
             raw_sha, raw_pointer = _store_raw(raw_root, result.body)
             payload = _json_body(result.body, f"{provider}:{unit['query_unit_id']}:page-{page_index}")
             if provider == "CROSSREF":
                 total, records, next_cursor = _crossref_page(payload)
-            elif provider == "EUROPE_PMC":
-                total, records, next_cursor = _europe_pmc_page(payload)
             else:
-                raise RuntimeError(f"unsupported acquisition provider: {provider}")
+                total, records, next_cursor = _europe_pmc_page(payload)
 
             if expected_total is None:
                 expected_total = total
@@ -480,6 +589,7 @@ def acquire_query_unit(
 
             page_manifest = {
                 "page_index": page_index,
+                "requested_at": requested_at,
                 "observed_at": observed_at,
                 "request_url_sha256": _sha256_bytes(url.encode("utf-8")),
                 "cursor_in": parameters.get(cursor_parameter),
@@ -509,10 +619,16 @@ def acquire_query_unit(
                         freeze_id=freeze_id,
                         observed_at=observed_at,
                     )
-                provider_id = candidate["provider_record_id"]
-                if provider_id in seen_provider_ids:
-                    raise RuntimeError(f"{provider}:{provider_id}: duplicate provider record inside query unit")
-                seen_provider_ids.add(provider_id)
+                provider_key = (
+                    candidate.get("provider_record_source"),
+                    candidate["provider_record_id"],
+                )
+                if provider_key in seen_provider_keys:
+                    source_label = f"{provider_key[0]}:" if provider_key[0] else ""
+                    raise RuntimeError(
+                        f"{provider}:{source_label}{provider_key[1]}: duplicate provider record inside query unit"
+                    )
+                seen_provider_keys.add(provider_key)
                 candidates.append(candidate)
 
             if len(candidates) >= total:
@@ -550,7 +666,7 @@ def acquire_query_unit(
         "adapter_version": "0.1.0",
         "protocol_id": "SCIENCE-DISCOVERY-PROTOCOL-V0.1",
         "query_family_ids": [unit["query_family_id"]],
-        "retrieval_cutoff": unit.get("evidence_cutoff", "2026-08-20T00:00:00Z"),
+        "retrieval_cutoff": unit["evidence_cutoff"],
         "source_state_identity": f"OBSERVED-{page_manifest_sha[:32].upper()}",
         "request_identity_sha256": unit["request_identity_sha256"],
         "raw_response_manifest_sha256": page_manifest_sha,
@@ -593,7 +709,7 @@ def acquire_query_unit(
         "candidate_count": len(candidates),
         "provider_total": expected_total,
         "raw_custody_root": "raw/sha256",
-        "release_eligibility": "NOT_RELEASE_ELIGIBLE_UNTIL_DURABLE_CUSTODY_AND_RIGHTS_REVIEW",
+        "release_eligibility": RELEASE_INELIGIBLE,
     }
     _write_json(unit_dir / "result.json", result_record)
     return result_record
@@ -613,6 +729,159 @@ def _load_jsonl(path: Path) -> Iterable[dict[str, Any]]:
             yield row
 
 
+def _validate_existing_result_integrity(
+    existing: dict[str, Any],
+    *,
+    unit: dict[str, Any],
+    output_root: Path,
+) -> None:
+    unit_id = unit["query_unit_id"]
+    if existing.get("query_unit_id") != unit_id:
+        raise ValueError(f"{unit_id}: existing result query-unit mismatch")
+    if existing.get("request_identity_sha256") != unit["request_identity_sha256"]:
+        raise ValueError(f"{unit_id}: existing result request identity mismatch")
+    if existing.get("release_eligibility") != RELEASE_INELIGIBLE:
+        raise ValueError(f"{unit_id}: existing result crossed release-eligibility boundary")
+
+    freeze = existing.get("freeze")
+    if not isinstance(freeze, dict):
+        raise ValueError(f"{unit_id}: existing result lacks freeze")
+    if freeze.get("request_identity_sha256") != unit["request_identity_sha256"]:
+        raise ValueError(f"{unit_id}: existing freeze request identity mismatch")
+    if freeze.get("raw_response_manifest_sha256") != _sha256_json(existing.get("page_manifest")):
+        raise ValueError(f"{unit_id}: existing page manifest digest mismatch")
+
+    candidate_relative = existing.get("candidates_path")
+    candidate_sha = existing.get("candidates_sha256")
+    if not isinstance(candidate_relative, str) or not isinstance(candidate_sha, str):
+        raise ValueError(f"{unit_id}: existing candidate file metadata missing")
+    candidate_path = _resolve_inside(output_root, candidate_relative)
+    if not candidate_path.is_file():
+        raise ValueError(f"{unit_id}: existing candidate file missing")
+    actual_candidate_sha = _sha256_bytes(candidate_path.read_bytes())
+    if actual_candidate_sha != candidate_sha:
+        raise ValueError(f"{unit_id}: existing candidate file digest mismatch")
+    candidate_count = sum(1 for _ in _load_jsonl(candidate_path))
+    if existing.get("candidate_count") != candidate_count:
+        raise ValueError(f"{unit_id}: existing candidate_count mismatch")
+    if freeze.get("records_observed") != candidate_count:
+        raise ValueError(f"{unit_id}: existing freeze records_observed mismatch")
+
+    pages = existing.get("page_manifest")
+    if not isinstance(pages, list):
+        raise ValueError(f"{unit_id}: existing page_manifest must be an array")
+    for page in pages:
+        if not isinstance(page, dict):
+            raise ValueError(f"{unit_id}: existing page manifest row must be object")
+        pointer = page.get("raw_custody_pointer")
+        digest = page.get("content_sha256")
+        if not isinstance(pointer, str) or not isinstance(digest, str):
+            raise ValueError(f"{unit_id}: existing raw custody entry invalid")
+        raw_path = _resolve_inside(output_root, pointer)
+        if not raw_path.is_file() or _sha256_bytes(raw_path.read_bytes()) != digest:
+            raise ValueError(f"{unit_id}: existing raw custody digest mismatch")
+        if raw_path.name != f"{digest}.json":
+            raise ValueError(f"{unit_id}: existing raw custody path is not content-addressed")
+
+    status = existing.get("status")
+    if status == "COMPLETE":
+        if freeze.get("exhaustion_state") != "COMPLETE":
+            raise ValueError(f"{unit_id}: existing COMPLETE result has non-complete freeze")
+        if existing.get("provider_total") != candidate_count:
+            raise ValueError(f"{unit_id}: existing COMPLETE result does not reconcile to provider total")
+        if existing.get("coverage_state") != "ISSUED_COMPLETE_QUERY_UNIT" or not isinstance(existing.get("coverage"), dict):
+            raise ValueError(f"{unit_id}: existing COMPLETE result lacks coverage")
+    elif status in {"PARTIAL", "FAILED"}:
+        if freeze.get("exhaustion_state") != status:
+            raise ValueError(f"{unit_id}: existing incomplete result/freeze state mismatch")
+        if existing.get("coverage_state") != "NOT_ISSUED_INCOMPLETE_QUERY_UNIT" or existing.get("coverage") is not None:
+            raise ValueError(f"{unit_id}: existing incomplete result must not issue coverage")
+    else:
+        raise ValueError(f"{unit_id}: unsupported existing result status {status!r}")
+
+
+def _archive_incomplete_attempt(
+    existing: dict[str, Any],
+    *,
+    unit: dict[str, Any],
+    output_root: Path,
+) -> None:
+    unit_id = unit["query_unit_id"]
+    candidate_path = _resolve_inside(output_root, existing["candidates_path"])
+    result_basis = {
+        "query_unit_id": unit_id,
+        "request_identity_sha256": unit["request_identity_sha256"],
+        "status": existing["status"],
+        "freeze": existing["freeze"],
+        "page_manifest": existing["page_manifest"],
+        "candidates_sha256": existing["candidates_sha256"],
+    }
+    archive_sha = _sha256_json(result_basis)
+    archive_id = f"ATTEMPT-{archive_sha[:20].upper()}"
+    archive_dir = output_root / "units" / unit_id / "attempts" / archive_id
+    snapshot_relative = (
+        Path("units") / unit_id / "attempts" / archive_id / "candidates.jsonl"
+    ).as_posix()
+    snapshot_path = output_root / snapshot_relative
+    archive_record = {
+        "archive_id": archive_id,
+        "query_unit_id": unit_id,
+        "archived_status": existing["status"],
+        "request_identity_sha256": unit["request_identity_sha256"],
+        "original_result": existing,
+        "candidate_snapshot_path": snapshot_relative,
+        "candidate_snapshot_sha256": existing["candidates_sha256"],
+        "authority_boundary": (
+            "Immutable operational archive of an incomplete acquisition attempt. It is retained for "
+            "auditability and is not a completeness, release, relevance, or canonical-identity claim."
+        ),
+    }
+    archive_bytes = (
+        json.dumps(archive_record, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
+    ).encode("utf-8")
+    archive_path = archive_dir / "attempt.json"
+    if archive_path.exists():
+        if archive_path.read_bytes() != archive_bytes:
+            raise RuntimeError(f"{unit_id}: attempt archive identity collision")
+    else:
+        _atomic_write(snapshot_path, candidate_path.read_bytes())
+        _atomic_write(archive_path, archive_bytes)
+
+
+def _archive_previous_run(output_root: Path) -> None:
+    manifest_path = output_root / "run-manifest.json"
+    if not manifest_path.exists():
+        return
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise RuntimeError("existing run-manifest.json is invalid; quarantine output root before continuing") from exc
+    if not isinstance(manifest, dict) or not isinstance(manifest.get("run_id"), str):
+        raise RuntimeError("existing run manifest lacks a valid run_id")
+    run_id = manifest["run_id"]
+    archive_dir = output_root / "runs" / run_id
+    archive_manifest = archive_dir / "run-manifest.json"
+    manifest_bytes = manifest_path.read_bytes()
+    if archive_manifest.exists():
+        if archive_manifest.read_bytes() != manifest_bytes:
+            raise RuntimeError(f"run archive identity collision: {run_id}")
+    else:
+        _atomic_write(archive_manifest, manifest_bytes)
+
+    dedup_path = output_root / "dedup-report.json"
+    if dedup_path.exists():
+        expected = manifest.get("dedup_report_sha256")
+        actual = _sha256_json(json.loads(dedup_path.read_text(encoding="utf-8")))
+        if expected != actual:
+            raise RuntimeError("existing dedup report digest does not match run manifest")
+        archived_dedup = archive_dir / "dedup-report.json"
+        if archived_dedup.exists():
+            if archived_dedup.read_bytes() != dedup_path.read_bytes():
+                raise RuntimeError(f"run dedup archive identity collision: {run_id}")
+        else:
+            _atomic_write(archived_dedup, dedup_path.read_bytes())
+
+
 def build_dedup_report(output_root: Path, unit_results: list[dict[str, Any]]) -> dict[str, Any]:
     indexes: dict[str, dict[str, list[str]]] = {
         "DOI": {},
@@ -622,7 +891,7 @@ def build_dedup_report(output_root: Path, unit_results: list[dict[str, Any]]) ->
     }
     candidate_count = 0
     for result in unit_results:
-        path = output_root / result["candidates_path"]
+        path = _resolve_inside(output_root, result["candidates_path"])
         for candidate in _load_jsonl(path):
             candidate_count += 1
             identifiers = candidate["identifiers"]
@@ -677,9 +946,18 @@ def acquire_plan(
     clock_fn: Callable[[], str] = _utc_now,
 ) -> dict[str, Any]:
     validate_output_root(output_root)
-    if plan.get("status") != "FROZEN_QUERY_PLAN_NO_ACQUISITION_EXECUTED":
-        raise ValueError("input plan is not a frozen pre-acquisition query plan")
-    units = list(plan.get("query_units", []))
+    unit_by_id = validate_plan_integrity(plan)
+
+    if providers is not None:
+        unknown_providers = providers - SUPPORTED_PROVIDERS
+        if unknown_providers:
+            raise ValueError(f"unsupported provider selection: {sorted(unknown_providers)}")
+    if query_unit_ids is not None:
+        unknown_ids = query_unit_ids - set(unit_by_id)
+        if unknown_ids:
+            raise ValueError(f"query-unit selection contains unknown ids: {sorted(unknown_ids)}")
+
+    units = list(plan["query_units"])
     if providers is not None:
         units = [unit for unit in units if unit["provider"] in providers]
     if query_unit_ids is not None:
@@ -692,18 +970,26 @@ def acquire_plan(
         raise ValueError("selection contains no query units")
 
     output_root.mkdir(parents=True, exist_ok=True)
+    _archive_previous_run(output_root)
     started_at = clock_fn()
     results: list[dict[str, Any]] = []
     for unit in units:
         existing_path = output_root / "units" / unit["query_unit_id"] / "result.json"
         if existing_path.exists():
-            existing = json.loads(existing_path.read_text(encoding="utf-8"))
-            if (
-                existing.get("request_identity_sha256") == unit["request_identity_sha256"]
-                and existing.get("status") == "COMPLETE"
-            ):
+            try:
+                existing = json.loads(existing_path.read_text(encoding="utf-8"))
+            except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+                raise RuntimeError(
+                    f"{unit['query_unit_id']}: existing result is invalid; quarantine output root before continuing"
+                ) from exc
+            if not isinstance(existing, dict):
+                raise RuntimeError(f"{unit['query_unit_id']}: existing result root must be object")
+            _validate_existing_result_integrity(existing, unit=unit, output_root=output_root)
+            if existing["status"] == "COMPLETE":
                 results.append(existing)
                 continue
+            _archive_incomplete_attempt(existing, unit=unit, output_root=output_root)
+
         unit_for_acquisition = {**unit, "evidence_cutoff": plan["evidence_cutoff"]}
         results.append(
             acquire_query_unit(
@@ -718,9 +1004,9 @@ def acquire_plan(
         )
 
     complete_units = sum(result["status"] == "COMPLETE" for result in results)
-    selected_is_full_plan = len(units) == len(plan["query_units"]) and {u["query_unit_id"] for u in units} == {
-        u["query_unit_id"] for u in plan["query_units"]
-    }
+    selected_ids = {u["query_unit_id"] for u in units}
+    full_plan_ids = set(unit_by_id)
+    selected_is_full_plan = selected_ids == full_plan_ids and len(units) == len(unit_by_id)
     full_plan_complete = selected_is_full_plan and complete_units == len(results)
     dedup = build_dedup_report(output_root, results)
     _write_json(output_root / "dedup-report.json", dedup)
@@ -762,7 +1048,7 @@ def acquire_plan(
         "dedup_report_path": "dedup-report.json",
         "dedup_report_sha256": _sha256_json(dedup),
         "raw_custody_root": "raw/sha256",
-        "release_eligibility": "NOT_RELEASE_ELIGIBLE_UNTIL_DURABLE_CUSTODY_AND_RIGHTS_REVIEW",
+        "release_eligibility": RELEASE_INELIGIBLE,
         "canonical_effect": "NONE_CANDIDATE_DISCOVERY_ONLY",
         "authority_boundary": (
             "This run records provider acquisition mechanics only. full_plan_complete, when true, "
