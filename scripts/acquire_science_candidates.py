@@ -16,6 +16,7 @@ from typing import Any, Callable, Iterable, NamedTuple
 
 ROOT = Path(__file__).parents[1]
 DEFAULT_USER_AGENT = "neuroai-observatory-data/0.1 (+https://github.com/fraware/neuroai-observatory-data)"
+EXPECTED_FROZEN_PLAN_SHA256 = "ce2a8d1c0377a2e960b31eab194bf93bd87f350be2f788abc315a079092c504e"
 TRANSIENT_HTTP_STATUSES = {429, 500, 502, 503, 504}
 RELEASE_INELIGIBLE = "NOT_RELEASE_ELIGIBLE_UNTIL_DURABLE_CUSTODY_AND_RIGHTS_REVIEW"
 SUPPORTED_PROVIDERS = {"CROSSREF", "EUROPE_PMC"}
@@ -469,6 +470,7 @@ def _request_basis(unit: dict[str, Any]) -> dict[str, Any]:
         "provider": unit["provider"],
         "endpoint": unit["endpoint"],
         "parameters": unit["parameters"],
+        "client_identity": unit["client_identity"],
         "query_family_id": unit["query_family_id"],
         "term_index": unit["term_index"],
         "term": unit["term"],
@@ -488,6 +490,25 @@ def _plan_basis(plan: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _validate_query_unit_integrity(unit: dict[str, Any]) -> None:
+    provider = unit.get("provider")
+    if provider not in SUPPORTED_PROVIDERS:
+        raise ValueError(f"unsupported first-acquisition provider: {provider}")
+    client_identity = unit.get("client_identity")
+    if client_identity != {"access_class": "PUBLIC", "user_agent": DEFAULT_USER_AGENT}:
+        raise ValueError(f"{unit.get('query_unit_id')}: client identity drift")
+    request_sha = _sha256_json(_request_basis(unit))
+    if unit.get("request_identity_sha256") != request_sha:
+        raise ValueError(f"{unit.get('query_unit_id')}: request identity SHA-256 mismatch")
+    expected_unit_id = f"QUNIT-{provider}-{request_sha[:20].upper()}"
+    if unit.get("query_unit_id") != expected_unit_id:
+        raise ValueError(f"{unit.get('query_unit_id')}: query-unit id mismatch")
+    if unit.get("coverage_denominator_method") != "API_TOTAL":
+        raise ValueError(f"{expected_unit_id}: denominator method drift")
+    if unit.get("canonical_effect") != "NONE_DISCOVERY_QUERY_ONLY":
+        raise ValueError(f"{expected_unit_id}: query unit crossed canonical authority boundary")
+
+
 def validate_plan_integrity(plan: dict[str, Any]) -> dict[str, dict[str, Any]]:
     if plan.get("status") != "FROZEN_QUERY_PLAN_NO_ACQUISITION_EXECUTED":
         raise ValueError("input plan is not a frozen pre-acquisition query plan")
@@ -500,6 +521,8 @@ def validate_plan_integrity(plan: dict[str, Any]) -> dict[str, dict[str, Any]]:
     expected_plan_sha = _sha256_json(_plan_basis(plan))
     if plan.get("plan_sha256") != expected_plan_sha:
         raise ValueError("query plan SHA-256 mismatch")
+    if expected_plan_sha != EXPECTED_FROZEN_PLAN_SHA256:
+        raise ValueError("query plan does not match the frozen Phase 4 v0.1 plan identity")
     expected_plan_id = f"SCIENCE-QUERY-PLAN-{expected_plan_sha[:20].upper()}"
     if plan.get("plan_id") != expected_plan_id:
         raise ValueError("query plan id mismatch")
@@ -507,27 +530,18 @@ def validate_plan_integrity(plan: dict[str, Any]) -> dict[str, dict[str, Any]]:
     by_id: dict[str, dict[str, Any]] = {}
     provider_counts = {provider: 0 for provider in SUPPORTED_PROVIDERS}
     for unit in units:
-        provider = unit.get("provider")
-        if provider not in SUPPORTED_PROVIDERS:
-            raise ValueError(f"unsupported first-acquisition provider: {provider}")
-        request_sha = _sha256_json(_request_basis(unit))
-        if unit.get("request_identity_sha256") != request_sha:
-            raise ValueError(f"{unit.get('query_unit_id')}: request identity SHA-256 mismatch")
-        expected_unit_id = f"QUNIT-{provider}-{request_sha[:20].upper()}"
-        if unit.get("query_unit_id") != expected_unit_id:
-            raise ValueError(f"{unit.get('query_unit_id')}: query-unit id mismatch")
-        if unit.get("coverage_denominator_method") != "API_TOTAL":
-            raise ValueError(f"{expected_unit_id}: denominator method drift")
-        if unit.get("canonical_effect") != "NONE_DISCOVERY_QUERY_ONLY":
-            raise ValueError(f"{expected_unit_id}: query unit crossed canonical authority boundary")
-        if expected_unit_id in by_id:
-            raise ValueError(f"duplicate query_unit_id: {expected_unit_id}")
-        by_id[expected_unit_id] = unit
-        provider_counts[provider] += 1
+        _validate_query_unit_integrity(unit)
+        unit_id = unit["query_unit_id"]
+        if unit_id in by_id:
+            raise ValueError(f"duplicate query_unit_id: {unit_id}")
+        by_id[unit_id] = unit
+        provider_counts[unit["provider"]] += 1
 
     expected_counts = plan.get("provider_counts")
     if not isinstance(expected_counts, dict) or expected_counts != provider_counts:
         raise ValueError("query plan provider_counts mismatch")
+    if len(units) != 768 or provider_counts != {"CROSSREF": 384, "EUROPE_PMC": 384}:
+        raise ValueError("frozen Phase 4 v0.1 query-plan cardinality drift")
     return by_id
 
 
@@ -542,8 +556,11 @@ def acquire_query_unit(
     clock_fn: Callable[[], str] = _utc_now,
 ) -> dict[str, Any]:
     validate_output_root(output_root)
+    _validate_query_unit_integrity(unit)
     if max_pages < 1:
         raise ValueError("max_pages must be >= 1")
+    if isinstance(transport, UrllibTransport) and transport.user_agent != DEFAULT_USER_AGENT:
+        raise ValueError("live transport User-Agent differs from frozen client identity")
 
     unit_dir = output_root / "units" / unit["query_unit_id"]
     raw_root = output_root / "raw"
@@ -551,8 +568,6 @@ def acquire_query_unit(
     unit_started_at = clock_fn()
     parameters = dict(unit["parameters"])
     provider = unit["provider"]
-    if provider not in SUPPORTED_PROVIDERS:
-        raise ValueError(f"unsupported acquisition provider: {provider}")
     cursor_parameter = "cursor" if provider == "CROSSREF" else "cursorMark"
 
     pages: list[dict[str, Any]] = []
@@ -947,6 +962,8 @@ def acquire_plan(
 ) -> dict[str, Any]:
     validate_output_root(output_root)
     unit_by_id = validate_plan_integrity(plan)
+    if isinstance(transport, UrllibTransport) and transport.user_agent != DEFAULT_USER_AGENT:
+        raise ValueError("live transport User-Agent differs from frozen client identity")
 
     if providers is not None:
         unknown_providers = providers - SUPPORTED_PROVIDERS
