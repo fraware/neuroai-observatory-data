@@ -99,5 +99,20 @@ jobs:
           tests/test_science_custody_preflight.py
           -v
 
+  terraform_custody_reference:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+        with:
+          terraform_version: "1.15.8"
+          terraform_wrapper: false
+      - name: Check Terraform formatting
+        run: terraform fmt -check -recursive infra/aws-phase4-custody
+      - name: Initialize Terraform provider dependencies without a backend
+        run: terraform -chdir=infra/aws-phase4-custody init -backend=false -input=false
+      - name: Validate Terraform custody reference
+        run: terraform -chdir=infra/aws-phase4-custody validate
+
 # Deliberately no live provider acquisition in CI. Live Crossref/Europe PMC runs
 # require explicit execution, durable raw-byte custody, and separate rights review.
