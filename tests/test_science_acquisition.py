@@ -171,7 +171,7 @@ class ScienceAcquisitionTests(unittest.TestCase):
             "ce2a8d1c0377a2e960b31eab194bf93bd87f350be2f788abc315a079092c504e",
         )
         with self.assertRaisesRegex(
-            ValueError, "does not match the current Phase 4 v0.2 plan identity"
+            ValueError, "does not use the current Phase 4 v0.2 compilation"
         ):
             m.validate_plan_integrity(plan)
 
