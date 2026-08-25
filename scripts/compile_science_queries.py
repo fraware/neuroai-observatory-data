@@ -12,6 +12,7 @@ PROTOCOL_PATH = ROOT / "science" / "discovery-protocol-v0.1.json"
 COMPILATION_PATH = ROOT / "science" / "query-compilation-v0.1.json"
 
 PLAN_STATUS = "FROZEN_QUERY_PLAN_NO_ACQUISITION_EXECUTED"
+EXPECTED_USER_AGENT = "neuroai-observatory-data/0.1 (+https://github.com/fraware/neuroai-observatory-data)"
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -76,6 +77,14 @@ def validate_inputs(protocol: dict[str, Any], compilation: dict[str, Any]) -> bo
     provider_specs = compilation.get("providers", {})
     if set(provider_specs) != set(provider_scope):
         raise ValueError("provider_scope does not match provider compilation records")
+    for provider in provider_scope:
+        client_identity = provider_specs[provider].get("client_identity")
+        if not isinstance(client_identity, dict):
+            raise ValueError(f"{provider}: missing client_identity")
+        if client_identity.get("access_class") != "PUBLIC":
+            raise ValueError(f"{provider}: v0.1 client access class must be PUBLIC")
+        if client_identity.get("user_agent") != EXPECTED_USER_AGENT:
+            raise ValueError(f"{provider}: unexpected client user_agent")
 
     families = protocol.get("query_families")
     if not isinstance(families, list) or not families:
@@ -125,6 +134,7 @@ def _query_unit(
         "provider": provider,
         "endpoint": provider_spec["endpoint"],
         "parameters": parameters,
+        "client_identity": provider_spec["client_identity"],
         "query_family_id": family_id,
         "term_index": term_index,
         "term": term,
