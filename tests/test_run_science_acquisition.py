@@ -173,12 +173,38 @@ class RunScienceAcquisitionTests(unittest.TestCase):
                 manifest["execution_identity_sha256"],
             )
 
+            archive = root / "executions" / envelope["execution_id"]
             for name in runner.VERIFIED_EXECUTION_PRODUCTS:
-                self.assertTrue((root / name).is_file(), name)
-                self.assertTrue(
-                    (root / "executions" / envelope["execution_id"] / name).is_file(),
-                    name,
-                )
+                current = root / name
+                archived = archive / name
+                self.assertTrue(current.is_file(), name)
+                self.assertTrue(archived.is_file(), name)
+                self.assertEqual(current.read_bytes(), archived.read_bytes(), name)
+
+            provenance_report = json.loads(
+                (root / "candidate-provenance-verification.json").read_text()
+            )
+            candidate_manifest = json.loads((root / "candidate-manifest.json").read_text())
+            self.assertEqual(
+                envelope["provenance_verification_id"],
+                provenance_report["provenance_verification_id"],
+            )
+            self.assertEqual(
+                envelope["provenance_verification_sha256"],
+                provenance_report["provenance_verification_sha256"],
+            )
+            self.assertEqual(
+                candidate_manifest["provenance_verification_id"],
+                provenance_report["provenance_verification_id"],
+            )
+            self.assertEqual(
+                candidate_manifest["provenance_verification_sha256"],
+                provenance_report["provenance_verification_sha256"],
+            )
+            self.assertEqual(
+                candidate_manifest["provenance_verification_status"],
+                provenance_report["status"],
+            )
 
             retry_report = retry_verification.verify_retry_custody(PLAN, root)
             self.assertEqual(retry_report["execution_id"], envelope["execution_id"])
@@ -211,6 +237,7 @@ class RunScienceAcquisitionTests(unittest.TestCase):
             for execution_id in (first["execution_id"], second["execution_id"]):
                 archive = root / "executions" / execution_id
                 self.assertTrue((archive / "run-manifest.json").is_file())
+                self.assertTrue((archive / "candidate-provenance-verification.json").is_file())
                 self.assertTrue((archive / "verification-envelope.json").is_file())
 
     def test_gated_entrypoint_rejects_redirect_following_transport_before_fetch(self):
