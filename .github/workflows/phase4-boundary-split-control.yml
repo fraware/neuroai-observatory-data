@@ -1,0 +1,52 @@
+name: Phase 4 repository split control
+
+on:
+  pull_request:
+    paths:
+      - "docs/migration/phase4-repository-split-v0.1.json"
+      - "tests/test_phase4_repository_split_control.py"
+      - ".github/workflows/phase4-boundary-split-control.yml"
+
+permissions:
+  contents: read
+
+env:
+  VALIDATION_REF: ${{ github.event.pull_request.head.sha }}
+
+jobs:
+  exact_head:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ env.VALIDATION_REF }}
+          persist-credentials: false
+      - name: Assert exact source commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$VALIDATION_REF"
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Verify runtime and split manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          if sys.version_info[:2] != (3, 12):
+              raise SystemExit(f"expected Python 3.12, observed {sys.version.split()[0]}")
+          path = Path("docs/migration/phase4-repository-split-v0.1.json")
+          manifest = json.loads(path.read_text(encoding="utf-8"))
+          if manifest.get("status") != "SOURCE_BLOBS_RECONCILED_DESTINATIONS_PENDING":
+              raise SystemExit(f"unexpected split state: {manifest.get('status')!r}")
+          print(manifest["manifest_id"])
+          print(manifest["source_head_sha"])
+          PY
+      - name: Run split control tests
+        run: python -m unittest tests/test_phase4_repository_split_control.py -v
