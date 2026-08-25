@@ -1,6 +1,21 @@
-data "aws_caller_identity" "current" {}
-
 data "aws_partition" "current" {}
+
+check "backup_retention_within_vault_lock" {
+  assert {
+    condition = (
+      var.vault_lock_min_retention_days <= var.backup_retention_days &&
+      var.backup_retention_days <= var.vault_lock_max_retention_days
+    )
+    error_message = "backup_retention_days must fall within the Backup Vault Lock retention bounds."
+  }
+}
+
+check "vault_lock_bounds" {
+  assert {
+    condition     = var.vault_lock_min_retention_days <= var.vault_lock_max_retention_days
+    error_message = "vault_lock_min_retention_days must not exceed vault_lock_max_retention_days."
+  }
+}
 
 resource "aws_kms_key" "efs" {
   description             = "Encryption key for Phase 4 acquisition custody EFS"
@@ -29,14 +44,6 @@ resource "aws_security_group" "efs" {
   description = "NFS access to Phase 4 acquisition custody"
   vpc_id      = var.vpc_id
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "Stateful return traffic"
-  }
-
   lifecycle {
     create_before_destroy = true
   }
@@ -51,6 +58,13 @@ resource "aws_vpc_security_group_ingress_rule" "efs_from_clients" {
   to_port                      = 2049
   ip_protocol                  = "tcp"
   description                  = "NFS from approved acquisition/verifier clients"
+}
+
+resource "aws_vpc_security_group_egress_rule" "efs_return" {
+  security_group_id = aws_security_group.efs.id
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "-1"
+  description       = "Stateful return traffic"
 }
 
 resource "aws_efs_file_system" "custody" {
@@ -102,8 +116,12 @@ resource "aws_efs_file_system_policy" "custody" {
         Sid       = "DenyUnencryptedTransport"
         Effect    = "Deny"
         Principal = "*"
-        Action    = "elasticfilesystem:ClientMount"
-        Resource  = aws_efs_file_system.custody.arn
+        Action = [
+          "elasticfilesystem:ClientMount",
+          "elasticfilesystem:ClientWrite",
+          "elasticfilesystem:ClientRootAccess",
+        ]
+        Resource = aws_efs_file_system.custody.arn
         Condition = {
           Bool = {
             "aws:SecureTransport" = "false"
