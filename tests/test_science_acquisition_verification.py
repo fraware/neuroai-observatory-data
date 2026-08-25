@@ -20,17 +20,37 @@ def _load_module(name: str, path: Path):
     return module
 
 
-compiler = _load_module("compile_science_queries_for_verification_tests", SCRIPTS / "compile_science_queries.py")
-acquisition = _load_module("acquire_science_candidates", SCRIPTS / "acquire_science_candidates.py")
+compiler = _load_module(
+    "compile_science_queries_for_verification_tests",
+    SCRIPTS / "compile_science_queries.py",
+)
+acquisition = _load_module(
+    "acquire_science_candidates",
+    SCRIPTS / "acquire_science_candidates.py",
+)
 sys.modules["acquire_science_candidates"] = acquisition
-sys.modules["validate_science_graph"] = _load_module("validate_science_graph", SCRIPTS / "validate_science_graph.py")
-sys.modules["validate_source_universes"] = _load_module("validate_source_universes", SCRIPTS / "validate_source_universes.py")
-provenance = _load_module("verify_science_candidate_provenance", SCRIPTS / "verify_science_candidate_provenance.py")
+sys.modules["validate_science_graph"] = _load_module(
+    "validate_science_graph", SCRIPTS / "validate_science_graph.py"
+)
+sys.modules["validate_source_universes"] = _load_module(
+    "validate_source_universes", SCRIPTS / "validate_source_universes.py"
+)
+provenance = _load_module(
+    "verify_science_candidate_provenance",
+    SCRIPTS / "verify_science_candidate_provenance.py",
+)
 sys.modules["verify_science_candidate_provenance"] = provenance
-verification = _load_module("verify_science_acquisition", SCRIPTS / "verify_science_acquisition.py")
+verification = _load_module(
+    "verify_science_acquisition",
+    SCRIPTS / "verify_science_acquisition.py",
+)
 
-PROTOCOL = json.loads((ROOT / "science" / "discovery-protocol-v0.1.json").read_text())
-COMPILATION = json.loads((ROOT / "science" / "query-compilation-v0.1.json").read_text())
+PROTOCOL = json.loads(
+    (ROOT / "science" / "discovery-protocol-v0.1.json").read_text()
+)
+COMPILATION = json.loads(
+    (ROOT / "science" / "query-compilation-v0.2.json").read_text()
+)
 
 
 class FakeTransport:
@@ -60,8 +80,12 @@ class Clock:
 
 def _plan_and_unit_ids():
     plan = compiler.compile_plan(PROTOCOL, COMPILATION)
-    crossref = next(unit for unit in plan["query_units"] if unit["provider"] == "CROSSREF")
-    europe_pmc = next(unit for unit in plan["query_units"] if unit["provider"] == "EUROPE_PMC")
+    crossref = next(
+        unit for unit in plan["query_units"] if unit["provider"] == "CROSSREF"
+    )
+    europe_pmc = next(
+        unit for unit in plan["query_units"] if unit["provider"] == "EUROPE_PMC"
+    )
     return plan, {crossref["query_unit_id"], europe_pmc["query_unit_id"]}
 
 
@@ -122,16 +146,24 @@ def _build_verified_run(root: Path):
 
 
 def _rewrite_json(path: Path, value):
-    path.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(value, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
 
 
 def _refresh_run_id(root: Path):
     manifest_path = root / "run-manifest.json"
     manifest = json.loads(manifest_path.read_text())
-    results = [json.loads((root / relative).read_text()) for relative in manifest["query_unit_result_paths"]]
+    results = [
+        json.loads((root / relative).read_text())
+        for relative in manifest["query_unit_result_paths"]
+    ]
     run_basis = {
         "plan_sha256": manifest["plan_sha256"],
-        "selected_query_unit_ids": [result["query_unit_id"] for result in results],
+        "selected_query_unit_ids": [
+            result["query_unit_id"] for result in results
+        ],
         "result_digests": [
             acquisition._sha256_json(
                 {
@@ -155,21 +187,39 @@ class ScienceAcquisitionVerificationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             plan = _build_verified_run(root)
-            candidate_manifest, coverage_index = verification.verify_acquisition(plan, root)
+            candidate_manifest, coverage_index = verification.verify_acquisition(
+                plan, root
+            )
             self.assertEqual(candidate_manifest["selected_query_units"], 2)
             self.assertEqual(candidate_manifest["complete_query_units"], 2)
             self.assertEqual(candidate_manifest["candidate_record_occurrences"], 2)
-            self.assertEqual(candidate_manifest["release_eligibility"], verification.RELEASE_INELIGIBLE)
-            self.assertEqual(candidate_manifest["provenance_verification_status"], "RAW_RESPONSE_PROVENANCE_VERIFIED")
-            self.assertTrue(candidate_manifest["provenance_verification_id"].startswith("SCIENCE-PROVENANCE-"))
-            self.assertEqual(len(candidate_manifest["provenance_verification_sha256"]), 64)
-            self.assertEqual(len(coverage_index["complete_query_unit_coverages"]), 2)
+            self.assertEqual(
+                candidate_manifest["release_eligibility"],
+                verification.RELEASE_INELIGIBLE,
+            )
+            self.assertEqual(
+                candidate_manifest["provenance_verification_status"],
+                "RAW_RESPONSE_PROVENANCE_VERIFIED",
+            )
+            self.assertTrue(
+                candidate_manifest["provenance_verification_id"].startswith(
+                    "SCIENCE-PROVENANCE-"
+                )
+            )
+            self.assertEqual(
+                len(candidate_manifest["provenance_verification_sha256"]), 64
+            )
+            self.assertEqual(
+                len(coverage_index["complete_query_unit_coverages"]), 2
+            )
             self.assertFalse(coverage_index["full_plan_complete"])
             self.assertEqual(
                 coverage_index["aggregate_denominator_claim"],
                 "NOT_CLAIMED_QUERY_UNITS_OVERLAP",
             )
-            verification.write_verified_products(root, candidate_manifest, coverage_index)
+            verification.write_verified_products(
+                root, candidate_manifest, coverage_index
+            )
             self.assertTrue((root / "candidate-manifest.json").is_file())
             self.assertTrue((root / "coverage-index.json").is_file())
 
@@ -179,9 +229,13 @@ class ScienceAcquisitionVerificationTests(unittest.TestCase):
         x["query_units"] = x["query_units"][:2]
         x["unit_count"] = 2
         x["provider_counts"] = {"CROSSREF": 2, "EUROPE_PMC": 0}
-        x["plan_sha256"] = acquisition._sha256_json(acquisition._plan_basis(x))
+        x["plan_sha256"] = acquisition._sha256_json(
+            acquisition._plan_basis(x)
+        )
         x["plan_id"] = f"SCIENCE-QUERY-PLAN-{x['plan_sha256'][:20].upper()}"
-        with self.assertRaisesRegex(ValueError, "does not match the frozen Phase 4 v0.1 plan identity"):
+        with self.assertRaisesRegex(
+            ValueError, "does not match the current Phase 4 v0.2 plan identity"
+        ):
             verification.validate_plan(x)
 
     def test_raw_byte_tampering_fails_verification(self):
@@ -190,7 +244,9 @@ class ScienceAcquisitionVerificationTests(unittest.TestCase):
             plan = _build_verified_run(root)
             raw_file = next((root / "raw" / "sha256").rglob("*.json"))
             raw_file.write_bytes(b"tampered")
-            with self.assertRaisesRegex(ValueError, "raw response SHA-256 mismatch"):
+            with self.assertRaisesRegex(
+                ValueError, "raw response SHA-256 mismatch"
+            ):
                 verification.verify_acquisition(plan, root)
 
     def test_candidate_file_tampering_fails_verification(self):
@@ -198,8 +254,12 @@ class ScienceAcquisitionVerificationTests(unittest.TestCase):
             root = Path(tmp)
             plan = _build_verified_run(root)
             candidate_file = next((root / "units").rglob("candidates.jsonl"))
-            candidate_file.write_text(candidate_file.read_text() + "{}\n", encoding="utf-8")
-            with self.assertRaisesRegex(ValueError, "candidate JSONL SHA-256 mismatch"):
+            candidate_file.write_text(
+                candidate_file.read_text() + "{}\n", encoding="utf-8"
+            )
+            with self.assertRaisesRegex(
+                ValueError, "candidate JSONL SHA-256 mismatch"
+            ):
                 verification.verify_acquisition(plan, root)
 
     def test_request_identity_tampering_fails_even_if_response_manifest_is_rehashed(self):
@@ -211,12 +271,18 @@ class ScienceAcquisitionVerificationTests(unittest.TestCase):
             result = json.loads(result_path.read_text())
             result["response_manifest"][0]["request_url_sha256"] = "0" * 64
             result["page_manifest"][0]["request_url_sha256"] = "0" * 64
-            response_sha = acquisition._sha256_json(result["response_manifest"])
+            response_sha = acquisition._sha256_json(
+                result["response_manifest"]
+            )
             result["freeze"]["raw_response_manifest_sha256"] = response_sha
-            result["freeze"]["source_state_identity"] = f"OBSERVED-{response_sha[:32].upper()}"
+            result["freeze"]["source_state_identity"] = (
+                f"OBSERVED-{response_sha[:32].upper()}"
+            )
             _rewrite_json(result_path, result)
             _refresh_run_id(root)
-            with self.assertRaisesRegex(ValueError, "response request URL digest mismatch"):
+            with self.assertRaisesRegex(
+                ValueError, "response request URL digest mismatch"
+            ):
                 verification.verify_acquisition(plan, root)
 
     def test_provider_source_forgery_fails_against_raw_provenance_even_when_manifest_is_reconciled(self):
@@ -227,15 +293,26 @@ class ScienceAcquisitionVerificationTests(unittest.TestCase):
             epmc_result_path = next(
                 root / relative
                 for relative in manifest["query_unit_result_paths"]
-                if json.loads((root / relative).read_text())["freeze"]["source_universe_id"] == "SU-SCI-EUROPEPMC"
+                if json.loads((root / relative).read_text())["freeze"][
+                    "source_universe_id"
+                ]
+                == "SU-SCI-EUROPEPMC"
             )
             result = json.loads(epmc_result_path.read_text())
             candidate_path = root / result["candidates_path"]
-            rows = [json.loads(line) for line in candidate_path.read_text().splitlines() if line.strip()]
+            rows = [
+                json.loads(line)
+                for line in candidate_path.read_text().splitlines()
+                if line.strip()
+            ]
             rows[0]["provider_record_source"] = "PPR"
-            candidate_bytes = b"".join(acquisition._canonical_bytes(row) + b"\n" for row in rows)
+            candidate_bytes = b"".join(
+                acquisition._canonical_bytes(row) + b"\n" for row in rows
+            )
             candidate_path.write_bytes(candidate_bytes)
-            result["candidates_sha256"] = acquisition._sha256_bytes(candidate_bytes)
+            result["candidates_sha256"] = acquisition._sha256_bytes(
+                candidate_bytes
+            )
             _rewrite_json(epmc_result_path, result)
             _refresh_run_id(root)
             with self.assertRaisesRegex(ValueError, "does not resolve uniquely"):
@@ -252,7 +329,9 @@ class ScienceAcquisitionVerificationTests(unittest.TestCase):
             result["coverage"]["rates"]["resolution"] = 1.0
             _rewrite_json(result_path, result)
             _refresh_run_id(root)
-            with self.assertRaisesRegex(ValueError, "coverage record does not reproduce"):
+            with self.assertRaisesRegex(
+                ValueError, "coverage record does not reproduce"
+            ):
                 verification.verify_acquisition(plan, root)
 
     def test_deduplication_forgery_fails_recomputation_even_if_manifest_digest_is_updated(self):
@@ -264,7 +343,10 @@ class ScienceAcquisitionVerificationTests(unittest.TestCase):
             dedup["duplicate_identifier_groups"]["DOI"].append(
                 {
                     "normalized_identifier": "10.9999/forged",
-                    "candidate_ids": ["SCI-CAND-FORGED-A", "SCI-CAND-FORGED-B"],
+                    "candidate_ids": [
+                        "SCI-CAND-FORGED-A",
+                        "SCI-CAND-FORGED-B",
+                    ],
                     "candidate_count": 2,
                 }
             )
@@ -273,7 +355,9 @@ class ScienceAcquisitionVerificationTests(unittest.TestCase):
             manifest = json.loads(manifest_path.read_text())
             manifest["dedup_report_sha256"] = acquisition._sha256_json(dedup)
             _rewrite_json(manifest_path, manifest)
-            with self.assertRaisesRegex(ValueError, "dedup report does not reproduce"):
+            with self.assertRaisesRegex(
+                ValueError, "dedup report does not reproduce"
+            ):
                 verification.verify_acquisition(plan, root)
 
     def test_release_eligibility_mutation_fails_verification(self):
@@ -284,7 +368,9 @@ class ScienceAcquisitionVerificationTests(unittest.TestCase):
             manifest = json.loads(manifest_path.read_text())
             manifest["release_eligibility"] = "AUTHORIZED"
             _rewrite_json(manifest_path, manifest)
-            with self.assertRaisesRegex(ValueError, "release-eligibility boundary"):
+            with self.assertRaisesRegex(
+                ValueError, "release-eligibility boundary"
+            ):
                 verification.verify_acquisition(plan, root)
 
 
