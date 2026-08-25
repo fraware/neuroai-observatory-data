@@ -32,6 +32,7 @@ on:
       - "tests/test_science_http_transport.py"
       - "tests/test_run_science_acquisition.py"
       - "tests/test_science_custody_preflight.py"
+      - "tests/test_phase4_custody_terraform_contract.py"
       - "tests/test_phase4_validation_harness.py"
       - "source-universes/p0/science-v0.1.json"
       - ".github/workflows/vnext-science-graph.yml"
@@ -67,6 +68,7 @@ on:
       - "tests/test_science_http_transport.py"
       - "tests/test_run_science_acquisition.py"
       - "tests/test_science_custody_preflight.py"
+      - "tests/test_phase4_custody_terraform_contract.py"
       - "tests/test_phase4_validation_harness.py"
       - "source-universes/p0/science-v0.1.json"
       - ".github/workflows/vnext-science-graph.yml"
@@ -140,7 +142,7 @@ jobs:
           print(plan["plan_id"])
           print(plan["plan_sha256"])
           PY
-      - name: Contract, compiler, acquisition, custody, gated-runner, transport, retry-custody, provenance, storage-preflight, and validation-harness tests
+      - name: Contract, compiler, acquisition, custody, gated-runner, transport, retry-custody, provenance, storage-preflight, infrastructure-policy, and validation-harness tests
         run: >-
           python -m unittest
           tests/test_science_graph_contract.py
@@ -153,6 +155,7 @@ jobs:
           tests/test_science_http_transport.py
           tests/test_run_science_acquisition.py
           tests/test_science_custody_preflight.py
+          tests/test_phase4_custody_terraform_contract.py
           tests/test_phase4_validation_harness.py
           -v
 
