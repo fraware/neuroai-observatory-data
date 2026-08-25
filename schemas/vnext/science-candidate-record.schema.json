@@ -9,6 +9,7 @@
     "record_kind": {"const":"SCIENCE_DISCOVERY_CANDIDATE"},
     "candidate_id": {"type":"string","pattern":"^SCI-CAND-[A-Z0-9-]{3,100}$"},
     "provider": {"enum":["CROSSREF","EUROPE_PMC","OPENALEX"]},
+    "provider_record_source": {"type":["string","null"],"minLength":1},
     "provider_record_id": {"type":"string","minLength":1},
     "source_universe_id": {"type":"string","pattern":"^SU-SCI-[A-Z0-9-]+$"},
     "acquisition_freeze_id": {"type":"string","pattern":"^AF-[A-Z0-9-]{3,100}$"},
@@ -20,5 +21,11 @@
     "canonical_effect": {"const":"NONE_REQUIRES_RELEVANCE_ADJUDICATION"},
     "source_record_sha256": {"type":"string","pattern":"^[0-9a-f]{64}$"},
     "observed_at": {"type":"string","format":"date-time"}
-  }
+  },
+  "allOf": [
+    {
+      "if": {"properties":{"provider":{"const":"EUROPE_PMC"}},"required":["provider"]},
+      "then": {"required":["provider_record_source"]}
+    }
+  ]
 }
