@@ -14,17 +14,19 @@ SPEC.loader.exec_module(m)
 
 PROTOCOL = json.loads((ROOT / "science" / "discovery-protocol-v0.1.json").read_text())
 COMPILATION = json.loads((ROOT / "science" / "query-compilation-v0.1.json").read_text())
+EXPECTED_PLAN_SHA256 = "ce2a8d1c0377a2e960b31eab194bf93bd87f350be2f788abc315a079092c504e"
 
 
 class ScienceQueryCompilationTests(unittest.TestCase):
-    def test_valid_plan_is_deterministic(self):
+    def test_valid_plan_is_deterministic_and_hash_frozen(self):
         first = m.compile_plan(copy.deepcopy(PROTOCOL), copy.deepcopy(COMPILATION))
         second = m.compile_plan(copy.deepcopy(PROTOCOL), copy.deepcopy(COMPILATION))
         self.assertEqual(first, second)
         self.assertEqual(first["status"], "FROZEN_QUERY_PLAN_NO_ACQUISITION_EXECUTED")
         self.assertEqual(first["unit_count"], 768)
         self.assertEqual(first["provider_counts"], {"CROSSREF": 384, "EUROPE_PMC": 384})
-        self.assertEqual(len(first["plan_sha256"]), 64)
+        self.assertEqual(first["plan_sha256"], EXPECTED_PLAN_SHA256)
+        self.assertEqual(first["plan_id"], "SCIENCE-QUERY-PLAN-CE2A8D1C0377A2E960B3")
 
     def test_calendar_windows_end_at_cutoff_window(self):
         windows = m._year_windows("2015-01-01", "2026-08-20")
