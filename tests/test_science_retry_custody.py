@@ -51,8 +51,10 @@ PLAN = compiler.compile_plan(PROTOCOL, COMPILATION)
 class FakeTransport:
     def __init__(self, responses):
         self.responses = list(responses)
+        self.calls = 0
 
     def fetch(self, _url):
+        self.calls += 1
         if not self.responses:
             raise RuntimeError("unexpected transport call")
         item = self.responses.pop(0)
@@ -68,11 +70,12 @@ class FakeTransport:
 
 
 class Clock:
-    def __init__(self):
+    def __init__(self, minute="30"):
         self.second = 0
+        self.minute = minute
 
     def __call__(self):
-        value = f"2026-08-25T06:30:{self.second:02d}Z"
+        value = f"2026-08-25T06:{self.minute}:{self.second:02d}Z"
         self.second += 1
         return value
 
@@ -93,16 +96,18 @@ def success_payload(doi="10.1234/retry-custody"):
     }
 
 
-def run_strict(root: Path, responses, *, max_attempts=5):
-    return strict.acquire_plan(
+def run_strict(root: Path, responses, *, max_attempts=5, clock=None):
+    transport = FakeTransport(responses)
+    manifest = strict.acquire_plan(
         PLAN,
         output_root=root,
-        transport=FakeTransport(responses),
+        transport=transport,
         max_units=1,
         max_attempts=max_attempts,
         sleep_fn=lambda _: None,
-        clock_fn=Clock(),
+        clock_fn=clock or Clock(),
     )
+    return manifest, transport
 
 
 def result_for(root: Path, manifest):
@@ -121,7 +126,7 @@ class ScienceRetryCustodyTests(unittest.TestCase):
         ]
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            manifest = run_strict(root, responses, max_attempts=2)
+            manifest, _transport = run_strict(root, responses, max_attempts=2)
             result = result_for(root, manifest)
             attempts = result["attempt_response_manifest"]
             self.assertEqual(result["status"], "COMPLETE")
@@ -136,9 +141,11 @@ class ScienceRetryCustodyTests(unittest.TestCase):
             )
             report = verification.verify_retry_custody(PLAN, root)
             self.assertEqual(
-                report["status"], "RECEIVED_HTTP_RESPONSE_CUSTODY_VERIFIED"
+                report["status"],
+                "RECEIVED_HTTP_RESPONSE_CUSTODY_AND_EXECUTION_IDENTITY_VERIFIED",
             )
             self.assertEqual(report["received_http_responses"], 2)
+            self.assertEqual(report["execution_id"], manifest["execution_id"])
 
     def test_multiple_503_retries_then_success_are_one_logical_request(self):
         responses = [
@@ -148,7 +155,7 @@ class ScienceRetryCustodyTests(unittest.TestCase):
         ]
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            manifest = run_strict(root, responses, max_attempts=3)
+            manifest, _transport = run_strict(root, responses, max_attempts=3)
             result = result_for(root, manifest)
             attempts = result["attempt_response_manifest"]
             self.assertEqual([row["attempt_index"] for row in attempts], [1, 2, 3])
@@ -163,7 +170,7 @@ class ScienceRetryCustodyTests(unittest.TestCase):
     def test_terminal_nonretryable_http_error_is_preserved(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            manifest = run_strict(
+            manifest, _transport = run_strict(
                 root,
                 [(404, {"error": "not found"}, {})],
                 max_attempts=3,
@@ -194,7 +201,7 @@ class ScienceRetryCustodyTests(unittest.TestCase):
         ]
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            manifest = run_strict(root, responses, max_attempts=2)
+            manifest, _transport = run_strict(root, responses, max_attempts=2)
             result = result_for(root, manifest)
             self.assertEqual(result["status"], "FAILED")
             self.assertEqual(
@@ -220,7 +227,7 @@ class ScienceRetryCustodyTests(unittest.TestCase):
         ]
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            manifest = run_strict(root, responses, max_attempts=2)
+            manifest, _transport = run_strict(root, responses, max_attempts=2)
             result = result_for(root, manifest)
             attempts = result["attempt_response_manifest"]
             self.assertEqual(attempts[0]["outcome"], "TRANSPORT_ERROR")
@@ -239,7 +246,7 @@ class ScienceRetryCustodyTests(unittest.TestCase):
         ]
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            manifest = run_strict(root, responses, max_attempts=2)
+            manifest, _transport = run_strict(root, responses, max_attempts=2)
             result = result_for(root, manifest)
             retry = result["attempt_response_manifest"][0]
             (root / retry["raw_custody_pointer"]).write_bytes(b"tampered")
@@ -253,7 +260,7 @@ class ScienceRetryCustodyTests(unittest.TestCase):
         ]
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            manifest = run_strict(root, responses, max_attempts=2)
+            manifest, _transport = run_strict(root, responses, max_attempts=2)
             result_path = root / manifest["query_unit_result_paths"][0]
             result = json.loads(result_path.read_text())
             result["attempt_response_manifest"] = list(
@@ -273,7 +280,7 @@ class ScienceRetryCustodyTests(unittest.TestCase):
     def test_successful_attempt_bound_to_wrong_request_fails_verification(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            manifest = run_strict(
+            manifest, _transport = run_strict(
                 root, [(200, success_payload(), {})], max_attempts=1
             )
             result_path = root / manifest["query_unit_result_paths"][0]
@@ -288,6 +295,69 @@ class ScienceRetryCustodyTests(unittest.TestCase):
                 json.dumps(result, indent=2, sort_keys=True) + "\n"
             )
             with self.assertRaisesRegex(ValueError, "request URL digest mismatch"):
+                verification.verify_retry_custody(PLAN, root)
+
+    def test_reuse_has_distinct_execution_identity_without_new_provider_request(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            first, first_transport = run_strict(
+                root,
+                [(200, success_payload("10.1234/reuse"), {})],
+                max_attempts=1,
+                clock=Clock("30"),
+            )
+            second, second_transport = run_strict(
+                root,
+                [],
+                max_attempts=1,
+                clock=Clock("31"),
+            )
+            third, third_transport = run_strict(
+                root,
+                [],
+                max_attempts=1,
+                clock=Clock("32"),
+            )
+
+            self.assertEqual(first_transport.calls, 1)
+            self.assertEqual(second_transport.calls, 0)
+            self.assertEqual(third_transport.calls, 0)
+            self.assertEqual(first["run_id"], second["run_id"])
+            self.assertEqual(second["run_id"], third["run_id"])
+            self.assertEqual(
+                len({first["execution_id"], second["execution_id"], third["execution_id"]}),
+                3,
+            )
+            self.assertEqual(first["acquired_query_units_this_execution"], 1)
+            self.assertEqual(first["reused_complete_query_units_this_execution"], 0)
+            self.assertEqual(second["acquired_query_units_this_execution"], 0)
+            self.assertEqual(second["reused_complete_query_units_this_execution"], 1)
+            self.assertEqual(third["acquired_query_units_this_execution"], 0)
+            self.assertEqual(third["reused_complete_query_units_this_execution"], 1)
+            self.assertEqual(
+                len(list((root / "executions").glob("SCIENCE-EXECUTION-*/run-manifest.json"))),
+                3,
+            )
+            report = verification.verify_retry_custody(PLAN, root)
+            self.assertEqual(report["execution_id"], third["execution_id"])
+            self.assertEqual(report["reused_complete_query_units_this_execution"], 1)
+
+    def test_execution_identity_tampering_fails_independent_verification(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest, _transport = run_strict(
+                root,
+                [(200, success_payload("10.1234/execution-tamper"), {})],
+                max_attempts=1,
+            )
+            manifest_path = root / "run-manifest.json"
+            tampered = json.loads(manifest_path.read_text())
+            tampered["execution_id"] = "SCIENCE-EXECUTION-00000000000000000000"
+            manifest_path.write_text(
+                json.dumps(tampered, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValueError, "execution_id mismatch"):
                 verification.verify_retry_custody(PLAN, root)
 
 
