@@ -8,18 +8,17 @@ from pathlib import Path
 from typing import Any
 
 import acquire_science_candidates as base
+import acquire_science_candidates_strict as strict
 
-STRICT_CUSTODY_SCHEMA_VERSION = "0.1.0"
-STRICT_CUSTODY_STATE = "ALL_RECEIVED_HTTP_RESPONSES_CONTENT_ADDRESSED_AND_BOUND"
+STRICT_CUSTODY_SCHEMA_VERSION = strict.STRICT_CUSTODY_SCHEMA_VERSION
+STRICT_CUSTODY_STATE = strict.STRICT_CUSTODY_STATE
+EXECUTION_IDENTITY_STATE = strict.EXECUTION_IDENTITY_STATE
+ACQUIRED_THIS_EXECUTION = strict.ACQUIRED_THIS_EXECUTION
+REUSED_COMPLETE_RESULT = strict.REUSED_COMPLETE_RESULT
 
 
 def _canonical_bytes(value: Any) -> bytes:
-    return json.dumps(
-        value,
-        sort_keys=True,
-        separators=(",", ":"),
-        ensure_ascii=False,
-    ).encode("utf-8")
+    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
 
 
 def _sha256_bytes(value: bytes) -> str:
@@ -96,22 +95,17 @@ def _expected_url_sha(unit: dict[str, Any], cursor_in: str | None) -> str:
     parameters = dict(unit["parameters"])
     cursor_parameter = "cursor" if unit["provider"] == "CROSSREF" else "cursorMark"
     parameters[cursor_parameter] = cursor_in
-    url = base._build_url(unit["endpoint"], parameters)
-    return _sha256_bytes(url.encode("utf-8"))
+    return _sha256_bytes(base._build_url(unit["endpoint"], parameters).encode("utf-8"))
 
 
-def _verify_unit(
-    run_dir: Path,
-    result: dict[str, Any],
-    unit: dict[str, Any],
-) -> dict[str, Any]:
+def _verify_unit(run_dir: Path, result: dict[str, Any], unit: dict[str, Any]) -> dict[str, Any]:
     unit_id = unit["query_unit_id"]
     if result.get("query_unit_id") != unit_id:
         raise ValueError(f"{unit_id}: result query-unit mismatch")
-    if result.get("retry_custody_schema_version") != STRICT_CUSTODY_SCHEMA_VERSION:
-        raise ValueError(f"{unit_id}: retry custody schema version mismatch")
     if result.get("retry_custody_state") != STRICT_CUSTODY_STATE:
         raise ValueError(f"{unit_id}: retry custody state missing or invalid")
+    if result.get("retry_custody_schema_version") not in {"0.1.0", STRICT_CUSTODY_SCHEMA_VERSION}:
+        raise ValueError(f"{unit_id}: retry custody schema version mismatch")
 
     attempts = result.get("attempt_response_manifest")
     if not isinstance(attempts, list):
@@ -127,15 +121,12 @@ def _verify_unit(
     if len(groups) < len(responses) or len(groups) > len(responses) + 1:
         raise ValueError(f"{unit_id}: attempt/request cardinality mismatch")
 
-    initial_cursor = unit["parameters"]["cursor" if unit["provider"] == "CROSSREF" else "cursorMark"]
-    expected_cursor = initial_cursor
+    expected_cursor = unit["parameters"]["cursor" if unit["provider"] == "CROSSREF" else "cursorMark"]
     received_http = 0
     transport_errors = 0
-
     for logical_index, group in sorted(groups.items()):
         if [row.get("attempt_index") for row in group] != list(range(1, len(group) + 1)):
             raise ValueError(f"{unit_id}: attempt indices are not contiguous")
-
         expected_url_sha = _expected_url_sha(unit, expected_cursor)
         prior_observed: datetime | None = None
         successful: dict[str, Any] | None = None
@@ -151,7 +142,6 @@ def _verify_unit(
             if prior_observed is not None and requested_at < prior_observed:
                 raise ValueError(f"{unit_id}: attempt timestamps are not monotone")
             prior_observed = observed_at
-
             outcome = attempt.get("outcome")
             if outcome == "HTTP_RESPONSE":
                 received_http += 1
@@ -167,32 +157,24 @@ def _verify_unit(
                     if successful is not None:
                         raise ValueError(f"{unit_id}: multiple HTTP 200 attempts in one logical request")
                     successful = attempt
-                expected_retryable = (
-                    status in base.TRANSIENT_HTTP_STATUSES
-                    and attempt["attempt_index"] < len(group)
-                )
+                expected_retryable = status in base.TRANSIENT_HTTP_STATUSES and attempt["attempt_index"] < len(group)
                 if attempt.get("retryable") is not expected_retryable:
                     raise ValueError(f"{unit_id}: HTTP attempt retryable flag is inconsistent")
             elif outcome == "TRANSPORT_ERROR":
                 transport_errors += 1
                 if attempt.get("http_status") is not None:
                     raise ValueError(f"{unit_id}: transport error carries HTTP status")
-                if any(
-                    attempt.get(key) is not None
-                    for key in ("content_sha256", "byte_count", "raw_custody_pointer")
-                ):
+                if any(attempt.get(key) is not None for key in ("content_sha256", "byte_count", "raw_custody_pointer")):
                     raise ValueError(f"{unit_id}: transport error cannot claim response bytes")
                 if not isinstance(attempt.get("error_type"), str) or not attempt["error_type"]:
                     raise ValueError(f"{unit_id}: transport error lacks error_type")
-                expected_retryable = attempt["attempt_index"] < len(group)
-                if attempt.get("retryable") is not expected_retryable:
+                if attempt.get("retryable") is not (attempt["attempt_index"] < len(group)):
                     raise ValueError(f"{unit_id}: transport-error retryable flag is inconsistent")
             else:
                 raise ValueError(f"{unit_id}: unsupported attempt outcome")
 
         if successful is not None and successful is not group[-1]:
             raise ValueError(f"{unit_id}: successful attempt must terminate logical request")
-
         if logical_index <= len(responses):
             response = responses[logical_index - 1]
             if successful is None:
@@ -208,23 +190,17 @@ def _verify_unit(
             ):
                 if response.get(key) != successful.get(key):
                     raise ValueError(f"{unit_id}: successful attempt/response mismatch for {key}")
-            if _parse_time(response.get("requested_at"), f"{unit_id}:page requested_at") > _parse_time(
-                group[0].get("requested_at"), f"{unit_id}:first attempt requested_at"
-            ):
+            if _parse_time(response.get("requested_at"), f"{unit_id}:page requested_at") > _parse_time(group[0].get("requested_at"), f"{unit_id}:first attempt requested_at"):
                 raise ValueError(f"{unit_id}: page requested_at does not bracket attempts")
-            if _parse_time(response.get("observed_at"), f"{unit_id}:page observed_at") < _parse_time(
-                group[-1].get("observed_at"), f"{unit_id}:last attempt observed_at"
-            ):
+            if _parse_time(response.get("observed_at"), f"{unit_id}:page observed_at") < _parse_time(group[-1].get("observed_at"), f"{unit_id}:last attempt observed_at"):
                 raise ValueError(f"{unit_id}: page observed_at does not bracket attempts")
-
             if logical_index <= len(pages):
                 page = pages[logical_index - 1]
                 if page.get("response_index") != logical_index:
                     raise ValueError(f"{unit_id}: parsed page response index mismatch")
                 expected_cursor = page.get("cursor_out")
-            else:
-                if logical_index != len(responses):
-                    raise ValueError(f"{unit_id}: unparsed successful response may occur only at end")
+            elif logical_index != len(responses):
+                raise ValueError(f"{unit_id}: unparsed successful response may occur only at end")
         else:
             if logical_index != len(groups):
                 raise ValueError(f"{unit_id}: unbound failed request may occur only at end")
@@ -233,19 +209,89 @@ def _verify_unit(
             if result.get("status") == "COMPLETE":
                 raise ValueError(f"{unit_id}: complete result cannot end in failed request")
 
-    if result.get("status") == "COMPLETE":
-        if len(groups) != len(responses) or len(responses) != len(pages):
-            raise ValueError(f"{unit_id}: complete result lacks one-to-one request/page binding")
+    if result.get("status") == "COMPLETE" and (len(groups) != len(responses) or len(responses) != len(pages)):
+        raise ValueError(f"{unit_id}: complete result lacks one-to-one request/page binding")
     if result.get("received_http_response_count") != received_http:
         raise ValueError(f"{unit_id}: received HTTP response count mismatch")
     if result.get("transport_error_attempt_count") != transport_errors:
         raise ValueError(f"{unit_id}: transport error attempt count mismatch")
-
     return {
         "query_unit_id": unit_id,
         "attempt_response_manifest_sha256": result["attempt_response_manifest_sha256"],
         "received_http_response_count": received_http,
         "transport_error_attempt_count": transport_errors,
+    }
+
+
+def _verify_execution_identity(manifest: dict[str, Any], results_by_id: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    if manifest.get("result_state_id") != manifest.get("run_id"):
+        raise ValueError("run result_state_id must equal result-state run_id")
+    if manifest.get("execution_identity_state") != EXECUTION_IDENTITY_STATE:
+        raise ValueError("run execution identity state missing or invalid")
+    evidence = manifest.get("unit_execution_evidence")
+    if not isinstance(evidence, list) or not evidence:
+        raise ValueError("run manifest requires unit_execution_evidence")
+    if len(evidence) != manifest.get("selected_query_units"):
+        raise ValueError("execution evidence count differs from selected query units")
+
+    started = _parse_time(manifest.get("started_at"), "run started_at")
+    completed = _parse_time(manifest.get("completed_at"), "run completed_at")
+    if completed < started:
+        raise ValueError("run completed_at precedes started_at")
+    seen: set[str] = set()
+    acquired = 0
+    reused = 0
+    for row in evidence:
+        if not isinstance(row, dict):
+            raise ValueError("execution evidence row must be object")
+        unit_id = row.get("query_unit_id")
+        if unit_id in seen or unit_id not in results_by_id:
+            raise ValueError("execution evidence query-unit set mismatch")
+        seen.add(unit_id)
+        result = results_by_id[unit_id]
+        if row.get("result_status") != result.get("status"):
+            raise ValueError(f"{unit_id}: execution result status mismatch")
+        if row.get("attempt_response_manifest_sha256") != result.get("attempt_response_manifest_sha256"):
+            raise ValueError(f"{unit_id}: execution attempt manifest digest mismatch")
+        disposition = row.get("disposition")
+        if disposition == ACQUIRED_THIS_EXECUTION:
+            acquired += 1
+            attempts = result.get("attempt_response_manifest") or []
+            if attempts:
+                first = _parse_time(attempts[0].get("requested_at"), f"{unit_id}:execution first attempt")
+                last = _parse_time(attempts[-1].get("observed_at"), f"{unit_id}:execution last attempt")
+                if first < started or last > completed:
+                    raise ValueError(f"{unit_id}: acquired-this-execution attempt timestamps fall outside execution interval")
+        elif disposition == REUSED_COMPLETE_RESULT:
+            reused += 1
+            if result.get("status") != "COMPLETE":
+                raise ValueError(f"{unit_id}: reused result must be COMPLETE")
+        else:
+            raise ValueError(f"{unit_id}: unsupported execution disposition")
+
+    if seen != set(results_by_id):
+        raise ValueError("execution evidence does not cover selected query units")
+    if manifest.get("acquired_query_units_this_execution") != acquired:
+        raise ValueError("acquired query-unit execution count mismatch")
+    if manifest.get("reused_complete_query_units_this_execution") != reused:
+        raise ValueError("reused query-unit execution count mismatch")
+    basis = {
+        "result_state_id": manifest["run_id"],
+        "plan_sha256": manifest["plan_sha256"],
+        "started_at": manifest["started_at"],
+        "completed_at": manifest["completed_at"],
+        "unit_execution_evidence": evidence,
+    }
+    execution_sha = _sha256_json(basis)
+    if manifest.get("execution_identity_sha256") != execution_sha:
+        raise ValueError("run execution identity digest mismatch")
+    if manifest.get("execution_id") != f"SCIENCE-EXECUTION-{execution_sha[:20].upper()}":
+        raise ValueError("run execution_id mismatch")
+    return {
+        "execution_id": manifest["execution_id"],
+        "execution_identity_sha256": execution_sha,
+        "acquired_query_units_this_execution": acquired,
+        "reused_complete_query_units_this_execution": reused,
     }
 
 
@@ -264,6 +310,7 @@ def verify_retry_custody(plan: dict[str, Any], run_dir: Path) -> dict[str, Any]:
         raise ValueError("run manifest requires query-unit result paths")
     summaries: list[dict[str, Any]] = []
     seen: set[str] = set()
+    results_by_id: dict[str, dict[str, Any]] = {}
     for relative in result_paths:
         if not isinstance(relative, str):
             raise ValueError("query-unit result path must be string")
@@ -274,20 +321,20 @@ def verify_retry_custody(plan: dict[str, Any], run_dir: Path) -> dict[str, Any]:
         if unit_id in seen:
             raise ValueError(f"duplicate query-unit result in retry custody: {unit_id}")
         seen.add(unit_id)
+        results_by_id[unit_id] = result
         summaries.append(_verify_unit(run_dir, result, units[unit_id]))
 
     if manifest.get("retry_custody_query_units") != len(summaries):
         raise ValueError("run retry custody query-unit count mismatch")
-    custody_basis = {
-        "run_id": manifest.get("run_id"),
-        "query_units": summaries,
-    }
+    custody_basis = {"run_id": manifest.get("run_id"), "query_units": summaries}
     custody_sha = _sha256_json(custody_basis)
     if manifest.get("retry_custody_sha256") != custody_sha:
         raise ValueError("run retry custody digest mismatch")
+    execution = _verify_execution_identity(manifest, results_by_id)
 
     report_basis = {
         "run_id": manifest.get("run_id"),
+        **execution,
         "retry_custody_sha256": custody_sha,
         "query_units": len(summaries),
         "received_http_responses": sum(row["received_http_response_count"] for row in summaries),
@@ -299,20 +346,19 @@ def verify_retry_custody(plan: dict[str, Any], run_dir: Path) -> dict[str, Any]:
         "schema_version": STRICT_CUSTODY_SCHEMA_VERSION,
         **report_basis,
         "retry_custody_verification_sha256": report_sha,
-        "status": "RECEIVED_HTTP_RESPONSE_CUSTODY_VERIFIED",
+        "status": "RECEIVED_HTTP_RESPONSE_CUSTODY_AND_EXECUTION_IDENTITY_VERIFIED",
         "canonical_effect": "NONE",
         "authority_boundary": (
-            "This verifies custody and logical-request binding for every HTTP response recorded by the strict "
-            "acquisition path, plus transport-error attempt metadata. It establishes no scientific relevance, "
-            "validity, canonical identity, release authority, or open-world completeness."
+            "This verifies custody and logical-request binding for every HTTP response recorded by the strict acquisition path, "
+            "transport-error attempt metadata, and the separation of execution identity from result-state identity. A reused "
+            "complete result is explicitly distinguished from a provider retrieval in the current execution. It establishes no "
+            "scientific relevance, validity, canonical identity, release authority, or open-world completeness."
         ),
     }
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Independently verify attempt-level HTTP response custody for a Phase 4 science acquisition."
-    )
+    parser = argparse.ArgumentParser(description="Independently verify attempt-level HTTP response custody and execution identity for a Phase 4 science acquisition.")
     parser.add_argument("--plan", type=Path, required=True)
     parser.add_argument("--run-dir", type=Path, required=True)
     args = parser.parse_args()
@@ -321,9 +367,8 @@ def main() -> None:
     output = args.run_dir / "retry-custody-verification.json"
     output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(
-        f"PASS retry custody: units={report['query_units']}; "
-        f"http_responses={report['received_http_responses']}; "
-        f"transport_errors={report['transport_error_attempts']}"
+        f"PASS retry custody: execution={report['execution_id']}; units={report['query_units']}; "
+        f"http_responses={report['received_http_responses']}; transport_errors={report['transport_error_attempts']}"
     )
 
 
