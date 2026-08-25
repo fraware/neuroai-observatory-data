@@ -72,6 +72,22 @@ class ScienceGraphContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "base_url differs"):
             m.validate_adapters(x, copy.deepcopy(UNIVERSES))
 
+    def test_adapter_required_provider_identity_mapping_cannot_drift(self):
+        x = copy.deepcopy(ADAPTERS)
+        epmc = next(r for r in x["records"] if r["provider"] == "EUROPE_PMC")
+        source_mapping = next(r for r in epmc["field_mapping"] if r["provider_field"] == "source")
+        source_mapping["required_for_candidate"] = False
+        with self.assertRaisesRegex(ValueError, "missing required provider identity/title mappings"):
+            m.validate_adapters(x, copy.deepcopy(UNIVERSES))
+
+    def test_crossref_doi_mapping_is_required_for_candidate_identity(self):
+        x = copy.deepcopy(ADAPTERS)
+        crossref = next(r for r in x["records"] if r["provider"] == "CROSSREF")
+        doi_mapping = next(r for r in crossref["field_mapping"] if r["provider_field"] == "DOI")
+        doi_mapping["required_for_candidate"] = False
+        with self.assertRaisesRegex(ValueError, "missing required provider identity/title mappings"):
+            m.validate_adapters(x, copy.deepcopy(UNIVERSES))
+
     def test_duplicate_adapter_provider_fails(self):
         x = copy.deepcopy(ADAPTERS)
         x["records"][1]["provider"] = "CROSSREF"
@@ -85,6 +101,12 @@ class ScienceGraphContractTests(unittest.TestCase):
         openalex["transport"]["authentication_class"] = "NONE_PUBLIC_READ"
         with self.assertRaisesRegex(ValueError, "CREDENTIAL_REQUIRED must bind FREE_API_KEY"):
             m.validate_adapters(x, copy.deepcopy(UNIVERSES))
+
+    def test_europe_pmc_candidate_schema_requires_provider_source(self):
+        candidate = copy.deepcopy(BUNDLE["candidates"][0])
+        candidate["provider"] = "EUROPE_PMC"
+        with self.assertRaisesRegex(ValueError, "provider_record_source"):
+            m._structural(m.CANDIDATE_VALIDATOR, candidate, candidate["candidate_id"])
 
     def test_freeze_unknown_query_family_fails(self):
         x = copy.deepcopy(BUNDLE)
@@ -113,6 +135,7 @@ class ScienceGraphContractTests(unittest.TestCase):
     def test_candidate_provider_must_match_adapter(self):
         x = copy.deepcopy(BUNDLE)
         x["candidates"][0]["provider"] = "EUROPE_PMC"
+        x["candidates"][0]["provider_record_source"] = "MED"
         with self.assertRaisesRegex(ValueError, "provider does not match"):
             m.validate_acquisition_bundle(x, adapters(), copy.deepcopy(PROTOCOL))
 
