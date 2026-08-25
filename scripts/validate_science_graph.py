@@ -12,6 +12,7 @@ SCHEMAS = ROOT / "schemas" / "vnext"
 ADAPTERS = ROOT / "science" / "adapters-v0.1.json"
 PROTOCOL = ROOT / "science" / "discovery-protocol-v0.1.json"
 SCIENCE_UNIVERSES = ROOT / "source-universes" / "p0" / "science-v0.1.json"
+IDENTIFIER_NAMESPACES = ROOT / "identity" / "namespaces-v0.1.json"
 SYNTHETIC = ROOT / "fixtures" / "vnext" / "science-acquisition.synthetic.json"
 
 EXPECTED_PROVIDER_UNIVERSE = {
@@ -19,6 +20,7 @@ EXPECTED_PROVIDER_UNIVERSE = {
     "EUROPE_PMC": "SU-SCI-EUROPEPMC",
     "OPENALEX": "SU-SCI-OPENALEX",
 }
+REQUIRED_SCIENCE_IDENTIFIER_NAMESPACES = {"DOI", "PMID", "PMCID", "OPENALEX_WORK"}
 
 
 def _load(path: Path) -> Any:
@@ -35,6 +37,7 @@ def _schema(name: str) -> Draft202012Validator:
 ADAPTER_VALIDATOR = _schema("source-adapter.schema.json")
 FREEZE_VALIDATOR = _schema("acquisition-freeze.schema.json")
 CANDIDATE_VALIDATOR = _schema("science-candidate-record.schema.json")
+NAMESPACE_VALIDATOR = _schema("identifier-namespace.schema.json")
 
 
 def _structural(validator: Draft202012Validator, obj: Any, label: str) -> None:
@@ -47,6 +50,29 @@ def _structural(validator: Draft202012Validator, obj: Any, label: str) -> None:
 
 def _dt(value: str) -> datetime:
     return datetime.fromisoformat(value.replace("Z", "+00:00"))
+
+
+def validate_identifier_namespaces(registry: dict[str, Any]) -> bool:
+    if registry.get("status") != "CONTROLLED_VOCABULARY_NOT_IDENTITY_AUTHORITY":
+        raise ValueError("identifier namespace authority boundary drift")
+    records = registry.get("records")
+    if not isinstance(records, list) or not records:
+        raise ValueError("identifier namespace registry requires records")
+    by_id: dict[str, dict[str, Any]] = {}
+    for record in records:
+        _structural(NAMESPACE_VALIDATOR, record, record.get("namespace_id", "IDENTIFIER_NAMESPACE"))
+        namespace_id = record["namespace_id"]
+        if namespace_id in by_id:
+            raise ValueError(f"duplicate namespace_id: {namespace_id}")
+        by_id[namespace_id] = record
+
+    missing = REQUIRED_SCIENCE_IDENTIFIER_NAMESPACES - set(by_id)
+    if missing:
+        raise ValueError(f"missing science identifier namespaces: {sorted(missing)}")
+    for namespace_id in REQUIRED_SCIENCE_IDENTIFIER_NAMESPACES:
+        if "PUBLICATION" not in by_id[namespace_id]["allowed_entity_types"]:
+            raise ValueError(f"{namespace_id}: science identifier namespace must allow PUBLICATION")
+    return True
 
 
 def validate_protocol(protocol: dict[str, Any]) -> bool:
@@ -78,7 +104,7 @@ def validate_protocol(protocol: dict[str, Any]) -> bool:
         raise ValueError("protocol cannot permit automatic canonical inclusion")
 
     dedupe = protocol.get("deduplication", {})
-    if dedupe.get("exact_identifier_precedence") != ["DOI", "PMID", "PMCID", "OPENALEX"]:
+    if dedupe.get("exact_identifier_precedence") != ["DOI", "PMID", "PMCID", "OPENALEX_WORK"]:
         raise ValueError("exact identifier precedence drift")
     if dedupe.get("fuzzy_title_author_matching") != "CANDIDATE_ONLY":
         raise ValueError("fuzzy matching must remain candidate-only")
@@ -225,6 +251,7 @@ def validate_acquisition_bundle(
 
 
 def validate_repository_state() -> bool:
+    validate_identifier_namespaces(_load(IDENTIFIER_NAMESPACES))
     protocol = _load(PROTOCOL)
     validate_protocol(protocol)
     adapters = validate_adapters(_load(ADAPTERS), _load(SCIENCE_UNIVERSES))
@@ -234,7 +261,7 @@ def validate_repository_state() -> bool:
 
 def main() -> None:
     validate_repository_state()
-    print("PASS science graph contract: adapters, frozen protocol, and synthetic acquisition bundle")
+    print("PASS science graph contract: identifier namespaces, adapters, frozen protocol, and synthetic acquisition bundle")
 
 
 if __name__ == "__main__":
