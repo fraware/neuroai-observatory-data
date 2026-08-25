@@ -202,20 +202,21 @@ class ScienceAcquisitionVerificationTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "candidate JSONL SHA-256 mismatch"):
                 verification.verify_acquisition(plan, root)
 
-    def test_page_request_identity_tampering_fails_even_if_page_manifest_is_rehashed(self):
+    def test_request_identity_tampering_fails_even_if_response_manifest_is_rehashed(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             plan = _build_verified_run(root)
             manifest = json.loads((root / "run-manifest.json").read_text())
             result_path = root / manifest["query_unit_result_paths"][0]
             result = json.loads(result_path.read_text())
+            result["response_manifest"][0]["request_url_sha256"] = "0" * 64
             result["page_manifest"][0]["request_url_sha256"] = "0" * 64
-            page_sha = acquisition._sha256_json(result["page_manifest"])
-            result["freeze"]["raw_response_manifest_sha256"] = page_sha
-            result["freeze"]["source_state_identity"] = f"OBSERVED-{page_sha[:32].upper()}"
+            response_sha = acquisition._sha256_json(result["response_manifest"])
+            result["freeze"]["raw_response_manifest_sha256"] = response_sha
+            result["freeze"]["source_state_identity"] = f"OBSERVED-{response_sha[:32].upper()}"
             _rewrite_json(result_path, result)
             _refresh_run_id(root)
-            with self.assertRaisesRegex(ValueError, "page request URL digest mismatch"):
+            with self.assertRaisesRegex(ValueError, "response request URL digest mismatch"):
                 verification.verify_acquisition(plan, root)
 
     def test_provider_source_forgery_fails_against_raw_provenance_even_when_manifest_is_reconciled(self):
