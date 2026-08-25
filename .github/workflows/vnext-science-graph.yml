@@ -14,6 +14,8 @@ on:
       - "scripts/compile_science_queries.py"
       - "scripts/acquire_science_candidates.py"
       - "scripts/acquire_science_candidates_strict.py"
+      - "scripts/science_http_transport.py"
+      - "scripts/run_science_acquisition.py"
       - "scripts/verify_science_acquisition.py"
       - "scripts/verify_science_candidate_provenance.py"
       - "scripts/verify_science_retry_custody.py"
@@ -24,6 +26,7 @@ on:
       - "tests/test_science_acquisition_verification.py"
       - "tests/test_science_candidate_provenance.py"
       - "tests/test_science_retry_custody.py"
+      - "tests/test_science_http_transport.py"
       - "source-universes/p0/science-v0.1.json"
       - ".github/workflows/vnext-science-graph.yml"
   push:
@@ -40,6 +43,8 @@ on:
       - "scripts/compile_science_queries.py"
       - "scripts/acquire_science_candidates.py"
       - "scripts/acquire_science_candidates_strict.py"
+      - "scripts/science_http_transport.py"
+      - "scripts/run_science_acquisition.py"
       - "scripts/verify_science_acquisition.py"
       - "scripts/verify_science_candidate_provenance.py"
       - "scripts/verify_science_retry_custody.py"
@@ -50,6 +55,7 @@ on:
       - "tests/test_science_acquisition_verification.py"
       - "tests/test_science_candidate_provenance.py"
       - "tests/test_science_retry_custody.py"
+      - "tests/test_science_http_transport.py"
       - "source-universes/p0/science-v0.1.json"
       - ".github/workflows/vnext-science-graph.yml"
 
@@ -70,7 +76,7 @@ jobs:
         run: python scripts/validate_science_graph.py
       - name: Compile frozen provider query plan
         run: python scripts/compile_science_queries.py --output "$RUNNER_TEMP/science-query-plan.json"
-      - name: Contract, compiler, acquisition, custody, retry-custody, and provenance tests
+      - name: Contract, compiler, acquisition, custody, transport, retry-custody, and provenance tests
         run: >-
           python -m unittest
           tests/test_science_graph_contract.py
@@ -80,6 +86,7 @@ jobs:
           tests/test_science_acquisition_verification.py
           tests/test_science_candidate_provenance.py
           tests/test_science_retry_custody.py
+          tests/test_science_http_transport.py
           -v
 
 # Deliberately no live provider acquisition in CI. Live Crossref/Europe PMC runs
