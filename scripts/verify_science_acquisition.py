@@ -115,7 +115,7 @@ def _validate_raw_custody(
     cursor_parameter = "cursor" if provider == "CROSSREF" else "cursorMark"
     expected_cursor = unit["parameters"][cursor_parameter]
     parameters = dict(unit["parameters"])
-    provider_total: int | None = None
+    provider_totals: list[int] = []
     record_count = 0
 
     for expected_index, page in enumerate(pages, start=1):
@@ -143,10 +143,7 @@ def _validate_raw_custody(
             raise ValueError(f"{unit_id}: invalid page provider_total")
         if not isinstance(current_count, int) or current_count < 0:
             raise ValueError(f"{unit_id}: invalid page record_count")
-        if provider_total is None:
-            provider_total = current_total
-        elif current_total != provider_total:
-            raise ValueError(f"{unit_id}: provider_total drift inside recorded page manifest")
+        provider_totals.append(current_total)
         record_count += current_count
 
         pointer = page.get("raw_custody_pointer")
@@ -161,9 +158,11 @@ def _validate_raw_custody(
         expected_cursor = page.get("cursor_out")
 
     if result.get("status") == "COMPLETE":
-        if provider_total is None:
+        if not provider_totals:
             raise ValueError(f"{unit_id}: complete result has no page/provider-total evidence")
-        if provider_total != result.get("provider_total"):
+        if len(set(provider_totals)) != 1:
+            raise ValueError(f"{unit_id}: complete result contains provider_total drift")
+        if provider_totals[0] != result.get("provider_total"):
             raise ValueError(f"{unit_id}: result provider_total differs from page evidence")
         if record_count != result.get("candidate_count"):
             raise ValueError(f"{unit_id}: complete page record counts do not reconcile to candidates")
@@ -242,12 +241,14 @@ def _validate_result(
         if result.get("coverage_state") != "ISSUED_COMPLETE_QUERY_UNIT" or not isinstance(coverage, dict):
             raise ValueError(f"{unit_id}: complete result lacks coverage")
         coverage_contract.validate_coverage(coverage)
-        if coverage["universe_id"] != unit["source_universe_id"]:
-            raise ValueError(f"{unit_id}: coverage source universe mismatch")
-        if coverage["denominator"] != {"eligible": len(candidates), "method": "API_TOTAL"}:
-            raise ValueError(f"{unit_id}: coverage denominator mismatch")
-        if coverage["states"]["discovered"] != len(candidates):
-            raise ValueError(f"{unit_id}: coverage discovered count mismatch")
+        expected_coverage = acquisition_contract._coverage_report(
+            unit,
+            frozen_at=coverage["frozen_at"],
+            eligible=len(candidates),
+            discovered=len(candidates),
+        )
+        if coverage != expected_coverage:
+            raise ValueError(f"{unit_id}: coverage record does not reproduce from verified acquisition state")
     elif status in {"PARTIAL", "FAILED"}:
         if freeze["exhaustion_state"] != status:
             raise ValueError(f"{unit_id}: incomplete result/freeze state mismatch")
@@ -357,10 +358,11 @@ def verify_acquisition(plan: dict[str, Any], run_dir: Path) -> tuple[dict[str, A
     dedup = _load_json(dedup_path)
     if _sha256_json(dedup) != manifest.get("dedup_report_sha256"):
         raise ValueError("dedup report digest mismatch")
+    expected_dedup = acquisition_contract.build_dedup_report(run_dir, result_records)
+    if dedup != expected_dedup:
+        raise ValueError("dedup report does not reproduce from verified candidate files")
     if dedup.get("canonical_merge_performed") is not False or dedup.get("fuzzy_matching_performed") is not False:
         raise ValueError("dedup report crossed identity authority boundary")
-    if dedup.get("candidate_records_scanned") != sum(row["candidate_count"] for row in verified_units):
-        raise ValueError("dedup report candidate_records_scanned mismatch")
 
     provenance_report = provenance_contract.verify_candidate_provenance(run_dir)
     if provenance_report.get("run_id") != manifest.get("run_id"):
@@ -389,7 +391,7 @@ def verify_acquisition(plan: dict[str, Any], run_dir: Path) -> tuple[dict[str, A
         "release_eligibility": RELEASE_INELIGIBLE,
         "authority_boundary": (
             "This manifest inventories provider-attributed discovery candidates whose recorded provider identity "
-            "and source-record provenance have been checked against captured raw responses. Counts include repeated "
+            "and normalized content have been reproduced from captured raw responses. Counts include repeated "
             "occurrences across overlapping frozen query units and are not unique-publication or scientific-validity counts."
         ),
     }
