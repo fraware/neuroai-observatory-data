@@ -37,32 +37,41 @@ For each successful response returned to page processing, request time is record
 
 `scripts/compile_science_queries.py` produces the deterministic, hashed request plan. Compiling a plan sends no network request and creates no acquisition evidence.
 
-`scripts/acquire_science_candidates.py` is the explicit live runner. It:
+`scripts/acquire_science_candidates.py` contains the underlying query-unit, normalization, resume, freeze, coverage, and exact-identifier deduplication mechanics. Its original retry helper records only the HTTP 200 response returned to page processing; it is therefore not, by itself, the approved production entrypoint for Phase 4.
 
-- refuses to place acquisition output inside the Git repository;
-- validates the exact frozen plan and every query-unit request identity before retrieval;
-- uses serial HTTP retrieval with retry/backoff for transient failures;
-- content-addresses each HTTP 200 response returned to page processing by SHA-256 outside Git;
-- records each such response in a raw-response manifest before provider parsing, so invalid-JSON, provider-contract, and denominator-drift responses remain in explicit custody rather than becoming orphaned bytes;
-- records request identity, cursor state, response digests, byte counts, selected provider headers, provider totals, and observation times;
-- fails a query unit closed if the provider denominator changes, the cursor stalls before the denominator is reached, a page is unexpectedly empty, required provider identity/title fields are missing, or a transport/parser error prevents exact exhaustion;
-- issues a coverage report only for a complete query unit;
-- emits exact-identifier deduplication candidates without fuzzy matching or canonical merges;
-- distinguishes scoped acquisition from full-plan completion;
-- rejects unknown query-unit selections instead of silently dropping them;
-- verifies previously complete result, candidate-file, and raw-byte custody before reuse;
-- archives incomplete attempts before a clean unit retry and archives the previous run manifest, deduplication state, and any existing derived verification products before a new run state is written;
-- marks all acquisition output `NOT_RELEASE_ELIGIBLE_UNTIL_DURABLE_CUSTODY_AND_RIGHTS_REVIEW`.
+`scripts/acquire_science_candidates_strict.py` wraps those mechanics with attempt-level custody. For each logical page request it records every `HttpResult` returned by the transport before retry/termination logic can discard it. Each returned HTTP response body is content-addressed by SHA-256 outside Git and bound to logical-request index, attempt index, request/observation times, request-URL digest, cursor input, HTTP status, selected headers, byte count, and raw custody pointer. Transport exceptions that yield no HTTP response are recorded as attempt metadata without fabricating response bytes. Existing COMPLETE results that predate strict retry custody are rejected rather than silently reused.
+
+`scripts/science_http_transport.py` disables automatic redirect following. Redirects are therefore returned as explicit HTTP responses, preserved by the strict custody layer, and fail closed instead of silently changing the effective endpoint.
+
+`scripts/run_science_acquisition.py` is the gated execution entrypoint. It requires the no-auto-follow redirect policy, runs the strict acquisition path, independently verifies retry-response custody, runs the existing acquisition and provider-record provenance verifiers, writes the deterministic candidate/coverage products, and binds those verification products in `verification-envelope.json`. That envelope remains explicitly not release-authorized.
+
+The underlying acquisition mechanics:
+
+- refuse to place acquisition output inside the Git repository;
+- validate the exact frozen plan and every query-unit request identity before retrieval;
+- use serial HTTP retrieval with retry/backoff for transient failures;
+- content-address successful page responses before provider parsing, preserving invalid-JSON, provider-contract, and denominator-drift responses that reach page processing;
+- record request identity, cursor state, response digests, byte counts, selected provider headers, provider totals, and observation times;
+- fail a query unit closed if the provider denominator changes, the cursor stalls before the denominator is reached, a page is unexpectedly empty, required provider identity/title fields are missing, or a transport/parser error prevents exact exhaustion;
+- issue a coverage report only for a complete query unit;
+- emit exact-identifier deduplication candidates without fuzzy matching or canonical merges;
+- distinguish scoped acquisition from full-plan completion;
+- reject unknown query-unit selections instead of silently dropping them;
+- verify previously complete result, candidate-file, and raw-byte custody before reuse;
+- archive incomplete attempts before a clean unit retry and archive prior run state before a new run is written;
+- mark all acquisition output `NOT_RELEASE_ELIGIBLE_UNTIL_DURABLE_CUSTODY_AND_RIGHTS_REVIEW`.
+
+`scripts/verify_science_retry_custody.py` independently reconstructs the attempt chain, verifies each returned HTTP response body against content-addressed custody, checks request URL and cursor binding, enforces monotone attempt sequencing, and requires every successful logical page request to terminate in one HTTP 200 response bound to the corresponding page response.
 
 `scripts/verify_science_acquisition.py` independently validates the exact frozen plan, run identity, query-unit accounting, raw-response manifest, content-addressed bytes, request/cursor chain, provider-parsed page evidence, freeze/candidate/coverage schemas, candidate-file hashes, deduplication accounting, and release/canonical authority boundaries. Coverage and exact-identifier deduplication outputs are independently recomputed from verified acquisition state rather than trusted as supplied. It reconstructs deterministic `candidate-manifest.json` and `coverage-index.json` products only after those checks pass. Candidate counts are explicitly occurrence counts across overlapping query units, not unique-publication counts.
 
 `scripts/verify_science_candidate_provenance.py` reconstructs provider records from the captured raw responses and requires each candidate object to reproduce exactly from its provider-native identity, source-record hash, observation time, and raw provider record. For Europe PMC, the check is explicitly source-aware. The acquisition verifier incorporates this provenance verification and binds its verification identity and digest into the candidate manifest.
 
-These checks establish custody and provenance properties only. They do not establish NeuroAI relevance, scientific validity, canonical identity, or release authority.
+These checks establish acquisition, custody, and provenance properties only. They do not establish NeuroAI relevance, scientific validity, canonical identity, or release authority.
 
-### Known pre-production custody gap
+### Pre-production verification status
 
-The current retry helper consumes transient non-200 HTTP responses (for example 429 or retryable 5xx responses) internally and does not yet add those response bodies to `response_manifest` or the content-addressed raw store. A transport exception that yields no HTTP response likewise has no response body to preserve. Therefore the current implementation does not yet support the stronger claim that every HTTP response observed during a retry sequence is in durable custody. Production acquisition remains blocked on closing this gap and extending independent verification to the resulting attempt-level response chain.
+Issue #46 tracks the attempt-level retry-response custody requirement. The strict custody implementation, no-auto-follow transport, independent retry verifier, and adversarial test surface are now present on the Phase 4 branch. The issue remains open because the exact current repository head has not produced a successful remote test execution: repository Actions jobs are still failing before any workflow step is instantiated. Production acquisition must not be represented as satisfying #46 until the exact implementation has been executed successfully in a suitable validation environment and the issue acceptance criteria are checked against that evidence.
 
 Raw provider responses remain outside Git. A checked-in acquisition freeze may later record request identity, provider/source state, response-manifest digest, exhaustion state, observed count, and the content-addressed storage class only after raw custody is durable and redistribution/publication rights have been reviewed.
 
@@ -70,4 +79,4 @@ Raw provider responses remain outside Git. A checked-in acquisition freeze may l
 
 The first protocol prioritizes 2015 through the declared evidence cutoff for operational acquisition, then backfills 2000–2014 and earlier work in separate immutable freezes. Priority windows control work order and do not rank scientific importance.
 
-`STATUS=FROZEN_PROTOCOL_NO_PRODUCTION_ACQUISITION_YET` remains intentional until a real provider acquisition has been executed, raw bytes have durable custody, and the resulting manifests have been independently validated. CI tests contracts, compilation, acquisition mechanics, successful-response custody, failed parsing custody, verification, and provenance using fake transports only; it deliberately performs no live provider retrieval.
+`STATUS=FROZEN_PROTOCOL_NO_PRODUCTION_ACQUISITION_YET` remains intentional until a real provider acquisition has been executed in an approved environment, raw bytes have durable custody, all required verification layers have passed, and rights review has been completed. CI is designed to test contracts, compilation, acquisition mechanics, failed-response custody, retry-response custody, fail-closed redirect behavior, verification, and provenance using synthetic/fake transports only; it deliberately performs no live provider retrieval.
