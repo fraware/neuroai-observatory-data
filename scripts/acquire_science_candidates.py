@@ -16,7 +16,9 @@ from typing import Any, Callable, Iterable, NamedTuple
 
 ROOT = Path(__file__).parents[1]
 DEFAULT_USER_AGENT = "neuroai-observatory-data/0.1 (+https://github.com/fraware/neuroai-observatory-data)"
-EXPECTED_FROZEN_PLAN_SHA256 = "ce2a8d1c0377a2e960b31eab194bf93bd87f350be2f788abc315a079092c504e"
+CURRENT_COMPILATION_ID = "SCIENCE-QUERY-COMPILATION-V0.2"
+EXPECTED_FROZEN_PLAN_SHA256 = "a9b8b8999861882c4bc78b27f40f48e476f7cafbbb347b00a0a6cd897406db56"
+EXPECTED_FROZEN_PLAN_ID = "SCIENCE-QUERY-PLAN-A9B8B8999861882C4BC7"
 TRANSIENT_HTTP_STATUSES = {429, 500, 502, 503, 504}
 RELEASE_INELIGIBLE = "NOT_RELEASE_ELIGIBLE_UNTIL_DURABLE_CUSTODY_AND_RIGHTS_REVIEW"
 SUPPORTED_PROVIDERS = {"CROSSREF", "EUROPE_PMC"}
@@ -512,6 +514,8 @@ def _validate_query_unit_integrity(unit: dict[str, Any]) -> None:
 def validate_plan_integrity(plan: dict[str, Any]) -> dict[str, dict[str, Any]]:
     if plan.get("status") != "FROZEN_QUERY_PLAN_NO_ACQUISITION_EXECUTED":
         raise ValueError("input plan is not a frozen pre-acquisition query plan")
+    if plan.get("compilation_id") != CURRENT_COMPILATION_ID:
+        raise ValueError("query plan does not use the current Phase 4 v0.2 compilation")
     units = plan.get("query_units")
     if not isinstance(units, list) or not units:
         raise ValueError("query plan requires query units")
@@ -522,9 +526,8 @@ def validate_plan_integrity(plan: dict[str, Any]) -> dict[str, dict[str, Any]]:
     if plan.get("plan_sha256") != expected_plan_sha:
         raise ValueError("query plan SHA-256 mismatch")
     if expected_plan_sha != EXPECTED_FROZEN_PLAN_SHA256:
-        raise ValueError("query plan does not match the frozen Phase 4 v0.1 plan identity")
-    expected_plan_id = f"SCIENCE-QUERY-PLAN-{expected_plan_sha[:20].upper()}"
-    if plan.get("plan_id") != expected_plan_id:
+        raise ValueError("query plan does not match the current Phase 4 v0.2 plan identity")
+    if plan.get("plan_id") != EXPECTED_FROZEN_PLAN_ID:
         raise ValueError("query plan id mismatch")
 
     by_id: dict[str, dict[str, Any]] = {}
@@ -541,7 +544,7 @@ def validate_plan_integrity(plan: dict[str, Any]) -> dict[str, dict[str, Any]]:
     if not isinstance(expected_counts, dict) or expected_counts != provider_counts:
         raise ValueError("query plan provider_counts mismatch")
     if len(units) != 768 or provider_counts != {"CROSSREF": 384, "EUROPE_PMC": 384}:
-        raise ValueError("frozen Phase 4 v0.1 query-plan cardinality drift")
+        raise ValueError("current Phase 4 v0.2 query-plan cardinality drift")
     return by_id
 
 
@@ -1156,7 +1159,7 @@ def _load_plan(path: Path) -> dict[str, Any]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Execute the frozen Phase 4 Crossref/Europe PMC science query plan.")
+    parser = argparse.ArgumentParser(description="Execute the current frozen Phase 4 Crossref/Europe PMC science query plan.")
     parser.add_argument("--plan", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--provider", action="append", choices=["CROSSREF", "EUROPE_PMC"])
