@@ -25,7 +25,10 @@
   "allOf": [
     {
       "if": {"properties":{"provider":{"const":"EUROPE_PMC"}},"required":["provider"]},
-      "then": {"required":["provider_record_source"]}
+      "then": {
+        "required":["provider_record_source"],
+        "properties":{"provider_record_source":{"type":"string","minLength":1}}
+      }
     }
   ]
 }
