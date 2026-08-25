@@ -74,6 +74,23 @@ def _records_from_raw(provider: str, payload: dict[str, Any]) -> list[dict[str, 
     raise ValueError(f"unsupported provider in first-acquisition provenance audit: {provider}")
 
 
+def _raw_provider_identity(provider: str, record: dict[str, Any]) -> tuple[str | None, str]:
+    if provider == "CROSSREF":
+        doi = acquisition._normalize_doi(record.get("DOI"))
+        if doi is None:
+            raise ValueError("Crossref raw record lacks usable DOI provider identity")
+        return None, doi
+    if provider == "EUROPE_PMC":
+        source = record.get("source")
+        record_id = record.get("id")
+        if not isinstance(source, str) or not source.strip():
+            raise ValueError("Europe PMC raw record lacks source database code")
+        if record_id is None or not str(record_id).strip():
+            raise ValueError("Europe PMC raw record lacks id")
+        return source.strip().upper(), str(record_id).strip()
+    raise ValueError(f"unsupported provider identity audit: {provider}")
+
+
 def verify_candidate_provenance(run_dir: Path) -> dict[str, Any]:
     run_dir = run_dir.resolve()
     manifest = _load_json(run_dir / "run-manifest.json")
@@ -83,22 +100,22 @@ def verify_candidate_provenance(run_dir: Path) -> dict[str, Any]:
 
     verified_candidates = 0
     verified_raw_records = 0
-    europe_pmc_sources_by_id: dict[str, set[str]] = {}
+    europe_pmc_source_ids: set[tuple[str, str]] = set()
 
     for result_relative in result_paths:
         if not isinstance(result_relative, str):
             raise ValueError("query-unit result path must be string")
         result = _load_json(_inside(run_dir, result_relative))
         unit_id = result.get("query_unit_id")
-        provider = result.get("freeze", {}).get("source_universe_id")
-        if provider == "SU-SCI-CROSSREF":
+        source_universe = result.get("freeze", {}).get("source_universe_id")
+        if source_universe == "SU-SCI-CROSSREF":
             provider_name = "CROSSREF"
-        elif provider == "SU-SCI-EUROPEPMC":
+        elif source_universe == "SU-SCI-EUROPEPMC":
             provider_name = "EUROPE_PMC"
         else:
             raise ValueError(f"{unit_id}: unsupported source universe in provenance audit")
 
-        provenance: dict[str, set[str]] = {}
+        provenance: dict[str, set[tuple[str, str | None, str]]] = {}
         raw_record_count = 0
         pages = result.get("page_manifest")
         if not isinstance(pages, list):
@@ -125,15 +142,13 @@ def verify_candidate_provenance(run_dir: Path) -> dict[str, Any]:
             raw_record_count += len(records)
             for record in records:
                 record_sha = _sha256_json(record)
-                provenance.setdefault(record_sha, set()).add(observed_at)
+                provider_source, provider_id = _raw_provider_identity(provider_name, record)
+                provenance.setdefault(record_sha, set()).add(
+                    (observed_at, provider_source, provider_id)
+                )
                 if provider_name == "EUROPE_PMC":
-                    source = record.get("source")
-                    record_id = record.get("id")
-                    if not isinstance(source, str) or not source.strip():
-                        raise ValueError(f"{unit_id}: Europe PMC raw record lacks source database code")
-                    if record_id is None or not str(record_id).strip():
-                        raise ValueError(f"{unit_id}: Europe PMC raw record lacks id")
-                    europe_pmc_sources_by_id.setdefault(str(record_id).strip(), set()).add(source.strip().upper())
+                    assert provider_source is not None
+                    europe_pmc_source_ids.add((provider_source, provider_id))
 
         candidates_relative = result.get("candidates_path")
         if not isinstance(candidates_relative, str):
@@ -142,32 +157,34 @@ def verify_candidate_provenance(run_dir: Path) -> dict[str, Any]:
         for candidate in candidates:
             record_sha = candidate.get("source_record_sha256")
             observed_at = candidate.get("observed_at")
+            provider_id = candidate.get("provider_record_id")
+            provider_source = candidate.get("provider_record_source")
             if not isinstance(record_sha, str) or record_sha not in provenance:
                 raise ValueError(f"{unit_id}: candidate source_record_sha256 is not present in captured raw responses")
-            if not isinstance(observed_at, str) or observed_at not in provenance[record_sha]:
-                raise ValueError(f"{unit_id}: candidate observed_at does not match its captured raw response")
+            if not isinstance(observed_at, str) or not isinstance(provider_id, str):
+                raise ValueError(f"{unit_id}: candidate provider identity or observed_at is invalid")
+            if provider_name == "EUROPE_PMC":
+                if not isinstance(provider_source, str) or not provider_source:
+                    raise ValueError(f"{unit_id}: Europe PMC candidate lacks provider_record_source")
+                provider_source = provider_source.upper()
+            elif provider_source is not None:
+                raise ValueError(f"{unit_id}: Crossref candidate unexpectedly carries provider_record_source")
+            identity_tuple = (observed_at, provider_source, provider_id)
+            if identity_tuple not in provenance[record_sha]:
+                raise ValueError(
+                    f"{unit_id}: candidate provider identity/observation does not match its captured raw record"
+                )
             verified_candidates += 1
 
         if result.get("status") == "COMPLETE" and raw_record_count != len(candidates):
             raise ValueError(f"{unit_id}: complete query raw-record count does not equal candidate count")
         verified_raw_records += raw_record_count
 
-    ambiguous_epmc_ids = {
-        record_id: sorted(sources)
-        for record_id, sources in europe_pmc_sources_by_id.items()
-        if len(sources) > 1
-    }
-    if ambiguous_epmc_ids:
-        raise ValueError(
-            "Europe PMC id appears under multiple source databases; provider_record_id requires source-aware migration: "
-            + json.dumps(ambiguous_epmc_ids, sort_keys=True)
-        )
-
     report_basis = {
         "run_id": manifest.get("run_id"),
         "verified_candidates": verified_candidates,
         "verified_raw_records": verified_raw_records,
-        "europe_pmc_distinct_ids": len(europe_pmc_sources_by_id),
+        "europe_pmc_distinct_source_ids": len(europe_pmc_source_ids),
     }
     report_sha = _sha256_json(report_basis)
     return {
@@ -178,9 +195,9 @@ def verify_candidate_provenance(run_dir: Path) -> dict[str, Any]:
         "status": "RAW_RESPONSE_PROVENANCE_VERIFIED",
         "canonical_effect": "NONE",
         "authority_boundary": (
-            "This verifies that each candidate's source-record hash and observation time can be traced to a "
-            "content-addressed captured provider response. It does not establish scientific validity, relevance, "
-            "canonical identity, or release authority."
+            "This verifies that each candidate's provider identity, source-record hash, and observation time "
+            "trace to a content-addressed captured provider response. It does not establish scientific validity, "
+            "relevance, canonical identity, or release authority."
         ),
     }
 
