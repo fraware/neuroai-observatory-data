@@ -21,6 +21,15 @@ EXPECTED_PROVIDER_UNIVERSE = {
     "OPENALEX": "SU-SCI-OPENALEX",
 }
 REQUIRED_SCIENCE_IDENTIFIER_NAMESPACES = {"DOI", "PMID", "PMCID", "OPENALEX_WORK"}
+REQUIRED_ADAPTER_MAPPINGS = {
+    "CROSSREF": {("DOI", "identifiers.doi"), ("title", "title")},
+    "EUROPE_PMC": {
+        ("source", "provider_record_source"),
+        ("id", "provider_record_id"),
+        ("title", "title"),
+    },
+    "OPENALEX": {("id", "identifiers.openalex"), ("title", "title")},
+}
 
 
 def _load(path: Path) -> Any:
@@ -164,8 +173,14 @@ def validate_adapters(registry: dict[str, Any], universe_fragment: dict[str, Any
             raise ValueError(f"{aid}: duplicate provider field mapping")
         if len(targets) != len(set(targets)):
             raise ValueError(f"{aid}: duplicate target field mapping")
-        if not any(m["target_field"] == "title" and m["required_for_candidate"] for m in mappings):
-            raise ValueError(f"{aid}: title must be required for candidates")
+        mapping_pairs = {
+            (m["provider_field"], m["target_field"])
+            for m in mappings
+            if m["required_for_candidate"]
+        }
+        missing_required = REQUIRED_ADAPTER_MAPPINGS[provider] - mapping_pairs
+        if missing_required:
+            raise ValueError(f"{aid}: missing required provider identity/title mappings: {sorted(missing_required)}")
 
         auth = adapter["transport"]["authentication_class"]
         state = adapter["state"]
