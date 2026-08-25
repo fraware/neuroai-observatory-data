@@ -12,11 +12,12 @@ import verify_science_acquisition
 import verify_science_retry_custody
 
 REQUIRED_REDIRECT_POLICY = "FAIL_CLOSED_NO_AUTO_FOLLOW"
-DERIVED_VERIFICATION_PRODUCTS = (
+VERIFIED_EXECUTION_PRODUCTS = (
+    "run-manifest.json",
+    "dedup-report.json",
+    "retry-custody-verification.json",
     "candidate-manifest.json",
     "coverage-index.json",
-    "candidate-provenance-verification.json",
-    "retry-custody-verification.json",
     "verification-envelope.json",
 )
 
@@ -28,13 +29,6 @@ def _load_plan(path: Path) -> dict[str, Any]:
     return value
 
 
-def _load_json(path: Path) -> dict[str, Any]:
-    value = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(value, dict):
-        raise ValueError(f"JSON root must be object: {path}")
-    return value
-
-
 def _write_json(path: Path, value: dict[str, Any]) -> None:
     base._atomic_write(
         path,
@@ -42,33 +36,19 @@ def _write_json(path: Path, value: dict[str, Any]) -> None:
     )
 
 
-def _archive_prior_derived_products(output_root: Path) -> None:
-    manifest_path = output_root / "run-manifest.json"
-    if not manifest_path.exists():
-        return
-    manifest = _load_json(manifest_path)
-    run_id = manifest.get("run_id")
-    if not isinstance(run_id, str) or not run_id:
-        raise ValueError("existing run manifest lacks run_id; quarantine output root before continuing")
-
-    archive_dir = output_root / "runs" / run_id
-    for name in DERIVED_VERIFICATION_PRODUCTS:
+def _snapshot_verified_execution(output_root: Path, execution_id: str) -> None:
+    archive_dir = output_root / "executions" / execution_id
+    for name in VERIFIED_EXECUTION_PRODUCTS:
         source = output_root / name
         if not source.exists():
-            continue
-        payload = _load_json(source)
-        if payload.get("run_id") != run_id:
-            raise ValueError(
-                f"existing {name} does not belong to current run manifest; quarantine output root before continuing"
-            )
+            raise ValueError(f"verified execution product is missing: {name}")
         source_bytes = source.read_bytes()
         target = archive_dir / name
         if target.exists():
             if target.read_bytes() != source_bytes:
-                raise ValueError(f"derived-product archive identity collision: {run_id}:{name}")
+                raise ValueError(f"verified execution archive identity collision: {execution_id}:{name}")
         else:
             base._atomic_write(target, source_bytes)
-        source.unlink()
 
 
 def run_acquisition(
@@ -90,8 +70,6 @@ def run_acquisition(
         )
 
     base.validate_output_root(output_root)
-    _archive_prior_derived_products(output_root)
-
     manifest = strict.acquire_plan(
         plan,
         output_root=output_root,
@@ -119,7 +97,9 @@ def run_acquisition(
     )
 
     verification_basis = {
-        "run_id": manifest["run_id"],
+        "result_state_id": manifest["result_state_id"],
+        "execution_id": manifest["execution_id"],
+        "execution_identity_sha256": manifest["execution_identity_sha256"],
         "plan_id": plan["plan_id"],
         "plan_sha256": plan["plan_sha256"],
         "acquisition_status": manifest["status"],
@@ -129,6 +109,8 @@ def run_acquisition(
         "failed_query_units": manifest["failed_query_units"],
         "selected_is_full_plan": manifest["selected_is_full_plan"],
         "full_plan_complete": manifest["full_plan_complete"],
+        "acquired_query_units_this_execution": manifest["acquired_query_units_this_execution"],
+        "reused_complete_query_units_this_execution": manifest["reused_complete_query_units_this_execution"],
         "candidate_manifest_id": candidate_manifest["candidate_manifest_id"],
         "candidate_manifest_sha256": candidate_manifest["candidate_manifest_sha256"],
         "coverage_index_id": coverage_index["coverage_index_id"],
@@ -139,20 +121,22 @@ def run_acquisition(
     verification_sha = base._sha256_json(verification_basis)
     envelope = {
         "verification_envelope_id": f"SCIENCE-ACQUISITION-VERIFICATION-{verification_sha[:20].upper()}",
-        "schema_version": "0.1.0",
+        "schema_version": "0.2.0",
         **verification_basis,
         "verification_envelope_sha256": verification_sha,
         "state": "ACQUISITION_EVIDENCE_VERIFIED_NOT_RELEASE_AUTHORIZED",
         "release_eligibility": base.RELEASE_INELIGIBLE,
         "canonical_effect": "NONE_CANDIDATE_DISCOVERY_ONLY",
         "authority_boundary": (
-            "This envelope binds independent acquisition, raw-response provenance, and retry-response custody "
-            "verification products for the selected frozen query units. Verification of an incomplete or scoped "
-            "run does not convert it into a complete run. The envelope establishes no scientific relevance, "
-            "validity, canonical identity, release authority, or open-world literature completeness."
+            "This envelope binds the execution identity, result-state identity, independent acquisition/provenance verification, "
+            "and retry-response custody verification for the selected frozen query units. Verification of an incomplete or scoped "
+            "run does not convert it into a complete run, and reuse of a complete result does not assert that provider retrieval "
+            "occurred again. The envelope establishes no scientific relevance, validity, canonical identity, release authority, "
+            "or open-world literature completeness."
         ),
     }
     _write_json(output_root / "verification-envelope.json", envelope)
+    _snapshot_verified_execution(output_root, manifest["execution_id"])
     return envelope
 
 
@@ -186,6 +170,7 @@ def main() -> None:
     )
     print(
         f"VERIFICATION_PASS: envelope={envelope['verification_envelope_id']}; "
+        f"execution={envelope['execution_id']}; result_state={envelope['result_state_id']}; "
         f"acquisition_status={envelope['acquisition_status']}; "
         f"complete={envelope['complete_query_units']}/{envelope['selected_query_units']}; "
         f"full_plan_complete={envelope['full_plan_complete']}"
