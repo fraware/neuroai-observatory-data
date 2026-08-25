@@ -31,7 +31,7 @@ Because terms overlap, there is no additive aggregate denominator across all que
 
 ## Request and observation time
 
-For each successful response, request time is recorded before transport and observation time after the response returns. Candidate `observed_at` is therefore an observation timestamp, not a request-start timestamp.
+For each successful response returned to page processing, request time is recorded before transport and observation time after the response returns. Candidate `observed_at` is therefore an observation timestamp, not a request-start timestamp.
 
 ## Acquisition and custody boundary
 
@@ -42,8 +42,8 @@ For each successful response, request time is recorded before transport and obse
 - refuses to place acquisition output inside the Git repository;
 - validates the exact frozen plan and every query-unit request identity before retrieval;
 - uses serial HTTP retrieval with retry/backoff for transient failures;
-- content-addresses raw response bytes by SHA-256 outside Git;
-- records every fetched response in a raw-response manifest before provider parsing, so parse failures and denominator-drift responses remain in explicit custody rather than becoming orphaned bytes;
+- content-addresses each HTTP 200 response returned to page processing by SHA-256 outside Git;
+- records each such response in a raw-response manifest before provider parsing, so invalid-JSON, provider-contract, and denominator-drift responses remain in explicit custody rather than becoming orphaned bytes;
 - records request identity, cursor state, response digests, byte counts, selected provider headers, provider totals, and observation times;
 - fails a query unit closed if the provider denominator changes, the cursor stalls before the denominator is reached, a page is unexpectedly empty, required provider identity/title fields are missing, or a transport/parser error prevents exact exhaustion;
 - issues a coverage report only for a complete query unit;
@@ -60,10 +60,14 @@ For each successful response, request time is recorded before transport and obse
 
 These checks establish custody and provenance properties only. They do not establish NeuroAI relevance, scientific validity, canonical identity, or release authority.
 
+### Known pre-production custody gap
+
+The current retry helper consumes transient non-200 HTTP responses (for example 429 or retryable 5xx responses) internally and does not yet add those response bodies to `response_manifest` or the content-addressed raw store. A transport exception that yields no HTTP response likewise has no response body to preserve. Therefore the current implementation does not yet support the stronger claim that every HTTP response observed during a retry sequence is in durable custody. Production acquisition remains blocked on closing this gap and extending independent verification to the resulting attempt-level response chain.
+
 Raw provider responses remain outside Git. A checked-in acquisition freeze may later record request identity, provider/source state, response-manifest digest, exhaustion state, observed count, and the content-addressed storage class only after raw custody is durable and redistribution/publication rights have been reviewed.
 
 ## Historical backfill and status
 
 The first protocol prioritizes 2015 through the declared evidence cutoff for operational acquisition, then backfills 2000–2014 and earlier work in separate immutable freezes. Priority windows control work order and do not rank scientific importance.
 
-`STATUS=FROZEN_PROTOCOL_NO_PRODUCTION_ACQUISITION_YET` remains intentional until a real provider acquisition has been executed, raw bytes have durable custody, and the resulting manifests have been independently validated. CI tests contracts, compilation, acquisition mechanics, failed-response custody, verification, and provenance using fake transports only; it deliberately performs no live provider retrieval.
+`STATUS=FROZEN_PROTOCOL_NO_PRODUCTION_ACQUISITION_YET` remains intentional until a real provider acquisition has been executed, raw bytes have durable custody, and the resulting manifests have been independently validated. CI tests contracts, compilation, acquisition mechanics, successful-response custody, failed parsing custody, verification, and provenance using fake transports only; it deliberately performs no live provider retrieval.
