@@ -20,15 +20,31 @@ def _load_module(name: str, path: Path):
     return module
 
 
-compiler = _load_module("compile_science_queries_for_retry_custody_tests", SCRIPTS / "compile_science_queries.py")
-acquisition = _load_module("acquire_science_candidates", SCRIPTS / "acquire_science_candidates.py")
+compiler = _load_module(
+    "compile_science_queries_for_retry_custody_tests",
+    SCRIPTS / "compile_science_queries.py",
+)
+acquisition = _load_module(
+    "acquire_science_candidates",
+    SCRIPTS / "acquire_science_candidates.py",
+)
 sys.modules["acquire_science_candidates"] = acquisition
-strict = _load_module("acquire_science_candidates_strict", SCRIPTS / "acquire_science_candidates_strict.py")
+strict = _load_module(
+    "acquire_science_candidates_strict",
+    SCRIPTS / "acquire_science_candidates_strict.py",
+)
 sys.modules["acquire_science_candidates_strict"] = strict
-verification = _load_module("verify_science_retry_custody", SCRIPTS / "verify_science_retry_custody.py")
+verification = _load_module(
+    "verify_science_retry_custody",
+    SCRIPTS / "verify_science_retry_custody.py",
+)
 
-PROTOCOL = json.loads((ROOT / "science" / "discovery-protocol-v0.1.json").read_text())
-COMPILATION = json.loads((ROOT / "science" / "query-compilation-v0.1.json").read_text())
+PROTOCOL = json.loads(
+    (ROOT / "science" / "discovery-protocol-v0.1.json").read_text()
+)
+COMPILATION = json.loads(
+    (ROOT / "science" / "query-compilation-v0.2.json").read_text()
+)
 PLAN = compiler.compile_plan(PROTOCOL, COMPILATION)
 
 
@@ -43,7 +59,11 @@ class FakeTransport:
         if isinstance(item, Exception):
             raise item
         status, payload, headers = item
-        body = payload if isinstance(payload, bytes) else json.dumps(payload).encode("utf-8")
+        body = (
+            payload
+            if isinstance(payload, bytes)
+            else json.dumps(payload).encode("utf-8")
+        )
         return acquisition.HttpResult(status=status, headers=headers, body=body)
 
 
@@ -61,7 +81,13 @@ def success_payload(doi="10.1234/retry-custody"):
     return {
         "message": {
             "total-results": 1,
-            "items": [{"DOI": doi, "title": ["Retry custody example"], "published": {"date-parts": [[2015, 1, 2]]}}],
+            "items": [
+                {
+                    "DOI": doi,
+                    "title": ["Retry custody example"],
+                    "published": {"date-parts": [[2015, 1, 2]]},
+                }
+            ],
             "next-cursor": "done",
         }
     }
@@ -86,7 +112,11 @@ def result_for(root: Path, manifest):
 class ScienceRetryCustodyTests(unittest.TestCase):
     def test_429_then_200_preserves_both_http_responses(self):
         responses = [
-            (429, {"error": "rate limited"}, {"retry-after": "0", "content-type": "application/json"}),
+            (
+                429,
+                {"error": "rate limited"},
+                {"retry-after": "0", "content-type": "application/json"},
+            ),
             (200, success_payload(), {"content-type": "application/json"}),
         ]
         with tempfile.TemporaryDirectory() as tmp:
@@ -98,9 +128,16 @@ class ScienceRetryCustodyTests(unittest.TestCase):
             self.assertEqual([row["http_status"] for row in attempts], [429, 200])
             self.assertEqual(result["received_http_response_count"], 2)
             self.assertEqual(result["transport_error_attempt_count"], 0)
-            self.assertTrue(all((root / row["raw_custody_pointer"]).is_file() for row in attempts))
+            self.assertTrue(
+                all(
+                    (root / row["raw_custody_pointer"]).is_file()
+                    for row in attempts
+                )
+            )
             report = verification.verify_retry_custody(PLAN, root)
-            self.assertEqual(report["status"], "RECEIVED_HTTP_RESPONSE_CUSTODY_VERIFIED")
+            self.assertEqual(
+                report["status"], "RECEIVED_HTTP_RESPONSE_CUSTODY_VERIFIED"
+            )
             self.assertEqual(report["received_http_responses"], 2)
 
     def test_multiple_503_retries_then_success_are_one_logical_request(self):
@@ -115,20 +152,39 @@ class ScienceRetryCustodyTests(unittest.TestCase):
             result = result_for(root, manifest)
             attempts = result["attempt_response_manifest"]
             self.assertEqual([row["attempt_index"] for row in attempts], [1, 2, 3])
-            self.assertEqual({row["logical_request_index"] for row in attempts}, {1})
-            self.assertEqual([row["http_status"] for row in attempts], [503, 503, 200])
+            self.assertEqual(
+                {row["logical_request_index"] for row in attempts}, {1}
+            )
+            self.assertEqual(
+                [row["http_status"] for row in attempts], [503, 503, 200]
+            )
             self.assertTrue(verification.verify_retry_custody(PLAN, root))
 
     def test_terminal_nonretryable_http_error_is_preserved(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            manifest = run_strict(root, [(404, {"error": "not found"}, {})], max_attempts=3)
+            manifest = run_strict(
+                root,
+                [(404, {"error": "not found"}, {})],
+                max_attempts=3,
+            )
             result = result_for(root, manifest)
             self.assertEqual(result["status"], "FAILED")
             self.assertEqual(result["received_http_response_count"], 1)
-            self.assertEqual(result["attempt_response_manifest"][0]["http_status"], 404)
-            self.assertFalse(result["attempt_response_manifest"][0]["retryable"])
-            self.assertTrue((root / result["attempt_response_manifest"][0]["raw_custody_pointer"]).is_file())
+            self.assertEqual(
+                result["attempt_response_manifest"][0]["http_status"], 404
+            )
+            self.assertFalse(
+                result["attempt_response_manifest"][0]["retryable"]
+            )
+            self.assertTrue(
+                (
+                    root
+                    / result["attempt_response_manifest"][0][
+                        "raw_custody_pointer"
+                    ]
+                ).is_file()
+            )
             self.assertTrue(verification.verify_retry_custody(PLAN, root))
 
     def test_retry_exhaustion_preserves_every_503_response(self):
@@ -141,8 +197,20 @@ class ScienceRetryCustodyTests(unittest.TestCase):
             manifest = run_strict(root, responses, max_attempts=2)
             result = result_for(root, manifest)
             self.assertEqual(result["status"], "FAILED")
-            self.assertEqual([row["http_status"] for row in result["attempt_response_manifest"]], [503, 503])
-            self.assertEqual([row["retryable"] for row in result["attempt_response_manifest"]], [True, False])
+            self.assertEqual(
+                [
+                    row["http_status"]
+                    for row in result["attempt_response_manifest"]
+                ],
+                [503, 503],
+            )
+            self.assertEqual(
+                [
+                    row["retryable"]
+                    for row in result["attempt_response_manifest"]
+                ],
+                [True, False],
+            )
             self.assertTrue(verification.verify_retry_custody(PLAN, root))
 
     def test_transport_error_then_success_records_error_without_fabricating_response_bytes(self):
@@ -188,21 +256,37 @@ class ScienceRetryCustodyTests(unittest.TestCase):
             manifest = run_strict(root, responses, max_attempts=2)
             result_path = root / manifest["query_unit_result_paths"][0]
             result = json.loads(result_path.read_text())
-            result["attempt_response_manifest"] = list(reversed(result["attempt_response_manifest"]))
-            result["attempt_response_manifest_sha256"] = acquisition._sha256_json(result["attempt_response_manifest"])
-            result_path.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
-            with self.assertRaisesRegex(ValueError, "attempt indices are not contiguous"):
+            result["attempt_response_manifest"] = list(
+                reversed(result["attempt_response_manifest"])
+            )
+            result["attempt_response_manifest_sha256"] = acquisition._sha256_json(
+                result["attempt_response_manifest"]
+            )
+            result_path.write_text(
+                json.dumps(result, indent=2, sort_keys=True) + "\n"
+            )
+            with self.assertRaisesRegex(
+                ValueError, "attempt indices are not contiguous"
+            ):
                 verification.verify_retry_custody(PLAN, root)
 
     def test_successful_attempt_bound_to_wrong_request_fails_verification(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            manifest = run_strict(root, [(200, success_payload(), {})], max_attempts=1)
+            manifest = run_strict(
+                root, [(200, success_payload(), {})], max_attempts=1
+            )
             result_path = root / manifest["query_unit_result_paths"][0]
             result = json.loads(result_path.read_text())
-            result["attempt_response_manifest"][0]["request_url_sha256"] = "0" * 64
-            result["attempt_response_manifest_sha256"] = acquisition._sha256_json(result["attempt_response_manifest"])
-            result_path.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
+            result["attempt_response_manifest"][0]["request_url_sha256"] = (
+                "0" * 64
+            )
+            result["attempt_response_manifest_sha256"] = acquisition._sha256_json(
+                result["attempt_response_manifest"]
+            )
+            result_path.write_text(
+                json.dumps(result, indent=2, sort_keys=True) + "\n"
+            )
             with self.assertRaisesRegex(ValueError, "request URL digest mismatch"):
                 verification.verify_retry_custody(PLAN, root)
 
