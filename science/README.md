@@ -43,6 +43,7 @@ For each successful response, request time is recorded before transport and obse
 - validates the exact frozen plan and every query-unit request identity before retrieval;
 - uses serial HTTP retrieval with retry/backoff for transient failures;
 - content-addresses raw response bytes by SHA-256 outside Git;
+- records every fetched response in a raw-response manifest before provider parsing, so parse failures and denominator-drift responses remain in explicit custody rather than becoming orphaned bytes;
 - records request identity, cursor state, response digests, byte counts, selected provider headers, provider totals, and observation times;
 - fails a query unit closed if the provider denominator changes, the cursor stalls before the denominator is reached, a page is unexpectedly empty, required provider identity/title fields are missing, or a transport/parser error prevents exact exhaustion;
 - issues a coverage report only for a complete query unit;
@@ -50,12 +51,12 @@ For each successful response, request time is recorded before transport and obse
 - distinguishes scoped acquisition from full-plan completion;
 - rejects unknown query-unit selections instead of silently dropping them;
 - verifies previously complete result, candidate-file, and raw-byte custody before reuse;
-- archives incomplete attempts before a clean unit retry and archives the previous run manifest/deduplication state before a new run state is written;
+- archives incomplete attempts before a clean unit retry and archives the previous run manifest, deduplication state, and any existing derived verification products before a new run state is written;
 - marks all acquisition output `NOT_RELEASE_ELIGIBLE_UNTIL_DURABLE_CUSTODY_AND_RIGHTS_REVIEW`.
 
-`scripts/verify_science_acquisition.py` independently validates the exact frozen plan, run identity, query-unit accounting, request/cursor evidence, freeze/candidate/coverage schemas, candidate-file hashes, raw custody hashes, deduplication accounting, and release/canonical authority boundaries. It reconstructs deterministic `candidate-manifest.json` and `coverage-index.json` products only after those checks pass. Candidate counts are explicitly occurrence counts across overlapping query units, not unique-publication counts.
+`scripts/verify_science_acquisition.py` independently validates the exact frozen plan, run identity, query-unit accounting, raw-response manifest, content-addressed bytes, request/cursor chain, provider-parsed page evidence, freeze/candidate/coverage schemas, candidate-file hashes, deduplication accounting, and release/canonical authority boundaries. Coverage and exact-identifier deduplication outputs are independently recomputed from verified acquisition state rather than trusted as supplied. It reconstructs deterministic `candidate-manifest.json` and `coverage-index.json` products only after those checks pass. Candidate counts are explicitly occurrence counts across overlapping query units, not unique-publication counts.
 
-`scripts/verify_science_candidate_provenance.py` reconstructs provider records from the captured raw responses and verifies that each candidate's provider-native identity, `source_record_sha256`, and `observed_at` trace to a captured provider record. For Europe PMC, the check is explicitly source-aware. The acquisition verifier incorporates this provenance verification and binds its verification identity and digest into the candidate manifest.
+`scripts/verify_science_candidate_provenance.py` reconstructs provider records from the captured raw responses and requires each candidate object to reproduce exactly from its provider-native identity, source-record hash, observation time, and raw provider record. For Europe PMC, the check is explicitly source-aware. The acquisition verifier incorporates this provenance verification and binds its verification identity and digest into the candidate manifest.
 
 These checks establish custody and provenance properties only. They do not establish NeuroAI relevance, scientific validity, canonical identity, or release authority.
 
@@ -65,4 +66,4 @@ Raw provider responses remain outside Git. A checked-in acquisition freeze may l
 
 The first protocol prioritizes 2015 through the declared evidence cutoff for operational acquisition, then backfills 2000–2014 and earlier work in separate immutable freezes. Priority windows control work order and do not rank scientific importance.
 
-`STATUS=FROZEN_PROTOCOL_NO_PRODUCTION_ACQUISITION_YET` remains intentional until a real provider acquisition has been executed, raw bytes have durable custody, and the resulting manifests have been independently validated. CI tests contracts, compilation, acquisition mechanics, custody verification, and provenance using fake transports only; it deliberately performs no live provider retrieval.
+`STATUS=FROZEN_PROTOCOL_NO_PRODUCTION_ACQUISITION_YET` remains intentional until a real provider acquisition has been executed, raw bytes have durable custody, and the resulting manifests have been independently validated. CI tests contracts, compilation, acquisition mechanics, failed-response custody, verification, and provenance using fake transports only; it deliberately performs no live provider retrieval.
