@@ -27,6 +27,7 @@ on:
       - "tests/test_science_candidate_provenance.py"
       - "tests/test_science_retry_custody.py"
       - "tests/test_science_http_transport.py"
+      - "tests/test_run_science_acquisition.py"
       - "source-universes/p0/science-v0.1.json"
       - ".github/workflows/vnext-science-graph.yml"
   push:
@@ -56,6 +57,7 @@ on:
       - "tests/test_science_candidate_provenance.py"
       - "tests/test_science_retry_custody.py"
       - "tests/test_science_http_transport.py"
+      - "tests/test_run_science_acquisition.py"
       - "source-universes/p0/science-v0.1.json"
       - ".github/workflows/vnext-science-graph.yml"
 
@@ -76,7 +78,7 @@ jobs:
         run: python scripts/validate_science_graph.py
       - name: Compile frozen provider query plan
         run: python scripts/compile_science_queries.py --output "$RUNNER_TEMP/science-query-plan.json"
-      - name: Contract, compiler, acquisition, custody, transport, retry-custody, and provenance tests
+      - name: Contract, compiler, acquisition, custody, gated-runner, transport, retry-custody, and provenance tests
         run: >-
           python -m unittest
           tests/test_science_graph_contract.py
@@ -87,6 +89,7 @@ jobs:
           tests/test_science_candidate_provenance.py
           tests/test_science_retry_custody.py
           tests/test_science_http_transport.py
+          tests/test_run_science_acquisition.py
           -v
 
 # Deliberately no live provider acquisition in CI. Live Crossref/Europe PMC runs
