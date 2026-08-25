@@ -3,11 +3,14 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+import acquire_science_candidates as acquisition_contract
 import validate_science_graph as science_contract
 import validate_source_universes as coverage_contract
+import verify_science_candidate_provenance as provenance_contract
 
 RELEASE_INELIGIBLE = "NOT_RELEASE_ELIGIBLE_UNTIL_DURABLE_CUSTODY_AND_RIGHTS_REVIEW"
 
@@ -75,55 +78,95 @@ def _verify_file_sha(path: Path, expected: str, label: str) -> None:
         raise ValueError(f"{label} SHA-256 mismatch: expected {expected}, got {actual}")
 
 
-def _plan_basis(plan: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "protocol_id": plan["protocol_id"],
-        "compilation_id": plan["compilation_id"],
-        "evidence_cutoff": plan["evidence_cutoff"],
-        "priority_window": plan["priority_window"],
-        "query_units": plan["query_units"],
-    }
+def _parse_time(value: Any, label: str) -> datetime:
+    if not isinstance(value, str):
+        raise ValueError(f"{label} must be an ISO date-time string")
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise ValueError(f"{label} is not a valid ISO date-time") from exc
+    if parsed.tzinfo is None:
+        raise ValueError(f"{label} must be timezone-aware")
+    return parsed
 
 
 def validate_plan(plan: dict[str, Any]) -> dict[str, dict[str, Any]]:
-    if plan.get("status") != "FROZEN_QUERY_PLAN_NO_ACQUISITION_EXECUTED":
-        raise ValueError("query plan must be a frozen pre-acquisition plan")
-    units = plan.get("query_units")
-    if not isinstance(units, list) or not units:
-        raise ValueError("query plan requires query units")
-    if plan.get("unit_count") != len(units):
-        raise ValueError("query plan unit_count mismatch")
-    expected_plan_sha = _sha256_json(_plan_basis(plan))
-    if plan.get("plan_sha256") != expected_plan_sha:
-        raise ValueError("query plan SHA-256 mismatch")
-    expected_plan_id = f"SCIENCE-QUERY-PLAN-{expected_plan_sha[:20].upper()}"
-    if plan.get("plan_id") != expected_plan_id:
-        raise ValueError("query plan id mismatch")
-
-    by_id: dict[str, dict[str, Any]] = {}
-    for unit in units:
-        unit_id = unit.get("query_unit_id")
-        if not isinstance(unit_id, str) or not unit_id:
-            raise ValueError("query unit lacks query_unit_id")
-        if unit_id in by_id:
-            raise ValueError(f"duplicate query_unit_id: {unit_id}")
-        by_id[unit_id] = unit
-    return by_id
+    return acquisition_contract.validate_plan_integrity(plan)
 
 
-def _validate_raw_custody(run_dir: Path, result: dict[str, Any]) -> None:
+def _validate_raw_custody(
+    run_dir: Path,
+    result: dict[str, Any],
+    unit: dict[str, Any],
+) -> None:
+    unit_id = unit["query_unit_id"]
     pages = result.get("page_manifest")
     if not isinstance(pages, list):
-        raise ValueError(f"{result.get('query_unit_id')}: page_manifest must be an array")
-    for page in pages:
+        raise ValueError(f"{unit_id}: page_manifest must be an array")
+
+    freeze = result["freeze"]
+    manifest_sha = _sha256_json(pages)
+    if freeze.get("raw_response_manifest_sha256") != manifest_sha:
+        raise ValueError(f"{unit_id}: raw response manifest digest mismatch")
+    if freeze.get("source_state_identity") != f"OBSERVED-{manifest_sha[:32].upper()}":
+        raise ValueError(f"{unit_id}: source_state_identity does not match page manifest")
+
+    provider = unit["provider"]
+    cursor_parameter = "cursor" if provider == "CROSSREF" else "cursorMark"
+    expected_cursor = unit["parameters"][cursor_parameter]
+    parameters = dict(unit["parameters"])
+    provider_total: int | None = None
+    record_count = 0
+
+    for expected_index, page in enumerate(pages, start=1):
+        if not isinstance(page, dict):
+            raise ValueError(f"{unit_id}: page manifest row must be object")
+        if page.get("page_index") != expected_index:
+            raise ValueError(f"{unit_id}: page_index sequence mismatch")
+        if page.get("cursor_in") != expected_cursor:
+            raise ValueError(f"{unit_id}: cursor chain mismatch")
+
+        parameters[cursor_parameter] = expected_cursor
+        expected_url = acquisition_contract._build_url(unit["endpoint"], parameters)
+        expected_url_sha = _sha256_bytes(expected_url.encode("utf-8"))
+        if page.get("request_url_sha256") != expected_url_sha:
+            raise ValueError(f"{unit_id}: page request URL digest mismatch")
+
+        requested_at = _parse_time(page.get("requested_at"), f"{unit_id}:requested_at")
+        observed_at = _parse_time(page.get("observed_at"), f"{unit_id}:observed_at")
+        if observed_at < requested_at:
+            raise ValueError(f"{unit_id}: observed_at precedes requested_at")
+
+        current_total = page.get("provider_total")
+        current_count = page.get("record_count")
+        if not isinstance(current_total, int) or current_total < 0:
+            raise ValueError(f"{unit_id}: invalid page provider_total")
+        if not isinstance(current_count, int) or current_count < 0:
+            raise ValueError(f"{unit_id}: invalid page record_count")
+        if provider_total is None:
+            provider_total = current_total
+        elif current_total != provider_total:
+            raise ValueError(f"{unit_id}: provider_total drift inside recorded page manifest")
+        record_count += current_count
+
         pointer = page.get("raw_custody_pointer")
         digest = page.get("content_sha256")
         if not isinstance(pointer, str) or not isinstance(digest, str):
-            raise ValueError(f"{result.get('query_unit_id')}: invalid raw custody entry")
+            raise ValueError(f"{unit_id}: invalid raw custody entry")
         raw_path = _resolve_inside(run_dir, pointer)
         _verify_file_sha(raw_path, digest, "raw response")
         if raw_path.name != f"{digest}.json":
-            raise ValueError(f"{result.get('query_unit_id')}: raw custody filename is not content-addressed")
+            raise ValueError(f"{unit_id}: raw custody filename is not content-addressed")
+
+        expected_cursor = page.get("cursor_out")
+
+    if result.get("status") == "COMPLETE":
+        if provider_total is None:
+            raise ValueError(f"{unit_id}: complete result has no page/provider-total evidence")
+        if provider_total != result.get("provider_total"):
+            raise ValueError(f"{unit_id}: result provider_total differs from page evidence")
+        if record_count != result.get("candidate_count"):
+            raise ValueError(f"{unit_id}: complete page record counts do not reconcile to candidates")
 
 
 def _validate_result(
@@ -186,6 +229,8 @@ def _validate_result(
             raise ValueError(f"{unit_id}: candidate source universe mismatch")
         if candidate["discovery_query_family_ids"] != [unit["query_family_id"]]:
             raise ValueError(f"{unit_id}: candidate query family mismatch")
+        if unit["provider"] == "CROSSREF" and candidate.get("provider_record_source") is not None:
+            raise ValueError(f"{unit_id}: Crossref candidate carries unexpected provider_record_source")
 
     status = result.get("status")
     coverage = result.get("coverage")
@@ -211,7 +256,7 @@ def _validate_result(
     else:
         raise ValueError(f"{unit_id}: unsupported result status {status!r}")
 
-    _validate_raw_custody(run_dir, result)
+    _validate_raw_custody(run_dir, result, unit)
     return {
         "query_unit_id": unit_id,
         "provider": unit["provider"],
@@ -228,6 +273,18 @@ def _validate_result(
     }
 
 
+def _result_digest(result: dict[str, Any]) -> str:
+    return _sha256_json(
+        {
+            "query_unit_id": result["query_unit_id"],
+            "status": result["status"],
+            "freeze": result["freeze"],
+            "coverage": result["coverage"],
+            "candidates_sha256": result["candidates_sha256"],
+        }
+    )
+
+
 def verify_acquisition(plan: dict[str, Any], run_dir: Path) -> tuple[dict[str, Any], dict[str, Any]]:
     units = validate_plan(plan)
     manifest = _load_json(run_dir / "run-manifest.json")
@@ -237,6 +294,10 @@ def verify_acquisition(plan: dict[str, Any], run_dir: Path) -> tuple[dict[str, A
         raise ValueError("run manifest crossed release-eligibility boundary")
     if manifest.get("canonical_effect") != "NONE_CANDIDATE_DISCOVERY_ONLY":
         raise ValueError("run manifest crossed canonical authority boundary")
+    started_at = _parse_time(manifest.get("started_at"), "run started_at")
+    completed_at = _parse_time(manifest.get("completed_at"), "run completed_at")
+    if completed_at < started_at:
+        raise ValueError("run completed_at precedes started_at")
 
     result_paths = manifest.get("query_unit_result_paths")
     if not isinstance(result_paths, list) or not result_paths:
@@ -245,6 +306,7 @@ def verify_acquisition(plan: dict[str, Any], run_dir: Path) -> tuple[dict[str, A
         raise ValueError("selected_query_units does not match result paths")
 
     verified_units: list[dict[str, Any]] = []
+    result_records: list[dict[str, Any]] = []
     seen: set[str] = set()
     for relative in result_paths:
         if not isinstance(relative, str):
@@ -256,6 +318,7 @@ def verify_acquisition(plan: dict[str, Any], run_dir: Path) -> tuple[dict[str, A
         if unit_id in seen:
             raise ValueError(f"duplicate query-unit result: {unit_id}")
         seen.add(unit_id)
+        result_records.append(result)
         verified_units.append(_validate_result(run_dir, result, units[unit_id], plan["evidence_cutoff"]))
 
     complete = sum(row["status"] == "COMPLETE" for row in verified_units)
@@ -278,12 +341,30 @@ def verify_acquisition(plan: dict[str, Any], run_dir: Path) -> tuple[dict[str, A
     if manifest.get("status") != expected_status:
         raise ValueError("run manifest status mismatch")
 
-    dedup_path = _resolve_inside(run_dir, manifest.get("dedup_report_path", ""))
+    run_basis = {
+        "plan_sha256": plan["plan_sha256"],
+        "selected_query_unit_ids": [result["query_unit_id"] for result in result_records],
+        "result_digests": [_result_digest(result) for result in result_records],
+    }
+    run_sha = _sha256_json(run_basis)
+    if manifest.get("run_id") != f"SCIENCE-ACQ-{run_sha[:20].upper()}":
+        raise ValueError("run manifest run_id does not reconcile to verified result state")
+
+    dedup_relative = manifest.get("dedup_report_path")
+    if not isinstance(dedup_relative, str) or not dedup_relative:
+        raise ValueError("run manifest lacks dedup_report_path")
+    dedup_path = _resolve_inside(run_dir, dedup_relative)
     dedup = _load_json(dedup_path)
     if _sha256_json(dedup) != manifest.get("dedup_report_sha256"):
         raise ValueError("dedup report digest mismatch")
     if dedup.get("canonical_merge_performed") is not False or dedup.get("fuzzy_matching_performed") is not False:
         raise ValueError("dedup report crossed identity authority boundary")
+    if dedup.get("candidate_records_scanned") != sum(row["candidate_count"] for row in verified_units):
+        raise ValueError("dedup report candidate_records_scanned mismatch")
+
+    provenance_report = provenance_contract.verify_candidate_provenance(run_dir)
+    if provenance_report.get("run_id") != manifest.get("run_id"):
+        raise ValueError("candidate provenance report run_id mismatch")
 
     candidate_manifest_basis = {
         "plan_id": plan["plan_id"],
@@ -291,6 +372,8 @@ def verify_acquisition(plan: dict[str, Any], run_dir: Path) -> tuple[dict[str, A
         "run_id": manifest["run_id"],
         "query_units": verified_units,
         "dedup_report_sha256": manifest["dedup_report_sha256"],
+        "provenance_verification_id": provenance_report["provenance_verification_id"],
+        "provenance_verification_sha256": provenance_report["provenance_verification_sha256"],
     }
     candidate_manifest_sha = _sha256_json(candidate_manifest_basis)
     candidate_manifest = {
@@ -302,9 +385,11 @@ def verify_acquisition(plan: dict[str, Any], run_dir: Path) -> tuple[dict[str, A
         "complete_query_units": complete,
         "candidate_record_occurrences": sum(row["candidate_count"] for row in verified_units),
         "candidate_manifest_sha256": candidate_manifest_sha,
+        "provenance_verification_status": provenance_report["status"],
         "release_eligibility": RELEASE_INELIGIBLE,
         "authority_boundary": (
-            "This manifest inventories provider-attributed discovery candidates. Counts include repeated "
+            "This manifest inventories provider-attributed discovery candidates whose recorded provider identity "
+            "and source-record provenance have been checked against captured raw responses. Counts include repeated "
             "occurrences across overlapping frozen query units and are not unique-publication or scientific-validity counts."
         ),
     }
