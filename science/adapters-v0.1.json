@@ -13,7 +13,7 @@
       "transport": {"interface":"REST_API","base_url":"https://api.crossref.org/works","authentication_class":"NONE_PUBLIC_READ"},
       "pagination": {"mode":"CURSOR","cursor_parameter":"cursor","exhaustion_rule":"Continue the frozen cursor traversal until the provider returns no further records; preserve request order and cursor states."},
       "field_mapping": [
-        {"provider_field":"DOI","target_field":"identifiers.doi","required_for_candidate":false},
+        {"provider_field":"DOI","target_field":"identifiers.doi","required_for_candidate":true},
         {"provider_field":"title","target_field":"title","required_for_candidate":true},
         {"provider_field":"published","target_field":"publication_date","required_for_candidate":false},
         {"provider_field":"author","target_field":"raw_authorship","required_for_candidate":false},
@@ -33,6 +33,7 @@
       "transport": {"interface":"REST_API","base_url":"https://www.ebi.ac.uk/europepmc/webservices/rest/search","authentication_class":"NONE_PUBLIC_READ"},
       "pagination": {"mode":"CURSOR","cursor_parameter":"cursorMark","exhaustion_rule":"Continue the frozen cursor traversal until the provider cursor no longer advances or the declared result universe is exhausted; record every cursor state."},
       "field_mapping": [
+        {"provider_field":"source","target_field":"provider_source","required_for_candidate":true},
         {"provider_field":"id","target_field":"provider_record_id","required_for_candidate":true},
         {"provider_field":"doi","target_field":"identifiers.doi","required_for_candidate":false},
         {"provider_field":"pmid","target_field":"identifiers.pmid","required_for_candidate":false},
