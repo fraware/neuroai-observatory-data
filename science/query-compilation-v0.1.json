@@ -17,6 +17,7 @@
       "adapter_id": "ADAPTER-CROSSREF-WORKS",
       "source_universe_id": "SU-SCI-CROSSREF",
       "endpoint": "https://api.crossref.org/works",
+      "client_identity": {"access_class":"PUBLIC","user_agent":"neuroai-observatory-data/0.1 (+https://github.com/fraware/neuroai-observatory-data)"},
       "term_parameter": "query.title",
       "fixed_parameters": {"rows": "1000"},
       "date_filter_parameters": {"from": "from-pub-date", "through": "until-pub-date"},
@@ -25,12 +26,13 @@
       "initial_cursor": "*",
       "response_contract": {"total_path": "message.total-results", "records_path": "message.items", "next_cursor_path": "message.next-cursor"},
       "query_semantics": "Crossref query.title is a scored textual title query, not an exact-phrase identity test. Every returned work remains a discovery candidate and requires separate relevance adjudication.",
-      "access_note": "Public REST access requires no authentication. The acquisition client must use a stable User-Agent, serialize requests conservatively, honor 429/5xx backoff, and record response status and digests."
+      "access_note": "The frozen v0.1 acquisition uses Crossref's permitted public access class, not the polite pool: no authentication and no mailto/email identity are claimed. The client identity is hash-bound through the stable User-Agent; requests are serialized and 429/5xx responses trigger backoff."
     },
     "EUROPE_PMC": {
       "adapter_id": "ADAPTER-EUROPEPMC-SEARCH",
       "source_universe_id": "SU-SCI-EUROPEPMC",
       "endpoint": "https://www.ebi.ac.uk/europepmc/webservices/rest/search",
+      "client_identity": {"access_class":"PUBLIC","user_agent":"neuroai-observatory-data/0.1 (+https://github.com/fraware/neuroai-observatory-data)"},
       "query_parameter": "query",
       "query_template": "(TITLE:\"{term}\" OR ABSTRACT:\"{term}\") AND FIRST_PDATE:[{from} TO {through}]",
       "fixed_parameters": {"resultType": "core", "format": "json", "pageSize": "1000"},
@@ -38,7 +40,7 @@
       "initial_cursor": "*",
       "response_contract": {"total_path": "hitCount", "records_path": "resultList.result", "next_cursor_path": "nextCursorMark"},
       "query_semantics": "The frozen term is searched as a phrase in title or abstract within the declared FIRST_PDATE interval. Result membership remains discovery metadata, not proof of NeuroAI relevance or scientific validity.",
-      "access_note": "Public REST access requires no authentication. The acquisition client must serialize requests conservatively, honor transient-error backoff, and record response status and digests."
+      "access_note": "Public REST access requires no authentication. The stable User-Agent is hash-bound in the request identity; the acquisition client serializes requests, honors transient-error backoff, and records response status and digests."
     }
   },
   "coverage_semantics": {
@@ -47,5 +49,5 @@
     "aggregate_union_denominator": "NOT_CLAIMED_DUE_TO_OVERLAP_ACROSS_TERMS_AND_WINDOWS",
     "deduplicated_union_is_derived": true
   },
-  "authority_boundary": "This compilation fixes provider request semantics and traversal units only. It creates no provider observation, candidate record, scientific conclusion, canonical entity, or completeness claim until an actual acquisition records the requests, responses, exhaustion state, and digests."
+  "authority_boundary": "This compilation fixes provider request semantics, client identity, and traversal units only. It creates no provider observation, candidate record, scientific conclusion, canonical entity, or completeness claim until an actual acquisition records the requests, responses, exhaustion state, and digests."
 }
