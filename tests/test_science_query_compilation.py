@@ -61,6 +61,18 @@ class ScienceQueryCompilationTests(unittest.TestCase):
         self.assertEqual(unit["parameters"]["pageSize"], "1000")
         self.assertEqual(unit["parameters"]["cursorMark"], "*")
 
+    def test_client_identity_is_hash_bound_to_every_query_unit(self):
+        plan = m.compile_plan(copy.deepcopy(PROTOCOL), copy.deepcopy(COMPILATION))
+        expected = {
+            "access_class": "PUBLIC",
+            "user_agent": m.EXPECTED_USER_AGENT,
+        }
+        self.assertTrue(all(unit["client_identity"] == expected for unit in plan["query_units"]))
+        x = copy.deepcopy(COMPILATION)
+        x["providers"]["CROSSREF"]["client_identity"]["user_agent"] = "different-client"
+        with self.assertRaisesRegex(ValueError, "unexpected client user_agent"):
+            m.compile_plan(copy.deepcopy(PROTOCOL), x)
+
     def test_query_unit_ids_are_unique(self):
         plan = m.compile_plan(copy.deepcopy(PROTOCOL), copy.deepcopy(COMPILATION))
         ids = [row["query_unit_id"] for row in plan["query_units"]]
