@@ -1,0 +1,64 @@
+{
+  "compilation_id": "SCIENCE-QUERY-COMPILATION-V0.2",
+  "schema_version": "0.1.0",
+  "protocol_id": "SCIENCE-DISCOVERY-PROTOCOL-V0.1",
+  "status": "FROZEN_COMPILATION_NO_PRODUCTION_ACQUISITION_YET",
+  "supersedes": {
+    "compilation_id": "SCIENCE-QUERY-COMPILATION-V0.1",
+    "acquisition_state": "NO_PROVIDER_ACQUISITION_EXECUTED",
+    "reason": "PRE_ACQUISITION_DATA_MINIMIZATION_AND_RIGHTS_REVIEW"
+  },
+  "provider_scope": ["CROSSREF", "EUROPE_PMC"],
+  "partitioning": {
+    "mode": "CALENDAR_YEAR",
+    "from": "2015-01-01",
+    "through": "2026-08-20",
+    "inclusive": true,
+    "rationale": "Bound each cursor walk so provider mutation or transport failure cannot invalidate a multi-year traversal and failed windows can be resumed independently."
+  },
+  "query_unit_order": "PROVIDER_THEN_PROTOCOL_FAMILY_THEN_TERM_THEN_WINDOW",
+  "providers": {
+    "CROSSREF": {
+      "adapter_id": "ADAPTER-CROSSREF-WORKS",
+      "source_universe_id": "SU-SCI-CROSSREF",
+      "endpoint": "https://api.crossref.org/works",
+      "client_identity": {"access_class":"PUBLIC","user_agent":"neuroai-observatory-data/0.1 (+https://github.com/fraware/neuroai-observatory-data)"},
+      "term_parameter": "query.title",
+      "fixed_parameters": {"rows": "1000", "select": "DOI,title,published"},
+      "date_filter_parameters": {"from": "from-pub-date", "through": "until-pub-date"},
+      "filter_parameter": "filter",
+      "cursor_parameter": "cursor",
+      "initial_cursor": "*",
+      "response_contract": {"total_path": "message.total-results", "records_path": "message.items", "next_cursor_path": "message.next-cursor"},
+      "query_semantics": "Crossref query.title is a scored textual title query, not an exact-phrase identity test. Every returned work remains a discovery candidate and requires separate relevance adjudication.",
+      "access_note": "The v0.2 acquisition uses Crossref's permitted public access class with no authentication or mailto/email identity. Response fields are minimized to DOI, title, and published; requests are serialized and retryable failures trigger backoff."
+    },
+    "EUROPE_PMC": {
+      "adapter_id": "ADAPTER-EUROPEPMC-SEARCH",
+      "source_universe_id": "SU-SCI-EUROPEPMC",
+      "endpoint": "https://www.ebi.ac.uk/europepmc/webservices/rest/search",
+      "client_identity": {"access_class":"PUBLIC","user_agent":"neuroai-observatory-data/0.1 (+https://github.com/fraware/neuroai-observatory-data)"},
+      "query_parameter": "query",
+      "query_template": "(TITLE:\"{term}\" OR ABSTRACT:\"{term}\") AND FIRST_PDATE:[{from} TO {through}]",
+      "fixed_parameters": {"resultType": "lite", "format": "json", "pageSize": "1000"},
+      "cursor_parameter": "cursorMark",
+      "initial_cursor": "*",
+      "response_contract": {"total_path": "hitCount", "records_path": "resultList.result", "next_cursor_path": "nextCursorMark"},
+      "query_semantics": "The frozen term is searched as a phrase in title or abstract within the declared FIRST_PDATE interval. Result membership remains discovery metadata, not proof of NeuroAI relevance or scientific validity.",
+      "access_note": "Public REST access requires no authentication. The v0.2 acquisition uses lite result metadata because source, id, DOI, PMID, PMCID, title, and pubYear are sufficient for the candidate contract; full abstract/core metadata is not requested."
+    }
+  },
+  "data_minimization": {
+    "state": "PRE_ACQUISITION_MINIMIZED",
+    "crossref_selected_fields": ["DOI", "title", "published"],
+    "europe_pmc_result_type": "lite",
+    "purpose": "Retrieve only provider metadata required for discovery-candidate identity, title, and publication-date normalization while avoiding unnecessary abstract/full-metadata custody."
+  },
+  "coverage_semantics": {
+    "query_unit_denominator_method": "API_TOTAL",
+    "query_unit_completion_claim": "COMPLETE_WITHIN_FROZEN_QUERY_UNIT_ONLY",
+    "aggregate_union_denominator": "NOT_CLAIMED_DUE_TO_OVERLAP_ACROSS_TERMS_AND_WINDOWS",
+    "deduplicated_union_is_derived": true
+  },
+  "authority_boundary": "This compilation fixes minimized provider request semantics, client identity, and traversal units only. It creates no provider observation, candidate record, scientific conclusion, canonical entity, or completeness claim until an actual acquisition records the requests, responses, exhaustion state, and digests."
+}
