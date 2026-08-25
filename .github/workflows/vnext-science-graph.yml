@@ -18,6 +18,7 @@ on:
       - "tests/test_science_graph_contract.py"
       - "tests/test_science_query_compilation.py"
       - "tests/test_science_acquisition.py"
+      - "tests/test_science_response_custody.py"
       - "tests/test_science_acquisition_verification.py"
       - "tests/test_science_candidate_provenance.py"
       - "source-universes/p0/science-v0.1.json"
@@ -40,6 +41,7 @@ on:
       - "tests/test_science_graph_contract.py"
       - "tests/test_science_query_compilation.py"
       - "tests/test_science_acquisition.py"
+      - "tests/test_science_response_custody.py"
       - "tests/test_science_acquisition_verification.py"
       - "tests/test_science_candidate_provenance.py"
       - "source-universes/p0/science-v0.1.json"
@@ -68,6 +70,7 @@ jobs:
           tests/test_science_graph_contract.py
           tests/test_science_query_compilation.py
           tests/test_science_acquisition.py
+          tests/test_science_response_custody.py
           tests/test_science_acquisition_verification.py
           tests/test_science_candidate_provenance.py
           -v
