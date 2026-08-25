@@ -12,6 +12,13 @@ import verify_science_acquisition
 import verify_science_retry_custody
 
 REQUIRED_REDIRECT_POLICY = "FAIL_CLOSED_NO_AUTO_FOLLOW"
+DERIVED_VERIFICATION_PRODUCTS = (
+    "candidate-manifest.json",
+    "coverage-index.json",
+    "candidate-provenance-verification.json",
+    "retry-custody-verification.json",
+    "verification-envelope.json",
+)
 
 
 def _load_plan(path: Path) -> dict[str, Any]:
@@ -21,11 +28,47 @@ def _load_plan(path: Path) -> dict[str, Any]:
     return value
 
 
+def _load_json(path: Path) -> dict[str, Any]:
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise ValueError(f"JSON root must be object: {path}")
+    return value
+
+
 def _write_json(path: Path, value: dict[str, Any]) -> None:
-    path.write_text(
-        json.dumps(value, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
-        encoding="utf-8",
+    base._atomic_write(
+        path,
+        (json.dumps(value, indent=2, sort_keys=True, ensure_ascii=False) + "\n").encode("utf-8"),
     )
+
+
+def _archive_prior_derived_products(output_root: Path) -> None:
+    manifest_path = output_root / "run-manifest.json"
+    if not manifest_path.exists():
+        return
+    manifest = _load_json(manifest_path)
+    run_id = manifest.get("run_id")
+    if not isinstance(run_id, str) or not run_id:
+        raise ValueError("existing run manifest lacks run_id; quarantine output root before continuing")
+
+    archive_dir = output_root / "runs" / run_id
+    for name in DERIVED_VERIFICATION_PRODUCTS:
+        source = output_root / name
+        if not source.exists():
+            continue
+        payload = _load_json(source)
+        if payload.get("run_id") != run_id:
+            raise ValueError(
+                f"existing {name} does not belong to current run manifest; quarantine output root before continuing"
+            )
+        source_bytes = source.read_bytes()
+        target = archive_dir / name
+        if target.exists():
+            if target.read_bytes() != source_bytes:
+                raise ValueError(f"derived-product archive identity collision: {run_id}:{name}")
+        else:
+            base._atomic_write(target, source_bytes)
+        source.unlink()
 
 
 def run_acquisition(
@@ -45,6 +88,9 @@ def run_acquisition(
         raise ValueError(
             "production acquisition requires a transport that disables automatic redirects"
         )
+
+    base.validate_output_root(output_root)
+    _archive_prior_derived_products(output_root)
 
     manifest = strict.acquire_plan(
         plan,
@@ -76,6 +122,13 @@ def run_acquisition(
         "run_id": manifest["run_id"],
         "plan_id": plan["plan_id"],
         "plan_sha256": plan["plan_sha256"],
+        "acquisition_status": manifest["status"],
+        "selected_query_units": manifest["selected_query_units"],
+        "complete_query_units": manifest["complete_query_units"],
+        "partial_query_units": manifest["partial_query_units"],
+        "failed_query_units": manifest["failed_query_units"],
+        "selected_is_full_plan": manifest["selected_is_full_plan"],
+        "full_plan_complete": manifest["full_plan_complete"],
         "candidate_manifest_id": candidate_manifest["candidate_manifest_id"],
         "candidate_manifest_sha256": candidate_manifest["candidate_manifest_sha256"],
         "coverage_index_id": coverage_index["coverage_index_id"],
@@ -89,12 +142,13 @@ def run_acquisition(
         "schema_version": "0.1.0",
         **verification_basis,
         "verification_envelope_sha256": verification_sha,
-        "state": "ACQUISITION_CUSTODY_AND_PROVENANCE_VERIFIED_NOT_RELEASE_AUTHORIZED",
+        "state": "ACQUISITION_EVIDENCE_VERIFIED_NOT_RELEASE_AUTHORIZED",
         "release_eligibility": base.RELEASE_INELIGIBLE,
         "canonical_effect": "NONE_CANDIDATE_DISCOVERY_ONLY",
         "authority_boundary": (
             "This envelope binds independent acquisition, raw-response provenance, and retry-response custody "
-            "verification products for the selected frozen query units. It does not establish scientific relevance, "
+            "verification products for the selected frozen query units. Verification of an incomplete or scoped "
+            "run does not convert it into a complete run. The envelope establishes no scientific relevance, "
             "validity, canonical identity, release authority, or open-world literature completeness."
         ),
     }
@@ -131,8 +185,10 @@ def main() -> None:
         clock_fn=base._utc_now,
     )
     print(
-        f"PASS verified acquisition envelope: {envelope['verification_envelope_id']}; "
-        f"state={envelope['state']}"
+        f"VERIFICATION_PASS: envelope={envelope['verification_envelope_id']}; "
+        f"acquisition_status={envelope['acquisition_status']}; "
+        f"complete={envelope['complete_query_units']}/{envelope['selected_query_units']}; "
+        f"full_plan_complete={envelope['full_plan_complete']}"
     )
 
 
