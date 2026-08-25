@@ -11,8 +11,19 @@ from typing import Any, Callable
 
 import acquire_science_candidates as base
 
-STRICT_CUSTODY_SCHEMA_VERSION = "0.1.0"
+STRICT_CUSTODY_SCHEMA_VERSION = "0.2.0"
 STRICT_CUSTODY_STATE = "ALL_RECEIVED_HTTP_RESPONSES_CONTENT_ADDRESSED_AND_BOUND"
+EXECUTION_IDENTITY_STATE = "EXECUTION_IDENTITY_BOUND_TO_TIMING_DISPOSITION_AND_RETRY_CUSTODY"
+ACQUIRED_THIS_EXECUTION = "ACQUIRED_THIS_EXECUTION"
+REUSED_COMPLETE_RESULT = "REUSED_COMPLETE_RESULT"
+ARCHIVABLE_PRODUCTS = (
+    "dedup-report.json",
+    "candidate-manifest.json",
+    "coverage-index.json",
+    "candidate-provenance-verification.json",
+    "retry-custody-verification.json",
+    "verification-envelope.json",
+)
 
 _ORIGINAL_ACQUIRE_QUERY_UNIT = base.acquire_query_unit
 _ACTIVE_CONTEXT: dict[str, Any] | None = None
@@ -34,9 +45,7 @@ def _cursor_from_url(url: str, cursor_parameter: str) -> str | None:
         urllib.parse.urlsplit(url).query,
         keep_blank_values=True,
     ).get(cursor_parameter)
-    if not values:
-        return None
-    return values[0]
+    return values[0] if values else None
 
 
 def _attempt_record(
@@ -132,10 +141,7 @@ def _strict_fetch_with_retries(
         observed_at = context["clock_fn"]()
         raw_sha, raw_pointer = base._store_raw(context["output_root"] / "raw", result.body)
         last_status = result.status
-        retryable = (
-            result.status in base.TRANSIENT_HTTP_STATUSES
-            and attempt_index < max_attempts
-        )
+        retryable = result.status in base.TRANSIENT_HTTP_STATUSES and attempt_index < max_attempts
         context["attempts"].append(
             _attempt_record(
                 logical_request_index=logical_request_index,
@@ -151,7 +157,6 @@ def _strict_fetch_with_retries(
                 raw_pointer=raw_pointer,
             )
         )
-
         if result.status == 200:
             return result
         if not retryable:
@@ -173,14 +178,10 @@ def _group_attempts(attempts: list[dict[str, Any]]) -> dict[int, list[dict[str, 
     return groups
 
 
-def _validate_attempt_binding(
-    result: dict[str, Any],
-    attempts: list[dict[str, Any]],
-) -> None:
+def _validate_attempt_binding(result: dict[str, Any], attempts: list[dict[str, Any]]) -> None:
     groups = _group_attempts(attempts)
     if groups and sorted(groups) != list(range(1, len(groups) + 1)):
         raise ValueError("logical request indices are not contiguous")
-
     responses = result.get("response_manifest")
     if not isinstance(responses, list):
         raise ValueError("response_manifest must be an array")
@@ -242,7 +243,6 @@ def _strict_acquire_query_unit(
     global _ACTIVE_CONTEXT
     if _ACTIVE_CONTEXT is not None:
         raise RuntimeError("strict acquisition is serial and does not permit nested unit execution")
-
     context = {
         "query_unit_id": unit["query_unit_id"],
         "output_root": output_root,
@@ -270,25 +270,17 @@ def _strict_acquire_query_unit(
 
     attempts = context["attempts"]
     _validate_attempt_binding(result, attempts)
-    attempt_sha = base._sha256_json(attempts)
     result.update(
         {
             "retry_custody_schema_version": STRICT_CUSTODY_SCHEMA_VERSION,
             "retry_custody_state": STRICT_CUSTODY_STATE,
             "attempt_response_manifest": attempts,
-            "attempt_response_manifest_sha256": attempt_sha,
-            "received_http_response_count": sum(
-                row["outcome"] == "HTTP_RESPONSE" for row in attempts
-            ),
-            "transport_error_attempt_count": sum(
-                row["outcome"] == "TRANSPORT_ERROR" for row in attempts
-            ),
+            "attempt_response_manifest_sha256": base._sha256_json(attempts),
+            "received_http_response_count": sum(row["outcome"] == "HTTP_RESPONSE" for row in attempts),
+            "transport_error_attempt_count": sum(row["outcome"] == "TRANSPORT_ERROR" for row in attempts),
         }
     )
-    base._write_json(
-        output_root / "units" / unit["query_unit_id"] / "result.json",
-        result,
-    )
+    base._write_json(output_root / "units" / unit["query_unit_id"] / "result.json", result)
     return result
 
 
@@ -322,24 +314,105 @@ def _selected_units(
     return units
 
 
-def _validate_existing_strict_complete(
-    unit: dict[str, Any],
-    output_root: Path,
-) -> None:
+def _load_result(unit: dict[str, Any], output_root: Path) -> dict[str, Any] | None:
     path = output_root / "units" / unit["query_unit_id"] / "result.json"
     if not path.exists():
-        return
+        return None
     value = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(value, dict) or value.get("status") != "COMPLETE":
-        return
+    if not isinstance(value, dict):
+        raise ValueError(f"{unit['query_unit_id']}: existing result root must be object")
+    return value
+
+
+def _validate_existing_strict_complete(unit: dict[str, Any], output_root: Path) -> bool:
+    value = _load_result(unit, output_root)
+    if value is None or value.get("status") != "COMPLETE":
+        return False
     attempts = value.get("attempt_response_manifest")
     if value.get("retry_custody_state") != STRICT_CUSTODY_STATE or not isinstance(attempts, list):
         raise ValueError(
             f"{unit['query_unit_id']}: existing COMPLETE result predates strict retry custody; quarantine or reacquire it"
         )
+    if value.get("retry_custody_schema_version") not in {"0.1.0", STRICT_CUSTODY_SCHEMA_VERSION}:
+        raise ValueError(f"{unit['query_unit_id']}: unsupported existing retry custody schema version")
     if value.get("attempt_response_manifest_sha256") != base._sha256_json(attempts):
         raise ValueError(f"{unit['query_unit_id']}: existing strict attempt manifest digest mismatch")
     _validate_attempt_binding(value, attempts)
+    return True
+
+
+def _archive_identity(manifest: dict[str, Any], manifest_bytes: bytes) -> str:
+    execution_id = manifest.get("execution_id")
+    if isinstance(execution_id, str) and execution_id.startswith("SCIENCE-EXECUTION-"):
+        return execution_id
+    digest = base._sha256_bytes(manifest_bytes)
+    return f"SCIENCE-EXECUTION-LEGACY-{digest[:20].upper()}"
+
+
+def _archive_prior_execution(output_root: Path) -> None:
+    manifest_path = output_root / "run-manifest.json"
+    if not manifest_path.exists():
+        return
+    manifest_bytes = manifest_path.read_bytes()
+    try:
+        manifest = json.loads(manifest_bytes)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError("existing run manifest is invalid; quarantine output root before continuing") from exc
+    if not isinstance(manifest, dict):
+        raise ValueError("existing run manifest root must be object")
+    archive_id = _archive_identity(manifest, manifest_bytes)
+    archive_dir = output_root / "executions" / archive_id
+    archived_manifest = archive_dir / "run-manifest.json"
+    if archived_manifest.exists():
+        if archived_manifest.read_bytes() != manifest_bytes:
+            raise ValueError(f"execution archive identity collision: {archive_id}")
+    else:
+        base._atomic_write(archived_manifest, manifest_bytes)
+
+    dedup_path = output_root / "dedup-report.json"
+    if dedup_path.exists():
+        expected = manifest.get("dedup_report_sha256")
+        dedup = json.loads(dedup_path.read_text(encoding="utf-8"))
+        if expected != base._sha256_json(dedup):
+            raise ValueError("existing dedup report digest does not match run manifest")
+
+    for name in ARCHIVABLE_PRODUCTS:
+        source = output_root / name
+        if not source.exists():
+            continue
+        target = archive_dir / name
+        source_bytes = source.read_bytes()
+        if target.exists():
+            if target.read_bytes() != source_bytes:
+                raise ValueError(f"execution product archive identity collision: {archive_id}:{name}")
+        else:
+            base._atomic_write(target, source_bytes)
+        source.unlink()
+    manifest_path.unlink()
+
+
+def _execution_basis(
+    manifest: dict[str, Any],
+    unit_execution_evidence: list[dict[str, Any]],
+) -> dict[str, Any]:
+    return {
+        "result_state_id": manifest["run_id"],
+        "plan_sha256": manifest["plan_sha256"],
+        "started_at": manifest["started_at"],
+        "completed_at": manifest["completed_at"],
+        "unit_execution_evidence": unit_execution_evidence,
+    }
+
+
+def _snapshot_execution_manifest(output_root: Path, manifest: dict[str, Any]) -> None:
+    execution_id = manifest["execution_id"]
+    rendered = (json.dumps(manifest, indent=2, sort_keys=True, ensure_ascii=False) + "\n").encode("utf-8")
+    path = output_root / "executions" / execution_id / "run-manifest.json"
+    if path.exists():
+        if path.read_bytes() != rendered:
+            raise ValueError(f"execution snapshot identity collision: {execution_id}")
+    else:
+        base._atomic_write(path, rendered)
 
 
 def acquire_plan(
@@ -356,14 +429,14 @@ def acquire_plan(
     clock_fn: Callable[[], str] = base._utc_now,
 ) -> dict[str, Any]:
     base.validate_output_root(output_root)
-    units = _selected_units(
-        plan,
-        providers=providers,
-        query_unit_ids=query_unit_ids,
-        max_units=max_units,
-    )
-    for unit in units:
-        _validate_existing_strict_complete(unit, output_root)
+    units = _selected_units(plan, providers=providers, query_unit_ids=query_unit_ids, max_units=max_units)
+    preexisting_complete_ids = {
+        unit["query_unit_id"]
+        for unit in units
+        if _validate_existing_strict_complete(unit, output_root)
+    }
+
+    _archive_prior_execution(output_root)
 
     previous_acquire = base.acquire_query_unit
     base.acquire_query_unit = _strict_acquire_query_unit
@@ -384,6 +457,7 @@ def acquire_plan(
         base.acquire_query_unit = previous_acquire
 
     summaries: list[dict[str, Any]] = []
+    execution_evidence: list[dict[str, Any]] = []
     for relative in manifest["query_unit_result_paths"]:
         result_path = base._resolve_inside(output_root, relative)
         result = json.loads(result_path.read_text(encoding="utf-8"))
@@ -393,28 +467,53 @@ def acquire_plan(
         if result.get("attempt_response_manifest_sha256") != base._sha256_json(attempts):
             raise ValueError(f"{result.get('query_unit_id')}: attempt response manifest digest mismatch")
         _validate_attempt_binding(result, attempts)
-        summaries.append(
+        summary = {
+            "query_unit_id": result["query_unit_id"],
+            "attempt_response_manifest_sha256": result["attempt_response_manifest_sha256"],
+            "received_http_response_count": result["received_http_response_count"],
+            "transport_error_attempt_count": result["transport_error_attempt_count"],
+        }
+        summaries.append(summary)
+        disposition = (
+            REUSED_COMPLETE_RESULT
+            if result["query_unit_id"] in preexisting_complete_ids
+            else ACQUIRED_THIS_EXECUTION
+        )
+        execution_evidence.append(
             {
                 "query_unit_id": result["query_unit_id"],
+                "disposition": disposition,
+                "result_status": result["status"],
                 "attempt_response_manifest_sha256": result["attempt_response_manifest_sha256"],
-                "received_http_response_count": result["received_http_response_count"],
-                "transport_error_attempt_count": result["transport_error_attempt_count"],
             }
         )
 
-    custody_basis = {
-        "run_id": manifest["run_id"],
-        "query_units": summaries,
-    }
+    custody_basis = {"run_id": manifest["run_id"], "query_units": summaries}
+    execution_basis = _execution_basis(manifest, execution_evidence)
+    execution_sha = base._sha256_json(execution_basis)
+    acquired = sum(row["disposition"] == ACQUIRED_THIS_EXECUTION for row in execution_evidence)
+    reused = sum(row["disposition"] == REUSED_COMPLETE_RESULT for row in execution_evidence)
     manifest.update(
         {
             "retry_custody_schema_version": STRICT_CUSTODY_SCHEMA_VERSION,
             "retry_custody_state": STRICT_CUSTODY_STATE,
             "retry_custody_query_units": len(summaries),
             "retry_custody_sha256": base._sha256_json(custody_basis),
+            "result_state_id": manifest["run_id"],
+            "execution_identity_state": EXECUTION_IDENTITY_STATE,
+            "execution_id": f"SCIENCE-EXECUTION-{execution_sha[:20].upper()}",
+            "execution_identity_sha256": execution_sha,
+            "unit_execution_evidence": execution_evidence,
+            "acquired_query_units_this_execution": acquired,
+            "reused_complete_query_units_this_execution": reused,
+            "execution_authority_boundary": (
+                "execution_id identifies this invocation's timing, reuse/acquisition dispositions, and bound retry-custody evidence. "
+                "result_state_id identifies the resulting provider/candidate state. Reuse of a complete result does not assert that provider retrieval occurred again."
+            ),
         }
     )
     base._write_json(output_root / "run-manifest.json", manifest)
+    _snapshot_execution_manifest(output_root, manifest)
     return manifest
 
 
@@ -426,9 +525,7 @@ def _load_plan(path: Path) -> dict[str, Any]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Execute the frozen Phase 4 science query plan with attempt-level HTTP response custody."
-    )
+    parser = argparse.ArgumentParser(description="Execute the frozen Phase 4 science query plan with attempt-level HTTP response custody.")
     parser.add_argument("--plan", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--provider", action="append", choices=["CROSSREF", "EUROPE_PMC"])
@@ -438,7 +535,6 @@ def main() -> None:
     parser.add_argument("--max-pages", type=int, default=10_000)
     parser.add_argument("--timeout-seconds", type=float, default=60.0)
     args = parser.parse_args()
-
     manifest = acquire_plan(
         _load_plan(args.plan),
         output_root=args.output_dir,
@@ -450,9 +546,9 @@ def main() -> None:
         max_units=args.max_units,
     )
     print(
-        f"{manifest['status']}: complete={manifest['complete_query_units']}/"
-        f"{manifest['selected_query_units']}; run_id={manifest['run_id']}; "
-        f"retry_custody={manifest['retry_custody_state']}"
+        f"{manifest['status']}: complete={manifest['complete_query_units']}/{manifest['selected_query_units']}; "
+        f"result_state_id={manifest['result_state_id']}; execution_id={manifest['execution_id']}; "
+        f"acquired={manifest['acquired_query_units_this_execution']}; reused={manifest['reused_complete_query_units_this_execution']}"
     )
 
 
