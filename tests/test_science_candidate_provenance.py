@@ -19,13 +19,26 @@ def _load_module(name: str, path: Path):
     return module
 
 
-compiler = _load_module("compile_science_queries_for_provenance_tests", SCRIPTS / "compile_science_queries.py")
-acquisition = _load_module("acquire_science_candidates", SCRIPTS / "acquire_science_candidates.py")
+compiler = _load_module(
+    "compile_science_queries_for_provenance_tests",
+    SCRIPTS / "compile_science_queries.py",
+)
+acquisition = _load_module(
+    "acquire_science_candidates",
+    SCRIPTS / "acquire_science_candidates.py",
+)
 sys.modules["acquire_science_candidates"] = acquisition
-provenance = _load_module("verify_science_candidate_provenance", SCRIPTS / "verify_science_candidate_provenance.py")
+provenance = _load_module(
+    "verify_science_candidate_provenance",
+    SCRIPTS / "verify_science_candidate_provenance.py",
+)
 
-PROTOCOL = json.loads((ROOT / "science" / "discovery-protocol-v0.1.json").read_text())
-COMPILATION = json.loads((ROOT / "science" / "query-compilation-v0.1.json").read_text())
+PROTOCOL = json.loads(
+    (ROOT / "science" / "discovery-protocol-v0.1.json").read_text()
+)
+COMPILATION = json.loads(
+    (ROOT / "science" / "query-compilation-v0.2.json").read_text()
+)
 
 
 class FakeTransport:
@@ -55,8 +68,12 @@ class Clock:
 
 def _selected_plan_units():
     plan = compiler.compile_plan(PROTOCOL, COMPILATION)
-    crossref = next(unit for unit in plan["query_units"] if unit["provider"] == "CROSSREF")
-    europe_pmc = next(unit for unit in plan["query_units"] if unit["provider"] == "EUROPE_PMC")
+    crossref = next(
+        unit for unit in plan["query_units"] if unit["provider"] == "CROSSREF"
+    )
+    europe_pmc = next(
+        unit for unit in plan["query_units"] if unit["provider"] == "EUROPE_PMC"
+    )
     return plan, {crossref["query_unit_id"], europe_pmc["query_unit_id"]}
 
 
@@ -78,7 +95,12 @@ def _build_run(root: Path, *, epmc_source="MED"):
             {
                 "message": {
                     "total-results": 1,
-                    "items": [{"DOI": "10.1234/shared", "title": ["Shared neural interface record"]}],
+                    "items": [
+                        {
+                            "DOI": "10.1234/shared",
+                            "title": ["Shared neural interface record"],
+                        }
+                    ],
                     "next-cursor": "done-crossref",
                 }
             },
@@ -109,7 +131,9 @@ class ScienceCandidateProvenanceTests(unittest.TestCase):
             root = Path(tmp)
             _build_run(root)
             report = provenance.verify_candidate_provenance(root)
-            self.assertEqual(report["status"], "RAW_RESPONSE_PROVENANCE_VERIFIED")
+            self.assertEqual(
+                report["status"], "RAW_RESPONSE_PROVENANCE_VERIFIED"
+            )
             self.assertEqual(report["verified_candidates"], 2)
             self.assertEqual(report["verified_raw_records"], 2)
             self.assertEqual(report["europe_pmc_distinct_source_ids"], 1)
@@ -129,10 +153,19 @@ class ScienceCandidateProvenanceTests(unittest.TestCase):
                     if line.strip()
                 )
             )
-            rows = [json.loads(line) for line in candidate_file.read_text().splitlines() if line.strip()]
+            rows = [
+                json.loads(line)
+                for line in candidate_file.read_text().splitlines()
+                if line.strip()
+            ]
             rows[0]["source_record_sha256"] = "0" * 64
-            candidate_file.write_text("\n".join(json.dumps(row) for row in rows) + "\n", encoding="utf-8")
-            with self.assertRaisesRegex(ValueError, "source_record_sha256 is not present"):
+            candidate_file.write_text(
+                "\n".join(json.dumps(row) for row in rows) + "\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(
+                ValueError, "source_record_sha256 is not present"
+            ):
                 provenance.verify_candidate_provenance(root)
 
     def test_candidate_normalized_metadata_tampering_fails_even_with_valid_source_hash(self):
@@ -148,10 +181,19 @@ class ScienceCandidateProvenanceTests(unittest.TestCase):
                     if line.strip()
                 )
             )
-            rows = [json.loads(line) for line in candidate_file.read_text().splitlines() if line.strip()]
+            rows = [
+                json.loads(line)
+                for line in candidate_file.read_text().splitlines()
+                if line.strip()
+            ]
             rows[0]["title"] = "Forged normalized title"
-            candidate_file.write_text("\n".join(json.dumps(row) for row in rows) + "\n", encoding="utf-8")
-            with self.assertRaisesRegex(ValueError, "normalization does not reproduce exactly"):
+            candidate_file.write_text(
+                "\n".join(json.dumps(row) for row in rows) + "\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(
+                ValueError, "normalization does not reproduce exactly"
+            ):
                 provenance.verify_candidate_provenance(root)
 
     def test_europe_pmc_provider_source_tampering_fails(self):
@@ -167,9 +209,16 @@ class ScienceCandidateProvenanceTests(unittest.TestCase):
                     if line.strip()
                 )
             )
-            rows = [json.loads(line) for line in candidate_file.read_text().splitlines() if line.strip()]
+            rows = [
+                json.loads(line)
+                for line in candidate_file.read_text().splitlines()
+                if line.strip()
+            ]
             rows[0]["provider_record_source"] = "PPR"
-            candidate_file.write_text("\n".join(json.dumps(row) for row in rows) + "\n", encoding="utf-8")
+            candidate_file.write_text(
+                "\n".join(json.dumps(row) for row in rows) + "\n",
+                encoding="utf-8",
+            )
             with self.assertRaisesRegex(ValueError, "does not resolve uniquely"):
                 provenance.verify_candidate_provenance(root)
 
@@ -177,7 +226,9 @@ class ScienceCandidateProvenanceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             _build_run(root, epmc_source=None)
-            with self.assertRaisesRegex(ValueError, "Europe PMC raw record lacks source database code"):
+            with self.assertRaisesRegex(
+                ValueError, "Europe PMC raw record lacks source database code"
+            ):
                 provenance.verify_candidate_provenance(root)
 
 
