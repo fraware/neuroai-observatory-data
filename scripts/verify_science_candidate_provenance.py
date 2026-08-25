@@ -91,6 +91,39 @@ def _raw_provider_identity(provider: str, record: dict[str, Any]) -> tuple[str |
     raise ValueError(f"unsupported provider identity audit: {provider}")
 
 
+def _expected_candidate(
+    provider: str,
+    record: dict[str, Any],
+    *,
+    result: dict[str, Any],
+    observed_at: str,
+) -> dict[str, Any]:
+    freeze = result["freeze"]
+    query_families = freeze.get("query_family_ids")
+    if not isinstance(query_families, list) or len(query_families) != 1:
+        raise ValueError(f"{result.get('query_unit_id')}: provenance reconstruction requires one query family")
+    unit = {
+        "query_unit_id": result["query_unit_id"],
+        "source_universe_id": freeze["source_universe_id"],
+        "query_family_id": query_families[0],
+    }
+    if provider == "CROSSREF":
+        return acquisition._crossref_candidate(
+            record,
+            unit=unit,
+            freeze_id=freeze["freeze_id"],
+            observed_at=observed_at,
+        )
+    if provider == "EUROPE_PMC":
+        return acquisition._europe_pmc_candidate(
+            record,
+            unit=unit,
+            freeze_id=freeze["freeze_id"],
+            observed_at=observed_at,
+        )
+    raise ValueError(f"unsupported provider candidate reconstruction: {provider}")
+
+
 def verify_candidate_provenance(run_dir: Path) -> dict[str, Any]:
     run_dir = run_dir.resolve()
     manifest = _load_json(run_dir / "run-manifest.json")
@@ -115,7 +148,7 @@ def verify_candidate_provenance(run_dir: Path) -> dict[str, Any]:
         else:
             raise ValueError(f"{unit_id}: unsupported source universe in provenance audit")
 
-        provenance: dict[str, set[tuple[str, str | None, str]]] = {}
+        provenance: dict[str, list[tuple[str, str | None, str, dict[str, Any]]]] = {}
         raw_record_count = 0
         pages = result.get("page_manifest")
         if not isinstance(pages, list):
@@ -143,8 +176,8 @@ def verify_candidate_provenance(run_dir: Path) -> dict[str, Any]:
             for record in records:
                 record_sha = _sha256_json(record)
                 provider_source, provider_id = _raw_provider_identity(provider_name, record)
-                provenance.setdefault(record_sha, set()).add(
-                    (observed_at, provider_source, provider_id)
+                provenance.setdefault(record_sha, []).append(
+                    (observed_at, provider_source, provider_id, record)
                 )
                 if provider_name == "EUROPE_PMC":
                     assert provider_source is not None
@@ -169,10 +202,25 @@ def verify_candidate_provenance(run_dir: Path) -> dict[str, Any]:
                 provider_source = provider_source.upper()
             elif provider_source is not None:
                 raise ValueError(f"{unit_id}: Crossref candidate unexpectedly carries provider_record_source")
-            identity_tuple = (observed_at, provider_source, provider_id)
-            if identity_tuple not in provenance[record_sha]:
+
+            matches = [
+                record
+                for raw_observed_at, raw_source, raw_id, record in provenance[record_sha]
+                if (raw_observed_at, raw_source, raw_id) == (observed_at, provider_source, provider_id)
+            ]
+            if len(matches) != 1:
                 raise ValueError(
-                    f"{unit_id}: candidate provider identity/observation does not match its captured raw record"
+                    f"{unit_id}: candidate provider identity/observation does not resolve uniquely to its captured raw record"
+                )
+            expected = _expected_candidate(
+                provider_name,
+                matches[0],
+                result=result,
+                observed_at=observed_at,
+            )
+            if candidate != expected:
+                raise ValueError(
+                    f"{unit_id}: candidate normalization does not reproduce exactly from its captured raw provider record"
                 )
             verified_candidates += 1
 
@@ -195,9 +243,9 @@ def verify_candidate_provenance(run_dir: Path) -> dict[str, Any]:
         "status": "RAW_RESPONSE_PROVENANCE_VERIFIED",
         "canonical_effect": "NONE",
         "authority_boundary": (
-            "This verifies that each candidate's provider identity, source-record hash, and observation time "
-            "trace to a content-addressed captured provider response. It does not establish scientific validity, "
-            "relevance, canonical identity, or release authority."
+            "This verifies that each candidate is exactly reproducible from its provider identity, source-record hash, "
+            "observation time, and captured raw provider record. It does not establish scientific validity, relevance, "
+            "canonical identity, or release authority."
         ),
     }
 
