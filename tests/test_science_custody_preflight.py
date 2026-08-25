@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import errno
 import importlib.util
 import shutil
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).parents[1]
 SCRIPTS = ROOT / "scripts"
@@ -124,6 +126,77 @@ class ScienceCustodyPreflightTests(unittest.TestCase):
                 ROOT / "should-never-be-created",
                 clock_fn=Clock(),
             )
+
+    def test_read_only_probe_fails_on_writable_identity_and_restores_manifest_files(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "custody"
+            manifest = preflight.prepare_preflight(root, clock_fn=Clock())
+            preflight_root = (
+                root
+                / preflight.PREFLIGHT_DIRNAME
+                / manifest["preflight_id"]
+            )
+            original = {
+                row["relative_path"]: (preflight_root / row["relative_path"]).read_bytes()
+                for row in manifest["files"]
+            }
+
+            with self.assertRaisesRegex(
+                RuntimeError,
+                "CREATE_FILE.*WRITE_EXISTING_FILE.*TRUNCATE_FILE.*RENAME_FILE.*DELETE_FILE",
+            ):
+                preflight.assert_read_only(
+                    root,
+                    manifest["preflight_id"],
+                    clock_fn=Clock(),
+                )
+
+            for relative_path, expected_bytes in original.items():
+                self.assertEqual(
+                    (preflight_root / relative_path).read_bytes(),
+                    expected_bytes,
+                )
+            preflight._verify_manifest_files(
+                root,
+                manifest,
+                require_original_root=True,
+            )
+
+    def test_read_only_probe_reports_all_blocked_operations(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "custody"
+            manifest = preflight.prepare_preflight(root, clock_fn=Clock())
+            with (
+                mock.patch.object(preflight, "_probe_create", return_value=False),
+                mock.patch.object(preflight, "_probe_write_existing", return_value=False),
+                mock.patch.object(preflight, "_probe_truncate", return_value=False),
+                mock.patch.object(preflight, "_probe_rename", return_value=False),
+                mock.patch.object(preflight, "_probe_delete", return_value=False),
+            ):
+                report = preflight.assert_read_only(
+                    root,
+                    manifest["preflight_id"],
+                    clock_fn=Clock(),
+                )
+
+            self.assertEqual(report["status"], "READ_ONLY_MUTATION_BOUNDARY_VERIFIED")
+            self.assertEqual(
+                report["blocked_operations"],
+                [
+                    "CREATE_FILE",
+                    "WRITE_EXISTING_FILE",
+                    "TRUNCATE_FILE",
+                    "RENAME_FILE",
+                    "DELETE_FILE",
+                ],
+            )
+            self.assertEqual(len(report["verification_sha256"]), 64)
+
+    def test_permission_denial_classifier_is_fail_closed(self):
+        self.assertTrue(preflight._is_permission_denied(PermissionError()))
+        self.assertTrue(preflight._is_permission_denied(OSError(errno.EROFS, "read only")))
+        self.assertTrue(preflight._is_permission_denied(OSError(errno.EPERM, "denied")))
+        self.assertFalse(preflight._is_permission_denied(OSError(errno.EIO, "io failure")))
 
 
 if __name__ == "__main__":
