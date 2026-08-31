@@ -1,0 +1,79 @@
+{
+  "$id": "observatory-v1-observation.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NeuroAI Observatory source observation",
+  "description": "Noncanonical design schema for public metadata describing one time-specific source observation. It must not contain protected evidence bytes, credentials, or local protected paths.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": "1.0.0-draft", "type": "string"},
+    "observation_id": {"type": "string", "minLength": 1, "pattern": "^OBS-[A-Za-z0-9._:-]+$"},
+    "source_id": {"type": "string", "minLength": 1},
+    "observed_at": {"type": "string", "format": "date-time"},
+    "retrieval_method": {"type": "string", "minLength": 1},
+    "retrieval_outcome": {
+      "type": "string",
+      "enum": ["SUCCESS", "NOT_MODIFIED", "METADATA_ONLY", "MANUAL_INSPECTION", "FAILED", "INACCESSIBLE", "ACCESS_RESTRICTED"]
+    },
+    "requested_locator": {"type": ["string", "null"]},
+    "resolved_locator": {"type": ["string", "null"]},
+    "http_status": {"type": ["integer", "null"], "minimum": 100, "maximum": 599},
+    "content_type": {"type": ["string", "null"]},
+    "content_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "normalized_content_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "capture_state": {
+      "type": "string",
+      "enum": [
+        "NOT_ATTEMPTED",
+        "RETRIEVAL_FAILED",
+        "METADATA_ONLY",
+        "PUBLIC_EXTERNAL_REFERENCE_ONLY",
+        "CAPTURED_PUBLIC_REDISTRIBUTABLE",
+        "CAPTURED_PROTECTED_S3",
+        "CAPTURED_EXTERNAL_CUSTODIAN",
+        "INACCESSIBLE",
+        "WITHHELD_FROM_PUBLICATION"
+      ]
+    },
+    "capture_reference_class": {"type": ["string", "null"]},
+    "redistribution_state": {
+      "type": "string",
+      "enum": [
+        "PUBLIC_REDISTRIBUTABLE",
+        "PUBLIC_REFERENCE_ONLY",
+        "NOT_PACKAGED_COPYRIGHTED_SOURCE",
+        "LICENSED_LOCAL_ONLY",
+        "PROTECTED_RESTRICTED",
+        "RIGHTS_UNRESOLVED"
+      ]
+    },
+    "collector_or_operator_version": {"type": ["string", "null"]},
+    "source_published_at": {"$ref": "#/$defs/temporalValue"},
+    "source_effective_at": {"$ref": "#/$defs/temporalValue"},
+    "protected_bytes_in_record": {"const": false, "type": "boolean"},
+    "authority_boundary": {"type": "string", "minLength": 1}
+  },
+  "required": [
+    "schema_version",
+    "observation_id",
+    "source_id",
+    "observed_at",
+    "retrieval_method",
+    "retrieval_outcome",
+    "capture_state",
+    "redistribution_state",
+    "protected_bytes_in_record",
+    "authority_boundary"
+  ],
+  "$defs": {
+    "temporalValue": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "value": {"type": "string", "minLength": 1},
+        "precision": {"type": "string", "enum": ["TIMESTAMP", "DATE", "MONTH", "YEAR", "INTERVAL", "UNRESOLVED"]}
+      },
+      "required": ["value", "precision"]
+    }
+  }
+}
