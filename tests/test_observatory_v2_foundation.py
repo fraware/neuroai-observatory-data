@@ -33,6 +33,8 @@ class ObservatoryV2FoundationTests(unittest.TestCase):
         self.assertNotEqual(assertion["assertion_id"], observation["observation_id"])
         self.assertIn(observation["observation_id"], assertion["observation_ids"])
         self.assertIn(observation["source_id"], assertion["source_ids"])
+        self.assertEqual(assertion["source_linkage_state"], "SOURCE_LINKED")
+        self.assertEqual(assertion["knowledge_time_state"], "OBSERVED_AT_CAPTURE")
 
     def test_public_observation_schema_forbids_protected_bytes(self) -> None:
         schema = json.loads(
@@ -49,6 +51,37 @@ class ObservatoryV2FoundationTests(unittest.TestCase):
         self.assertEqual(len(schema["oneOf"]), 2)
         self.assertIn("object_id", schema["oneOf"][0]["required"])
         self.assertIn("value", schema["oneOf"][1]["required"])
+
+    def test_assertion_schema_types_source_unresolved_predecessor_state(self) -> None:
+        schema = json.loads(
+            (ROOT / "schemas/observatory-v2-assertion.schema.json").read_text()
+        )
+        self.assertIn("source_linkage_state", schema["required"])
+        self.assertIn("knowledge_time_state", schema["required"])
+        self.assertIn(
+            "PREDECESSOR_SOURCE_LINKAGE_UNRESOLVED",
+            schema["properties"]["source_linkage_state"]["enum"],
+        )
+        self.assertIn(
+            "PREDECESSOR_TIME_UNRESOLVED",
+            schema["properties"]["knowledge_time_state"]["enum"],
+        )
+        self.assertNotIn("minItems", schema["properties"]["source_ids"])
+        self.assertTrue(schema["allOf"])
+
+    def test_entity_schema_separates_identity_from_assertions(self) -> None:
+        schema = json.loads(
+            (ROOT / "schemas/observatory-v2-entity.schema.json").read_text()
+        )
+        self.assertEqual(schema["$id"], "observatory-v2-entity.schema.json")
+        self.assertIs(schema["additionalProperties"], False)
+        self.assertEqual(
+            set(schema["properties"]["entity_kind"]["enum"]),
+            {"ORGANIZATION", "PROVENANCE_NODE"},
+        )
+        self.assertNotIn("verification_state", schema["properties"])
+        self.assertNotIn("evidence_state", schema["properties"])
+        self.assertIn("predecessor", schema["required"])
 
     def test_foundation_fixture_cannot_claim_canonical_authority(self) -> None:
         assertion = json.loads(
