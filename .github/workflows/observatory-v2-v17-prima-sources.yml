@@ -1,0 +1,48 @@
+name: Observatory v2 v1.7 PRIMA supplemental sources
+
+on:
+  pull_request:
+    paths:
+      - "schemas/observatory-v2-source.schema.json"
+      - "schemas/observatory-v1-observation.schema.json"
+      - "scripts/project_v17_prima_sources_to_v2.py"
+      - "tests/test_v17_prima_source_v2_projection.py"
+      - ".github/workflows/observatory-v2-v17-prima-sources.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify governing release manifest
+        run: python scripts/verify_manifest.py releases/data-v0.1.0-public-governing/records releases/data-v0.1.0-public-governing/SHA256SUMS.txt
+      - name: Run supplemental-source tests
+        run: python -m unittest tests.test_v17_prima_source_v2_projection
+      - name: Reconcile supplemental sources
+        run: |
+          python scripts/project_v17_prima_sources_to_v2.py --output-dir /tmp/prima-sources > /tmp/prima-sources-run.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result = json.loads(Path('/tmp/prima-sources/reconciliation.json').read_text())
+          assert result['input_source_count'] == 12
+          assert result['projected_source_count'] == 12
+          assert result['projected_observation_count'] == 12
+          assert result['inferred_missing_source_id_count'] == 0
+          assert result['date_precision_observation_count'] == 12
+          assert result['explicit_local_hash_count'] == 2
+          assert result['available_content_hash_count'] == 2
+          assert result['explicit_redistribution_state_count'] == 2
+          assert result['rights_unresolved_count'] == 10
+          for key, value in result.items():
+              if key.endswith('_loss_count') or key.endswith('_failure_count') or key.endswith('_fabrication_count') or key.endswith('_violation_count'):
+                  assert value == 0, (key, value)
+          assert result['canonical_successor_ready'] is False
+          PY
