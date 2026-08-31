@@ -92,8 +92,10 @@ def verify(
             "subject_id",
             "predicate",
             "observed_at",
+            "knowledge_time_state",
             "source_ids",
             "observation_ids",
+            "source_linkage_state",
             "evidence_state",
             "verification_state",
             "review_state",
@@ -141,7 +143,35 @@ def verify(
     if not re.fullmatch(r"[A-Z][A-Z0-9_:-]*", str(assertion["predicate"])):
         raise ValueError("Invalid assertion predicate")
 
-    _verify_temporal(assertion["observed_at"], label="assertion observed_at")
+    if assertion["knowledge_time_state"] not in {
+        "OBSERVED_AT_CAPTURE",
+        "EXACT_PREDECESSOR_TIME",
+        "PREDECESSOR_TIME_UNRESOLVED",
+    }:
+        raise ValueError("Invalid assertion knowledge_time_state")
+    if assertion["source_linkage_state"] not in {
+        "SOURCE_LINKED",
+        "PREDECESSOR_SOURCE_LINKAGE_UNRESOLVED",
+    }:
+        raise ValueError("Invalid assertion source_linkage_state")
+
+    if assertion["knowledge_time_state"] == "PREDECESSOR_TIME_UNRESOLVED":
+        if assertion["observed_at"] is not None:
+            raise ValueError("Unresolved predecessor knowledge time must not fabricate observed_at")
+    else:
+        _verify_temporal(assertion["observed_at"], label="assertion observed_at")
+
+    if assertion["source_linkage_state"] == "SOURCE_LINKED":
+        if not assertion["source_ids"]:
+            raise ValueError("SOURCE_LINKED assertion must carry at least one source_id")
+    else:
+        if assertion["source_ids"]:
+            raise ValueError("Unresolved predecessor source linkage must not invent source_ids")
+        if assertion["review_state"] != "MIGRATED_PREDECESSOR_STATE":
+            raise ValueError("Source-unresolved assertion is permitted only for migrated predecessor state")
+        if assertion["record_state"] != "NONCANONICAL_CANDIDATE":
+            raise ValueError("Source-unresolved assertion must remain noncanonical")
+
     _verify_temporal(observation["observed_at"], label="observation observed_at")
     for label, temporal in (
         ("assertion valid_from", assertion.get("valid_from")),
