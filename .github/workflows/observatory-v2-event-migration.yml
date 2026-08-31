@@ -1,0 +1,74 @@
+name: Observatory v2 capital event migration
+
+on:
+  pull_request:
+    paths:
+      - "schemas/observatory-v2-event.schema.json"
+      - "scripts/project_v14_capital_events_to_v2.py"
+      - "tests/test_v14_capital_event_v2_projection.py"
+      - ".github/workflows/observatory-v2-event-migration.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  event-migration:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify governing release manifest
+        run: >-
+          python scripts/verify_manifest.py
+          releases/data-v0.1.0-public-governing/records
+          releases/data-v0.1.0-public-governing/SHA256SUMS.txt
+
+      - name: Run capital event migration tests
+        run: python -m unittest tests.test_v14_capital_event_v2_projection
+
+      - name: Reconcile capital event vertical slice
+        run: |
+          python scripts/project_v14_capital_events_to_v2.py --output-dir /tmp/v2-capital-events > /tmp/v2-capital-events-run.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result = json.loads(Path('/tmp/v2-capital-events/reconciliation.json').read_text())
+          assert result['input_event_count'] == 5
+          assert result['projected_event_count'] == 5
+          assert result['event_time_precision_counts'] == {
+              'DATE': 3,
+              'MONTH': 0,
+              'TIMESTAMP': 0,
+              'UNRESOLVED': 0,
+              'YEAR': 1,
+          }
+          assert result['unresolved_event_time_count'] == 1
+          assert result['unresolved_knowledge_time_count'] == 5
+          assert result['disclosed_amount_count'] == 3
+          assert result['undisclosed_amount_count'] == 2
+          assert result['counterparty_literal_count'] == 16
+          for key in (
+              'event_id_loss_count',
+              'predecessor_payload_roundtrip_failure_count',
+              'predecessor_field_loss_count',
+              'event_type_loss_count',
+              'event_time_loss_or_precision_fabrication_count',
+              'amount_or_currency_loss_count',
+              'ownership_effect_loss_count',
+              'claim_boundary_loss_count',
+              'source_or_evidence_reference_loss_count',
+              'dangling_source_reference_count',
+              'endpoint_resolution_fabrication_count',
+              'knowledge_time_fabrication_count',
+              'invented_predecessor_field_value_count',
+          ):
+              assert result[key] == 0, (key, result[key])
+          assert result['canonical_successor_ready'] is False
+          PY
