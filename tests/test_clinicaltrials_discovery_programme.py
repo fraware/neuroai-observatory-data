@@ -17,8 +17,19 @@ class ClinicalTrialsDiscoveryProgrammeTests(unittest.TestCase):
         result = programme.validate()
         self.assertTrue(result["valid"], result["errors"])
         self.assertEqual(result["programme_id"], "SU-TRIALS-CTGOV-v0.1")
-        self.assertEqual(result["query_stream_count"], 3)
+        self.assertEqual(result["query_stream_count"], 4)
+        self.assertEqual(
+            set(result["query_stream_ids"]),
+            {
+                "DISCOVERY-CTGOV-BCI-001",
+                "DISCOVERY-CTGOV-NEURAL-PROSTHESIS-001",
+                "DISCOVERY-CTGOV-BRAIN-IMPLANT-001",
+                "DISCOVERY-CTGOV-RETINAL-VISUAL-PROSTHESIS-001",
+            },
+        )
         self.assertEqual(result["known_anchor_count"], 1)
+        self.assertTrue(result["count_total_first_page_required"])
+        self.assertTrue(result["total_count_reconciliation_required"])
         self.assertEqual(result["workbench_integration_state"], "PENDING_S1_MERGE")
         self.assertFalse(result["automatic_mutation_enabled"])
         self.assertFalse(result["registry_completeness_claim"])
