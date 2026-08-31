@@ -2,14 +2,14 @@
   "$id": "observatory-v1-observation.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "NeuroAI Observatory source observation",
-  "description": "Noncanonical design schema for public metadata describing one time-specific source observation. It must not contain protected evidence bytes, credentials, or local protected paths.",
+  "description": "Noncanonical design schema for public metadata describing one time-specific source observation. It must not contain protected evidence bytes, credentials, or local protected paths. Temporal precision is explicit so predecessor date-only retrievals are not fabricated into timestamps.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
     "schema_version": {"const": "1.0.0-draft", "type": "string"},
     "observation_id": {"type": "string", "minLength": 1, "pattern": "^OBS-[A-Za-z0-9._:-]+$"},
     "source_id": {"type": "string", "minLength": 1},
-    "observed_at": {"type": "string", "format": "date-time"},
+    "observed_at": {"$ref": "#/$defs/temporalValue"},
     "retrieval_method": {"type": "string", "minLength": 1},
     "retrieval_outcome": {
       "type": "string",
@@ -67,7 +67,7 @@
   ],
   "$defs": {
     "temporalValue": {
-      "type": ["object", "null"],
+      "type": "object",
       "additionalProperties": false,
       "properties": {
         "value": {"type": "string", "minLength": 1},
