@@ -1,0 +1,71 @@
+name: Observatory v2 v1.4 provenance migration
+
+on:
+  pull_request:
+    paths:
+      - "schemas/observatory-v2-provenance-record.schema.json"
+      - "scripts/project_v14_provenance_to_v2.py"
+      - "tests/test_v14_provenance_v2_projection.py"
+      - ".github/workflows/observatory-v2-v14-provenance-migration.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify governing release manifest
+        run: >-
+          python scripts/verify_manifest.py
+          releases/data-v0.1.0-public-governing/records
+          releases/data-v0.1.0-public-governing/SHA256SUMS.txt
+
+      - name: Run provenance migration tests
+        run: python -m unittest tests.test_v14_provenance_v2_projection
+
+      - name: Reconcile remaining v1.4 provenance/control state
+        run: |
+          python scripts/project_v14_provenance_to_v2.py --output-dir /tmp/v2-v14-provenance > /tmp/v2-v14-provenance-run.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result = json.loads(Path('/tmp/v2-v14-provenance/reconciliation.json').read_text())
+          assert result['input_record_count'] == 48
+          assert result['projected_record_count'] == 48
+          assert result['release_control_record_count'] == 3
+          assert result['organization_resolution_count'] == 26
+          assert result['regional_expansion_count'] == 13
+          assert result['data_quality_finding_count'] == 6
+          assert result['source_linked_record_count'] == 32
+          assert result['source_unresolved_record_count'] == 7
+          assert result['source_not_recorded_record_count'] == 6
+          assert result['source_not_applicable_control_record_count'] == 3
+          assert result['organization_resolution_exact_date_count'] == 26
+          assert result['regional_add_count'] == 10
+          assert result['regional_reverify_count'] == 3
+          assert result['data_quality_high_count'] == 3
+          assert result['data_quality_medium_count'] == 3
+          for key in (
+              'identity_mismatch_count',
+              'predecessor_payload_roundtrip_failure_count',
+              'claim_boundary_loss_count',
+              'source_reference_loss_count',
+              'dangling_source_reference_count',
+              'source_linkage_fabrication_count',
+              'temporal_precision_fabrication_count',
+              'knowledge_time_fabrication_count',
+              'invented_predecessor_field_value_count',
+          ):
+              assert result[key] == 0, (key, result[key])
+          assert result['canonical_successor_ready'] is False
+          PY
