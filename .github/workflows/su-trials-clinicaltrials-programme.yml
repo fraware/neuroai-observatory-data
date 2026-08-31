@@ -1,0 +1,29 @@
+name: SU-TRIALS ClinicalTrials.gov programme
+
+on:
+  pull_request:
+    paths:
+      - "curation/clinicaltrials_discovery_programme_v0.1.json"
+      - "curation/source_universe_registry_v0.1.json"
+      - "schemas/clinicaltrials-discovery-programme.schema.json"
+      - "scripts/validate_clinicaltrials_discovery_programme.py"
+      - "tests/test_clinicaltrials_discovery_programme.py"
+      - "supplemental_records/PRIMA_NEW_UNIQUE_SOURCE_REGISTER_v1.7.json"
+      - ".github/workflows/su-trials-clinicaltrials-programme.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-programme:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate programme
+        run: python scripts/validate_clinicaltrials_discovery_programme.py
+      - name: Run programme tests
+        run: python -m unittest tests.test_clinicaltrials_discovery_programme
