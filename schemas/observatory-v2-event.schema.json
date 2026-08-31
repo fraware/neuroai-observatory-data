@@ -2,55 +2,48 @@
   "$id": "observatory-v2-event.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "NeuroAI Observatory v2 typed event",
-  "description": "Noncanonical migration/design schema for source-backed events with exact predecessor world-time precision and unresolved literal participants. Schema validity does not establish substantive truth, control, valuation, or publication authority.",
+  "description": "Noncanonical migration/design schema for source-backed events across capital, regulatory/market, and governance families. Literal participants may remain unresolved and missing predecessor boundaries/evidence strength remain explicit.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
     "schema_version": {"const": "2.0.0-draft", "type": "string"},
     "event_id": {"type": "string", "minLength": 1},
-    "event_family": {"const": "CAPITAL_AND_OWNERSHIP", "type": "string"},
-    "event_type": {"type": "string", "minLength": 1},
+    "event_family": {"type": "string", "enum": ["CAPITAL_AND_OWNERSHIP", "REGULATORY_AND_MARKET", "GOVERNANCE_AND_LEADERSHIP"]},
+    "event_type": {"type": ["string", "null"]},
     "occurred_at": {"$ref": "#/$defs/nullableTemporalValue"},
-    "event_time_state": {
-      "type": "string",
-      "enum": ["EXACT_PREDECESSOR_TIME", "PREDECESSOR_TIME_UNRESOLVED"]
-    },
+    "event_time_state": {"type": "string", "enum": ["EXACT_PREDECESSOR_TIME", "PREDECESSOR_TIME_UNRESOLVED"]},
     "subject_reference": {"$ref": "#/$defs/endpointReference"},
-    "counterparty_references": {
-      "type": "array",
-      "items": {"$ref": "#/$defs/endpointReference"},
-      "minItems": 1
-    },
+    "counterparty_references": {"type": "array", "items": {"$ref": "#/$defs/endpointReference"}},
+    "jurisdiction": {"type": ["string", "null"]},
     "attributes": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "amount": {"type": ["integer", "number", "null"], "minimum": 0},
         "currency": {"type": ["string", "null"]},
-        "amount_state": {"type": "string", "minLength": 1},
-        "ownership_effect": {"type": "string", "minLength": 1}
-      },
-      "required": ["amount", "currency", "amount_state", "ownership_effect"]
+        "amount_state": {"type": ["string", "null"]},
+        "ownership_effect": {"type": ["string", "null"]},
+        "bounded_effect": {"type": ["string", "null"]},
+        "prohibited_inferences": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+        "description": {"type": ["string", "null"]},
+        "reopening": {"type": ["string", "null"]}
+      }
     },
-    "observed_at": {"type": "null"},
-    "knowledge_time_state": {"const": "PREDECESSOR_TIME_UNRESOLVED", "type": "string"},
-    "source_ids": {
-      "type": "array",
-      "items": {"type": "string", "minLength": 1},
-      "minItems": 1,
-      "uniqueItems": true
-    },
-    "observation_ids": {"type": "array", "maxItems": 0},
+    "observed_at": {"$ref": "#/$defs/nullableTemporalValue"},
+    "knowledge_time_state": {"type": "string", "enum": ["EXACT_PREDECESSOR_TIME", "PREDECESSOR_TIME_UNRESOLVED"]},
+    "source_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "uniqueItems": true},
+    "observation_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
     "source_linkage_state": {"const": "SOURCE_LINKED", "type": "string"},
     "evidence_state": {"type": "string", "minLength": 1},
-    "claim_boundary": {"type": "string", "minLength": 1},
+    "claim_boundary": {"type": ["string", "null"]},
+    "boundary_state": {"type": "string", "enum": ["PREDECESSOR_BOUNDARY_RECORDED", "PREDECESSOR_BOUNDED_EFFECT_RECORDED", "PREDECESSOR_BOUNDARY_NOT_RECORDED"]},
     "predecessor": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "release_id": {"const": "data-v0.1.0-public-governing", "type": "string"},
-        "file": {"const": "canonical_observatory_release_v1.4.json", "type": "string"},
-        "section": {"const": "capital_and_ownership_events", "type": "string"},
+        "file": {"type": "string", "enum": ["canonical_observatory_release_v1.4.json", "adjudicated_delta_v1.6.json"]},
+        "section": {"type": "string", "enum": ["capital_and_ownership_events", "regulatory_and_market_events", "governance_and_leadership_events"]},
         "record_id": {"type": "string", "minLength": 1},
         "record_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
         "payload": {"type": "object"}
@@ -60,47 +53,10 @@
     "record_state": {"const": "NONCANONICAL_MIGRATED_CANDIDATE", "type": "string"},
     "authority_boundary": {"type": "string", "minLength": 1}
   },
-  "required": [
-    "schema_version", "event_id", "event_family", "event_type", "occurred_at", "event_time_state",
-    "subject_reference", "counterparty_references", "attributes", "observed_at", "knowledge_time_state",
-    "source_ids", "observation_ids", "source_linkage_state", "evidence_state", "claim_boundary",
-    "predecessor", "record_state", "authority_boundary"
-  ],
-  "allOf": [
-    {
-      "if": {"properties": {"event_time_state": {"const": "PREDECESSOR_TIME_UNRESOLVED"}}, "required": ["event_time_state"]},
-      "then": {"properties": {"occurred_at": {"type": "null"}}}
-    },
-    {
-      "if": {"properties": {"event_time_state": {"const": "EXACT_PREDECESSOR_TIME"}}, "required": ["event_time_state"]},
-      "then": {"properties": {"occurred_at": {"$ref": "#/$defs/temporalValue"}}}
-    }
-  ],
+  "required": ["schema_version", "event_id", "event_family", "event_type", "occurred_at", "event_time_state", "subject_reference", "counterparty_references", "attributes", "observed_at", "knowledge_time_state", "source_ids", "observation_ids", "source_linkage_state", "evidence_state", "claim_boundary", "predecessor", "record_state", "authority_boundary"],
   "$defs": {
-    "endpointReference": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "value": {"type": "string", "minLength": 1},
-        "resolution_state": {"const": "PREDECESSOR_LITERAL_UNRESOLVED", "type": "string"},
-        "entity_id": {"type": "null"}
-      },
-      "required": ["value", "resolution_state", "entity_id"]
-    },
-    "temporalValue": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "value": {"type": "string", "minLength": 1},
-        "precision": {"type": "string", "enum": ["TIMESTAMP", "DATE", "MONTH", "YEAR", "INTERVAL", "UNRESOLVED"]}
-      },
-      "required": ["value", "precision"]
-    },
-    "nullableTemporalValue": {
-      "oneOf": [
-        {"type": "null"},
-        {"$ref": "#/$defs/temporalValue"}
-      ]
-    }
+    "endpointReference": {"type": "object", "additionalProperties": false, "properties": {"value": {"type": "string", "minLength": 1}, "resolution_state": {"const": "PREDECESSOR_LITERAL_UNRESOLVED", "type": "string"}, "entity_id": {"type": "null"}}, "required": ["value", "resolution_state", "entity_id"]},
+    "temporalValue": {"type": "object", "additionalProperties": false, "properties": {"value": {"type": "string", "minLength": 1}, "precision": {"type": "string", "enum": ["TIMESTAMP", "DATE", "MONTH", "YEAR", "INTERVAL", "UNRESOLVED"]}}, "required": ["value", "precision"]},
+    "nullableTemporalValue": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/temporalValue"}]}
   }
 }
