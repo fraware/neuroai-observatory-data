@@ -1,0 +1,113 @@
+{
+  "$id": "clinicaltrials-discovery-programme.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SU-TRIALS ClinicalTrials.gov discovery programme",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": "1.0.0-draft"},
+    "programme_id": {"const": "SU-TRIALS-CTGOV-v0.1"},
+    "status": {"const": "NONCANONICAL_PROGRAMME_CONTROL"},
+    "source_universe_id": {"const": "SU-TRIALS"},
+    "source_system": {"const": "CLINICALTRIALS_GOV"},
+    "workbench_dependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "minimum_package_line": {"const": "0.3.0.dev0"},
+        "required_capability": {"const": "project_clinicaltrials_search_pages"},
+        "integration_state": {"enum": ["PENDING_S1_MERGE", "AVAILABLE"]}
+      },
+      "required": ["minimum_package_line", "required_capability", "integration_state"]
+    },
+    "identity_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "registry_identity_key": {"const": "NCT_ID"},
+        "fuzzy_identity_merge_allowed": {"const": false},
+        "cross_query_deduplication": {"const": "EXACT_NCT_ID"},
+        "conflicting_same_id_policy": {"const": "FAIL_CLOSED"}
+      },
+      "required": ["registry_identity_key", "fuzzy_identity_merge_allowed", "cross_query_deduplication", "conflicting_same_id_policy"]
+    },
+    "inclusion_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "required_study_types": {"const": ["INTERVENTIONAL"]},
+        "automatic_trial_entity_creation": {"const": false},
+        "automatic_trial_site_relationship_creation": {"const": false},
+        "automatic_source_admission": {"const": false},
+        "automatic_monitor_creation": {"const": false},
+        "automatic_assessment_mutation": {"const": false},
+        "participant_level_data_collection": {"const": false}
+      },
+      "required": ["required_study_types", "automatic_trial_entity_creation", "automatic_trial_site_relationship_creation", "automatic_source_admission", "automatic_monitor_creation", "automatic_assessment_mutation", "participant_level_data_collection"]
+    },
+    "known_identifier_anchors": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "anchor_id": {"type": "string", "minLength": 1},
+          "nct_id": {"type": "string", "pattern": "^NCT[0-9]{8}$"},
+          "existing_source_id": {"type": "string", "minLength": 1},
+          "purpose": {"type": "string", "minLength": 1},
+          "counts_as_new_discovery": {"const": false}
+        },
+        "required": ["anchor_id", "nct_id", "existing_source_id", "purpose", "counts_as_new_discovery"]
+      }
+    },
+    "query_streams": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "query_id": {"type": "string", "pattern": "^DISCOVERY-CTGOV-[A-Z0-9-]+$"},
+          "query_term": {"type": "string", "minLength": 1},
+          "query_surface": {"const": "query.term"},
+          "post_retrieval_required_study_types": {"const": ["INTERVENTIONAL"]},
+          "page_size": {"type": "integer", "minimum": 1, "maximum": 100},
+          "cadence": {"enum": ["WEEKLY", "MONTHLY", "QUARTERLY"]},
+          "status": {"enum": ["ACTIVE", "RETIRED"]},
+          "purpose": {"type": "string", "minLength": 1},
+          "completeness_claim": {"const": false}
+        },
+        "required": ["query_id", "query_term", "query_surface", "post_retrieval_required_study_types", "page_size", "cadence", "status", "purpose", "completeness_claim"]
+      }
+    },
+    "coverage_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "required_metrics": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "registry_completeness_claim": {"const": false},
+        "global_neuroai_trial_recall_claim": {"const": false},
+        "fully_paginated_semantics": {"type": "string", "minLength": 1}
+      },
+      "required": ["required_metrics", "registry_completeness_claim", "global_neuroai_trial_recall_claim", "fully_paginated_semantics"]
+    },
+    "network_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "live_execution": {"const": "OPT_IN_ONLY"},
+        "requires_workbench_network_gate": {"const": true},
+        "configuration_performs_http": {"const": false}
+      },
+      "required": ["live_execution", "requires_workbench_network_gate", "configuration_performs_http"]
+    },
+    "boundary": {"type": "string", "minLength": 1}
+  },
+  "required": ["schema_version", "programme_id", "status", "source_universe_id", "source_system", "workbench_dependency", "identity_policy", "inclusion_policy", "known_identifier_anchors", "query_streams", "coverage_contract", "network_policy", "boundary"]
+}
