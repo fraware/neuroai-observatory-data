@@ -26,12 +26,13 @@ Supplemental records may be used only when the current effective-source projecti
 2. Do not invent missing dates, amounts, identifiers, jurisdictions, evidence states, source links, or assessment states.
 3. Preserve source identifiers and source-class semantics exactly unless a reviewed crosswalk explicitly records a successor identifier.
 4. Preserve every current claim boundary and prohibited-inference statement. A v2 representation may strengthen a boundary but may not silently weaken it.
-5. Preserve incomplete date precision. A year such as `2026` must not become `2026-01-01`.
+5. Preserve incomplete date precision. A year such as `2026` must not become `2026-01-01`; a date such as `2026-07-29` must not become an invented midnight timestamp.
 6. Preserve current distinctions between company announcement, regulatory record, publication, preprint, media corroboration, registry metadata, and other source/evidence classes.
 7. Preserve predecessor/current/reopening lineage.
 8. Preserve missing/inaccessible/unresolved states as typed uncertainty, never as automatic failure.
 9. Do not copy protected or non-redistributable source bytes into S2.
 10. Generated v2 records remain noncanonical until a separate release decision authorizes a successor.
+11. A historical predecessor field without record-level source linkage or knowledge time may be preserved only through an explicit migrated-predecessor unresolved state; migration must not silently manufacture ordinary v2 provenance.
 
 ## Target object families
 
@@ -56,7 +57,7 @@ LEGACY_PRESERVATION_RECORD
 
 | Predecessor family | Primary v2 representation |
 | --- | --- |
-| organization records | `ENTITY` plus source-linked `ASSERTION` records for time-varying properties |
+| organization-array entries | stable `ENTITY` identity plus bounded `ASSERTION` records for descriptive/time-varying fields; assertions retain exact source IDs when present and use explicit migrated-predecessor unresolved linkage/time only when the predecessor lacks them |
 | organization resolution | identity-resolution `DISPOSITION_OR_PROVENANCE`; successor/alias relationships where applicable |
 | regional expansion | provenance/discovery disposition plus organization/geography assertions |
 | capital and ownership events | `EVENT`; ownership/control only as separate source-supported relationship/assertion |
@@ -91,29 +92,66 @@ For baseline source records with `retrieved`, the migrated observation may use t
 
 A v2 assertion must preserve the predecessor's supported interpretation and boundary.
 
-Example transformation:
+Example transformation for a source-linked predecessor:
 
 ```text
 legacy organization field:
   current_status = ACTIVE_OR_CURRENTLY_REPRESENTED
   source_ids = [SRC-0001]
+  last_verified = 2026-07-29
   claim_boundary = ...
 
 v2:
   subject = ORG-0001
-  predicate = CURRENT_REPRESENTATION_STATE
+  predicate = CURRENT_STATUS
   value = ACTIVE_OR_CURRENTLY_REPRESENTED
+  source_linkage_state = SOURCE_LINKED
   source_ids = [SRC-0001]
+  knowledge_time_state = EXACT_PREDECESSOR_TIME
+  observed_at = { value: 2026-07-29, precision: DATE }
   claim_boundary = exact predecessor boundary
 ```
 
 The migration must not strengthen the assertion to `ACTIVE_COMPANY`, `COMMERCIALLY_AVAILABLE`, or another interpretation unless that stronger state is separately supported and adjudicated.
+
+### Migrated predecessor without source linkage
+
+Lossless migration must also represent historical predecessor fields for which the old record did not encode source linkage. This exception is migration-only.
+
+```text
+source_linkage_state = PREDECESSOR_SOURCE_LINKAGE_UNRESOLVED
+source_ids = []
+review_state = MIGRATED_PREDECESSOR_STATE
+record_state = NONCANONICAL_CANDIDATE
+```
+
+If the predecessor also lacks record-level knowledge time:
+
+```text
+knowledge_time_state = PREDECESSOR_TIME_UNRESOLVED
+observed_at = null
+```
+
+This preserves predecessor state. It does **not** convert that state into ordinary source-backed v2 evidence. A later source-backed successor requires ordinary evidence discovery/registration, observation support, adjudication, and release authority.
+
+## Exact v1.4 organization-array checkpoint
+
+The immutable v1.4 `organizations` array contains 223 entries, not 217 array rows:
+
+- 217 organization records;
+- 6 entries explicitly reclassified as `NON_ORGANIZATION_PROVENANCE_NODE`;
+- 154 source-linked entries, all with record-level `last_verified = 2026-07-29`;
+- 69 entries without `source_ids` and without record-level `last_verified`, comprising 63 `LEGACY_ONLY` stubs and the 6 provenance nodes.
+
+The six reclassified entries remain `PROVENANCE_NODE` entities. They must not be silently promoted back into the organization denominator. The 69 source-unresolved entries may be normalized only with the migrated-predecessor unresolved states above.
 
 ## Identity rule
 
 Existing canonical IDs remain migration anchors. A v2 entity may preserve an existing `ORG-*`, `MDL-*`, source, event, relationship, or decision ID where the semantic object is unchanged.
 
 If the v2 ontology requires a new identifier, the migration crosswalk must bind old and new IDs explicitly. The predecessor ID remains searchable and reproducible.
+
+Entity identity is separate from descriptive claims. For organization migration, canonical name, aliases and explicit legacy identity linkage belong to the entity object; organization type, role, geography, current status, verification, evidence state, official URL, summary and priority are represented as bounded assertions while the full predecessor payload remains digest-bound for reconciliation.
 
 ## Temporal rule
 
@@ -125,7 +163,7 @@ The migration distinguishes:
 - v2 migration execution time;
 - future canonical publication time.
 
-Migration execution time must never be substituted for the date a predecessor fact became valid.
+Migration execution time must never be substituted for the date a predecessor fact became valid or was observed. When predecessor knowledge time is absent, it remains unresolved.
 
 ## Field accounting proof
 
@@ -199,4 +237,9 @@ The migration may represent assessment identity, dependencies, reopening state, 
 
 ## Current implementation state
 
-The schemas and synthetic examples under `schemas/` and `fixtures/v2-foundation/` are design scaffolding only. They are not the output of the full current-corpus migration and must not be represented as such.
+The foundation branch now contains two narrow semantic migration slices:
+
+- all 224 v1.4 source records into draft `SOURCE` plus supported migration `OBSERVATION` records;
+- all 223 v1.4 organization-array entries into 217 `ORGANIZATION` entities, 6 `PROVENANCE_NODE` entities, and bounded migrated assertions.
+
+Both slices are explicitly noncanonical and hard-code `canonical_successor_ready = false`. The whole-corpus accounting scaffold still reports semantic reconciliation as not executed for the remaining record families. No canonical v2 successor exists.
