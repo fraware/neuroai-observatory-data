@@ -78,6 +78,7 @@ class ObservatoryV2FoundationTests(unittest.TestCase):
         kinds = set(schema["properties"]["entity_kind"]["enum"])
         self.assertTrue({"ORGANIZATION", "PROVENANCE_NODE"}.issubset(kinds))
         self.assertIn("MODEL", kinds)
+        self.assertIn("REGISTRY_OR_BENCHMARK", kinds)
         self.assertNotIn("verification_state", schema["properties"])
         self.assertNotIn("evidence_state", schema["properties"])
         self.assertIn("predecessor", schema["required"])
