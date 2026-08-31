@@ -19,8 +19,8 @@
       "additionalProperties": false,
       "properties": {
         "release_id": {"const": "data-v0.1.0-public-governing", "type": "string"},
-        "file": {"type": "string", "enum": ["canonical_observatory_release_v1.4.json", "canonical_live_refresh_release_v1.6.json"]},
-        "section": {"type": "string", "enum": ["sources", "new_sources"]},
+        "file": {"type": "string", "enum": ["canonical_observatory_release_v1.4.json", "canonical_live_refresh_release_v1.6.json", "PRIMA_NEW_UNIQUE_SOURCE_REGISTER_v1.7.json"]},
+        "section": {"type": "string", "enum": ["sources", "new_sources", "supplemental_records"]},
         "record_id": {"type": "string", "minLength": 1},
         "record_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
         "payload": {"type": "object"}
@@ -32,13 +32,8 @@
   },
   "required": ["schema_version", "source_id", "title", "publisher", "canonical_locator", "source_class", "legacy_source_ids", "source_claim_boundary", "predecessor", "record_state", "authority_boundary"],
   "allOf": [
-    {
-      "if": {"properties": {"predecessor": {"properties": {"file": {"const": "canonical_observatory_release_v1.4.json"}}}}},
-      "then": {"properties": {"predecessor": {"properties": {"section": {"const": "sources"}}}}}
-    },
-    {
-      "if": {"properties": {"predecessor": {"properties": {"file": {"const": "canonical_live_refresh_release_v1.6.json"}}}}},
-      "then": {"properties": {"predecessor": {"properties": {"section": {"const": "new_sources"}}}}}
-    }
+    {"if": {"properties": {"predecessor": {"properties": {"file": {"const": "canonical_observatory_release_v1.4.json"}}}}}, "then": {"properties": {"predecessor": {"properties": {"section": {"const": "sources"}}}}}},
+    {"if": {"properties": {"predecessor": {"properties": {"file": {"const": "canonical_live_refresh_release_v1.6.json"}}}}}, "then": {"properties": {"predecessor": {"properties": {"section": {"const": "new_sources"}}}}}},
+    {"if": {"properties": {"predecessor": {"properties": {"file": {"const": "PRIMA_NEW_UNIQUE_SOURCE_REGISTER_v1.7.json"}}}}}, "then": {"properties": {"predecessor": {"properties": {"section": {"const": "supplemental_records"}}}}}}
   ]
 }
