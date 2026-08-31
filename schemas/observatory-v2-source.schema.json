@@ -2,7 +2,7 @@
   "$id": "observatory-v2-source.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "NeuroAI Observatory v2 source identity",
-  "description": "Noncanonical migration/design schema for a logical source identity. Exact predecessor payload and digest are retained so normalization cannot silently discard public governing fields.",
+  "description": "Noncanonical v2 logical source identity. Legacy-migrated records preserve exact predecessor payload/digest; discovery-origin records preserve explicit human-accepted discovery provenance. Neither branch establishes substantive truth or canonical publication authority.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -14,6 +14,13 @@
     "source_class": {"type": "string", "minLength": 1},
     "legacy_source_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
     "source_claim_boundary": {"type": ["string", "null"]},
+    "source_origin": {
+      "type": "string",
+      "enum": [
+        "LEGACY_PUBLIC_RELEASE_MIGRATION",
+        "DISCOVERY_HUMAN_ACCEPTED_SOURCE_NAMESPACE_PROPOSAL"
+      ]
+    },
     "predecessor": {
       "type": "object",
       "additionalProperties": false,
@@ -27,13 +34,73 @@
       },
       "required": ["release_id", "file", "section", "record_id", "record_sha256", "payload"]
     },
-    "record_state": {"const": "NONCANONICAL_MIGRATED_CANDIDATE", "type": "string"},
+    "discovery_provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "source_namespace_successor_proposal_id": {"type": "string", "pattern": "^SNSP-[0-9a-f]{32}$"},
+        "programme_id": {"const": "SU-TRIALS-CTGOV-v0.1"},
+        "projection_manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "review_index_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "decision_packet_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "workbench_query_id": {"type": "string", "minLength": 1},
+        "workbench_run_id": {"type": "string", "pattern": "^DRUN-[0-9a-f]{32}$"},
+        "workbench_proposal_id": {"type": "string", "pattern": "^DSP-[0-9a-f]{32}$"},
+        "workbench_adjudication_id": {"type": "string", "pattern": "^DADJ-[0-9a-f]{32}$"},
+        "nct_id": {"type": "string", "pattern": "^NCT[0-9]{8}$"},
+        "query_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "normalized_aggregate_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "candidate_input_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      },
+      "required": [
+        "source_namespace_successor_proposal_id",
+        "programme_id",
+        "projection_manifest_sha256",
+        "review_index_sha256",
+        "decision_packet_sha256",
+        "workbench_query_id",
+        "workbench_run_id",
+        "workbench_proposal_id",
+        "workbench_adjudication_id",
+        "nct_id",
+        "query_ids",
+        "normalized_aggregate_digest",
+        "candidate_input_sha256"
+      ]
+    },
+    "record_state": {
+      "type": "string",
+      "enum": [
+        "NONCANONICAL_MIGRATED_CANDIDATE",
+        "NONCANONICAL_DISCOVERY_ADMITTED_CANDIDATE"
+      ]
+    },
     "authority_boundary": {"type": "string", "minLength": 1}
   },
-  "required": ["schema_version", "source_id", "title", "publisher", "canonical_locator", "source_class", "legacy_source_ids", "source_claim_boundary", "predecessor", "record_state", "authority_boundary"],
+  "required": ["schema_version", "source_id", "title", "publisher", "canonical_locator", "source_class", "legacy_source_ids", "source_claim_boundary", "record_state", "authority_boundary"],
+  "oneOf": [
+    {
+      "title": "Legacy public-release migration provenance",
+      "required": ["predecessor"],
+      "properties": {
+        "source_origin": {"const": "LEGACY_PUBLIC_RELEASE_MIGRATION"},
+        "record_state": {"const": "NONCANONICAL_MIGRATED_CANDIDATE"}
+      },
+      "not": {"required": ["discovery_provenance"]}
+    },
+    {
+      "title": "Human-accepted discovery provenance",
+      "required": ["source_origin", "discovery_provenance"],
+      "properties": {
+        "source_origin": {"const": "DISCOVERY_HUMAN_ACCEPTED_SOURCE_NAMESPACE_PROPOSAL"},
+        "record_state": {"const": "NONCANONICAL_DISCOVERY_ADMITTED_CANDIDATE"}
+      },
+      "not": {"required": ["predecessor"]}
+    }
+  ],
   "allOf": [
-    {"if": {"properties": {"predecessor": {"properties": {"file": {"const": "canonical_observatory_release_v1.4.json"}}}}}, "then": {"properties": {"predecessor": {"properties": {"section": {"const": "sources"}}}}}},
-    {"if": {"properties": {"predecessor": {"properties": {"file": {"const": "canonical_live_refresh_release_v1.6.json"}}}}}, "then": {"properties": {"predecessor": {"properties": {"section": {"const": "new_sources"}}}}}},
-    {"if": {"properties": {"predecessor": {"properties": {"file": {"const": "PRIMA_NEW_UNIQUE_SOURCE_REGISTER_v1.7.json"}}}}}, "then": {"properties": {"predecessor": {"properties": {"section": {"const": "supplemental_records"}}}}}}
+    {"if": {"required": ["predecessor"], "properties": {"predecessor": {"properties": {"file": {"const": "canonical_observatory_release_v1.4.json"}}}}}, "then": {"properties": {"predecessor": {"properties": {"section": {"const": "sources"}}}}}},
+    {"if": {"required": ["predecessor"], "properties": {"predecessor": {"properties": {"file": {"const": "canonical_live_refresh_release_v1.6.json"}}}}}, "then": {"properties": {"predecessor": {"properties": {"section": {"const": "new_sources"}}}}}},
+    {"if": {"required": ["predecessor"], "properties": {"predecessor": {"properties": {"file": {"const": "PRIMA_NEW_UNIQUE_SOURCE_REGISTER_v1.7.json"}}}}}, "then": {"properties": {"predecessor": {"properties": {"section": {"const": "supplemental_records"}}}}}}
   ]
 }
