@@ -1,0 +1,44 @@
+{
+  "$id": "observatory-v2-reopening-decision.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NeuroAI Observatory v2 reopening decision",
+  "description": "Noncanonical migration schema for a predecessor reopening/update decision. A decision record does not mutate an assessment or grant publication authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": "2.0.0-draft"},
+    "decision_id": {"type": "string", "minLength": 1},
+    "target_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "value": {"type": "string", "minLength": 1},
+        "resolution_state": {"const": "PREDECESSOR_LITERAL_UNRESOLVED"},
+        "entity_or_assessment_id": {"type": "null"}
+      },
+      "required": ["value", "resolution_state", "entity_or_assessment_id"]
+    },
+    "decision": {"type": "string", "enum": ["REOPEN_REQUIRED", "NO_REOPENING_TRIGGER_IDENTIFIED", "UPDATE_REQUIRED_NO_ASSESSMENT_REOPEN", "METADATA_UPDATE_ONLY"]},
+    "basis_record_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "basis_resolution_state": {"type": "string", "enum": ["ACCEPTED_DELTA_IDENTITIES_RESOLVED", "EMPTY_PREDECESSOR_BASIS"]},
+    "required_actions": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "decided_at": {"type": "null"},
+    "knowledge_time_state": {"const": "PREDECESSOR_TIME_UNRESOLVED"},
+    "predecessor": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "release_id": {"const": "data-v0.1.0-public-governing"},
+        "file": {"const": "canonical_live_refresh_release_v1.6.json"},
+        "section": {"const": "reopening_decisions"},
+        "record_id": {"type": "string", "minLength": 1},
+        "record_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "payload": {"type": "object"}
+      },
+      "required": ["release_id", "file", "section", "record_id", "record_sha256", "payload"]
+    },
+    "record_state": {"const": "NONCANONICAL_MIGRATED_CANDIDATE"},
+    "authority_boundary": {"type": "string", "minLength": 1}
+  },
+  "required": ["schema_version", "decision_id", "target_reference", "decision", "basis_record_ids", "basis_resolution_state", "required_actions", "decided_at", "knowledge_time_state", "predecessor", "record_state", "authority_boundary"]
+}
