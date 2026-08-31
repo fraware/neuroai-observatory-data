@@ -10,7 +10,7 @@
     "entity_id": {"type": "string", "minLength": 1},
     "entity_kind": {
       "type": "string",
-      "enum": ["ORGANIZATION", "PROVENANCE_NODE", "MODEL"]
+      "enum": ["ORGANIZATION", "PROVENANCE_NODE", "MODEL", "REGISTRY_OR_BENCHMARK"]
     },
     "canonical_name": {"type": "string", "minLength": 1},
     "aliases": {
@@ -31,7 +31,7 @@
         "file": {"const": "canonical_observatory_release_v1.4.json", "type": "string"},
         "section": {
           "type": "string",
-          "enum": ["organizations", "representative_model_records"]
+          "enum": ["organizations", "representative_model_records", "model_and_dataset_registry"]
         },
         "record_id": {"type": "string", "minLength": 1},
         "record_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
