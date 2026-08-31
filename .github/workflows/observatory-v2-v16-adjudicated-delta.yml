@@ -1,0 +1,72 @@
+name: Observatory v2 v1.6 adjudicated delta
+
+on:
+  pull_request:
+    paths:
+      - "schemas/observatory-v2-event.schema.json"
+      - "schemas/observatory-v2-entity.schema.json"
+      - "schemas/observatory-v2-relationship.schema.json"
+      - "scripts/project_v16_adjudicated_delta_to_v2.py"
+      - "tests/test_v16_adjudicated_delta_v2_projection.py"
+      - ".github/workflows/observatory-v2-v16-adjudicated-delta.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify governing release manifest
+        run: >-
+          python scripts/verify_manifest.py
+          releases/data-v0.1.0-public-governing/records
+          releases/data-v0.1.0-public-governing/SHA256SUMS.txt
+
+      - name: Run accepted-delta migration tests
+        run: python -m unittest tests.test_v16_adjudicated_delta_v2_projection
+
+      - name: Reconcile accepted delta exactly once
+        run: |
+          python scripts/project_v16_adjudicated_delta_to_v2.py --output-dir /tmp/v2-v16-delta > /tmp/v2-v16-delta-run.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result = json.loads(Path('/tmp/v2-v16-delta/reconciliation.json').read_text())
+          assert result['separate_delta_matches_embedded'] is True
+          assert result['separate_delta_canonical_digest'] == '658a0a169e1e67a4476ad305f0ff489e4ba664a2fd1a774ea59922a420c6d03d'
+          assert result['embedded_delta_canonical_digest'] == result['separate_delta_canonical_digest']
+          assert result['input_unique_change_count'] == 9
+          assert result['projected_unique_change_identity_count'] == 9
+          assert result['projected_event_count'] == 6
+          assert result['projected_model_entity_count'] == 2
+          assert result['projected_model_assertion_count'] == 6
+          assert result['projected_relationship_count'] == 1
+          assert (result['regulatory_event_count'], result['capital_event_count'], result['governance_event_count']) == (2, 2, 2)
+          assert result['event_exact_date_count'] == 6
+          assert result['accepted_change_source_reference_count'] == 10
+          assert result['projected_change_source_reference_count'] == 10
+          assert result['projected_change_observation_reference_count'] == 10
+          for key in (
+              'double_counted_embedded_change_count',
+              'identity_loss_count',
+              'duplicate_projected_identity_count',
+              'predecessor_payload_roundtrip_failure_count',
+              'source_reference_loss_count',
+              'observation_reference_loss_count',
+              'endpoint_resolution_fabrication_count',
+              'event_time_precision_fabrication_count',
+              'knowledge_time_fabrication_count',
+          ):
+              assert result[key] == 0, (key, result[key])
+          assert result['canonical_successor_ready'] is False
+          PY
