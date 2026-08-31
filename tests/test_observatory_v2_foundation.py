@@ -58,6 +58,29 @@ class ObservatoryV2FoundationTests(unittest.TestCase):
         self.assertIsNone(assertion["first_release_id"])
         self.assertIn("canonical publication", assertion["authority_boundary"].lower())
 
+    def test_source_universe_registry_is_explicitly_noncanonical_and_unique(self) -> None:
+        registry = json.loads(
+            (ROOT / "curation/source_universe_registry_v0.1.json").read_text()
+        )
+        self.assertEqual(registry["status"], "NONCANONICAL_PROGRAMME_CONTROL")
+        ids = [row["universe_id"] for row in registry["universes"]]
+        self.assertEqual(len(ids), len(set(ids)))
+        self.assertGreaterEqual(len(ids), 8)
+        self.assertTrue(
+            all(row["canonical_completeness_claim"] is False for row in registry["universes"])
+        )
+        self.assertTrue(
+            all(row["implementation_state"] in {"CURRENT_BOUNDED", "PARTIAL", "PLANNED"} for row in registry["universes"])
+        )
+
+    def test_source_universe_schema_forbids_global_completeness_flag(self) -> None:
+        schema = json.loads(
+            (ROOT / "schemas/source-universe-registry.schema.json").read_text()
+        )
+        universe = schema["$defs"]["universe"]
+        self.assertIs(universe["properties"]["canonical_completeness_claim"]["const"], False)
+        self.assertIn("canonical_completeness_claim", universe["required"])
+
 
 if __name__ == "__main__":
     unittest.main()
