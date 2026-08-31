@@ -1,0 +1,181 @@
+name: Discovery Source materialization and monitoring proposals
+
+on:
+  pull_request:
+    paths:
+      - "schemas/observatory-v2-source.schema.json"
+      - "schemas/source-monitoring-eligibility-proposal.schema.json"
+      - "scripts/materialize_discovery_sources_monitoring.py"
+      - "scripts/build_monitoring_eligibility.py"
+      - "scripts/adjudicate_su_trials_source_namespace.py"
+      - "scripts/stage_su_trials_human_review.py"
+      - "tests/test_discovery_source_materialization_monitoring.py"
+      - ".github/workflows/discovery-source-materialization-monitor-proposals.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-materialization-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout observatory data
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install schema validator
+        run: python -m pip install --disable-pip-version-check jsonschema
+
+      - name: Checkout exact proposed Workbench capability
+        uses: actions/checkout@v4
+        with:
+          repository: fraware/neuroai-workbench
+          ref: 1148d5edd532feedb697f02aa1de7128f87603c3
+          path: .workbench
+          persist-credentials: false
+
+      - name: Install exact Workbench tree
+        run: python -m pip install --disable-pip-version-check -e .workbench
+
+      - name: Run materialization and schema tests
+        run: |
+          python -m unittest tests/test_discovery_source_materialization_monitoring.py
+
+      - name: Validate all 248 legacy Sources under evolved schema
+        run: |
+          python - <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+          import jsonschema
+
+          sys.path.insert(0, "scripts")
+          import project_v14_sources_to_v2
+          import project_v16_sources_observations_to_v2
+          import project_v17_prima_sources_to_v2
+
+          schema = json.loads(Path("schemas/observatory-v2-source.schema.json").read_text(encoding="utf-8"))
+          validator = jsonschema.Draft202012Validator(schema)
+          sources = []
+          for module in (
+              project_v14_sources_to_v2,
+              project_v16_sources_observations_to_v2,
+              project_v17_prima_sources_to_v2,
+          ):
+              sources.extend(module.project()["sources"])
+          assert len(sources) == 248
+          for source in sources:
+              validator.validate(source)
+          PY
+
+      - name: Exercise actual Workbench chain through discovery Source materialization
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          import sys
+          import tempfile
+          from pathlib import Path
+          import jsonschema
+
+          sys.path.insert(0, "scripts")
+          sys.path.insert(0, "tests")
+
+          import adjudicate_su_trials_source_namespace as adjudication
+          import materialize_discovery_sources_monitoring as materializer
+          import stage_su_trials_human_review as staging
+          import test_su_trials_human_review_staging as fixture
+
+          with tempfile.TemporaryDirectory() as projection_td, tempfile.TemporaryDirectory() as workspace_td, tempfile.TemporaryDirectory() as output_td:
+              projection = Path(projection_td)
+              workspace = Path(workspace_td)
+              output = Path(output_td)
+              fixture._write_projection(projection)
+
+              staged = staging.stage_projection(
+                  projection,
+                  workspace,
+                  actor="ci-review-stager",
+                  staged_at="2026-08-31T11:30:00Z",
+              )
+              review_path = Path(staged["review_index_path"])
+              review_sha = hashlib.sha256(review_path.read_bytes()).hexdigest()
+              proposal_id = staged["proposal_ids"][0]
+              packet = {
+                  "schema_version": "0.1.0",
+                  "artifact": "su_trials_human_decision_packet",
+                  "status": "EXPLICIT_LOCAL_HUMAN_DECISION_PACKET",
+                  "programme_id": "SU-TRIALS-CTGOV-v0.1",
+                  "projection_manifest_sha256": staged["projection_manifest_sha256"],
+                  "review_index_sha256": review_sha,
+                  "workbench_query_id": staged["discovery_query_id"],
+                  "workbench_run_id": staged["discovery_run_id"],
+                  "adjudicated_by": "ci-local-human-reviewer",
+                  "adjudicated_at": "2026-08-31T12:00:00Z",
+                  "identity_boundary": "LOCAL_UNAUTHENTICATED_ATTRIBUTION",
+                  "decisions": [{
+                      "proposal_id": proposal_id,
+                      "nct_id": "NCT03333954",
+                      "decision": "ACCEPT",
+                      "rationale": "CI accepts the public source identity only.",
+                  }],
+                  "source_namespace_admission_only": True,
+                  "monitor_creation_authorized": False,
+                  "trial_entity_creation_authorized": False,
+                  "trial_site_relationship_creation_authorized": False,
+                  "assessment_mutation_authorized": False,
+                  "canonical_publication_authorized": False,
+                  "authority_boundary": "CI source-identity disposition only.",
+              }
+              packet_path = workspace / "decision-packet.json"
+              packet_path.write_text(json.dumps(packet, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+              adjudicated = adjudication.adjudicate(
+                  projection,
+                  workspace,
+                  review_path,
+                  packet_path,
+              )
+              successor_path = Path(adjudicated["source_namespace_successor_path"])
+              result = materializer.materialize(successor_path)
+              manifest = materializer.write_projection(result, output)
+
+              assert len(result["sources"]) == 1
+              source = result["sources"][0]
+              assert source["source_id"] == "SRC-CTGOV-NCT03333954"
+              assert source["discovery_provenance"]["nct_id"] == "NCT03333954"
+              assert source["record_state"] == "NONCANONICAL_DISCOVERY_ADMITTED_CANDIDATE"
+              assert "predecessor" not in source
+
+              schema = json.loads(Path("schemas/observatory-v2-source.schema.json").read_text(encoding="utf-8"))
+              jsonschema.Draft202012Validator(schema).validate(source)
+
+              proposal = result["monitoring"]["proposals"][0]
+              assert proposal["recommended_mode"] == "RECURRING"
+              assert proposal["recommended_cadence"] == "MONTHLY"
+              assert proposal["priority"] == "HIGH"
+              assert proposal["review_state"] == "PENDING_MONITOR_REVIEW"
+              assert proposal["monitor_present"] is False
+              assert proposal["monitor_creation_performed"] is False
+
+              assert manifest["source_namespace_publication_performed"] is False
+              assert manifest["monitor_creation_performed"] is False
+              assert manifest["trial_entity_creation_performed"] is False
+              assert manifest["trial_site_relationship_creation_performed"] is False
+              assert manifest["assessment_mutation_performed"] is False
+              assert manifest["canonical_successor_ready"] is False
+
+              monitor_successor_dir = workspace / "discovery" / "registry_successors"
+              assert not list(monitor_successor_dir.glob("*.json"))
+          PY
+
+      - name: Verify generated materialization is not committed as governing data
+        run: |
+          if find . -path './.git' -prune -o -path './.workbench' -prune -o -type d \( -name 'programme-adjudication' -o -name 'programme-review' \) -print | grep -q .; then
+            echo "Operational review/adjudication workspaces must not be committed to S2." >&2
+            exit 1
+          fi
