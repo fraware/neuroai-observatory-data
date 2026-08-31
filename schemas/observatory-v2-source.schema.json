@@ -1,0 +1,34 @@
+{
+  "$id": "observatory-v2-source.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NeuroAI Observatory v2 source identity",
+  "description": "Noncanonical migration/design schema for a logical source identity. The predecessor payload is retained during migration proof so normalization cannot silently discard public governing fields.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": "2.0.0-draft", "type": "string"},
+    "source_id": {"type": "string", "minLength": 1},
+    "title": {"type": "string", "minLength": 1},
+    "publisher": {"type": "string", "minLength": 1},
+    "canonical_locator": {"type": "string", "minLength": 1},
+    "source_class": {"type": "string", "minLength": 1},
+    "legacy_source_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "source_claim_boundary": {"type": ["string", "null"]},
+    "predecessor": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "release_id": {"const": "data-v0.1.0-public-governing", "type": "string"},
+        "file": {"const": "canonical_observatory_release_v1.4.json", "type": "string"},
+        "section": {"const": "sources", "type": "string"},
+        "record_id": {"type": "string", "minLength": 1},
+        "record_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "payload": {"type": "object"}
+      },
+      "required": ["release_id", "file", "section", "record_id", "record_sha256", "payload"]
+    },
+    "record_state": {"const": "NONCANONICAL_MIGRATED_CANDIDATE", "type": "string"},
+    "authority_boundary": {"type": "string", "minLength": 1}
+  },
+  "required": ["schema_version", "source_id", "title", "publisher", "canonical_locator", "source_class", "legacy_source_ids", "source_claim_boundary", "predecessor", "record_state", "authority_boundary"]
+}
