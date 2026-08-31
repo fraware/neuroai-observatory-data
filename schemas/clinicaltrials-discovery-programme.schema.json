@@ -27,9 +27,10 @@
         "registry_identity_key": {"const": "NCT_ID"},
         "fuzzy_identity_merge_allowed": {"const": false},
         "cross_query_deduplication": {"const": "EXACT_NCT_ID"},
-        "conflicting_same_id_policy": {"const": "FAIL_CLOSED"}
+        "conflicting_same_id_policy": {"const": "FAIL_CLOSED"},
+        "known_identifier_match": {"const": "EXACT_NCT_TO_CONTROLLED_SOURCE_ID"}
       },
-      "required": ["registry_identity_key", "fuzzy_identity_merge_allowed", "cross_query_deduplication", "conflicting_same_id_policy"]
+      "required": ["registry_identity_key", "fuzzy_identity_merge_allowed", "cross_query_deduplication", "conflicting_same_id_policy", "known_identifier_match"]
     },
     "inclusion_policy": {
       "type": "object",
@@ -44,6 +45,19 @@
         "participant_level_data_collection": {"const": false}
       },
       "required": ["required_study_types", "automatic_trial_entity_creation", "automatic_trial_site_relationship_creation", "automatic_source_admission", "automatic_monitor_creation", "automatic_assessment_mutation", "participant_level_data_collection"]
+    },
+    "request_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "api_endpoint": {"const": "/api/v2/studies"},
+        "query_parameter": {"const": "query.term"},
+        "count_total_first_page": {"const": true},
+        "count_total_later_pages": {"const": false},
+        "pagination_mode": {"const": "OPAQUE_NEXT_PAGE_TOKEN"},
+        "total_count_reconciliation_required_for_mechanical_completion": {"const": true}
+      },
+      "required": ["api_endpoint", "query_parameter", "count_total_first_page", "count_total_later_pages", "pagination_mode", "total_count_reconciliation_required_for_mechanical_completion"]
     },
     "known_identifier_anchors": {
       "type": "array",
@@ -91,11 +105,23 @@
           "items": {"type": "string", "minLength": 1},
           "uniqueItems": true
         },
+        "mechanical_completion_requires": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "pagination_sequence_valid": {"const": true},
+            "fully_paginated": {"const": true},
+            "reported_total_count_state": {"const": "CONSISTENT"},
+            "reported_total_reconciliation_state": {"const": "MATCH"}
+          },
+          "required": ["pagination_sequence_valid", "fully_paginated", "reported_total_count_state", "reported_total_reconciliation_state"]
+        },
         "registry_completeness_claim": {"const": false},
         "global_neuroai_trial_recall_claim": {"const": false},
-        "fully_paginated_semantics": {"type": "string", "minLength": 1}
+        "fully_paginated_semantics": {"type": "string", "minLength": 1},
+        "reported_total_semantics": {"type": "string", "minLength": 1}
       },
-      "required": ["required_metrics", "registry_completeness_claim", "global_neuroai_trial_recall_claim", "fully_paginated_semantics"]
+      "required": ["required_metrics", "mechanical_completion_requires", "registry_completeness_claim", "global_neuroai_trial_recall_claim", "fully_paginated_semantics", "reported_total_semantics"]
     },
     "network_policy": {
       "type": "object",
@@ -109,5 +135,5 @@
     },
     "boundary": {"type": "string", "minLength": 1}
   },
-  "required": ["schema_version", "programme_id", "status", "source_universe_id", "source_system", "workbench_dependency", "identity_policy", "inclusion_policy", "known_identifier_anchors", "query_streams", "coverage_contract", "network_policy", "boundary"]
+  "required": ["schema_version", "programme_id", "status", "source_universe_id", "source_system", "workbench_dependency", "identity_policy", "inclusion_policy", "request_policy", "known_identifier_anchors", "query_streams", "coverage_contract", "network_policy", "boundary"]
 }
