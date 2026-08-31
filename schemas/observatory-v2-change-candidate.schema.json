@@ -1,0 +1,47 @@
+{
+  "$id": "observatory-v2-change-candidate.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NeuroAI Observatory v2 change candidate",
+  "description": "Noncanonical candidate-lineage record. A recorded predecessor adjudication does not itself make this object a canonical assertion/event/relationship, and promotion linkage is not inferred when predecessor data does not identify it.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": "2.0.0-draft", "type": "string"},
+    "candidate_id": {"type": "string", "minLength": 1},
+    "event_at": {"$ref": "#/$defs/temporalValue"},
+    "discovery_class": {"type": "string", "minLength": 1},
+    "change_class": {"type": "string", "minLength": 1},
+    "subject_reference": {"$ref": "#/$defs/endpointReference"},
+    "summary": {"type": "string", "minLength": 1},
+    "source_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "uniqueItems": true},
+    "observation_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "uniqueItems": true},
+    "materiality": {"type": "string", "enum": ["HIGH", "MEDIUM", "LOW"]},
+    "predecessor_adjudication": {"type": "string", "minLength": 1},
+    "predecessor_reopening_disposition": {"type": "string", "minLength": 1},
+    "observed_at": {"type": "null"},
+    "knowledge_time_state": {"const": "PREDECESSOR_TIME_UNRESOLVED", "type": "string"},
+    "candidate_state": {"const": "MIGRATED_PREDECESSOR_CANDIDATE_WITH_DISPOSITION", "type": "string"},
+    "promoted_record_ids": {"type": "array", "maxItems": 0},
+    "promotion_linkage_state": {"const": "PREDECESSOR_PROMOTION_LINKAGE_NOT_EXPLICIT", "type": "string"},
+    "predecessor": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "release_id": {"const": "data-v0.1.0-public-governing", "type": "string"},
+        "file": {"const": "canonical_live_refresh_release_v1.6.json", "type": "string"},
+        "section": {"const": "change_candidates", "type": "string"},
+        "record_id": {"type": "string", "minLength": 1},
+        "record_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "payload": {"type": "object"}
+      },
+      "required": ["release_id", "file", "section", "record_id", "record_sha256", "payload"]
+    },
+    "record_state": {"const": "NONCANONICAL_CANDIDATE", "type": "string"},
+    "authority_boundary": {"type": "string", "minLength": 1}
+  },
+  "required": ["schema_version", "candidate_id", "event_at", "discovery_class", "change_class", "subject_reference", "summary", "source_ids", "observation_ids", "materiality", "predecessor_adjudication", "predecessor_reopening_disposition", "observed_at", "knowledge_time_state", "candidate_state", "promoted_record_ids", "promotion_linkage_state", "predecessor", "record_state", "authority_boundary"],
+  "$defs": {
+    "endpointReference": {"type": "object", "additionalProperties": false, "properties": {"value": {"type": "string", "minLength": 1}, "resolution_state": {"const": "PREDECESSOR_LITERAL_UNRESOLVED", "type": "string"}, "entity_id": {"type": "null"}}, "required": ["value", "resolution_state", "entity_id"]},
+    "temporalValue": {"type": "object", "additionalProperties": false, "properties": {"value": {"type": "string", "minLength": 1}, "precision": {"const": "DATE", "type": "string"}}, "required": ["value", "precision"]}
+  }
+}
