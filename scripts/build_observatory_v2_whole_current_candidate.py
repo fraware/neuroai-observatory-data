@@ -12,7 +12,7 @@ import hashlib
 import importlib
 import json
 import sys
-from collections import Counter, defaultdict
+from collections import defaultdict
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -49,8 +49,9 @@ FAMILY_ID_FIELDS = {
     "reopening_decisions": "decision_id",
 }
 
-# These tokens identify mechanical defects. Legitimate unresolved-data counters such as
-# unresolved knowledge time are intentionally not blockers.
+# Legitimate unresolved states (for example unresolved knowledge time) are not blockers.
+# Only counters/lists whose names carry one of these defect concepts are interpreted as
+# mechanical failure signals.
 BLOCKER_TOKENS = (
     "loss",
     "failure",
@@ -63,6 +64,7 @@ BLOCKER_TOKENS = (
     "missing_expected",
     "unresolved_accepted_basis",
     "conflict",
+    "blocker",
 )
 
 
@@ -125,7 +127,9 @@ def _collect_references(value: Any, key: str) -> list[str]:
     return refs
 
 
-def _dedupe_family(rows: list[dict[str, Any]], id_field: str) -> tuple[list[dict[str, Any]], dict[str, list[str]]]:
+def _dedupe_family(
+    rows: list[dict[str, Any]], id_field: str
+) -> tuple[list[dict[str, Any]], dict[str, list[str]], int]:
     by_id: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for row in rows:
         rid = row.get(id_field)
@@ -135,22 +139,79 @@ def _dedupe_family(rows: list[dict[str, Any]], id_field: str) -> tuple[list[dict
 
     conflicts: dict[str, list[str]] = {}
     output: list[dict[str, Any]] = []
+    identical_duplicate_count = 0
     for rid in sorted(by_id):
         variants = by_id[rid]
         digests = sorted({_sha256_bytes(_canonical_line(row)) for row in variants})
         if len(digests) > 1:
             conflicts[rid] = digests
             continue
-        # Identical duplicate representations are retained once, with duplicate presence
-        # visible in reconciliation. They are not treated as multiple substantive records.
         output.append(variants[0])
-    return output, conflicts
+        identical_duplicate_count += max(0, len(variants) - 1)
+    return output, conflicts, identical_duplicate_count
 
 
 def _write_jsonl(path: Path, rows: Iterable[dict[str, Any]]) -> tuple[int, str]:
     payload = b"".join(_canonical_line(row) for row in rows)
     path.write_bytes(payload)
     return len(payload), _sha256_bytes(payload)
+
+
+def _effective_state_reconciliation(
+    families: dict[str, list[dict[str, Any]]], successor_lineage: list[dict[str, Any]]
+) -> dict[str, Any]:
+    if len(successor_lineage) != 1:
+        return {
+            "state": "UNRESOLVED",
+            "mismatch_count": 1,
+            "reason": f"Expected one v1.7 successor-lineage record, found {len(successor_lineage)}",
+        }
+
+    declared = successor_lineage[0]["count_summaries"]["successor_effective_counts"]
+
+    active_orgs = 0
+    current_verified_active = 0
+    for entity in families["entities"]:
+        if entity.get("entity_kind") != "ORGANIZATION":
+            continue
+        predecessor = entity.get("predecessor", {}).get("payload", {})
+        if predecessor.get("current_status") == "ACTIVE_OR_CURRENTLY_REPRESENTED" and predecessor.get("verification_state") != "LEGACY_ONLY":
+            active_orgs += 1
+            if predecessor.get("verification_state") == "CURRENT_VERIFIED":
+                current_verified_active += 1
+
+    capital_events = sum(1 for row in families["events"] if row.get("event_family") == "CAPITAL_AND_OWNERSHIP")
+    model_records = sum(1 for row in families["entities"] if row.get("entity_kind") == "MODEL")
+    supplier_dependencies = sum(1 for row in families["relationships"] if row.get("relationship_family") == "SUPPLIER_DEPENDENCY")
+    sources = len(families["sources"])
+
+    materialized = {
+        "organizations": active_orgs,
+        "current_verified_organizations": current_verified_active,
+        "capital_and_ownership_events": capital_events,
+        "representative_model_records": model_records,
+        "supplier_dependency_relationships": supplier_dependencies,
+        "source_records": sources,
+    }
+    comparisons = {
+        key: {"declared": declared.get(key), "materialized": materialized[key]}
+        for key in materialized
+    }
+    mismatches = {key: value for key, value in comparisons.items() if value["declared"] != value["materialized"]}
+
+    # v1.7 declares four completed assessments, but this S2 migration intentionally does
+    # not fabricate four assessment objects from a summary count. PRIMA's detailed
+    # assessment-successor state remains in successor lineage; the assessment engine/state
+    # itself remains a distinct layer governed by the Workbench architecture.
+    return {
+        "state": "RECONCILED_FOR_MATERIALIZABLE_S2_EFFECTIVE_COUNTS" if not mismatches else "MISMATCH",
+        "declared_completed_system_assessments": declared.get("completed_system_assessments"),
+        "assessment_object_materialization_state": "NOT_EXPANDED_FROM_SUMMARY_COUNT",
+        "materialized_counts": materialized,
+        "comparisons": comparisons,
+        "mismatches": mismatches,
+        "mismatch_count": len(mismatches),
+    }
 
 
 def build() -> dict[str, Any]:
@@ -163,13 +224,15 @@ def build() -> dict[str, Any]:
         if blockers:
             slice_blockers[label] = blockers
 
-    # Independent aggregate gates already built in earlier slices.
     v16_coverage = importlib.import_module("reconcile_v16_semantic_coverage").reconcile()
     namespace_result = importlib.import_module("reconcile_v2_effective_source_namespace").reconcile()
-    if _blocking_reconciliation_values(v16_coverage):
-        slice_blockers["v16_semantic_coverage"] = _blocking_reconciliation_values(v16_coverage)
-    if _blocking_reconciliation_values(namespace_result):
-        slice_blockers["effective_source_namespace"] = _blocking_reconciliation_values(namespace_result)
+    for label, gate in (
+        ("v16_semantic_coverage", v16_coverage),
+        ("effective_source_namespace", namespace_result),
+    ):
+        blockers = _blocking_reconciliation_values(gate)
+        if blockers:
+            slice_blockers[label] = blockers
 
     families: dict[str, list[dict[str, Any]]] = {key: [] for key in FAMILY_ID_FIELDS}
     comparison_provenance: list[dict[str, Any]] = []
@@ -178,7 +241,6 @@ def build() -> dict[str, Any]:
 
     for label, result in slice_results.items():
         for family in FAMILY_ID_FIELDS:
-            # Candidate projector uses `candidates` as its historical output key.
             if family == "change_candidates":
                 value = result.get("change_candidates", result.get("candidates"))
             else:
@@ -192,12 +254,11 @@ def build() -> dict[str, Any]:
     family_conflicts: dict[str, dict[str, list[str]]] = {}
     identical_duplicate_counts: dict[str, int] = {}
     for family, id_field in FAMILY_ID_FIELDS.items():
-        before = len(families[family])
-        unique, conflicts = _dedupe_family(families[family], id_field)
+        unique, conflicts, identical_duplicates = _dedupe_family(families[family], id_field)
         if conflicts:
             family_conflicts[family] = conflicts
         families[family] = unique
-        identical_duplicate_counts[family] = before - len(unique) - sum(len(v) for v in conflicts.values()) * 0
+        identical_duplicate_counts[family] = identical_duplicates
 
     source_ids = {row["source_id"] for row in families["sources"]}
     observation_ids = {row["observation_id"] for row in families["observations"]}
@@ -213,12 +274,12 @@ def build() -> dict[str, Any]:
     unresolved_source_refs = sorted(set(source_refs) - source_ids)
     unresolved_observation_refs = sorted(set(observation_refs) - observation_ids)
 
-    # The successor-lineage projector already proves v1.7 does not re-emit the v1.6 delta.
     v17_recon = slice_results["v17_successor_lineage"]["reconciliation"]
-    repeated_delta_double_count = int(v17_recon.get("repeated_delta_new_identity_count", 0))
+    repeated_delta_double_count = int(v17_recon.get("repeated_v16_delta_new_identity_count", 0))
 
     expected_source_count = int(namespace_result.get("materialized_unique_source_count", -1))
     source_count_mismatch = 0 if len(source_ids) == expected_source_count == 248 else 1
+    effective_state = _effective_state_reconciliation(families, successor_lineage)
 
     cross_blockers = {
         "slice_blocker_count": len(slice_blockers),
@@ -226,6 +287,7 @@ def build() -> dict[str, Any]:
         "unresolved_source_reference_count": len(unresolved_source_refs),
         "unresolved_observation_reference_count": len(unresolved_observation_refs),
         "effective_source_count_mismatch_count": source_count_mismatch,
+        "effective_state_mismatch_count": int(effective_state.get("mismatch_count", 1)),
         "repeated_delta_double_counting_count": repeated_delta_double_count,
     }
 
@@ -247,6 +309,7 @@ def build() -> dict[str, Any]:
         "observation_reference_count": len(observation_refs),
         "unresolved_source_references": unresolved_source_refs,
         "unresolved_observation_references": unresolved_observation_refs,
+        "effective_state_reconciliation": effective_state,
         **cross_blockers,
         "mechanically_clean": mechanically_clean,
         "global_completeness_claim": False,
