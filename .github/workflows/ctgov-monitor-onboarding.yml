@@ -9,6 +9,7 @@ on:
       - "docs/CTGOV_MONITOR_ONBOARDING_REVIEW.md"
       - "docs/CTGOV_FIRST_CAPTURE_BOUNDARY.md"
       - "tests/test_ctgov_monitor_onboarding.py"
+      - "tests/test_ctgov_monitor_onboarding_pre_registry_binding.py"
       - "tests/test_ctgov_first_capture_boundary_doc.py"
       - "tests/test_discovery_source_materialization_monitoring.py"
       - "tests/test_su_trials_source_namespace_successor.py"
@@ -54,6 +55,7 @@ jobs:
             tests.test_su_trials_source_namespace_successor \
             tests.test_discovery_source_materialization_monitoring \
             tests.test_ctgov_monitor_onboarding \
+            tests.test_ctgov_monitor_onboarding_pre_registry_binding \
             tests.test_ctgov_first_capture_boundary_doc
 
       - name: Prove no operational/capture data is committed by onboarding slice
