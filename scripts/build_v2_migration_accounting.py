@@ -1,8 +1,10 @@
 """Inventory the current public governing corpus for Observatory v2 migration.
 
-The output is a noncanonical accounting scaffold. It deliberately preserves any
-section without an exact normalization rule as LEGACY_PRESERVATION_RECORD rather
-than silently dropping it. It does not generate a canonical v2 successor.
+The output is a noncanonical structural accounting scaffold. It deliberately
+preserves any section without an exact normalization rule as a
+LEGACY_PRESERVATION_RECORD rather than silently dropping it. It does not execute
+field-level semantic migration and therefore must not report semantic-loss counts
+as zero.
 """
 
 from __future__ import annotations
@@ -69,7 +71,10 @@ SECTION_TARGETS: dict[tuple[str, str], str] = {
 
 
 def _canonical_bytes(value: Any) -> bytes:
-    return (json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False) + "\n").encode("utf-8")
+    return (
+        json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+        + "\n"
+    ).encode("utf-8")
 
 
 def _digest(value: Any) -> str:
@@ -92,8 +97,6 @@ def _field_paths(value: Any, prefix: str = "") -> set[str]:
 def _record_count(value: Any) -> int:
     if isinstance(value, list):
         return len(value)
-    if isinstance(value, dict):
-        return 1
     return 1
 
 
@@ -108,12 +111,17 @@ def build_accounting(records_dir: Path = DEFAULT_RECORDS_DIR) -> dict[str, Any]:
         if not path.exists():
             raise FileNotFoundError(f"Missing governing input: {path}")
         payload = json.loads(path.read_text(encoding="utf-8"))
-        if filename in {"source_monitor_registry_v1.5.json", "public_disposition_summary.json"}:
+        if filename in {
+            "source_monitor_registry_v1.5.json",
+            "public_disposition_summary.json",
+        }:
             sections = {"$root": payload}
         elif isinstance(payload, dict):
             sections = payload
         else:
-            raise ValueError(f"Unexpected top-level type in {filename}: {type(payload).__name__}")
+            raise ValueError(
+                f"Unexpected top-level type in {filename}: {type(payload).__name__}"
+            )
 
         section_rows: list[dict[str, Any]] = []
         for section_name, section_value in sections.items():
@@ -159,16 +167,19 @@ def build_accounting(records_dir: Path = DEFAULT_RECORDS_DIR) -> dict[str, Any]:
         "preserved_section_count": preserved_sections,
         "unique_field_path_count": len(all_field_paths),
         "silent_unmapped_section_count": 0,
-        "invented_value_count": 0,
-        "claim_boundary_loss_count": 0,
-        "source_reference_loss_count": 0,
+        "semantic_reconciliation_state": "NOT_EXECUTED",
+        "invented_value_count": None,
+        "claim_boundary_loss_count": None,
+        "source_reference_loss_count": None,
         "canonical_successor_ready": False,
         "files": files,
         "authority_boundary": (
             "This artifact inventories and classifies predecessor structure only. "
-            "It does not prove semantic migration correctness, generate canonical v2 records, "
-            "or authorize a public successor. Sections without exact normalization remain "
-            "explicit LEGACY_PRESERVATION_RECORD mappings rather than being dropped."
+            "It does not execute field-level semantic migration, so invented-value, "
+            "claim-boundary-loss, and source-reference-loss counts are NOT_EVALUATED. "
+            "It does not prove semantic migration correctness, generate canonical v2 "
+            "records, or authorize a public successor. Sections without exact normalization "
+            "remain explicit LEGACY_PRESERVATION_RECORD mappings rather than being dropped."
         ),
     }
 
