@@ -2,7 +2,7 @@
   "$id": "observatory-v1-observation.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "NeuroAI Observatory source observation",
-  "description": "Noncanonical design schema for public metadata describing one time-specific source observation. Protected evidence bytes, credentials and local protected paths are forbidden. Comparison metadata is distinct from content identity and predecessor transport detail.",
+  "description": "Noncanonical design schema for public metadata describing one time-specific source observation. Protected evidence bytes, credentials and local protected paths are forbidden. Comparison and migration-provenance fields are optional extensions because earlier predecessor records did not encode them.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -43,7 +43,7 @@
     "protected_bytes_in_record": {"const": false, "type": "boolean"},
     "authority_boundary": {"type": "string", "minLength": 1}
   },
-  "required": ["schema_version", "observation_id", "source_id", "observed_at", "retrieval_method", "retrieval_outcome", "content_hash_state", "comparison_state", "metadata_digest_sha256", "capture_state", "redistribution_state", "predecessor", "protected_bytes_in_record", "authority_boundary"],
+  "required": ["schema_version", "observation_id", "source_id", "observed_at", "retrieval_method", "retrieval_outcome", "capture_state", "redistribution_state", "protected_bytes_in_record", "authority_boundary"],
   "$defs": {
     "temporalValue": {"type": "object", "additionalProperties": false, "properties": {"value": {"type": "string", "minLength": 1}, "precision": {"type": "string", "enum": ["TIMESTAMP", "DATE", "MONTH", "YEAR", "INTERVAL", "UNRESOLVED"]}}, "required": ["value", "precision"]},
     "nullableTemporalValue": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/temporalValue"}]}
