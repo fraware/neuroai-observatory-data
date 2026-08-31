@@ -1,0 +1,63 @@
+{
+  "$id": "monitor-review-decision-packet.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Explicit local monitoring-review decision packet",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": "0.1.0"},
+    "artifact": {"const": "monitor_review_decision_packet"},
+    "status": {"const": "EXPLICIT_LOCAL_MONITOR_REVIEW"},
+    "source_materialization_manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source_namespace_successor_proposal_id": {"type": "string", "pattern": "^SNSP-[0-9a-f]{32}$"},
+    "reviewed_by": {"type": "string", "minLength": 1},
+    "reviewed_at": {"type": "string", "minLength": 10},
+    "identity_boundary": {"const": "LOCAL_UNAUTHENTICATED_ATTRIBUTION"},
+    "decisions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "monitoring_proposal_id": {"type": "string", "pattern": "^SMEP-[0-9a-f]{32}$"},
+          "source_id": {"type": "string", "minLength": 1},
+          "decision": {"enum": ["APPROVE_RECOMMENDATION", "DEFER", "REJECT"]},
+          "rationale": {"type": "string", "minLength": 1}
+        },
+        "required": ["monitoring_proposal_id", "source_id", "decision", "rationale"]
+      }
+    },
+    "onboarding_plan_authorized_only": {"const": true},
+    "network_execution_authorized": {"const": false},
+    "quarantine_approval_authorized": {"const": false},
+    "monitor_registry_successor_authorized": {"const": false},
+    "source_namespace_publication_authorized": {"const": false},
+    "trial_entity_creation_authorized": {"const": false},
+    "trial_site_relationship_creation_authorized": {"const": false},
+    "assessment_mutation_authorized": {"const": false},
+    "canonical_publication_authorized": {"const": false},
+    "authority_boundary": {"type": "string", "minLength": 1}
+  },
+  "required": [
+    "schema_version",
+    "artifact",
+    "status",
+    "source_materialization_manifest_sha256",
+    "source_namespace_successor_proposal_id",
+    "reviewed_by",
+    "reviewed_at",
+    "identity_boundary",
+    "decisions",
+    "onboarding_plan_authorized_only",
+    "network_execution_authorized",
+    "quarantine_approval_authorized",
+    "monitor_registry_successor_authorized",
+    "source_namespace_publication_authorized",
+    "trial_entity_creation_authorized",
+    "trial_site_relationship_creation_authorized",
+    "assessment_mutation_authorized",
+    "canonical_publication_authorized",
+    "authority_boundary"
+  ]
+}
