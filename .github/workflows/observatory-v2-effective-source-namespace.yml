@@ -1,0 +1,41 @@
+name: Observatory v2 effective source namespace
+
+on:
+  pull_request:
+    paths:
+      - "scripts/reconcile_v2_effective_source_namespace.py"
+      - "tests/test_v2_effective_source_namespace.py"
+      - ".github/workflows/observatory-v2-effective-source-namespace.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify governing release manifest
+        run: python scripts/verify_manifest.py releases/data-v0.1.0-public-governing/records releases/data-v0.1.0-public-governing/SHA256SUMS.txt
+      - name: Run namespace tests
+        run: python -m unittest tests.test_v2_effective_source_namespace
+      - name: Reconcile namespace
+        run: |
+          python scripts/reconcile_v2_effective_source_namespace.py > /tmp/source-namespace.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r = json.loads(Path('/tmp/source-namespace.json').read_text())
+          assert r['family_counts'] == {'V1_4_BASELINE': 224, 'V1_6_REFRESH': 12, 'V1_7_PRIMA_SUPPLEMENTAL': 12}
+          assert r['family_count_mismatches'] == {}
+          assert r['materialized_unique_source_count'] == 248
+          assert r['v1_7_declared_effective_source_count'] == 248
+          assert r['materialized_matches_declared'] is True
+          assert r['duplicate_source_id_count'] == 0
+          assert r['global_completeness_claim'] is False
+          assert r['canonical_successor_ready'] is False
+          PY
