@@ -1,0 +1,40 @@
+{
+  "$id": "observatory-v2-comparison-provenance.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NeuroAI Observatory v2 comparison provenance",
+  "description": "Noncanonical migration schema for bounded comparison/no-change provenance. It must not be interpreted as a world-level absence assertion.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": "2.0.0-draft"},
+    "comparison_id": {"type": "string", "minLength": 1},
+    "object_reference": {"type": "string", "minLength": 1},
+    "source_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "uniqueItems": true},
+    "observation_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "uniqueItems": true},
+    "result": {"type": "string", "minLength": 1},
+    "comparison_scope": {"const": "BOUNDED_PREDECESSOR_SOURCE_COMPARISON"},
+    "world_absence_claim": {"const": false},
+    "observed_at": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {"value": {"type": "string", "minLength": 1}, "precision": {"const": "TIMESTAMP"}},
+      "required": ["value", "precision"]
+    },
+    "predecessor": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "release_id": {"const": "data-v0.1.0-public-governing"},
+        "file": {"const": "canonical_live_refresh_release_v1.6.json"},
+        "section": {"const": "no_change_confirmations"},
+        "record_id": {"type": "string", "minLength": 1},
+        "record_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "payload": {"type": "object"}
+      },
+      "required": ["release_id", "file", "section", "record_id", "record_sha256", "payload"]
+    },
+    "record_state": {"const": "NONCANONICAL_MIGRATED_CANDIDATE"},
+    "authority_boundary": {"type": "string", "minLength": 1}
+  },
+  "required": ["schema_version", "comparison_id", "object_reference", "source_ids", "observation_ids", "result", "comparison_scope", "world_absence_claim", "observed_at", "predecessor", "record_state", "authority_boundary"]
+}
