@@ -54,14 +54,19 @@ BLOCKER_TOKENS = (
     "failure",
     "mismatch",
     "fabrication",
+    "fabricated",
     "dangling",
     "duplicate",
     "double_count",
     "unknown_top_level",
     "missing_expected",
+    "inferred_missing",
     "unresolved_accepted_basis",
     "conflict",
     "blocker",
+    "expanded",
+    "expansion",
+    "violation",
 )
 
 
