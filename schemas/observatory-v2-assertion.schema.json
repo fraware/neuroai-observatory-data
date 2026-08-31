@@ -2,7 +2,7 @@
   "$id": "observatory-v2-assertion.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "NeuroAI Observatory v2 bounded assertion",
-  "description": "Noncanonical design schema for a source-linked, temporally scoped observatory assertion. Schema validity does not establish substantive truth or publication authority. Temporal precision is explicit so predecessor date-only knowledge times are not fabricated into timestamps.",
+  "description": "Noncanonical design schema for a source-linked or explicitly source-unresolved, temporally scoped observatory assertion. Schema validity does not establish substantive truth or publication authority. Temporal precision and predecessor evidence-linkage state are explicit so migration never fabricates timestamps or sources.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -26,10 +26,18 @@
     "jurisdictions": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
     "valid_from": {"$ref": "#/$defs/nullableTemporalValue"},
     "valid_until": {"$ref": "#/$defs/nullableTemporalValue"},
-    "observed_at": {"$ref": "#/$defs/temporalValue"},
+    "observed_at": {"$ref": "#/$defs/nullableTemporalValue"},
     "adjudicated_at": {"$ref": "#/$defs/nullableTemporalValue"},
-    "source_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "uniqueItems": true},
+    "knowledge_time_state": {
+      "type": "string",
+      "enum": ["OBSERVED_AT_CAPTURE", "EXACT_PREDECESSOR_TIME", "PREDECESSOR_TIME_UNRESOLVED"]
+    },
+    "source_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
     "observation_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "source_linkage_state": {
+      "type": "string",
+      "enum": ["SOURCE_LINKED", "PREDECESSOR_SOURCE_LINKAGE_UNRESOLVED"]
+    },
     "evidence_state": {"type": "string", "minLength": 1},
     "verification_state": {"type": "string", "minLength": 1},
     "review_state": {
@@ -46,10 +54,38 @@
     "first_release_id": {"type": ["string", "null"]},
     "authority_boundary": {"type": "string", "minLength": 1}
   },
-  "required": ["schema_version", "assertion_id", "subject_id", "predicate", "observed_at", "source_ids", "evidence_state", "verification_state", "review_state", "claim_boundary", "record_state", "authority_boundary"],
+  "required": [
+    "schema_version", "assertion_id", "subject_id", "predicate", "observed_at", "knowledge_time_state",
+    "source_ids", "source_linkage_state", "evidence_state", "verification_state", "review_state",
+    "claim_boundary", "record_state", "authority_boundary"
+  ],
   "oneOf": [
     {"required": ["object_id"], "not": {"required": ["value"]}},
     {"required": ["value"], "not": {"required": ["object_id"]}}
+  ],
+  "allOf": [
+    {
+      "if": {"properties": {"source_linkage_state": {"const": "SOURCE_LINKED"}}, "required": ["source_linkage_state"]},
+      "then": {"properties": {"source_ids": {"minItems": 1}}}
+    },
+    {
+      "if": {"properties": {"source_linkage_state": {"const": "PREDECESSOR_SOURCE_LINKAGE_UNRESOLVED"}}, "required": ["source_linkage_state"]},
+      "then": {
+        "properties": {
+          "source_ids": {"maxItems": 0},
+          "review_state": {"const": "MIGRATED_PREDECESSOR_STATE"},
+          "record_state": {"const": "NONCANONICAL_CANDIDATE"}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"knowledge_time_state": {"const": "PREDECESSOR_TIME_UNRESOLVED"}}, "required": ["knowledge_time_state"]},
+      "then": {"properties": {"observed_at": {"type": "null"}}}
+    },
+    {
+      "if": {"properties": {"knowledge_time_state": {"enum": ["OBSERVED_AT_CAPTURE", "EXACT_PREDECESSOR_TIME"]}}, "required": ["knowledge_time_state"]},
+      "then": {"properties": {"observed_at": {"$ref": "#/$defs/temporalValue"}}}
+    }
   ],
   "$defs": {
     "temporalValue": {
