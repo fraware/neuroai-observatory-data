@@ -1,0 +1,72 @@
+{
+  "$id": "observatory-v2-provenance-record.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NeuroAI Observatory v2 provenance and programme-control record",
+  "description": "Noncanonical migration/design schema for release-control, resolution, regional-acquisition and data-quality provenance. These records constrain interpretation and do not by themselves establish world facts, global completeness, conformance, or assessment outcomes.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": "2.0.0-draft", "type": "string"},
+    "provenance_id": {"type": "string", "minLength": 1},
+    "provenance_kind": {
+      "type": "string",
+      "enum": [
+        "RELEASE_METADATA",
+        "METHODOLOGY",
+        "COVERAGE",
+        "ORGANIZATION_RESOLUTION",
+        "REGIONAL_EXPANSION",
+        "DATA_QUALITY_FINDING"
+      ]
+    },
+    "subject_id": {"type": ["string", "null"]},
+    "action_or_disposition": {"type": ["string", "null"]},
+    "effective_at": {"$ref": "#/$defs/nullableTemporalValue"},
+    "observed_at": {"$ref": "#/$defs/nullableTemporalValue"},
+    "knowledge_time_state": {"type": "string", "enum": ["PREDECESSOR_TIME_UNRESOLVED"]},
+    "source_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "source_linkage_state": {
+      "type": "string",
+      "enum": [
+        "SOURCE_LINKED",
+        "PREDECESSOR_SOURCE_LINKAGE_UNRESOLVED",
+        "PREDECESSOR_SOURCE_LINKAGE_NOT_RECORDED",
+        "SOURCE_LINKAGE_NOT_APPLICABLE_CONTROL_RECORD"
+      ]
+    },
+    "claim_boundary": {"type": ["string", "null"]},
+    "normalized_details": {"type": "object"},
+    "predecessor": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "release_id": {"const": "data-v0.1.0-public-governing", "type": "string"},
+        "file": {"const": "canonical_observatory_release_v1.4.json", "type": "string"},
+        "section": {"type": "string", "enum": ["metadata", "methodology", "coverage", "organization_resolution", "regional_expansion", "data_quality"]},
+        "record_id": {"type": "string", "minLength": 1},
+        "record_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "payload": {"type": "object"}
+      },
+      "required": ["release_id", "file", "section", "record_id", "record_sha256", "payload"]
+    },
+    "record_state": {"const": "NONCANONICAL_MIGRATED_CANDIDATE", "type": "string"},
+    "authority_boundary": {"type": "string", "minLength": 1}
+  },
+  "required": [
+    "schema_version", "provenance_id", "provenance_kind", "subject_id", "action_or_disposition", "effective_at", "observed_at", "knowledge_time_state", "source_ids", "source_linkage_state", "claim_boundary", "normalized_details", "predecessor", "record_state", "authority_boundary"
+  ],
+  "$defs": {
+    "temporalValue": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "value": {"type": "string", "minLength": 1},
+        "precision": {"type": "string", "enum": ["TIMESTAMP", "DATE", "MONTH", "YEAR", "INTERVAL", "UNRESOLVED"]}
+      },
+      "required": ["value", "precision"]
+    },
+    "nullableTemporalValue": {
+      "oneOf": [{"type": "null"}, {"$ref": "#/$defs/temporalValue"}]
+    }
+  }
+}
