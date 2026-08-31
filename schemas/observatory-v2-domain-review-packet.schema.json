@@ -1,0 +1,69 @@
+{
+  "$id": "observatory-v2-domain-review-packet.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Observatory v2 pre-attestation domain review packet",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": "1.0.0-draft"},
+    "status": {"const": "NONCANONICAL_PRE_ATTESTATION_REVIEW_PACKET"},
+    "candidate_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "candidate_id": {"type": "string", "minLength": 1},
+        "manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "reconciliation_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "mechanically_clean": {"type": "boolean"}
+      },
+      "required": ["candidate_id", "manifest_sha256", "reconciliation_sha256", "mechanically_clean"]
+    },
+    "tracks": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "track": {"enum": ["SECURITY", "METHODOLOGY", "DATA_GOVERNANCE", "ACCESSIBILITY", "DOMAIN", "AFFECTED_COMMUNITY"]},
+          "state": {"const": "PENDING"},
+          "review_questions": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "required_evidence": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "reviewer": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "name": {"type": "null"},
+              "affiliation": {"type": "null"},
+              "claimed_independence": {"type": "null"}
+            },
+            "required": ["name", "affiliation", "claimed_independence"]
+          },
+          "rationale": {"type": "null"},
+          "conditions": {"type": "array", "maxItems": 0},
+          "evidence_requests": {"type": "array", "maxItems": 0}
+        },
+        "required": ["track", "state", "review_questions", "required_evidence", "reviewer", "rationale", "conditions", "evidence_requests"]
+      }
+    },
+    "blocking_conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "condition_id": {"type": "string", "minLength": 1},
+          "status": {"enum": ["OPEN", "RESOLVED"]},
+          "release_effect": {"const": "BLOCKS_RELEASE"},
+          "summary": {"type": "string", "minLength": 1}
+        },
+        "required": ["condition_id", "status", "release_effect", "summary"]
+      }
+    },
+    "review_identity_boundary": {"type": "string", "minLength": 1},
+    "release_authorized": {"const": false},
+    "authority_boundary": {"type": "string", "minLength": 1}
+  },
+  "required": ["schema_version", "status", "candidate_reference", "tracks", "blocking_conditions", "review_identity_boundary", "release_authorized", "authority_boundary"]
+}
