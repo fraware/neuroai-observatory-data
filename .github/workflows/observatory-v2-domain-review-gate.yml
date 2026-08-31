@@ -1,0 +1,40 @@
+name: Observatory v2 domain review gate
+
+on:
+  pull_request:
+    paths:
+      - "schemas/observatory-v2-domain-review-packet.schema.json"
+      - "schemas/observatory-v2-execution-verification.schema.json"
+      - "scripts/build_observatory_v2_domain_review_packet.py"
+      - "tests/test_observatory_v2_domain_review_packet.py"
+      - "scripts/build_observatory_v2_whole_current_candidate.py"
+      - ".github/workflows/observatory-v2-domain-review-gate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  review-packet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run review-packet tests
+        run: python -m unittest tests.test_observatory_v2_domain_review_packet
+      - name: Build pending review packet
+        run: python scripts/build_observatory_v2_domain_review_packet.py --output /tmp/v2-review-packet.json
+      - name: Assert six pending tracks and withheld authority
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          value = json.loads(Path('/tmp/v2-review-packet.json').read_text())
+          expected = {'SECURITY','METHODOLOGY','DATA_GOVERNANCE','ACCESSIBILITY','DOMAIN','AFFECTED_COMMUNITY'}
+          assert {row['track'] for row in value['tracks']} == expected
+          assert all(row['state'] == 'PENDING' for row in value['tracks'])
+          assert value['release_authorized'] is False
+          assert any(row['condition_id'] == 'V2-EXECUTION-VERIFICATION' and row['status'] == 'OPEN' for row in value['blocking_conditions'])
+          PY
