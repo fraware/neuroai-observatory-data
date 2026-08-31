@@ -42,6 +42,7 @@ class WholeCurrentCandidateTests(unittest.TestCase):
         self.assertEqual(counts["events"], 11)
         self.assertEqual(counts["change_candidates"], 9)
         self.assertEqual(counts["reopening_decisions"], 6)
+        self.assertEqual(result["reconciliation"]["programme_control_record_count"], 52)
         self.assertEqual(result["reconciliation"]["comparison_provenance_record_count"], 2)
         self.assertEqual(result["reconciliation"]["successor_lineage_record_count"], 1)
 
