@@ -1,0 +1,46 @@
+{
+  "$id": "observatory-v2-entity.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NeuroAI Observatory v2 entity identity",
+  "description": "Noncanonical migration/design schema for persistent entity identity separated from source-backed assertions. During migration, the exact predecessor payload and digest are preserved so identity normalization cannot silently discard governing fields.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": "2.0.0-draft", "type": "string"},
+    "entity_id": {"type": "string", "minLength": 1},
+    "entity_kind": {
+      "type": "string",
+      "enum": ["ORGANIZATION", "PROVENANCE_NODE"]
+    },
+    "canonical_name": {"type": "string", "minLength": 1},
+    "aliases": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "legacy_entity_ids": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "predecessor": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "release_id": {"const": "data-v0.1.0-public-governing", "type": "string"},
+        "file": {"const": "canonical_observatory_release_v1.4.json", "type": "string"},
+        "section": {"const": "organizations", "type": "string"},
+        "record_id": {"type": "string", "minLength": 1},
+        "record_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "payload": {"type": "object"}
+      },
+      "required": ["release_id", "file", "section", "record_id", "record_sha256", "payload"]
+    },
+    "record_state": {"const": "NONCANONICAL_MIGRATED_CANDIDATE", "type": "string"},
+    "authority_boundary": {"type": "string", "minLength": 1}
+  },
+  "required": [
+    "schema_version", "entity_id", "entity_kind", "canonical_name", "aliases", "legacy_entity_ids",
+    "predecessor", "record_state", "authority_boundary"
+  ]
+}
