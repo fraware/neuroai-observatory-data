@@ -6,7 +6,10 @@ on:
       - "scripts/review_ctgov_monitoring_onboarding.py"
       - "schemas/monitor-review-decision-packet.schema.json"
       - "schemas/ctgov-monitor-onboarding-package.schema.json"
+      - "docs/CTGOV_MONITOR_ONBOARDING_REVIEW.md"
+      - "docs/CTGOV_FIRST_CAPTURE_BOUNDARY.md"
       - "tests/test_ctgov_monitor_onboarding.py"
+      - "tests/test_ctgov_first_capture_boundary_doc.py"
       - "tests/test_discovery_source_materialization_monitoring.py"
       - "tests/test_su_trials_source_namespace_successor.py"
       - "tests/test_su_trials_human_review_staging.py"
@@ -50,7 +53,8 @@ jobs:
             tests.test_su_trials_human_review_staging \
             tests.test_su_trials_source_namespace_successor \
             tests.test_discovery_source_materialization_monitoring \
-            tests.test_ctgov_monitor_onboarding
+            tests.test_ctgov_monitor_onboarding \
+            tests.test_ctgov_first_capture_boundary_doc
 
       - name: Prove no operational/capture data is committed by onboarding slice
         shell: bash
@@ -59,4 +63,4 @@ jobs:
           test ! -d programme-adjudication
           test ! -d quarantine
           test ! -d discovery/registry_successors
-          git diff --exit-code -- releases curation schemas scripts tests .github/workflows
+          git diff --exit-code -- releases curation schemas scripts tests docs .github/workflows
