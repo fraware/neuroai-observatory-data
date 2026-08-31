@@ -61,7 +61,7 @@
               "monitor_id": {"type": "string", "pattern": "^DMON-[0-9a-f]{32}$"},
               "requested_url": {"type": "string", "minLength": 1},
               "required_execution_fields": {
-                "const": ["requested_at", "registry_sha256", "collector_version", "configuration_hash", "boundary"]
+                "const": ["requested_at", "onboarding_manifest_sha256", "collector_version", "configuration_hash", "boundary"]
               },
               "execution_state": {"const": "TEMPLATE_NOT_EXECUTED"}
             },
