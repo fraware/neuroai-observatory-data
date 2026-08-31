@@ -16,7 +16,7 @@ import os
 import re
 import tempfile
 from pathlib import Path
-from typing import Any, Callable, NamedTuple
+from typing import Any, Callable, Mapping, NamedTuple
 
 import run_su_trials_recorded_replay as replay
 
@@ -172,12 +172,18 @@ def verify_projection(projection_dir: Path) -> dict[str, Any]:
     }
 
 
-def _validate_candidates(candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _validate_candidates(
+    candidates: list[dict[str, Any]],
+    *,
+    current_index: Mapping[str, Any],
+) -> list[dict[str, Any]]:
     programme = replay._programme()
     configured_query_ids = {
         row["query_id"] for row in programme["query_streams"] if row.get("status") == "ACTIVE"
     }
-    current = replay.build_known_nct_source_index()["nct_to_source"]
+    current = current_index.get("nct_to_source")
+    if not isinstance(current, dict):
+        raise ValueError("Current controlled NCT index is unavailable")
     seen: set[str] = set()
     normalized: list[dict[str, Any]] = []
 
@@ -243,6 +249,31 @@ def _union_query(*, manifest_sha256: str, captured_at: str, candidate_count: int
     }
 
 
+def _existing_staging(workspace: Path, manifest_sha256: str) -> dict[str, Any] | None:
+    review_root = workspace / "programme-review" / PROGRAMME_ID
+    if not review_root.exists():
+        return None
+    matches: list[dict[str, Any]] = []
+    for path in sorted(review_root.glob("*.json")):
+        try:
+            value = _load_json(path)
+        except Exception as exc:
+            raise ValueError(f"Unreadable existing operational review index: {path.name}") from exc
+        if not isinstance(value, dict):
+            raise ValueError(f"Existing operational review index is not an object: {path.name}")
+        if value.get("status") != "LOCAL_OPERATIONAL_HUMAN_REVIEW_INDEX":
+            raise ValueError(f"Unexpected file in SU-TRIALS review index directory: {path.name}")
+        if value.get("programme_id") != PROGRAMME_ID:
+            raise ValueError(f"Programme mismatch in existing review index: {path.name}")
+        if value.get("projection_manifest_sha256") == manifest_sha256:
+            matches.append({"path": str(path), "record": value})
+    if len(matches) > 1:
+        raise ValueError(
+            "DUPLICATE_OPERATIONAL_STAGING_STATE: projection manifest is already represented by multiple review indexes"
+        )
+    return matches[0] if matches else None
+
+
 def stage_projection(
     projection_dir: Path,
     workspace: Path,
@@ -252,7 +283,25 @@ def stage_projection(
     workbench_api: WorkbenchAPI | None = None,
 ) -> dict[str, Any]:
     verified = verify_projection(projection_dir)
-    candidates = _validate_candidates(verified["candidates"])
+    current_index = replay.build_known_nct_source_index()
+    current_map = current_index.get("nct_to_source")
+    if not isinstance(current_map, dict):
+        raise ValueError("Current controlled NCT index is unavailable")
+    if current_index.get("materialized_source_count") != 248:
+        raise ValueError("Current controlled Source namespace no longer materializes to 248 records")
+    current_index_sha256 = _digest(dict(sorted(current_map.items())))
+    candidates = _validate_candidates(verified["candidates"], current_index=current_index)
+
+    workspace = workspace.resolve()
+    workspace.mkdir(parents=True, exist_ok=True)
+    existing = _existing_staging(workspace, verified["manifest_sha256"])
+    if existing is not None:
+        record = existing["record"]
+        raise ValueError(
+            "PROJECTION_ALREADY_STAGED: "
+            f"manifest {verified['manifest_sha256']} is already bound to run {record.get('workbench_run_id')}"
+        )
+
     if not candidates:
         return {
             "status": "NO_NEW_CANDIDATES_TO_STAGE",
@@ -261,6 +310,8 @@ def stage_projection(
             "candidate_count": 0,
             "discovery_run_id": None,
             "review_index_path": None,
+            "current_known_nct_index_sha256": current_index_sha256,
+            "current_known_ctgov_nct_count": len(current_map),
             "automatic_mutation_performed": False,
             "human_adjudication_performed": False,
             "canonical_successor_ready": False,
@@ -276,8 +327,6 @@ def stage_projection(
         captured_at=captured_at,
         candidate_count=len(candidates),
     )
-    workspace = workspace.resolve()
-    workspace.mkdir(parents=True, exist_ok=True)
     api.store_query(workspace, query)
 
     workbench_records = [
@@ -359,6 +408,9 @@ def stage_projection(
         "status": "LOCAL_OPERATIONAL_HUMAN_REVIEW_INDEX",
         "programme_id": PROGRAMME_ID,
         "projection_manifest_sha256": verified["manifest_sha256"],
+        "current_known_nct_index_sha256": current_index_sha256,
+        "current_known_ctgov_nct_count": len(current_map),
+        "materialized_source_namespace_count": current_index.get("materialized_source_count"),
         "workbench_query_id": query["query_id"],
         "workbench_run_id": run_id,
         "staged_at": execution_time,
@@ -373,9 +425,9 @@ def stage_projection(
         "human_adjudication_performed": False,
         "canonical_successor_ready": False,
         "authority_boundary": (
-            "This index binds operational proposal IDs to deterministic replay provenance only. "
-            "It does not accept proposals, create a registry successor, establish trial/site relationships, "
-            "mutate assessments, or authorize canonical publication."
+            "This index binds operational proposal IDs to deterministic replay provenance and the exact current "
+            "controlled NCT identity index used for staging. It does not accept proposals, create a registry successor, "
+            "establish trial/site relationships, mutate assessments, or authorize canonical publication."
         ),
     }
     review_path = workspace / "programme-review" / PROGRAMME_ID / f"{run_id}.json"
@@ -385,6 +437,8 @@ def stage_projection(
         "status": "STAGED_FOR_HUMAN_ACCEPTANCE",
         "programme_id": PROGRAMME_ID,
         "projection_manifest_sha256": verified["manifest_sha256"],
+        "current_known_nct_index_sha256": current_index_sha256,
+        "current_known_ctgov_nct_count": len(current_map),
         "candidate_count": len(candidates),
         "discovery_query_id": query["query_id"],
         "discovery_run_id": run_id,
