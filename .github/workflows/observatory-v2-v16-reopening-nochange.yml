@@ -1,0 +1,48 @@
+name: Observatory v2 v1.6 reopening and no-change migration
+
+on:
+  pull_request:
+    paths:
+      - "schemas/observatory-v2-reopening-decision.schema.json"
+      - "schemas/observatory-v2-comparison-provenance.schema.json"
+      - "scripts/project_v16_reopening_nochange_to_v2.py"
+      - "tests/test_v16_reopening_nochange_v2_projection.py"
+      - ".github/workflows/observatory-v2-v16-reopening-nochange.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify governing release manifest
+        run: python scripts/verify_manifest.py releases/data-v0.1.0-public-governing/records releases/data-v0.1.0-public-governing/SHA256SUMS.txt
+      - name: Run reopening/no-change tests
+        run: python -m unittest tests.test_v16_reopening_nochange_v2_projection
+      - name: Reconcile slice
+        run: |
+          python scripts/project_v16_reopening_nochange_to_v2.py --output-dir /tmp/v16-reopening > /tmp/v16-reopening-run.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result = json.loads(Path('/tmp/v16-reopening/reconciliation.json').read_text())
+          assert result['input_reopening_decision_count'] == 6
+          assert result['projected_reopening_decision_count'] == 6
+          assert result['empty_basis_decision_count'] == 3
+          assert result['basis_reference_count'] == 5
+          assert result['unresolved_accepted_basis_reference_count'] == 0
+          assert result['input_no_change_confirmation_count'] == 2
+          assert result['projected_no_change_confirmation_count'] == 2
+          assert result['no_change_source_reference_count'] == 2
+          assert result['no_change_observation_reference_count'] == 2
+          for key, value in result.items():
+              if key.endswith('_failure_count') or key.endswith('_loss_count') or key.endswith('_fabrication_count'):
+                  assert value == 0, (key, value)
+          assert result['canonical_successor_ready'] is False
+          PY
