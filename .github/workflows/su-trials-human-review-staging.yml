@@ -1,0 +1,127 @@
+name: SU-TRIALS human-review staging
+
+on:
+  pull_request:
+    paths:
+      - "curation/clinicaltrials_discovery_programme_v0.1.json"
+      - "scripts/run_su_trials_recorded_replay.py"
+      - "scripts/stage_su_trials_human_review.py"
+      - "tests/test_su_trials_recorded_replay.py"
+      - "tests/test_su_trials_human_review_staging.py"
+      - "tests/test_su_trials_human_review_staging_idempotency.py"
+      - ".github/workflows/su-trials-human-review-staging.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  staging-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout observatory data
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Checkout exact proposed Workbench capability
+        uses: actions/checkout@v4
+        with:
+          repository: fraware/neuroai-workbench
+          ref: 1148d5edd532feedb697f02aa1de7128f87603c3
+          path: .workbench
+          persist-credentials: false
+
+      - name: Install exact Workbench tree
+        run: python -m pip install --disable-pip-version-check -e .workbench
+
+      - name: Verify required Workbench replay API
+        run: |
+          python - <<'PY'
+          from neuroai_workbench.discovery import (
+              execute_discovery_query,
+              load_proposal,
+              load_run,
+              store_query,
+          )
+
+          assert callable(store_query)
+          assert callable(execute_discovery_query)
+          assert callable(load_run)
+          assert callable(load_proposal)
+          PY
+
+      - name: Validate upstream SU-TRIALS control
+        run: python scripts/validate_clinicaltrials_discovery_programme.py
+
+      - name: Run deterministic replay and staging contract tests
+        run: |
+          python -m unittest tests/test_su_trials_recorded_replay.py
+          python -m unittest tests/test_su_trials_human_review_staging.py
+          python -m unittest tests/test_su_trials_human_review_staging_idempotency.py
+
+      - name: Exercise actual Workbench OFFLINE_REPLAY staging interface
+        run: |
+          python - <<'PY'
+          import json
+          import sys
+          import tempfile
+          from pathlib import Path
+
+          sys.path.insert(0, "scripts")
+          sys.path.insert(0, "tests")
+
+          import stage_su_trials_human_review as staging
+          import test_su_trials_human_review_staging as fixture
+          from neuroai_workbench.discovery import load_proposal, load_run
+
+          with tempfile.TemporaryDirectory() as projection_td, tempfile.TemporaryDirectory() as workspace_td:
+              projection = Path(projection_td)
+              workspace = Path(workspace_td)
+              fixture._write_projection(projection)
+
+              result = staging.stage_projection(
+                  projection,
+                  workspace,
+                  actor="ci-recorded-replay-review-stager",
+                  staged_at="2026-08-31T11:30:00Z",
+              )
+              assert result["status"] == "STAGED_FOR_HUMAN_ACCEPTANCE"
+              assert result["candidate_count"] == 1
+              assert result["automatic_mutation_performed"] is False
+              assert result["human_adjudication_performed"] is False
+              assert result["canonical_successor_ready"] is False
+
+              run = load_run(workspace, result["discovery_run_id"])
+              assert run["execution_mode"] == "OFFLINE_REPLAY"
+              assert run["result_counts"] == {"total": 1, "new": 1, "duplicate": 0, "excluded": 0}
+              assert run["automatic_registry_mutation_performed"] is False
+
+              proposal = load_proposal(workspace, result["proposal_ids"][0])
+              assert proposal["classification"] == "NEW"
+              assert proposal["status"] == "PENDING_HUMAN_ACCEPTANCE"
+              assert proposal["proposed_source"]["record_key"] == "NCT03333954"
+              assert proposal["automatic_mutation_performed"] is False
+
+              review = json.loads(Path(result["review_index_path"]).read_text(encoding="utf-8"))
+              assert review["projection_manifest_sha256"] == result["projection_manifest_sha256"]
+              assert review["current_known_nct_index_sha256"] == result["current_known_nct_index_sha256"]
+              assert review["materialized_source_namespace_count"] == 248
+
+              try:
+                  staging.stage_projection(projection, workspace)
+              except ValueError as exc:
+                  assert "PROJECTION_ALREADY_STAGED" in str(exc)
+              else:
+                  raise AssertionError("Identical projection was staged twice")
+          PY
+
+      - name: Verify no operational review workspace is committed
+        run: |
+          if find . -path './.git' -prune -o -path './.workbench' -prune -o -type d -name 'programme-review' -print | grep -q .; then
+            echo "Operational human-review workspaces must not be committed to S2." >&2
+            exit 1
+          fi
