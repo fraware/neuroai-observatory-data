@@ -55,10 +55,61 @@ jobs:
       - name: Validate programme control
         run: python scripts/validate_clinicaltrials_discovery_programme.py
 
-      - name: Run programme and replay tests
+      - name: Run programme and replay unit tests
         run: |
           python -m unittest tests/test_clinicaltrials_discovery_programme.py
           python -m unittest tests/test_su_trials_recorded_replay.py
+
+      - name: Exercise actual S1 projector against S2 known-source namespace
+        run: |
+          python - <<'PY'
+          import sys
+          sys.path.insert(0, "scripts")
+          import run_su_trials_recorded_replay as replay
+
+          programme = replay._programme()
+          stream = next(row for row in programme["query_streams"] if row["query_id"] == "DISCOVERY-CTGOV-BCI-001")
+          bundle = {
+              "schema_version": "0.1.0",
+              "programme_id": programme["programme_id"],
+              "capture_scope": "PARTIAL_VALIDATION",
+              "captured_at": "2026-08-31T00:00:00Z",
+              "api_data_timestamp": "2026-08-31",
+              "query_captures": [{
+                  "query_id": stream["query_id"],
+                  "query_term": stream["query_term"],
+                  "count_total_first_page_requested": True,
+                  "count_total_later_pages_requested": False,
+                  "pages": [{
+                      "payload": {
+                          "studies": [{
+                              "protocolSection": {
+                                  "identificationModule": {
+                                      "nctId": "NCT04676854",
+                                      "briefTitle": "PRIMAvera controlled integration fixture"
+                                  },
+                                  "statusModule": {
+                                      "overallStatus": "ACTIVE_NOT_RECRUITING",
+                                      "lastUpdatePostDateStruct": {"date": "2026-06-01"},
+                                      "enrollmentInfo": {"count": 38}
+                                  },
+                                  "designModule": {"studyType": "INTERVENTIONAL", "phases": ["NA"]}
+                              }
+                          }],
+                          "totalCount": 1
+                      }
+                  }]
+              }]
+          }
+          result = replay.build_replay(bundle)
+          assert result["reconciliation"]["materialized_source_namespace_count"] == 248
+          assert result["reconciliation"]["known_controlled_duplicate_count"] == 1
+          assert result["reconciliation"]["new_candidate_input_count"] == 0
+          assert result["known_duplicates"][0]["record_key"] == "NCT04676854"
+          assert result["known_duplicates"][0]["duplicate_of_source_id"] == "SRC-PR-002"
+          assert result["query_reports"][0]["mechanical_blockers"] == []
+          assert result["reconciliation"]["mechanically_complete"] is False
+          PY
 
       - name: Verify no raw replay fixture is committed
         run: |
