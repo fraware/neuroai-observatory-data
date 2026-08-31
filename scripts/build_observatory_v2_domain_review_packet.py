@@ -28,11 +28,7 @@ TRACKS: dict[str, dict[str, list[str]]] = {
             "Do content hashes, capture states and redistribution states avoid implying custody or rights that are not established?",
             "Are deterministic build and manifest mechanics free of a path that could silently import protected S3 material?"
         ],
-        "required_evidence": [
-            "candidate reconciliation and manifest",
-            "S2/S3 evidence-boundary contract",
-            "Observation records with protected_bytes_in_record=false"
-        ]
+        "required_evidence": ["candidate reconciliation and manifest", "S2/S3 evidence-boundary contract", "Observation records with protected_bytes_in_record=false"]
     },
     "METHODOLOGY": {
         "review_questions": [
@@ -40,12 +36,7 @@ TRACKS: dict[str, dict[str, list[str]]] = {
             "Are source observations, candidates, accepted changes, reopening decisions and successor lineage correctly separated?",
             "Are effective-state summaries reconstructed only where the underlying records support reconstruction?"
         ],
-        "required_evidence": [
-            "all slice reconciliations",
-            "v1-to-v2 migration specification",
-            "effective-state reconciliation",
-            "v1.6 semantic-coverage gate"
-        ]
+        "required_evidence": ["all slice reconciliations", "v1-to-v2 migration specification", "effective-state reconciliation", "v1.6 semantic-coverage gate"]
     },
     "DATA_GOVERNANCE": {
         "review_questions": [
@@ -53,12 +44,7 @@ TRACKS: dict[str, dict[str, list[str]]] = {
             "Are public/protected/generated/archive boundaries maintained and redistribution/custody uncertainty preserved?",
             "Are canonical authority and publication kept separate from migration mechanics and review?"
         ],
-        "required_evidence": [
-            "predecessor payload/digest fields",
-            "248-source namespace reconciliation",
-            "data-storage boundary documentation",
-            "candidate manifest"
-        ]
+        "required_evidence": ["predecessor payload/digest fields", "248-source namespace reconciliation", "data-storage boundary documentation", "candidate manifest"]
     },
     "ACCESSIBILITY": {
         "review_questions": [
@@ -66,11 +52,7 @@ TRACKS: dict[str, dict[str, list[str]]] = {
             "Are unresolved states, claim boundaries and prohibited inferences legible and distinguishable from failures?",
             "Does the machine-readable structure support later accessible public presentation without making generated views canonical?"
         ],
-        "required_evidence": [
-            "candidate family files and reconciliation",
-            "v2 ontology/temporal model documentation",
-            "public-observatory presentation boundary documentation"
-        ]
+        "required_evidence": ["candidate family files and reconciliation", "v2 ontology/temporal model documentation", "public-observatory presentation boundary documentation"]
     },
     "DOMAIN": {
         "review_questions": [
@@ -78,11 +60,7 @@ TRACKS: dict[str, dict[str, list[str]]] = {
             "Are company announcements, regulatory procedure, preprints, supplier capability and clinical evidence kept within their evidence-class boundaries?",
             "Does the PRIMA successor preserve the distinction among EU/EEA CE announcement, US HUD pathway, clinical evidence, commercial implantation and CL-4 assessment state?"
         ],
-        "required_evidence": [
-            "typed entity/assertion/event/relationship records",
-            "source/evidence-state and claim-boundary fields",
-            "PRIMA successor lineage and prohibited inferences"
-        ]
+        "required_evidence": ["typed entity/assertion/event/relationship records", "source/evidence-state and claim-boundary fields", "PRIMA successor lineage and prohibited inferences"]
     },
     "AFFECTED_COMMUNITY": {
         "review_questions": [
@@ -90,11 +68,7 @@ TRACKS: dict[str, dict[str, list[str]]] = {
             "Do missing public evidence and no-change findings avoid creating unsupported negative judgments about people, communities or systems?",
             "Are open access, support, continuity, safety and participant-impact conditions preserved where the predecessor records state them?"
         ],
-        "required_evidence": [
-            "participant-authority relationship records",
-            "no-change comparison provenance",
-            "PRIMA open conditions and prohibited inferences"
-        ]
+        "required_evidence": ["participant-authority relationship records", "no-change comparison provenance", "PRIMA open conditions and prohibited inferences"]
     }
 }
 
@@ -103,7 +77,31 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def build(*, execution_verified: bool = False) -> dict[str, Any]:
+def _valid_execution_verification(path: Path | None, manifest_sha: str) -> bool:
+    if path is None:
+        return False
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise ValueError("Execution verification must be a JSON object")
+    required = {
+        "schema_version": "1.0.0-draft",
+        "candidate_manifest_sha256": manifest_sha,
+        "execution_state": "VERIFIED_EXECUTED",
+        "result": "PASS",
+    }
+    for key, expected in required.items():
+        if value.get(key) != expected:
+            raise ValueError(f"Execution verification {key} does not bind to this candidate")
+    for key in ("executor", "execution_environment", "executed_at", "identity_boundary"):
+        if not isinstance(value.get(key), str) or not value[key].strip():
+            raise ValueError(f"Execution verification {key} is required")
+    tests = value.get("tests_executed")
+    if not isinstance(tests, list) or not tests or not all(isinstance(item, str) and item.strip() for item in tests):
+        raise ValueError("Execution verification tests_executed must be a non-empty string array")
+    return True
+
+
+def build(*, execution_verification: Path | None = None) -> dict[str, Any]:
     result = candidate_builder.build()
     with tempfile.TemporaryDirectory() as td:
         output = Path(td)
@@ -111,6 +109,7 @@ def build(*, execution_verified: bool = False) -> dict[str, Any]:
         manifest_sha = _sha256(output / "manifest.json")
         reconciliation_sha = _sha256(output / "reconciliation.json")
 
+    execution_verified = _valid_execution_verification(execution_verification, manifest_sha)
     rec = result["reconciliation"]
     blocking_conditions: list[dict[str, str]] = []
     if not execution_verified:
@@ -118,7 +117,7 @@ def build(*, execution_verified: bool = False) -> dict[str, Any]:
             "condition_id": "V2-EXECUTION-VERIFICATION",
             "status": "OPEN",
             "release_effect": "BLOCKS_RELEASE",
-            "summary": "Whole-candidate execution has not been independently verified in an available execution environment; GitHub Actions runner execution is unresolved."
+            "summary": "No explicit PASS execution-verification record is bound to this exact candidate manifest digest."
         })
     if not rec["mechanically_clean"]:
         blocking_conditions.append({
@@ -162,9 +161,9 @@ def build(*, execution_verified: bool = False) -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--execution-verified", action="store_true", help="Use only when the exact candidate has actually executed successfully in a trusted execution environment.")
+    parser.add_argument("--execution-verification", type=Path, help="Optional explicit execution-verification JSON bound to the exact candidate manifest digest.")
     args = parser.parse_args()
-    packet = build(execution_verified=args.execution_verified)
+    packet = build(execution_verification=args.execution_verification)
     args.output.write_text(json.dumps(packet, indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8")
     print(json.dumps({"tracks": [row["track"] for row in packet["tracks"]], "blocking_conditions": packet["blocking_conditions"], "release_authorized": False}, indent=2, sort_keys=True))
     return 0
