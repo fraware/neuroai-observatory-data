@@ -1,0 +1,94 @@
+{
+  "schema_version": "1.0.0-draft",
+  "programme_id": "SU-TRIALS-CTGOV-v0.1",
+  "status": "NONCANONICAL_PROGRAMME_CONTROL",
+  "source_universe_id": "SU-TRIALS",
+  "source_system": "CLINICALTRIALS_GOV",
+  "workbench_dependency": {
+    "minimum_package_line": "0.3.0.dev0",
+    "required_capability": "project_clinicaltrials_search_pages",
+    "integration_state": "PENDING_S1_MERGE"
+  },
+  "identity_policy": {
+    "registry_identity_key": "NCT_ID",
+    "fuzzy_identity_merge_allowed": false,
+    "cross_query_deduplication": "EXACT_NCT_ID",
+    "conflicting_same_id_policy": "FAIL_CLOSED"
+  },
+  "inclusion_policy": {
+    "required_study_types": ["INTERVENTIONAL"],
+    "automatic_trial_entity_creation": false,
+    "automatic_trial_site_relationship_creation": false,
+    "automatic_source_admission": false,
+    "automatic_monitor_creation": false,
+    "automatic_assessment_mutation": false,
+    "participant_level_data_collection": false
+  },
+  "known_identifier_anchors": [
+    {
+      "anchor_id": "CTGOV-ANCHOR-PRIMA-001",
+      "nct_id": "NCT04676854",
+      "existing_source_id": "SRC-PR-002",
+      "purpose": "Continuity anchor for the represented PRIMAvera trial. Retrieval validates identifier/adapter continuity and does not count as new discovery.",
+      "counts_as_new_discovery": false
+    }
+  ],
+  "query_streams": [
+    {
+      "query_id": "DISCOVERY-CTGOV-BCI-001",
+      "query_term": "(\"brain-computer interface\" OR \"brain computer interface\")",
+      "query_surface": "query.term",
+      "post_retrieval_required_study_types": ["INTERVENTIONAL"],
+      "page_size": 100,
+      "cadence": "MONTHLY",
+      "status": "ACTIVE",
+      "purpose": "High-precision discovery stream for explicitly named brain-computer-interface studies.",
+      "completeness_claim": false
+    },
+    {
+      "query_id": "DISCOVERY-CTGOV-NEURAL-PROSTHESIS-001",
+      "query_term": "\"neural prosthesis\"",
+      "query_surface": "query.term",
+      "post_retrieval_required_study_types": ["INTERVENTIONAL"],
+      "page_size": 100,
+      "cadence": "MONTHLY",
+      "status": "ACTIVE",
+      "purpose": "Bounded discovery stream for studies explicitly described as neural prostheses.",
+      "completeness_claim": false
+    },
+    {
+      "query_id": "DISCOVERY-CTGOV-BRAIN-IMPLANT-001",
+      "query_term": "\"brain implant\" AND (interface OR prosthesis)",
+      "query_surface": "query.term",
+      "post_retrieval_required_study_types": ["INTERVENTIONAL"],
+      "page_size": 100,
+      "cadence": "MONTHLY",
+      "status": "ACTIVE",
+      "purpose": "Bounded complementary stream intended to recover implant studies not using BCI terminology; candidate relevance still requires downstream human review.",
+      "completeness_claim": false
+    }
+  ],
+  "coverage_contract": {
+    "required_metrics": [
+      "supplied_page_count",
+      "raw_returned_record_count",
+      "unique_nct_record_count_before_programme_filter",
+      "included_candidate_count",
+      "excluded_by_study_type_count",
+      "duplicate_nct_representation_count",
+      "reported_total_count_state",
+      "reported_total_count",
+      "fully_paginated",
+      "final_next_page_token_present"
+    ],
+    "registry_completeness_claim": false,
+    "global_neuroai_trial_recall_claim": false,
+    "fully_paginated_semantics": "True means only that the supplied page sequence for this exact query traversal ends without a next-page token. It does not establish ClinicalTrials.gov completeness or exhaustive NeuroAI trial recall."
+  },
+  "network_policy": {
+    "live_execution": "OPT_IN_ONLY",
+    "requires_workbench_network_gate": true,
+    "configuration_performs_http": false
+  },
+  "boundary": "This programme defines a bounded ClinicalTrials.gov discovery strategy. Query results become human-gated source candidates only. Study existence does not establish trial-site relationships, clinical truth, authorization, safety, effectiveness, system conformance, or global NeuroAI trial completeness."
+}
