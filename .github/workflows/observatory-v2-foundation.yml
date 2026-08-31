@@ -1,0 +1,67 @@
+name: Observatory v2 foundation
+
+on:
+  pull_request:
+    paths:
+      - "README.md"
+      - "curation/source_universe_registry_v0.1.json"
+      - "docs/v1-to-v2-migration-spec.md"
+      - "fixtures/v2-foundation/**"
+      - "schemas/observatory-v1-observation.schema.json"
+      - "schemas/observatory-v2-assertion.schema.json"
+      - "schemas/source-universe-registry.schema.json"
+      - "scripts/build_v2_migration_accounting.py"
+      - "scripts/verify_v2_foundation.py"
+      - "tests/test_observatory_v2_foundation.py"
+      - "tests/test_v2_migration_accounting.py"
+      - ".github/workflows/observatory-v2-foundation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  foundation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify current governing release manifest
+        run: >-
+          python scripts/verify_manifest.py
+          releases/data-v0.1.0-public-governing/records
+          releases/data-v0.1.0-public-governing/SHA256SUMS.txt
+
+      - name: Verify v2 foundation cross-record invariants
+        run: python scripts/verify_v2_foundation.py
+
+      - name: Run v2 foundation unit tests
+        run: >-
+          python -m unittest
+          tests.test_observatory_v2_foundation
+          tests.test_v2_migration_accounting
+
+      - name: Build noncanonical migration accounting
+        run: >-
+          python scripts/build_v2_migration_accounting.py
+          --output /tmp/v2-migration-accounting.json
+
+      - name: Assert migration accounting remains noncanonical
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result = json.loads(Path('/tmp/v2-migration-accounting.json').read_text())
+          assert result['input_file_count'] == 6
+          assert result['silent_unmapped_section_count'] == 0
+          assert result['invented_value_count'] == 0
+          assert result['claim_boundary_loss_count'] == 0
+          assert result['source_reference_loss_count'] == 0
+          assert result['canonical_successor_ready'] is False
+          PY
