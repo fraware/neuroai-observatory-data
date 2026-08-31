@@ -1,0 +1,29 @@
+{
+  "$id": "observatory-v2-successor-lineage.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NeuroAI Observatory v2 compact successor lineage",
+  "description": "Noncanonical migration schema for successor-level lineage and assessment-driven transition state. Repeated predecessor state is referenced, not re-emitted as new substantive records.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": "2.0.0-draft"},
+    "successor_id": {"const": "OBSERVATORY-v1.7-MIGRATED-CANDIDATE"},
+    "predecessor_version": {"const": "v1.6"},
+    "effective_as_of": {"type": "object", "additionalProperties": false, "properties": {"value": {"type": "string", "minLength": 1}, "precision": {"const": "DATE"}}, "required": ["value", "precision"]},
+    "repeated_v16_delta_state": {"const": "VERIFIED_REFERENCE_NOT_REEMITTED"},
+    "repeated_v16_delta_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "carried_reopening_decision_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "new_reopening_decision": {"type": "object"},
+    "reopening_transition": {"type": "object"},
+    "assessment_successor_state": {"type": "object"},
+    "bounded_system_record": {"type": "object"},
+    "prohibited_inferences": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "source_delta_provenance": {"type": "object"},
+    "count_summaries": {"type": "object"},
+    "predecessor_and_release_provenance": {"type": "object"},
+    "predecessor": {"type": "object"},
+    "record_state": {"const": "NONCANONICAL_MIGRATED_CANDIDATE"},
+    "authority_boundary": {"type": "string", "minLength": 1}
+  },
+  "required": ["schema_version", "successor_id", "predecessor_version", "effective_as_of", "repeated_v16_delta_state", "repeated_v16_delta_digest", "carried_reopening_decision_ids", "new_reopening_decision", "reopening_transition", "assessment_successor_state", "bounded_system_record", "prohibited_inferences", "source_delta_provenance", "count_summaries", "predecessor_and_release_provenance", "predecessor", "record_state", "authority_boundary"]
+}
