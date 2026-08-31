@@ -333,13 +333,20 @@ def build_onboarding(materialization_dir: Path, decision_packet: Path) -> dict[s
                 "source_id": proposal["source_id"],
                 "monitor_id": draft_monitor_id,
                 "requested_url": routes[0]["url"],
-                "required_execution_fields": ["requested_at", "registry_sha256", "collector_version", "configuration_hash", "boundary"],
+                "required_execution_fields": [
+                    "requested_at",
+                    "onboarding_manifest_sha256",
+                    "collector_version",
+                    "configuration_hash",
+                    "boundary",
+                ],
                 "execution_state": "TEMPLATE_NOT_EXECUTED",
             },
             "first_capture_requirement": (
                 "Execute the primary ClinicalTrials.gov API route through the controlled Workbench collector, verify exact "
                 f"JSON NCT identity {nct_id}, retain bytes in quarantine, and require separate quarantine approval before "
-                "any monitor-registry successor may be drafted."
+                "any monitor-registry successor may be drafted. The pre-registry request must bind to the exact onboarding "
+                "manifest, because no monitor-registry digest exists yet."
             ),
             "monitor_registry_state": "NOT_CREATED",
         })
