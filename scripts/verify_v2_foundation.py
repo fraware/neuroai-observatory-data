@@ -10,7 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
@@ -20,6 +20,7 @@ DEFAULT_OBSERVATION_SCHEMA = ROOT / "schemas" / "observatory-v1-observation.sche
 DEFAULT_ASSERTION_EXAMPLE = ROOT / "fixtures" / "v2-foundation" / "assertion.example.json"
 DEFAULT_OBSERVATION_EXAMPLE = ROOT / "fixtures" / "v2-foundation" / "observation.example.json"
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+TEMPORAL_PRECISIONS = {"TIMESTAMP", "DATE", "MONTH", "YEAR", "INTERVAL", "UNRESOLVED"}
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -35,12 +36,30 @@ def _require_keys(record: dict[str, Any], keys: list[str], *, label: str) -> Non
         raise ValueError(f"{label} missing required keys: {missing}")
 
 
-def _parse_rfc3339(value: str, *, label: str) -> None:
-    candidate = value[:-1] + "+00:00" if value.endswith("Z") else value
-    try:
-        datetime.fromisoformat(candidate)
-    except ValueError as exc:
-        raise ValueError(f"{label} is not an ISO/RFC3339 timestamp: {value!r}") from exc
+def _verify_temporal(value: Any, *, label: str) -> None:
+    if not isinstance(value, dict) or set(value) != {"value", "precision"}:
+        raise ValueError(f"{label} must be an explicit temporal value object")
+    raw = value["value"]
+    precision = value["precision"]
+    if not isinstance(raw, str) or not raw:
+        raise ValueError(f"{label}.value must be a non-empty string")
+    if precision not in TEMPORAL_PRECISIONS:
+        raise ValueError(f"{label}.precision is invalid: {precision!r}")
+    if precision == "TIMESTAMP":
+        candidate = raw[:-1] + "+00:00" if raw.endswith("Z") else raw
+        try:
+            datetime.fromisoformat(candidate)
+        except ValueError as exc:
+            raise ValueError(f"{label} is not an ISO/RFC3339 timestamp: {raw!r}") from exc
+    elif precision == "DATE":
+        try:
+            date.fromisoformat(raw)
+        except ValueError as exc:
+            raise ValueError(f"{label} is not an ISO date: {raw!r}") from exc
+    elif precision == "YEAR" and not re.fullmatch(r"\d{4}", raw):
+        raise ValueError(f"{label} YEAR precision must preserve a four-digit year")
+    elif precision == "MONTH" and not re.fullmatch(r"\d{4}-\d{2}", raw):
+        raise ValueError(f"{label} MONTH precision must use YYYY-MM")
 
 
 def verify(
@@ -122,8 +141,17 @@ def verify(
     if not re.fullmatch(r"[A-Z][A-Z0-9_:-]*", str(assertion["predicate"])):
         raise ValueError("Invalid assertion predicate")
 
-    _parse_rfc3339(str(assertion["observed_at"]), label="assertion observed_at")
-    _parse_rfc3339(str(observation["observed_at"]), label="observation observed_at")
+    _verify_temporal(assertion["observed_at"], label="assertion observed_at")
+    _verify_temporal(observation["observed_at"], label="observation observed_at")
+    for label, temporal in (
+        ("assertion valid_from", assertion.get("valid_from")),
+        ("assertion valid_until", assertion.get("valid_until")),
+        ("assertion adjudicated_at", assertion.get("adjudicated_at")),
+        ("observation source_published_at", observation.get("source_published_at")),
+        ("observation source_effective_at", observation.get("source_effective_at")),
+    ):
+        if temporal is not None:
+            _verify_temporal(temporal, label=label)
 
     content_sha = observation.get("content_sha256")
     if content_sha is not None and not SHA256_RE.fullmatch(str(content_sha)):
