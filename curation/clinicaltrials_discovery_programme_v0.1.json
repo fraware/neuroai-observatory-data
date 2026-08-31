@@ -13,7 +13,8 @@
     "registry_identity_key": "NCT_ID",
     "fuzzy_identity_merge_allowed": false,
     "cross_query_deduplication": "EXACT_NCT_ID",
-    "conflicting_same_id_policy": "FAIL_CLOSED"
+    "conflicting_same_id_policy": "FAIL_CLOSED",
+    "known_identifier_match": "EXACT_NCT_TO_CONTROLLED_SOURCE_ID"
   },
   "inclusion_policy": {
     "required_study_types": ["INTERVENTIONAL"],
@@ -23,6 +24,14 @@
     "automatic_monitor_creation": false,
     "automatic_assessment_mutation": false,
     "participant_level_data_collection": false
+  },
+  "request_policy": {
+    "api_endpoint": "/api/v2/studies",
+    "query_parameter": "query.term",
+    "count_total_first_page": true,
+    "count_total_later_pages": false,
+    "pagination_mode": "OPAQUE_NEXT_PAGE_TOKEN",
+    "total_count_reconciliation_required_for_mechanical_completion": true
   },
   "known_identifier_anchors": [
     {
@@ -66,6 +75,17 @@
       "status": "ACTIVE",
       "purpose": "Bounded complementary stream intended to recover implant studies not using BCI terminology; candidate relevance still requires downstream human review.",
       "completeness_claim": false
+    },
+    {
+      "query_id": "DISCOVERY-CTGOV-RETINAL-VISUAL-PROSTHESIS-001",
+      "query_term": "(\"retinal prosthesis\" OR \"visual prosthesis\" OR \"retina implant\")",
+      "query_surface": "query.term",
+      "post_retrieval_required_study_types": ["INTERVENTIONAL"],
+      "page_size": 100,
+      "cadence": "MONTHLY",
+      "status": "ACTIVE",
+      "purpose": "Sensory-neuroprosthesis discovery stream covering retinal and visual prosthesis terminology omitted by the initial BCI-centric streams; it is a declared vocabulary stratum, not a PRIMA-specific lookup.",
+      "completeness_claim": false
     }
   ],
   "coverage_contract": {
@@ -74,16 +94,27 @@
       "raw_returned_record_count",
       "unique_nct_record_count_before_programme_filter",
       "included_candidate_count",
+      "known_nct_duplicate_count",
+      "new_candidate_count",
       "excluded_by_study_type_count",
       "duplicate_nct_representation_count",
       "reported_total_count_state",
       "reported_total_count",
+      "pagination_sequence_valid",
       "fully_paginated",
-      "final_next_page_token_present"
+      "final_next_page_token_present",
+      "reported_total_reconciliation_state"
     ],
+    "mechanical_completion_requires": {
+      "pagination_sequence_valid": true,
+      "fully_paginated": true,
+      "reported_total_count_state": "CONSISTENT",
+      "reported_total_reconciliation_state": "MATCH"
+    },
     "registry_completeness_claim": false,
     "global_neuroai_trial_recall_claim": false,
-    "fully_paginated_semantics": "True means only that the supplied page sequence for this exact query traversal ends without a next-page token. It does not establish ClinicalTrials.gov completeness or exhaustive NeuroAI trial recall."
+    "fully_paginated_semantics": "True means only that the supplied cursor sequence is structurally valid and terminates without a next-page token for this exact query traversal. It does not establish ClinicalTrials.gov completeness or exhaustive NeuroAI trial recall.",
+    "reported_total_semantics": "ClinicalTrials.gov totalCount is an API query denominator requested explicitly with countTotal=true. Matching the materialized unique NCT count establishes reconciliation for that exact traversal only, not discovery recall or registry completeness."
   },
   "network_policy": {
     "live_execution": "OPT_IN_ONLY",
