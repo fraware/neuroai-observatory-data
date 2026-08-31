@@ -1,0 +1,63 @@
+name: Observatory v2 v1.6 change candidates
+
+on:
+  pull_request:
+    paths:
+      - "schemas/observatory-v2-change-candidate.schema.json"
+      - "scripts/project_v16_change_candidates_to_v2.py"
+      - "tests/test_v16_change_candidate_v2_projection.py"
+      - ".github/workflows/observatory-v2-v16-change-candidates.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify governing release manifest
+        run: >-
+          python scripts/verify_manifest.py
+          releases/data-v0.1.0-public-governing/records
+          releases/data-v0.1.0-public-governing/SHA256SUMS.txt
+
+      - name: Run v1.6 change-candidate tests
+        run: python -m unittest tests.test_v16_change_candidate_v2_projection
+
+      - name: Reconcile v1.6 candidate lineage
+        run: |
+          python scripts/project_v16_change_candidates_to_v2.py --output-dir /tmp/v2-v16-candidates > /tmp/v2-v16-candidates-run.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result = json.loads(Path('/tmp/v2-v16-candidates/reconciliation.json').read_text())
+          assert result['input_candidate_count'] == 9
+          assert result['projected_candidate_count'] == 9
+          assert result['historical_backfill_count'] == 6
+          assert result['pre_cutoff_after_freeze_count'] == 3
+          assert (result['high_materiality_count'], result['medium_materiality_count'], result['low_materiality_count']) == (2, 5, 2)
+          assert result['source_reference_count'] == 10
+          assert result['observation_reference_count'] == 10
+          assert result['explicit_promotion_link_count'] == 0
+          for key in (
+              'identity_mismatch_count',
+              'predecessor_payload_roundtrip_failure_count',
+              'source_reference_loss_count',
+              'observation_reference_loss_count',
+              'subject_resolution_fabrication_count',
+              'promotion_linkage_fabrication_count',
+              'event_time_precision_fabrication_count',
+              'knowledge_time_fabrication_count',
+          ):
+              assert result[key] == 0, (key, result[key])
+          assert result['canonical_successor_ready'] is False
+          PY
