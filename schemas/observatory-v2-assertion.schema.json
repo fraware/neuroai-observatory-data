@@ -2,35 +2,16 @@
   "$id": "observatory-v2-assertion.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "NeuroAI Observatory v2 bounded assertion",
-  "description": "Noncanonical design schema for a source-linked, temporally scoped observatory assertion. Schema validity does not establish substantive truth or publication authority.",
+  "description": "Noncanonical design schema for a source-linked, temporally scoped observatory assertion. Schema validity does not establish substantive truth or publication authority. Temporal precision is explicit so predecessor date-only knowledge times are not fabricated into timestamps.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "schema_version": {
-      "const": "2.0.0-draft",
-      "type": "string"
-    },
-    "assertion_id": {
-      "type": "string",
-      "minLength": 1,
-      "pattern": "^AST-[A-Za-z0-9._:-]+$"
-    },
-    "subject_id": {
-      "type": "string",
-      "minLength": 1
-    },
-    "predicate": {
-      "type": "string",
-      "minLength": 1,
-      "pattern": "^[A-Z][A-Z0-9_:-]*$"
-    },
-    "object_id": {
-      "type": "string",
-      "minLength": 1
-    },
-    "value": {
-      "type": ["string", "number", "boolean", "null", "object", "array"]
-    },
+    "schema_version": {"const": "2.0.0-draft", "type": "string"},
+    "assertion_id": {"type": "string", "minLength": 1, "pattern": "^AST-[A-Za-z0-9._:-]+$"},
+    "subject_id": {"type": "string", "minLength": 1},
+    "predicate": {"type": "string", "minLength": 1, "pattern": "^[A-Z][A-Z0-9_:-]*$"},
+    "object_id": {"type": "string", "minLength": 1},
+    "value": {"type": ["string", "number", "boolean", "null", "object", "array"]},
     "scope": {
       "type": "object",
       "additionalProperties": false,
@@ -42,119 +23,49 @@
         "context": {"type": ["string", "null"]}
       }
     },
-    "jurisdictions": {
-      "type": "array",
-      "items": {"type": "string", "minLength": 1},
-      "uniqueItems": true
-    },
-    "valid_from": {"$ref": "#/$defs/temporalValue"},
-    "valid_until": {"$ref": "#/$defs/temporalValue"},
-    "observed_at": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "adjudicated_at": {
-      "type": ["string", "null"],
-      "format": "date-time"
-    },
-    "source_ids": {
-      "type": "array",
-      "items": {"type": "string", "minLength": 1},
-      "minItems": 1,
-      "uniqueItems": true
-    },
-    "observation_ids": {
-      "type": "array",
-      "items": {"type": "string", "minLength": 1},
-      "uniqueItems": true
-    },
-    "evidence_state": {
-      "type": "string",
-      "minLength": 1
-    },
-    "verification_state": {
-      "type": "string",
-      "minLength": 1
-    },
+    "jurisdictions": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "valid_from": {"$ref": "#/$defs/nullableTemporalValue"},
+    "valid_until": {"$ref": "#/$defs/nullableTemporalValue"},
+    "observed_at": {"$ref": "#/$defs/temporalValue"},
+    "adjudicated_at": {"$ref": "#/$defs/nullableTemporalValue"},
+    "source_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "uniqueItems": true},
+    "observation_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "evidence_state": {"type": "string", "minLength": 1},
+    "verification_state": {"type": "string", "minLength": 1},
     "review_state": {
       "type": "string",
-      "enum": [
-        "UNREVIEWED_CANDIDATE",
-        "REVIEWED_ACCEPTED",
-        "REVIEWED_REJECTED",
-        "REVIEWED_PARTIAL_OR_SCOPED",
-        "DISPUTED",
-        "MIGRATED_PREDECESSOR_STATE"
-      ]
+      "enum": ["UNREVIEWED_CANDIDATE", "REVIEWED_ACCEPTED", "REVIEWED_REJECTED", "REVIEWED_PARTIAL_OR_SCOPED", "DISPUTED", "MIGRATED_PREDECESSOR_STATE"]
     },
-    "claim_boundary": {
-      "type": "string",
-      "minLength": 1
-    },
-    "prohibited_inferences": {
-      "type": "array",
-      "items": {"type": "string", "minLength": 1},
-      "uniqueItems": true
-    },
-    "supersedes_assertion_ids": {
-      "type": "array",
-      "items": {"type": "string", "minLength": 1},
-      "uniqueItems": true
-    },
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "prohibited_inferences": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "supersedes_assertion_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
     "record_state": {
       "type": "string",
-      "enum": [
-        "NONCANONICAL_CANDIDATE",
-        "CANONICAL_ACTIVE",
-        "CANONICAL_HISTORICAL",
-        "CANONICAL_SUPERSEDED",
-        "CANONICAL_DISPUTED"
-      ]
+      "enum": ["NONCANONICAL_CANDIDATE", "CANONICAL_ACTIVE", "CANONICAL_HISTORICAL", "CANONICAL_SUPERSEDED", "CANONICAL_DISPUTED"]
     },
-    "first_release_id": {
-      "type": ["string", "null"]
-    },
-    "authority_boundary": {
-      "type": "string",
-      "minLength": 1
-    }
+    "first_release_id": {"type": ["string", "null"]},
+    "authority_boundary": {"type": "string", "minLength": 1}
   },
-  "required": [
-    "schema_version",
-    "assertion_id",
-    "subject_id",
-    "predicate",
-    "observed_at",
-    "source_ids",
-    "evidence_state",
-    "verification_state",
-    "review_state",
-    "claim_boundary",
-    "record_state",
-    "authority_boundary"
-  ],
+  "required": ["schema_version", "assertion_id", "subject_id", "predicate", "observed_at", "source_ids", "evidence_state", "verification_state", "review_state", "claim_boundary", "record_state", "authority_boundary"],
   "oneOf": [
-    {
-      "required": ["object_id"],
-      "not": {"required": ["value"]}
-    },
-    {
-      "required": ["value"],
-      "not": {"required": ["object_id"]}
-    }
+    {"required": ["object_id"], "not": {"required": ["value"]}},
+    {"required": ["value"], "not": {"required": ["object_id"]}}
   ],
   "$defs": {
     "temporalValue": {
-      "type": ["object", "null"],
+      "type": "object",
       "additionalProperties": false,
       "properties": {
         "value": {"type": "string", "minLength": 1},
-        "precision": {
-          "type": "string",
-          "enum": ["TIMESTAMP", "DATE", "MONTH", "YEAR", "INTERVAL", "UNRESOLVED"]
-        }
+        "precision": {"type": "string", "enum": ["TIMESTAMP", "DATE", "MONTH", "YEAR", "INTERVAL", "UNRESOLVED"]}
       },
       "required": ["value", "precision"]
+    },
+    "nullableTemporalValue": {
+      "oneOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/temporalValue"}
+      ]
     }
   }
 }
