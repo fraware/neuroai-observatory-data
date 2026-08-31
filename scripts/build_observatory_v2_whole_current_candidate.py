@@ -49,9 +49,6 @@ FAMILY_ID_FIELDS = {
     "reopening_decisions": "decision_id",
 }
 
-# Legitimate unresolved states (for example unresolved knowledge time) are not blockers.
-# Only counters/lists whose names carry one of these defect concepts are interpreted as
-# mechanical failure signals.
 BLOCKER_TOKENS = (
     "loss",
     "failure",
@@ -199,10 +196,6 @@ def _effective_state_reconciliation(
     }
     mismatches = {key: value for key, value in comparisons.items() if value["declared"] != value["materialized"]}
 
-    # v1.7 declares four completed assessments, but this S2 migration intentionally does
-    # not fabricate four assessment objects from a summary count. PRIMA's detailed
-    # assessment-successor state remains in successor lineage; the assessment engine/state
-    # itself remains a distinct layer governed by the Workbench architecture.
     return {
         "state": "RECONCILED_FOR_MATERIALIZABLE_S2_EFFECTIVE_COUNTS" if not mismatches else "MISMATCH",
         "declared_completed_system_assessments": declared.get("completed_system_assessments"),
@@ -248,6 +241,7 @@ def build() -> dict[str, Any]:
             _extend_if_list(families[family], value, label=f"{label}.{family}")
         _extend_if_list(comparison_provenance, result.get("comparison_provenance"), label=f"{label}.comparison_provenance")
         _extend_if_list(programme_control, result.get("records"), label=f"{label}.records")
+        _extend_if_list(programme_control, result.get("control_records"), label=f"{label}.control_records")
         if isinstance(result.get("successor_lineage"), dict):
             successor_lineage.append(result["successor_lineage"])
 
