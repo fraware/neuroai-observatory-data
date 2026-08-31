@@ -22,8 +22,10 @@
     "precision": "TIMESTAMP"
   },
   "adjudicated_at": null,
+  "knowledge_time_state": "OBSERVED_AT_CAPTURE",
   "source_ids": ["SRC-SYNTH-001"],
   "observation_ids": ["OBS-SYNTH-001"],
+  "source_linkage_state": "SOURCE_LINKED",
   "evidence_state": "SYNTHETIC_COMPANY_ANNOUNCEMENT",
   "verification_state": "SYNTHETIC_FIXTURE_ONLY",
   "review_state": "UNREVIEWED_CANDIDATE",
