@@ -1,0 +1,79 @@
+{
+  "$id": "ctgov-first-capture-authorization.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Explicit local ClinicalTrials.gov first-capture authorization",
+  "description": "Operational authorization for one bounded pre-registry primary CT.gov API capture per explicitly authorized onboarding plan. This is not quarantine approval or monitor-registry authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "timestamp": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})$"
+    }
+  },
+  "properties": {
+    "schema_version": {"const": "0.1.0"},
+    "artifact": {"const": "ctgov_first_capture_authorization"},
+    "status": {"const": "EXPLICIT_LOCAL_FIRST_CAPTURE_AUTHORIZATION"},
+    "onboarding_manifest_sha256": {"$ref": "#/$defs/sha256"},
+    "workbench_commit": {"const": "a25b09bdf0533e73cbaf65d909acf4a4fa0fc065"},
+    "collector_profile_id": {"const": "CTGOV_FIRST_CAPTURE_V0_1"},
+    "authorized_by": {"type": "string", "minLength": 1},
+    "authorized_at": {"$ref": "#/$defs/timestamp"},
+    "identity_boundary": {"const": "LOCAL_UNAUTHENTICATED_ATTRIBUTION"},
+    "captures": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "draft_monitor_id": {"type": "string", "pattern": "^DMON-[0-9a-f]{32}$"},
+          "request_id": {"type": "string", "pattern": "^CREQ-[0-9a-f]{32}$"},
+          "source_id": {"type": "string", "minLength": 1},
+          "nct_id": {"type": "string", "pattern": "^NCT[0-9]{8}$"},
+          "decision": {"enum": ["AUTHORIZE_PRIMARY_CAPTURE", "DEFER"]},
+          "rationale": {"type": "string", "minLength": 1}
+        },
+        "required": ["draft_monitor_id", "request_id", "source_id", "nct_id", "decision", "rationale"]
+      }
+    },
+    "network_execution_authorized": {"const": true},
+    "primary_route_only": {"const": true},
+    "fallback_route_authorized": {"const": false},
+    "quarantine_approval_authorized": {"const": false},
+    "monitoring_handoff_authorized": {"const": false},
+    "monitor_registry_successor_authorized": {"const": false},
+    "source_namespace_publication_authorized": {"const": false},
+    "trial_entity_creation_authorized": {"const": false},
+    "trial_site_relationship_creation_authorized": {"const": false},
+    "assessment_mutation_authorized": {"const": false},
+    "canonical_publication_authorized": {"const": false},
+    "authority_boundary": {"type": "string", "minLength": 1}
+  },
+  "required": [
+    "schema_version",
+    "artifact",
+    "status",
+    "onboarding_manifest_sha256",
+    "workbench_commit",
+    "collector_profile_id",
+    "authorized_by",
+    "authorized_at",
+    "identity_boundary",
+    "captures",
+    "network_execution_authorized",
+    "primary_route_only",
+    "fallback_route_authorized",
+    "quarantine_approval_authorized",
+    "monitoring_handoff_authorized",
+    "monitor_registry_successor_authorized",
+    "source_namespace_publication_authorized",
+    "trial_entity_creation_authorized",
+    "trial_site_relationship_creation_authorized",
+    "assessment_mutation_authorized",
+    "canonical_publication_authorized",
+    "authority_boundary"
+  ]
+}
