@@ -15,10 +15,12 @@ on:
       - "scripts/build_v2_migration_accounting.py"
       - "scripts/project_v14_sources_to_v2.py"
       - "scripts/project_v14_organizations_to_v2.py"
+      - "scripts/project_v14_models_to_v2.py"
       - "scripts/verify_v2_foundation.py"
       - "tests/test_observatory_v2_foundation.py"
       - "tests/test_v14_source_v2_projection.py"
       - "tests/test_v14_organization_v2_projection.py"
+      - "tests/test_v14_model_v2_projection.py"
       - "tests/test_v2_migration_accounting.py"
       - ".github/workflows/observatory-v2-foundation.yml"
   workflow_dispatch:
@@ -53,6 +55,7 @@ jobs:
           tests.test_observatory_v2_foundation
           tests.test_v14_source_v2_projection
           tests.test_v14_organization_v2_projection
+          tests.test_v14_model_v2_projection
           tests.test_v2_migration_accounting
 
       - name: Build noncanonical migration accounting
@@ -117,6 +120,35 @@ jobs:
               'source_reference_loss_count',
               'dangling_source_reference_count',
               'source_linkage_fabrication_count',
+              'temporal_precision_fabrication_count',
+              'invented_predecessor_field_value_count',
+          ):
+              assert result[key] == 0, (key, result[key])
+          assert result['canonical_successor_ready'] is False
+          PY
+
+      - name: Reconcile v1.4 representative-model vertical slice
+        run: |
+          python scripts/project_v14_models_to_v2.py --output-dir /tmp/v2-models > /tmp/v2-models-run.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result = json.loads(Path('/tmp/v2-models/reconciliation.json').read_text())
+          assert result['input_model_count'] == 13
+          assert result['projected_model_entity_count'] == 13
+          assert result['projected_assertion_count'] == 151
+          assert result['source_linked_model_count'] == 13
+          assert result['exact_knowledge_time_count'] == 10
+          assert result['unresolved_knowledge_time_count'] == 3
+          assert result['source_system_reference_count'] == 9
+          for key in (
+              'identity_mismatch_count',
+              'predecessor_payload_roundtrip_failure_count',
+              'predecessor_field_loss_count',
+              'claim_boundary_loss_count',
+              'source_reference_loss_count',
+              'dangling_source_reference_count',
+              'source_system_reference_loss_count',
               'temporal_precision_fabrication_count',
               'invented_predecessor_field_value_count',
           ):
