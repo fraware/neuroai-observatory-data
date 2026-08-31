@@ -1,0 +1,47 @@
+name: Observatory v2 v1.7 successor lineage
+
+on:
+  pull_request:
+    paths:
+      - "schemas/observatory-v2-successor-lineage.schema.json"
+      - "scripts/project_v17_successor_lineage_to_v2.py"
+      - "tests/test_v17_successor_lineage_v2_projection.py"
+      - ".github/workflows/observatory-v2-v17-successor-lineage.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify governing release manifest
+        run: python scripts/verify_manifest.py releases/data-v0.1.0-public-governing/records releases/data-v0.1.0-public-governing/SHA256SUMS.txt
+      - name: Run v1.7 successor-lineage tests
+        run: python -m unittest tests.test_v17_successor_lineage_v2_projection
+      - name: Reconcile compact successor
+        run: |
+          python scripts/project_v17_successor_lineage_to_v2.py --output /tmp/v17-successor.json > /tmp/v17-run.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result = json.loads(Path('/tmp/v17-successor.json').read_text())['reconciliation']
+          assert result['top_level_section_count'] == 10
+          assert result['unknown_top_level_sections'] == []
+          assert result['missing_expected_top_level_sections'] == []
+          assert result['repeated_v16_delta_equal'] is True
+          assert result['repeated_v16_delta_new_identity_count'] == 0
+          assert result['carried_reopening_decision_count'] == 5
+          assert result['carried_reopening_mismatch_count'] == 0
+          assert result['new_successor_reopening_decision_count'] == 1
+          assert result['fabricated_source_record_count'] == 0
+          assert result['assessment_reinterpretation_count'] == 0
+          assert result['count_expansion_to_entities_count'] == 0
+          assert result['predecessor_payload_roundtrip_failure_count'] == 0
+          assert result['canonical_successor_ready'] is False
+          PY
