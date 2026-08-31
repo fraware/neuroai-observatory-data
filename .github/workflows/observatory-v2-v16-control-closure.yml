@@ -1,0 +1,40 @@
+name: Observatory v2 v1.6 control closure
+
+on:
+  pull_request:
+    paths:
+      - "scripts/project_v16_control_state_to_v2.py"
+      - "scripts/reconcile_v16_semantic_coverage.py"
+      - "tests/test_v16_control_and_semantic_coverage.py"
+      - ".github/workflows/observatory-v2-v16-control-closure.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify governing release manifest
+        run: python scripts/verify_manifest.py releases/data-v0.1.0-public-governing/records releases/data-v0.1.0-public-governing/SHA256SUMS.txt
+      - name: Run v1.6 control and aggregate semantic tests
+        run: python -m unittest tests.test_v16_control_and_semantic_coverage
+      - name: Run aggregate semantic reconciliation
+        run: python scripts/reconcile_v16_semantic_coverage.py > /tmp/v16-semantic-reconciliation.json
+      - name: Assert full known-section accounting remains noncanonical
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result = json.loads(Path('/tmp/v16-semantic-reconciliation.json').read_text())
+          assert result['slice_count'] == 5
+          assert result['mechanical_blocker_count'] == 0
+          assert result['mechanical_blockers'] == []
+          assert result['all_known_v16_top_level_sections_accounted'] is True
+          assert result['canonical_successor_ready'] is False
+          PY
