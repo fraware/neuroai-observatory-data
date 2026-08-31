@@ -13,7 +13,7 @@
     "retrieval_method": {"type": "string", "minLength": 1},
     "retrieval_outcome": {
       "type": "string",
-      "enum": ["SUCCESS", "NOT_MODIFIED", "METADATA_ONLY", "MANUAL_INSPECTION", "FAILED", "INACCESSIBLE", "ACCESS_RESTRICTED"]
+      "enum": ["SUCCESS", "NOT_MODIFIED", "METADATA_ONLY", "MANUAL_INSPECTION", "PREDECESSOR_RECORDED_OBSERVATION", "FAILED", "INACCESSIBLE", "ACCESS_RESTRICTED"]
     },
     "requested_locator": {"type": ["string", "null"]},
     "resolved_locator": {"type": ["string", "null"]},
@@ -23,48 +23,20 @@
     "normalized_content_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
     "capture_state": {
       "type": "string",
-      "enum": [
-        "NOT_ATTEMPTED",
-        "RETRIEVAL_FAILED",
-        "METADATA_ONLY",
-        "PUBLIC_EXTERNAL_REFERENCE_ONLY",
-        "CAPTURED_PUBLIC_REDISTRIBUTABLE",
-        "CAPTURED_PROTECTED_S3",
-        "CAPTURED_EXTERNAL_CUSTODIAN",
-        "INACCESSIBLE",
-        "WITHHELD_FROM_PUBLICATION"
-      ]
+      "enum": ["NOT_ATTEMPTED", "RETRIEVAL_FAILED", "METADATA_ONLY", "PUBLIC_EXTERNAL_REFERENCE_ONLY", "CAPTURED_PUBLIC_REDISTRIBUTABLE", "CAPTURED_PROTECTED_S3", "CAPTURED_EXTERNAL_CUSTODIAN", "CAPTURE_STATE_UNRESOLVED", "INACCESSIBLE", "WITHHELD_FROM_PUBLICATION"]
     },
     "capture_reference_class": {"type": ["string", "null"]},
     "redistribution_state": {
       "type": "string",
-      "enum": [
-        "PUBLIC_REDISTRIBUTABLE",
-        "PUBLIC_REFERENCE_ONLY",
-        "NOT_PACKAGED_COPYRIGHTED_SOURCE",
-        "LICENSED_LOCAL_ONLY",
-        "PROTECTED_RESTRICTED",
-        "RIGHTS_UNRESOLVED"
-      ]
+      "enum": ["PUBLIC_REDISTRIBUTABLE", "PUBLIC_REFERENCE_ONLY", "NOT_PACKAGED_COPYRIGHTED_SOURCE", "LICENSED_LOCAL_ONLY", "PROTECTED_RESTRICTED", "RIGHTS_UNRESOLVED"]
     },
     "collector_or_operator_version": {"type": ["string", "null"]},
-    "source_published_at": {"$ref": "#/$defs/temporalValue"},
-    "source_effective_at": {"$ref": "#/$defs/temporalValue"},
+    "source_published_at": {"$ref": "#/$defs/nullableTemporalValue"},
+    "source_effective_at": {"$ref": "#/$defs/nullableTemporalValue"},
     "protected_bytes_in_record": {"const": false, "type": "boolean"},
     "authority_boundary": {"type": "string", "minLength": 1}
   },
-  "required": [
-    "schema_version",
-    "observation_id",
-    "source_id",
-    "observed_at",
-    "retrieval_method",
-    "retrieval_outcome",
-    "capture_state",
-    "redistribution_state",
-    "protected_bytes_in_record",
-    "authority_boundary"
-  ],
+  "required": ["schema_version", "observation_id", "source_id", "observed_at", "retrieval_method", "retrieval_outcome", "capture_state", "redistribution_state", "protected_bytes_in_record", "authority_boundary"],
   "$defs": {
     "temporalValue": {
       "type": "object",
@@ -74,6 +46,12 @@
         "precision": {"type": "string", "enum": ["TIMESTAMP", "DATE", "MONTH", "YEAR", "INTERVAL", "UNRESOLVED"]}
       },
       "required": ["value", "precision"]
+    },
+    "nullableTemporalValue": {
+      "oneOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/temporalValue"}
+      ]
     }
   }
 }
