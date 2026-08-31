@@ -1,0 +1,62 @@
+name: CT.gov monitor onboarding plans
+
+on:
+  pull_request:
+    paths:
+      - "scripts/review_ctgov_monitoring_onboarding.py"
+      - "schemas/monitor-review-decision-packet.schema.json"
+      - "schemas/ctgov-monitor-onboarding-package.schema.json"
+      - "tests/test_ctgov_monitor_onboarding.py"
+      - "tests/test_discovery_source_materialization_monitoring.py"
+      - "tests/test_su_trials_source_namespace_successor.py"
+      - "tests/test_su_trials_human_review_staging.py"
+      - "tests/test_su_trials_recorded_replay.py"
+      - ".github/workflows/ctgov-monitor-onboarding.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  onboarding-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout observatory data
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install validation dependencies
+        run: python -m pip install --upgrade pip jsonschema
+
+      - name: Checkout exact proposed Workbench capability
+        uses: actions/checkout@v4
+        with:
+          repository: fraware/neuroai-workbench
+          ref: 1148d5edd532feedb697f02aa1de7128f87603c3
+          path: .workbench
+
+      - name: Install exact Workbench
+        run: python -m pip install -e ./.workbench
+
+      - name: Run discovery-to-onboarding contract tests
+        run: |
+          python -m unittest \
+            tests.test_su_trials_recorded_replay \
+            tests.test_su_trials_human_review_staging \
+            tests.test_su_trials_source_namespace_successor \
+            tests.test_discovery_source_materialization_monitoring \
+            tests.test_ctgov_monitor_onboarding
+
+      - name: Prove no operational/capture data is committed by onboarding slice
+        shell: bash
+        run: |
+          test ! -d programme-review
+          test ! -d programme-adjudication
+          test ! -d quarantine
+          test ! -d discovery/registry_successors
+          git diff --exit-code -- releases curation schemas scripts tests .github/workflows
