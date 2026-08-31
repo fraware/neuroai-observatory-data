@@ -1,0 +1,19 @@
+{
+  "$id": "observatory-v2-execution-verification.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Observatory v2 candidate execution verification",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": "1.0.0-draft"},
+    "candidate_manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "execution_state": {"const": "VERIFIED_EXECUTED"},
+    "executor": {"type": "string", "minLength": 1},
+    "execution_environment": {"type": "string", "minLength": 1},
+    "executed_at": {"type": "string", "minLength": 1},
+    "tests_executed": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "result": {"const": "PASS"},
+    "identity_boundary": {"type": "string", "minLength": 1}
+  },
+  "required": ["schema_version", "candidate_manifest_sha256", "execution_state", "executor", "execution_environment", "executed_at", "tests_executed", "result", "identity_boundary"]
+}
