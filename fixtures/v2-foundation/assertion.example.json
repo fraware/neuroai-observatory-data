@@ -1,0 +1,37 @@
+{
+  "schema_version": "2.0.0-draft",
+  "assertion_id": "AST-SYNTH-001",
+  "subject_id": "SYS-SYNTH-001",
+  "predicate": "REGULATORY_STATE",
+  "value": "COMPANY_ANNOUNCED_MARKET_AUTHORIZATION",
+  "scope": {
+    "system_configuration": "Synthetic configuration A",
+    "population": null,
+    "task": null,
+    "endpoint": null,
+    "context": "Synthetic schema fixture only"
+  },
+  "jurisdictions": ["Example Jurisdiction"],
+  "valid_from": {
+    "value": "2026-08-30",
+    "precision": "DATE"
+  },
+  "valid_until": null,
+  "observed_at": "2026-08-31T08:00:00Z",
+  "adjudicated_at": null,
+  "source_ids": ["SRC-SYNTH-001"],
+  "observation_ids": ["OBS-SYNTH-001"],
+  "evidence_state": "SYNTHETIC_COMPANY_ANNOUNCEMENT",
+  "verification_state": "SYNTHETIC_FIXTURE_ONLY",
+  "review_state": "UNREVIEWED_CANDIDATE",
+  "claim_boundary": "This synthetic assertion demonstrates representation only and does not establish authorization, deployment, effectiveness, safety, conformance, or any real-world fact.",
+  "prohibited_inferences": [
+    "Real regulatory authorization",
+    "Clinical effectiveness",
+    "System conformance"
+  ],
+  "supersedes_assertion_ids": [],
+  "record_state": "NONCANONICAL_CANDIDATE",
+  "first_release_id": null,
+  "authority_boundary": "Schema validity and fixture linkage establish internal test consistency only; canonical publication requires a separate authorized release."
+}
