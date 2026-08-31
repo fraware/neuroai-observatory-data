@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "clinicaltrials-discovery-replay-input.schema.json",
+  "title": "Ephemeral SU-TRIALS ClinicalTrials.gov replay input bundle",
+  "description": "Input contract for previously captured public ClinicalTrials.gov API search pages. Raw page payloads are execution input only and are not canonical S2 records or permitted replay outputs.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "programme_id",
+    "capture_scope",
+    "captured_at",
+    "query_captures"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1.0"},
+    "programme_id": {"const": "SU-TRIALS-CTGOV-v0.1"},
+    "capture_scope": {"enum": ["FULL_PROGRAMME", "PARTIAL_VALIDATION"]},
+    "captured_at": {"type": "string", "minLength": 10},
+    "api_data_timestamp": {"type": ["string", "null"]},
+    "query_captures": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "query_id",
+          "query_term",
+          "count_total_first_page_requested",
+          "count_total_later_pages_requested",
+          "pages"
+        ],
+        "properties": {
+          "query_id": {"type": "string", "pattern": "^DISCOVERY-CTGOV-[A-Z0-9-]+$"},
+          "query_term": {"type": "string", "minLength": 1},
+          "count_total_first_page_requested": {"type": "boolean"},
+          "count_total_later_pages_requested": {"type": "boolean"},
+          "pages": {
+            "type": "array",
+            "minItems": 1,
+            "description": "Raw public API page objects. These bytes/objects are ephemeral input and MUST NOT be copied into S2 replay outputs.",
+            "items": {"type": "object"}
+          }
+        }
+      }
+    }
+  }
+}
