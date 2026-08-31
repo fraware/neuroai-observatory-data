@@ -1,0 +1,124 @@
+{
+  "$id": "ctgov-monitor-onboarding-package.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ClinicalTrials.gov draft monitor onboarding package",
+  "description": "Noncanonical onboarding plans produced from explicit human approval of monitoring recommendations. Plans do not execute network retrieval or create monitor-registry entries.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": "0.1.0"},
+    "artifact": {"const": "ctgov_monitor_onboarding_package"},
+    "status": {"const": "DRAFT_NONCANONICAL_MONITOR_ONBOARDING"},
+    "source_materialization_manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "monitor_review_decision_packet_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source_namespace_successor_proposal_id": {"type": "string", "pattern": "^SNSP-[0-9a-f]{32}$"},
+    "approved_plan_count": {"type": "integer", "minimum": 1},
+    "plans": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "draft_monitor_id": {"type": "string", "pattern": "^DMON-[0-9a-f]{32}$"},
+          "monitoring_proposal_id": {"type": "string", "pattern": "^SMEP-[0-9a-f]{32}$"},
+          "source_id": {"type": "string", "minLength": 1},
+          "source_candidate_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "nct_id": {"type": "string", "pattern": "^NCT[0-9]{8}$"},
+          "source_class": {"const": "OFFICIAL_TRIAL_REGISTRY"},
+          "approved_mode": {"const": "RECURRING"},
+          "approved_cadence": {"const": "MONTHLY"},
+          "priority": {"const": "HIGH"},
+          "network_access_required": {"const": true},
+          "adapter_id": {"const": "clinicaltrials_gov"},
+          "routes": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "route_id": {"type": "string", "minLength": 1},
+                "url": {"type": "string", "minLength": 1},
+                "priority": {"type": "integer", "minimum": 0, "maximum": 2},
+                "role": {"enum": ["PRIMARY", "FALLBACK"]},
+                "route_class": {"enum": ["PRIMARY", "IDENTITY_EQUIVALENT", "LIVENESS_CORROBORATION"]},
+                "accept": {"type": "string", "minLength": 1},
+                "identity_check": {"type": ["object", "null"]},
+                "corroboration_check": {"type": ["object", "null"]}
+              },
+              "required": ["route_id", "url", "priority", "role", "route_class", "accept", "identity_check", "corroboration_check"]
+            }
+          },
+          "initial_capture_route_id": {"type": "string", "minLength": 1},
+          "first_capture_request_template": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "request_id": {"type": "string", "pattern": "^CREQ-[0-9a-f]{32}$"},
+              "source_id": {"type": "string", "minLength": 1},
+              "monitor_id": {"type": "string", "pattern": "^DMON-[0-9a-f]{32}$"},
+              "requested_url": {"type": "string", "minLength": 1},
+              "required_execution_fields": {
+                "const": ["requested_at", "registry_sha256", "collector_version", "configuration_hash", "boundary"]
+              },
+              "execution_state": {"const": "TEMPLATE_NOT_EXECUTED"}
+            },
+            "required": ["request_id", "source_id", "monitor_id", "requested_url", "required_execution_fields", "execution_state"]
+          },
+          "first_capture_requirement": {"type": "string", "minLength": 1},
+          "monitor_registry_state": {"const": "NOT_CREATED"}
+        },
+        "required": [
+          "draft_monitor_id",
+          "monitoring_proposal_id",
+          "source_id",
+          "source_candidate_sha256",
+          "nct_id",
+          "source_class",
+          "approved_mode",
+          "approved_cadence",
+          "priority",
+          "network_access_required",
+          "adapter_id",
+          "routes",
+          "initial_capture_route_id",
+          "first_capture_request_template",
+          "first_capture_requirement",
+          "monitor_registry_state"
+        ]
+      }
+    },
+    "network_execution_performed": {"const": false},
+    "quarantine_approval_performed": {"const": false},
+    "monitor_registry_successor_created": {"const": false},
+    "monitor_creation_performed": {"const": false},
+    "source_namespace_publication_performed": {"const": false},
+    "trial_entity_creation_performed": {"const": false},
+    "trial_site_relationship_creation_performed": {"const": false},
+    "assessment_mutation_performed": {"const": false},
+    "canonical_successor_ready": {"const": false},
+    "authority_boundary": {"type": "string", "minLength": 1}
+  },
+  "required": [
+    "schema_version",
+    "artifact",
+    "status",
+    "source_materialization_manifest_sha256",
+    "monitor_review_decision_packet_sha256",
+    "source_namespace_successor_proposal_id",
+    "approved_plan_count",
+    "plans",
+    "network_execution_performed",
+    "quarantine_approval_performed",
+    "monitor_registry_successor_created",
+    "monitor_creation_performed",
+    "source_namespace_publication_performed",
+    "trial_entity_creation_performed",
+    "trial_site_relationship_creation_performed",
+    "assessment_mutation_performed",
+    "canonical_successor_ready",
+    "authority_boundary"
+  ]
+}
