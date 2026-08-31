@@ -2,7 +2,7 @@
   "$id": "observatory-v1-observation.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "NeuroAI Observatory source observation",
-  "description": "Noncanonical design schema for public metadata describing one time-specific source observation. It must not contain protected evidence bytes, credentials, or local protected paths. Temporal precision is explicit so predecessor date-only retrievals are not fabricated into timestamps.",
+  "description": "Noncanonical design schema for public metadata describing one time-specific source observation. Protected evidence bytes, credentials and local protected paths are forbidden. Comparison metadata is distinct from content identity and predecessor transport detail.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -11,47 +11,41 @@
     "source_id": {"type": "string", "minLength": 1},
     "observed_at": {"$ref": "#/$defs/temporalValue"},
     "retrieval_method": {"type": "string", "minLength": 1},
-    "retrieval_outcome": {
-      "type": "string",
-      "enum": ["SUCCESS", "NOT_MODIFIED", "METADATA_ONLY", "MANUAL_INSPECTION", "PREDECESSOR_RECORDED_OBSERVATION", "FAILED", "INACCESSIBLE", "ACCESS_RESTRICTED"]
-    },
+    "retrieval_outcome": {"type": "string", "enum": ["SUCCESS", "NOT_MODIFIED", "METADATA_ONLY", "MANUAL_INSPECTION", "PREDECESSOR_RECORDED_OBSERVATION", "FAILED", "INACCESSIBLE", "ACCESS_RESTRICTED"]},
     "requested_locator": {"type": ["string", "null"]},
     "resolved_locator": {"type": ["string", "null"]},
     "http_status": {"type": ["integer", "null"], "minimum": 100, "maximum": 599},
     "content_type": {"type": ["string", "null"]},
     "content_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
     "normalized_content_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
-    "capture_state": {
-      "type": "string",
-      "enum": ["NOT_ATTEMPTED", "RETRIEVAL_FAILED", "METADATA_ONLY", "PUBLIC_EXTERNAL_REFERENCE_ONLY", "CAPTURED_PUBLIC_REDISTRIBUTABLE", "CAPTURED_PROTECTED_S3", "CAPTURED_EXTERNAL_CUSTODIAN", "CAPTURE_STATE_UNRESOLVED", "INACCESSIBLE", "WITHHELD_FROM_PUBLICATION"]
-    },
+    "content_hash_state": {"type": "string", "enum": ["AVAILABLE", "NOT_AVAILABLE_FROM_PREDECESSOR_INTERFACE", "UNRESOLVED"]},
+    "comparison_state": {"type": ["string", "null"]},
+    "metadata_digest_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "capture_state": {"type": "string", "enum": ["NOT_ATTEMPTED", "RETRIEVAL_FAILED", "METADATA_ONLY", "PUBLIC_EXTERNAL_REFERENCE_ONLY", "CAPTURED_PUBLIC_REDISTRIBUTABLE", "CAPTURED_PROTECTED_S3", "CAPTURED_EXTERNAL_CUSTODIAN", "CAPTURE_STATE_UNRESOLVED", "INACCESSIBLE", "WITHHELD_FROM_PUBLICATION"]},
     "capture_reference_class": {"type": ["string", "null"]},
-    "redistribution_state": {
-      "type": "string",
-      "enum": ["PUBLIC_REDISTRIBUTABLE", "PUBLIC_REFERENCE_ONLY", "NOT_PACKAGED_COPYRIGHTED_SOURCE", "LICENSED_LOCAL_ONLY", "PROTECTED_RESTRICTED", "RIGHTS_UNRESOLVED"]
-    },
+    "redistribution_state": {"type": "string", "enum": ["PUBLIC_REDISTRIBUTABLE", "PUBLIC_REFERENCE_ONLY", "NOT_PACKAGED_COPYRIGHTED_SOURCE", "LICENSED_LOCAL_ONLY", "PROTECTED_RESTRICTED", "RIGHTS_UNRESOLVED"]},
     "collector_or_operator_version": {"type": ["string", "null"]},
     "source_published_at": {"$ref": "#/$defs/nullableTemporalValue"},
     "source_effective_at": {"$ref": "#/$defs/nullableTemporalValue"},
+    "predecessor": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "release_id": {"const": "data-v0.1.0-public-governing", "type": "string"},
+        "file": {"type": "string", "enum": ["canonical_live_refresh_release_v1.6.json"]},
+        "section": {"const": "source_checks", "type": "string"},
+        "record_id": {"type": "string", "minLength": 1},
+        "record_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "payload": {"type": "object"}
+      },
+      "required": ["release_id", "file", "section", "record_id", "record_sha256", "payload"]
+    },
     "protected_bytes_in_record": {"const": false, "type": "boolean"},
     "authority_boundary": {"type": "string", "minLength": 1}
   },
-  "required": ["schema_version", "observation_id", "source_id", "observed_at", "retrieval_method", "retrieval_outcome", "capture_state", "redistribution_state", "protected_bytes_in_record", "authority_boundary"],
+  "required": ["schema_version", "observation_id", "source_id", "observed_at", "retrieval_method", "retrieval_outcome", "content_hash_state", "comparison_state", "metadata_digest_sha256", "capture_state", "redistribution_state", "predecessor", "protected_bytes_in_record", "authority_boundary"],
   "$defs": {
-    "temporalValue": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "value": {"type": "string", "minLength": 1},
-        "precision": {"type": "string", "enum": ["TIMESTAMP", "DATE", "MONTH", "YEAR", "INTERVAL", "UNRESOLVED"]}
-      },
-      "required": ["value", "precision"]
-    },
-    "nullableTemporalValue": {
-      "oneOf": [
-        {"type": "null"},
-        {"$ref": "#/$defs/temporalValue"}
-      ]
-    }
+    "temporalValue": {"type": "object", "additionalProperties": false, "properties": {"value": {"type": "string", "minLength": 1}, "precision": {"type": "string", "enum": ["TIMESTAMP", "DATE", "MONTH", "YEAR", "INTERVAL", "UNRESOLVED"]}}, "required": ["value", "precision"]},
+    "nullableTemporalValue": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/temporalValue"}]}
   }
 }
