@@ -1,0 +1,63 @@
+{
+  "$id": "source-universe-registry.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NeuroAI Observatory governed source-universe registry",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": "1.0.0-draft", "type": "string"},
+    "status": {"const": "NONCANONICAL_PROGRAMME_CONTROL", "type": "string"},
+    "universes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/universe"}
+    },
+    "authority_boundary": {"type": "string", "minLength": 1}
+  },
+  "required": ["schema_version", "status", "universes", "authority_boundary"],
+  "$defs": {
+    "universe": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "universe_id": {"type": "string", "pattern": "^SU-[A-Z0-9_-]+$"},
+        "name": {"type": "string", "minLength": 1},
+        "purpose": {"type": "string", "minLength": 1},
+        "unit": {"type": "string", "minLength": 1},
+        "inclusion_criteria": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1},
+        "exclusion_criteria": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "preferred_source_classes": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1},
+        "secondary_source_classes": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "languages": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "jurisdictions": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "retrieval_strategy": {"type": "string", "minLength": 1},
+        "refresh_policy": {"type": "string", "minLength": 1},
+        "coverage_methodology": {"type": "string", "minLength": 1},
+        "known_blind_spots": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "implementation_state": {
+          "type": "string",
+          "enum": ["CURRENT_BOUNDED", "PARTIAL", "PLANNED"]
+        },
+        "canonical_completeness_claim": {"const": false, "type": "boolean"}
+      },
+      "required": [
+        "universe_id",
+        "name",
+        "purpose",
+        "unit",
+        "inclusion_criteria",
+        "exclusion_criteria",
+        "preferred_source_classes",
+        "secondary_source_classes",
+        "languages",
+        "jurisdictions",
+        "retrieval_strategy",
+        "refresh_policy",
+        "coverage_methodology",
+        "known_blind_spots",
+        "implementation_state",
+        "canonical_completeness_claim"
+      ]
+    }
+  }
+}
