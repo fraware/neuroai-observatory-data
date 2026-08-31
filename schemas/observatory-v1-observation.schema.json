@@ -23,7 +23,7 @@
     "metadata_digest_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
     "capture_state": {"type": "string", "enum": ["NOT_ATTEMPTED", "RETRIEVAL_FAILED", "METADATA_ONLY", "PUBLIC_EXTERNAL_REFERENCE_ONLY", "CAPTURED_PUBLIC_REDISTRIBUTABLE", "CAPTURED_PROTECTED_S3", "CAPTURED_EXTERNAL_CUSTODIAN", "CAPTURE_STATE_UNRESOLVED", "INACCESSIBLE", "WITHHELD_FROM_PUBLICATION"]},
     "capture_reference_class": {"type": ["string", "null"]},
-    "redistribution_state": {"type": "string", "enum": ["PUBLIC_REDISTRIBUTABLE", "PUBLIC_REFERENCE_ONLY", "NOT_PACKAGED_COPYRIGHTED_SOURCE", "LICENSED_LOCAL_ONLY", "PROTECTED_RESTRICTED", "RIGHTS_UNRESOLVED"]},
+    "redistribution_state": {"type": "string", "enum": ["PUBLIC_REDISTRIBUTABLE", "PUBLIC_REFERENCE_ONLY", "NOT_PACKAGED_COPYRIGHTED_SOURCE", "NOT_PACKAGED_SOURCE_COPY", "LICENSED_LOCAL_ONLY", "PROTECTED_RESTRICTED", "RIGHTS_UNRESOLVED"]},
     "collector_or_operator_version": {"type": ["string", "null"]},
     "source_published_at": {"$ref": "#/$defs/nullableTemporalValue"},
     "source_effective_at": {"$ref": "#/$defs/nullableTemporalValue"},
@@ -32,8 +32,8 @@
       "additionalProperties": false,
       "properties": {
         "release_id": {"const": "data-v0.1.0-public-governing", "type": "string"},
-        "file": {"type": "string", "enum": ["canonical_live_refresh_release_v1.6.json"]},
-        "section": {"const": "source_checks", "type": "string"},
+        "file": {"type": "string", "enum": ["canonical_live_refresh_release_v1.6.json", "PRIMA_NEW_UNIQUE_SOURCE_REGISTER_v1.7.json"]},
+        "section": {"type": "string", "enum": ["source_checks", "supplemental_records"]},
         "record_id": {"type": "string", "minLength": 1},
         "record_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
         "payload": {"type": "object"}
