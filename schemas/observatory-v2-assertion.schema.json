@@ -29,15 +29,7 @@
       "minLength": 1
     },
     "value": {
-      "oneOf": [
-        {"type": "string"},
-        {"type": "number"},
-        {"type": "integer"},
-        {"type": "boolean"},
-        {"type": "null"},
-        {"type": "object"},
-        {"type": "array"}
-      ]
+      "type": ["string", "number", "boolean", "null", "object", "array"]
     },
     "scope": {
       "type": "object",
