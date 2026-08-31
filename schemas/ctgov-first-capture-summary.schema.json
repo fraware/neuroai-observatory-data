@@ -11,8 +11,7 @@
       "type": "string",
       "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})$"
     },
-    "nullable_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
-    "nullable_string": {"type": ["string", "null"]}
+    "nullable_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"}
   },
   "properties": {
     "schema_version": {"const": "0.1.0"},
@@ -53,7 +52,7 @@
           "http_status": {"type": ["integer", "null"], "minimum": 100, "maximum": 599},
           "content_sha256": {"$ref": "#/$defs/nullable_sha256"},
           "size_bytes": {"type": ["integer", "null"], "minimum": 0},
-          "quarantine_id": {"type": ["string", "null"], "pattern": "^QREC-[0-9a-f]{32}$"},
+          "quarantine_id": {"type": ["string", "null"], "pattern": "^QRN-[0-9a-f]{32}$"},
           "quarantine_approval_state": {"type": ["string", "null"]},
           "evidence_state": {"type": ["string", "null"]},
           "observed_nct_id": {"type": ["string", "null"], "pattern": "^NCT[0-9]{8}$"},
