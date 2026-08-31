@@ -2,7 +2,10 @@
   "schema_version": "1.0.0-draft",
   "observation_id": "OBS-SYNTH-001",
   "source_id": "SRC-SYNTH-001",
-  "observed_at": "2026-08-31T08:00:00Z",
+  "observed_at": {
+    "value": "2026-08-31T08:00:00Z",
+    "precision": "TIMESTAMP"
+  },
   "retrieval_method": "SYNTHETIC_FIXTURE",
   "retrieval_outcome": "SUCCESS",
   "requested_locator": "https://example.org/neuroai-system/status",
