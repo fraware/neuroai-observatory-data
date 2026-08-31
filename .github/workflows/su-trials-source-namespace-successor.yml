@@ -1,0 +1,177 @@
+name: SU-TRIALS Source-namespace successor
+
+on:
+  pull_request:
+    paths:
+      - "schemas/su-trials-human-decision-packet.schema.json"
+      - "schemas/source-namespace-successor-proposal.schema.json"
+      - "scripts/run_su_trials_recorded_replay.py"
+      - "scripts/stage_su_trials_human_review.py"
+      - "scripts/adjudicate_su_trials_source_namespace.py"
+      - "tests/test_su_trials_source_namespace_successor.py"
+      - ".github/workflows/su-trials-source-namespace-successor.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-namespace-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout observatory data
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Checkout exact proposed Workbench capability
+        uses: actions/checkout@v4
+        with:
+          repository: fraware/neuroai-workbench
+          ref: 1148d5edd532feedb697f02aa1de7128f87603c3
+          path: .workbench
+          persist-credentials: false
+
+      - name: Install exact Workbench tree
+        run: python -m pip install --disable-pip-version-check -e .workbench
+
+      - name: Verify schemas are valid JSON
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          for path in (
+              Path("schemas/su-trials-human-decision-packet.schema.json"),
+              Path("schemas/source-namespace-successor-proposal.schema.json"),
+          ):
+              value = json.loads(path.read_text(encoding="utf-8"))
+              assert value["$schema"] == "https://json-schema.org/draft/2020-12/schema"
+          PY
+
+      - name: Verify exact Workbench adjudication API
+        run: |
+          python - <<'PY'
+          from neuroai_workbench.discovery import (
+              adjudicate_candidate_source,
+              load_adjudication,
+              load_proposal,
+          )
+          assert callable(adjudicate_candidate_source)
+          assert callable(load_adjudication)
+          assert callable(load_proposal)
+          PY
+
+      - name: Run unit and adversarial tests
+        run: |
+          python -m unittest tests/test_su_trials_recorded_replay.py
+          python -m unittest tests/test_su_trials_human_review_staging.py
+          python -m unittest tests/test_su_trials_human_review_staging_idempotency.py
+          python -m unittest tests/test_su_trials_source_namespace_successor.py
+
+      - name: Exercise actual Workbench human adjudication without monitor successor
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          import sys
+          import tempfile
+          from pathlib import Path
+
+          sys.path.insert(0, "scripts")
+          sys.path.insert(0, "tests")
+
+          import adjudicate_su_trials_source_namespace as adjudication
+          import stage_su_trials_human_review as staging
+          import test_su_trials_human_review_staging as fixture
+          from neuroai_workbench.discovery import load_adjudication, load_proposal
+
+          with tempfile.TemporaryDirectory() as projection_td, tempfile.TemporaryDirectory() as workspace_td:
+              projection = Path(projection_td)
+              workspace = Path(workspace_td)
+              fixture._write_projection(projection)
+
+              staged = staging.stage_projection(
+                  projection,
+                  workspace,
+                  actor="ci-review-stager",
+                  staged_at="2026-08-31T11:30:00Z",
+              )
+              review_path = Path(staged["review_index_path"])
+              review_sha = hashlib.sha256(review_path.read_bytes()).hexdigest()
+              proposal_id = staged["proposal_ids"][0]
+
+              packet = {
+                  "schema_version": "0.1.0",
+                  "artifact": "su_trials_human_decision_packet",
+                  "status": "EXPLICIT_LOCAL_HUMAN_DECISION_PACKET",
+                  "programme_id": "SU-TRIALS-CTGOV-v0.1",
+                  "projection_manifest_sha256": staged["projection_manifest_sha256"],
+                  "review_index_sha256": review_sha,
+                  "workbench_query_id": staged["discovery_query_id"],
+                  "workbench_run_id": staged["discovery_run_id"],
+                  "adjudicated_by": "ci-local-human-reviewer",
+                  "adjudicated_at": "2026-08-31T12:00:00Z",
+                  "identity_boundary": "LOCAL_UNAUTHENTICATED_ATTRIBUTION",
+                  "decisions": [{
+                      "proposal_id": proposal_id,
+                      "nct_id": "NCT03333954",
+                      "decision": "ACCEPT",
+                      "rationale": "CI exercises explicit source-identity acceptance only.",
+                  }],
+                  "source_namespace_admission_only": True,
+                  "monitor_creation_authorized": False,
+                  "trial_entity_creation_authorized": False,
+                  "trial_site_relationship_creation_authorized": False,
+                  "assessment_mutation_authorized": False,
+                  "canonical_publication_authorized": False,
+                  "authority_boundary": "CI local source-identity disposition only; no monitoring, graph, assessment or publication authority.",
+              }
+              packet_path = workspace / "decision-packet.json"
+              packet_path.write_text(json.dumps(packet, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+              result = adjudication.adjudicate(
+                  projection,
+                  workspace,
+                  review_path,
+                  packet_path,
+              )
+              assert result["status"] == "COMPLETED_WITH_DRAFT_SOURCE_NAMESPACE_SUCCESSOR"
+              assert result["accept_count"] == 1
+              assert result["workbench_monitor_registry_successor_created"] is False
+              assert result["monitor_creation_performed"] is False
+              assert result["canonical_successor_ready"] is False
+
+              proposal = load_proposal(workspace, proposal_id)
+              assert proposal["status"] == "ACCEPTED"
+              adjudication_record = load_adjudication(workspace, proposal["adjudication_id"])
+              assert adjudication_record["decision"] == "ACCEPT"
+              assert adjudication_record["registry_successor_id"] is None
+              assert adjudication_record["automatic_mutation_performed"] is False
+
+              monitor_successor_dir = workspace / "discovery" / "registry_successors"
+              assert not list(monitor_successor_dir.glob("*.json"))
+
+              successor = json.loads(Path(result["source_namespace_successor_path"]).read_text(encoding="utf-8"))
+              assert successor["accepted_sources"][0]["nct_id"] == "NCT03333954"
+              assert successor["accepted_sources"][0]["source_id"] == "SRC-CTGOV-NCT03333954"
+              assert successor["source_namespace_publication_performed"] is False
+              assert successor["monitor_creation_performed"] is False
+              assert successor["trial_entity_creation_performed"] is False
+              assert successor["trial_site_relationship_creation_performed"] is False
+              assert successor["assessment_mutation_performed"] is False
+              assert successor["canonical_successor_ready"] is False
+
+              first_id = result["source_namespace_successor_proposal_id"]
+              resumed = adjudication.adjudicate(projection, workspace, review_path, packet_path)
+              assert resumed["source_namespace_successor_proposal_id"] == first_id
+          PY
+
+      - name: Verify operational adjudication output is not committed
+        run: |
+          if find . -path './.git' -prune -o -path './.workbench' -prune -o -type d -name 'programme-adjudication' -print | grep -q .; then
+            echo "Operational adjudication outputs must not be committed to S2." >&2
+            exit 1
+          fi
