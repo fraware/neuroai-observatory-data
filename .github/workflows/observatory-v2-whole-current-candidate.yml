@@ -1,0 +1,69 @@
+name: Observatory v2 whole-current candidate
+
+on:
+  pull_request:
+    paths:
+      - "scripts/build_observatory_v2_whole_current_candidate.py"
+      - "tests/test_observatory_v2_whole_current_candidate.py"
+      - ".github/workflows/observatory-v2-whole-current-candidate.yml"
+      - "scripts/project_v14_*_to_v2.py"
+      - "scripts/project_v16_*_to_v2.py"
+      - "scripts/project_v17_*_to_v2.py"
+      - "scripts/reconcile_v16_semantic_coverage.py"
+      - "scripts/reconcile_v2_effective_source_namespace.py"
+      - "releases/data-v0.1.0-public-governing/**"
+      - "supplemental_records/PRIMA_NEW_UNIQUE_SOURCE_REGISTER_v1.7.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  whole-current-candidate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify governing release manifest remains unchanged
+        run: >-
+          python scripts/verify_manifest.py
+          releases/data-v0.1.0-public-governing/records
+          releases/data-v0.1.0-public-governing/SHA256SUMS.txt
+
+      - name: Run whole-current candidate tests
+        run: python -m unittest tests.test_observatory_v2_whole_current_candidate
+
+      - name: Build whole-current noncanonical candidate
+        run: python scripts/build_observatory_v2_whole_current_candidate.py --output-dir /tmp/observatory-v2-candidate
+
+      - name: Rebuild and prove deterministic manifest
+        run: |
+          python scripts/build_observatory_v2_whole_current_candidate.py --output-dir /tmp/observatory-v2-candidate-2 >/tmp/rebuild.json
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          a = Path('/tmp/observatory-v2-candidate/manifest.json').read_bytes()
+          b = Path('/tmp/observatory-v2-candidate-2/manifest.json').read_bytes()
+          assert a == b
+          print(hashlib.sha256(a).hexdigest())
+          PY
+
+      - name: Assert authority remains withheld
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          rec = json.loads(Path('/tmp/observatory-v2-candidate/reconciliation.json').read_text())
+          manifest = json.loads(Path('/tmp/observatory-v2-candidate/manifest.json').read_text())
+          assert rec['mechanically_clean'] is True
+          assert rec['global_completeness_claim'] is False
+          assert rec['scientific_validity_claim'] is False
+          assert rec['canonical_successor_ready'] is False
+          assert manifest['canonical_successor_ready'] is False
+          PY
