@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0-draft",
+  "observation_id": "OBS-SYNTH-001",
+  "source_id": "SRC-SYNTH-001",
+  "observed_at": "2026-08-31T08:00:00Z",
+  "retrieval_method": "SYNTHETIC_FIXTURE",
+  "retrieval_outcome": "SUCCESS",
+  "requested_locator": "https://example.org/neuroai-system/status",
+  "resolved_locator": "https://example.org/neuroai-system/status",
+  "http_status": 200,
+  "content_type": "text/html",
+  "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "normalized_content_sha256": null,
+  "capture_state": "PUBLIC_EXTERNAL_REFERENCE_ONLY",
+  "capture_reference_class": "SYNTHETIC_PUBLIC_REFERENCE",
+  "redistribution_state": "PUBLIC_REFERENCE_ONLY",
+  "collector_or_operator_version": "synthetic-fixture-v1",
+  "source_published_at": {
+    "value": "2026-08-30",
+    "precision": "DATE"
+  },
+  "source_effective_at": null,
+  "protected_bytes_in_record": false,
+  "authority_boundary": "Synthetic observation metadata demonstrates schema shape only; it establishes no source authenticity, substantive truth, regulatory status, system conformance, or publication authority."
+}
