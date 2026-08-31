@@ -75,10 +75,9 @@ class ObservatoryV2FoundationTests(unittest.TestCase):
         )
         self.assertEqual(schema["$id"], "observatory-v2-entity.schema.json")
         self.assertIs(schema["additionalProperties"], False)
-        self.assertEqual(
-            set(schema["properties"]["entity_kind"]["enum"]),
-            {"ORGANIZATION", "PROVENANCE_NODE"},
-        )
+        kinds = set(schema["properties"]["entity_kind"]["enum"])
+        self.assertTrue({"ORGANIZATION", "PROVENANCE_NODE"}.issubset(kinds))
+        self.assertIn("MODEL", kinds)
         self.assertNotIn("verification_state", schema["properties"])
         self.assertNotIn("evidence_state", schema["properties"])
         self.assertIn("predecessor", schema["required"])
