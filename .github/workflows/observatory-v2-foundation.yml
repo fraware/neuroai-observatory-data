@@ -60,8 +60,9 @@ jobs:
           result = json.loads(Path('/tmp/v2-migration-accounting.json').read_text())
           assert result['input_file_count'] == 6
           assert result['silent_unmapped_section_count'] == 0
-          assert result['invented_value_count'] == 0
-          assert result['claim_boundary_loss_count'] == 0
-          assert result['source_reference_loss_count'] == 0
+          assert result['semantic_reconciliation_state'] == 'NOT_EXECUTED'
+          assert result['invented_value_count'] is None
+          assert result['claim_boundary_loss_count'] is None
+          assert result['source_reference_loss_count'] is None
           assert result['canonical_successor_ready'] is False
           PY
