@@ -19,9 +19,10 @@ class V2MigrationAccountingTests(unittest.TestCase):
         self.assertEqual(result["input_file_count"], 6)
         self.assertFalse(result["canonical_successor_ready"])
         self.assertEqual(result["silent_unmapped_section_count"], 0)
-        self.assertEqual(result["invented_value_count"], 0)
-        self.assertEqual(result["claim_boundary_loss_count"], 0)
-        self.assertEqual(result["source_reference_loss_count"], 0)
+        self.assertEqual(result["semantic_reconciliation_state"], "NOT_EXECUTED")
+        self.assertIsNone(result["invented_value_count"])
+        self.assertIsNone(result["claim_boundary_loss_count"])
+        self.assertIsNone(result["source_reference_loss_count"])
         self.assertGreater(result["unique_field_path_count"], 0)
 
     def test_exact_governing_file_set_is_accounted(self) -> None:
@@ -32,7 +33,9 @@ class V2MigrationAccountingTests(unittest.TestCase):
     def test_monitor_registry_stays_operational_configuration(self) -> None:
         result = module.build_accounting()
         monitor_file = next(
-            row for row in result["files"] if row["file"] == "source_monitor_registry_v1.5.json"
+            row
+            for row in result["files"]
+            if row["file"] == "source_monitor_registry_v1.5.json"
         )
         self.assertEqual(monitor_file["section_count"], 1)
         root = monitor_file["sections"][0]
