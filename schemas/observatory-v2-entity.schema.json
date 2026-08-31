@@ -10,7 +10,7 @@
     "entity_id": {"type": "string", "minLength": 1},
     "entity_kind": {
       "type": "string",
-      "enum": ["ORGANIZATION", "PROVENANCE_NODE"]
+      "enum": ["ORGANIZATION", "PROVENANCE_NODE", "MODEL"]
     },
     "canonical_name": {"type": "string", "minLength": 1},
     "aliases": {
@@ -29,7 +29,10 @@
       "properties": {
         "release_id": {"const": "data-v0.1.0-public-governing", "type": "string"},
         "file": {"const": "canonical_observatory_release_v1.4.json", "type": "string"},
-        "section": {"const": "organizations", "type": "string"},
+        "section": {
+          "type": "string",
+          "enum": ["organizations", "representative_model_records"]
+        },
         "record_id": {"type": "string", "minLength": 1},
         "record_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
         "payload": {"type": "object"}
