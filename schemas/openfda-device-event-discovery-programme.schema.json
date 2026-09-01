@@ -55,7 +55,7 @@
       "properties": {
         "minimum_package_line": {"const": "0.3.0.dev0"},
         "required_capability": {"const": "project_openfda_device_event_pages"},
-        "integration_state": {"enum": ["NOT_IMPLEMENTED", "PENDING_S1_MERGE", "AVAILABLE"]}
+        "integration_state": {"const": "PENDING_S1_MERGE"}
       }
     },
     "identity_policy": {"type": "object"},
