@@ -1,0 +1,89 @@
+name: SU-REGULATION openFDA UDI recorded replay
+
+on:
+  pull_request:
+    paths:
+      - "curation/openfda_udi_discovery_programme_v0.1.json"
+      - "schemas/openfda-udi-discovery-programme.schema.json"
+      - "schemas/openfda-udi-discovery-replay-input.schema.json"
+      - "scripts/run_su_regulation_openfda_udi_recorded_replay.py"
+      - "scripts/validate_openfda_udi_discovery_programme.py"
+      - "tests/test_openfda_udi_discovery_programme.py"
+      - "tests/test_openfda_udi_recorded_replay.py"
+      - ".github/workflows/su-regulation-openfda-udi-recorded-replay.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  replay-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Checkout exact proposed Workbench UDI capability
+        uses: actions/checkout@v4
+        with:
+          repository: fraware/neuroai-workbench
+          ref: 98a86822b2a4a75bccbcbc9a40323c9380cb418f
+          path: .workbench
+          persist-credentials: false
+      - name: Install exact Workbench tree
+        run: python -m pip install --disable-pip-version-check -e .workbench
+      - name: Verify exact UDI projector
+        run: |
+          python - <<'PY'
+          from neuroai_workbench.discovery import project_openfda_udi_pages
+          assert callable(project_openfda_udi_pages)
+          PY
+      - name: Validate S2 UDI programme
+        run: python scripts/validate_openfda_udi_discovery_programme.py
+      - name: Run S2 UDI programme and replay tests
+        run: |
+          python -m unittest tests/test_openfda_udi_discovery_programme.py
+          python -m unittest tests/test_openfda_udi_recorded_replay.py
+      - name: Run exact Workbench UDI projection tests
+        run: python .workbench/tests/test_openfda_udi_discovery_projection.py
+      - name: Exercise exact Workbench projector through S2 replay boundary
+        run: |
+          python - <<'PY'
+          import sys
+          sys.path.insert(0,"scripts")
+          import run_su_regulation_openfda_udi_recorded_replay as replay
+          p=replay._programme();stream=p["query_streams"][0]
+          page={"meta":{"results":{"total":1,"skip":0,"limit":1000}},"results":[{
+            "record_status":"Published","commercial_distribution_status":"In Commercial Distribution","device_description":"Neural interface integration device",
+            "identifiers":[{"issuing_agency":"GS1","id":"00887517567062","type":"Primary"},{"issuing_agency":"GS1","id":"SECONDARY-X","type":"Secondary"}],
+            "record_key":"RK-UDI-1","public_version_number":"2","public_version_date":"2026-08-31","public_version_status":"Update","publish_date":"2026-01-01",
+            "brand_name":"Neuro Integration","company_name":"Example Company","version_or_model_number":"MODEL-X","catalog_number":"CAT-X",
+            "premarket_submissions":[{"submission_number":"K123456","supplement_number":None,"submissions_type":"510(k)"}],
+            "product_codes":[{"code":"ABC","name":"Example"}],
+            "customer_contacts":[{"phone":"EXCLUDED PHONE","email":"EXCLUDED EMAIL"}],"labeler_duns_number":"EXCLUDED DUNS"
+          }]}
+          bundle={"schema_version":"0.1.0","programme_id":p["programme_id"],"provider":p["provider_contract"]["provider"],"capture_scope":"PARTIAL_VALIDATION","captured_at":"2026-09-01T00:00:00Z","leaf_query_captures":[{"query_id":stream["query_id"],"leaf_query_id":"integration-root","effective_search":stream["search"],"partition_path":[],"pages":[page]}]}
+          result=replay.build_replay(bundle);row=result["normalized_records"][0]
+          assert result["reconciliation"]["materialized_source_namespace_count"]==248
+          assert result["reconciliation"]["union_unique_udi_identity_count"]==1
+          assert result["reconciliation"]["leaf_mechanical_blocker_count"]==0
+          assert result["reconciliation"]["mechanically_complete"] is False
+          assert row["record_identity"]=="UDI:GS1:00887517567062"
+          assert row["record_key"]=="RK-UDI-1"
+          assert row["public_version_number"]=="2"
+          assert row["identifiers"][1]["type"]=="Secondary"
+          assert row["premarket_submissions"][0]["submission_number"]=="K123456"
+          assert "EXCLUDED PHONE" not in str(result) and "EXCLUDED EMAIL" not in str(result) and "EXCLUDED DUNS" not in str(result)
+          assert result["reconciliation"]["automatic_di_relationship_creation"] is False
+          assert result["reconciliation"]["automatic_premarket_authorization_relationship_creation"] is False
+          assert result["reconciliation"]["automatic_current_commercial_availability_claim_creation"] is False
+          assert result["reconciliation"]["automatic_marketing_authorization_claim_creation"] is False
+          assert result["reconciliation"]["canonical_successor_ready"] is False
+          PY
+      - name: Verify no raw UDI capture is committed
+        run: |
+          if find . -path './.git' -prune -o -path './.workbench' -prune -o -type f \( -iname '*udi*raw*.json' -o -iname '*udi*page*.json' -o -iname '*udi*response*.json' \) -print | grep -q .; then
+            echo "Raw openFDA UDI replay pages must remain external/ephemeral." >&2
+            exit 1
+          fi
