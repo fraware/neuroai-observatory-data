@@ -1,0 +1,103 @@
+name: SU-REGULATION openFDA registration-listing recorded replay
+
+on:
+  pull_request:
+    paths:
+      - "curation/openfda_registration_listing_discovery_programme_v0.1.json"
+      - "schemas/openfda-registration-listing-discovery-programme.schema.json"
+      - "schemas/openfda-registration-listing-discovery-replay-input.schema.json"
+      - "scripts/current_source_namespace.py"
+      - "scripts/run_su_regulation_openfda_registration_listing_recorded_replay.py"
+      - "scripts/validate_openfda_registration_listing_discovery_programme.py"
+      - "tests/test_current_source_namespace.py"
+      - "tests/test_openfda_registration_listing_discovery_programme.py"
+      - "tests/test_openfda_registration_listing_recorded_replay.py"
+      - "releases/data-v0.1.0-public-governing/records/canonical_observatory_release_v1.4.json"
+      - "releases/data-v0.1.0-public-governing/records/canonical_live_refresh_release_v1.6.json"
+      - "supplemental_records/PRIMA_NEW_UNIQUE_SOURCE_REGISTER_v1.7.json"
+      - ".github/workflows/su-regulation-openfda-registration-listing-recorded-replay.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  replay-contract:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Checkout exact merged Workbench registration/listing capability
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: fraware/neuroai-workbench
+          ref: 67ddd2c8a622f3c38b4ae847763ff50d3f3e31d9
+          path: .workbench
+          persist-credentials: false
+      - name: Install exact Workbench tree
+        run: python -m pip install --disable-pip-version-check -e .workbench
+      - name: Verify exact registration/listing projector
+        run: |
+          python - <<'PY'
+          from neuroai_workbench.discovery import project_openfda_registration_listing_pages
+          assert callable(project_openfda_registration_listing_pages)
+          PY
+      - name: Validate S2 programme and governing Source namespace
+        run: |
+          python scripts/validate_openfda_registration_listing_discovery_programme.py
+          python -m unittest tests.test_current_source_namespace
+      - name: Run S2 programme and replay tests
+        run: |
+          python -m unittest tests.test_openfda_registration_listing_discovery_programme
+          python -m unittest tests.test_openfda_registration_listing_recorded_replay
+      - name: Run exact Workbench registration/listing projection tests
+        run: python .workbench/tests/test_openfda_registration_listing_discovery_projection.py
+      - name: Exercise exact Workbench projector through S2 replay boundary
+        run: |
+          python - <<'PY'
+          import sys
+          sys.path.insert(0,"scripts")
+          import run_su_regulation_openfda_registration_listing_recorded_replay as replay
+          p=replay._programme();stream=p["query_streams"][0]
+          provider_row={
+            "establishment_type":["Manufacture Medical Device"],
+            "k_number":"K123456","pma_number":"P123456",
+            "proprietary_name":["Neuro Integration"],
+            "products":[
+              {"created_date":"2026-01-01","exempt":"N","owner_operator_number":"9051149","product_code":"AAA","openfda":{"device_class":"2","device_name":"Neural interface A","regulation_number":"882.1320"}},
+              {"created_date":"2026-01-02","exempt":"N","owner_operator_number":"9051149","product_code":"BBB","openfda":{"device_class":"3","device_name":"Neural interface B","regulation_number":"882.1321"}}
+            ],
+            "registration":{
+              "registration_number":"9610240","fei_number":"3002808212","name":"Example Establishment","status_code":"1","reg_expiry_date_year":"2026",
+              "address_line_1":"EXCLUDED ADDRESS","owner_operator":{"contact_address":{"address_1":"EXCLUDED OWNER CONTACT"},"official_correspondent":{"phone":"EXCLUDED CORRESPONDENT"}},
+              "us_agent":{"bus_phone_num":"EXCLUDED AGENT"}
+            }
+          }
+          page={"meta":{"results":{"total":1,"skip":0,"limit":1000}},"results":[provider_row]}
+          bundle={"schema_version":"0.1.0","programme_id":p["programme_id"],"provider":p["provider_contract"]["provider"],"capture_scope":"PARTIAL_VALIDATION","captured_at":"2026-09-01T00:00:00Z","leaf_query_captures":[{"query_id":stream["query_id"],"leaf_query_id":"integration-root","effective_search":stream["search"],"partition_path":[],"pages":[page]}]}
+          result=replay.build_replay(bundle)
+          assert result["reconciliation"]["materialized_source_namespace_count"]==248
+          assert len(result["reconciliation"]["controlled_source_id_set_sha256"])==64
+          assert result["query_reports"][0]["coverage"]["returned_provider_record_count"]==1
+          assert result["query_reports"][0]["coverage"]["expanded_representation_count"]==2
+          assert result["reconciliation"]["union_unique_representation_count"]==2
+          assert result["reconciliation"]["leaf_mechanical_blocker_count"]==0
+          assert result["reconciliation"]["mechanically_complete"] is False
+          assert result["reconciliation"]["partition_strategy_authorized"] is False
+          assert all(row["registration_number"]=="9610240" for row in result["normalized_records"])
+          assert {row["product_code"] for row in result["normalized_records"]}=={"AAA","BBB"}
+          text=str(result)
+          assert "EXCLUDED ADDRESS" not in text and "EXCLUDED OWNER CONTACT" not in text and "EXCLUDED CORRESPONDENT" not in text and "EXCLUDED AGENT" not in text
+          assert result["reconciliation"]["representation_identity_is_exact_device_identity"] is False
+          assert result["reconciliation"]["registration_or_listing_is_marketing_authorization_claim"] is False
+          assert result["reconciliation"]["registration_or_listing_is_clearance_or_approval_claim"] is False
+          assert result["reconciliation"]["canonical_successor_ready"] is False
+          PY
+      - name: Verify no raw registration/listing capture is committed
+        run: |
+          if find . -path './.git' -prune -o -path './.workbench' -prune -o -type f \( -iname '*registration*listing*raw*.json' -o -iname '*registration*listing*page*.json' -o -iname '*registration*listing*response*.json' \) -print | grep -q .; then
+            echo "Raw openFDA registration/listing replay pages must remain external/ephemeral." >&2
+            exit 1
+          fi
