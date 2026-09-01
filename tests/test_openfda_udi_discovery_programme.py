@@ -8,7 +8,7 @@ class OpenFdaUdiProgrammeTests(unittest.TestCase):
     def setUpClass(cls):
         cls.programme=json.loads(PROGRAMME_PATH.read_text(encoding="utf-8"));cls.registry=json.loads(UNIVERSE_REGISTRY_PATH.read_text(encoding="utf-8"))
     def test_current_programme_validates_offline(self):
-        r=validate_programme(self.programme,self.registry);self.assertEqual(r["query_stream_count"],5);self.assertEqual(r["integration_state"],"NOT_IMPLEMENTED");self.assertFalse(r["network_requests_performed"]);self.assertFalse(r["marketing_authorization_claim_created"]);self.assertFalse(r["current_availability_claim_created"])
+        r=validate_programme(self.programme,self.registry);self.assertEqual(r["query_stream_count"],5);self.assertEqual(r["integration_state"],"PENDING_S1_MERGE");self.assertFalse(r["network_requests_performed"]);self.assertFalse(r["marketing_authorization_claim_created"]);self.assertFalse(r["current_availability_claim_created"])
     def test_primary_di_and_version_state_are_separate(self):
         i=self.programme["identity_policy"];self.assertEqual(i["device_record_identity"],"PRIMARY_DI_ISSUING_AGENCY_PLUS_ID");self.assertTrue(i["record_key_is_provider_tracking_key_not_device_identity"]);self.assertTrue(i["public_version_fields_track_record_updates"]);self.assertTrue(i["same_primary_di_changed_public_version_is_successor_observation"])
     def test_secondary_and_previous_identifiers_do_not_auto_merge(self):
@@ -33,6 +33,9 @@ class OpenFdaUdiProgrammeTests(unittest.TestCase):
     def test_automatic_reopening_fails_closed(self):
         m=copy.deepcopy(self.programme);m["inclusion_policy"]["automatic_reopening_decision"]=True
         with self.assertRaisesRegex(ValueError,"automatic_reopening_decision"):validate_programme(m,self.registry)
-    def test_schema_keeps_workbench_unimplemented(self):
-        s=json.loads(Path("schemas/openfda-udi-discovery-programme.schema.json").read_text(encoding="utf-8"));self.assertEqual(s["properties"]["workbench_dependency"]["properties"]["integration_state"]["const"],"NOT_IMPLEMENTED")
+    def test_available_before_merge_fails_closed(self):
+        m=copy.deepcopy(self.programme);m["workbench_dependency"]["integration_state"]="AVAILABLE"
+        with self.assertRaisesRegex(ValueError,"cannot be AVAILABLE"):validate_programme(m,self.registry)
+    def test_schema_records_pending_merge_only(self):
+        s=json.loads(Path("schemas/openfda-udi-discovery-programme.schema.json").read_text(encoding="utf-8"));self.assertEqual(s["properties"]["workbench_dependency"]["properties"]["integration_state"]["const"],"PENDING_S1_MERGE")
 if __name__=="__main__":unittest.main()
