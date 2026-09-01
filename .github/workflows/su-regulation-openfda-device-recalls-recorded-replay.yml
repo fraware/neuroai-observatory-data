@@ -1,0 +1,59 @@
+name: SU-REGULATION openFDA device-recall recorded replay
+on:
+  pull_request:
+    paths:
+      - 'curation/openfda_device_recall_discovery_programme_v0.1.json'
+      - 'schemas/openfda-device-recall-discovery-programme.schema.json'
+      - 'schemas/openfda-device-recall-discovery-replay-input.schema.json'
+      - 'scripts/current_source_namespace.py'
+      - 'scripts/run_su_regulation_openfda_device_recalls_recorded_replay.py'
+      - 'scripts/validate_openfda_device_recall_discovery_programme.py'
+      - 'tests/test_openfda_device_recall_discovery_programme.py'
+      - 'tests/test_openfda_device_recall_recorded_replay.py'
+      - '.github/workflows/su-regulation-openfda-device-recalls-recorded-replay.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  replay-contract:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Checkout exact merged Workbench provider integration
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: fraware/neuroai-workbench
+          ref: 29f3a93e7a9050684687cc11b0568b7a9c6ef867
+          path: .workbench
+          persist-credentials: false
+      - run: python -m pip install --disable-pip-version-check -e .workbench
+      - run: python -m json.tool schemas/openfda-device-recall-discovery-replay-input.schema.json >/dev/null
+      - run: python scripts/validate_openfda_device_recall_discovery_programme.py
+      - run: python -m unittest tests.test_openfda_device_recall_discovery_programme tests.test_openfda_device_recall_recorded_replay
+      - name: Run exact Workbench recall projector tests
+        run: python .workbench/tests/test_openfda_device_recall_discovery_projection.py
+      - name: Exercise minimization through current S2 replay
+        run: |
+          python - <<'PY'
+          import sys
+          sys.path.insert(0,'scripts')
+          import run_su_regulation_openfda_device_recalls_recorded_replay as replay
+          p=replay._programme();s=p['query_streams'][0]
+          page={'meta':{'results':{'total':1,'skip':0,'limit':1000}},'results':[{'cfres_id':'R-1','res_event_number':'E-1','product_description':'neural interface','recalling_firm':'Fixture','address_1':'MUST-NOT-PROJECT','city':'MUST-NOT-PROJECT','code_info':'LOT-MUST-NOT-PROJECT','distribution_pattern':'MUST-NOT-PROJECT'}]}
+          bundle={'schema_version':'0.1.0','programme_id':p['programme_id'],'provider':p['provider_contract']['provider'],'capture_scope':'PARTIAL_VALIDATION','captured_at':'2026-09-02T00:00:00Z','leaf_query_captures':[{'query_id':s['query_id'],'leaf_query_id':'integration-root','effective_search':s['search'],'partition_path':[],'pages':[page]}]}
+          result=replay.build_replay(bundle);n=result['normalized_recall_records'][0];q=result['reconciliation']
+          assert q['materialized_source_namespace_count']==248 and len(q['controlled_source_id_set_sha256'])==64
+          for forbidden in ('address_1','city','code_info','distribution_pattern'): assert forbidden not in n
+          assert q['automatic_reopening_decision'] is False
+          assert q['automatic_system_nonconformance_claim_creation'] is False
+          assert q['canonical_successor_ready'] is False
+          PY
+      - name: Verify no raw recall capture is committed
+        run: |
+          if find . -path './.git' -prune -o -path './.workbench' -prune -o -type f \( -iname '*recall*raw*.json' -o -iname '*recall*response*.json' -o -iname '*recall*page*.json' \) -print | grep -q .; then
+            echo 'Raw openFDA recall pages must remain external/ephemeral.' >&2
+            exit 1
+          fi
