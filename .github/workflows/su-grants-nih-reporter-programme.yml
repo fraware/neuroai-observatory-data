@@ -1,0 +1,27 @@
+name: SU-GRANTS NIH RePORTER programme
+
+on:
+  pull_request:
+    paths:
+      - "curation/nih_reporter_grants_discovery_programme_v0.1.json"
+      - "schemas/nih-reporter-grants-discovery-programme.schema.json"
+      - "scripts/validate_nih_reporter_grants_discovery_programme.py"
+      - "tests/test_nih_reporter_grants_discovery_programme.py"
+      - ".github/workflows/su-grants-nih-reporter-programme.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  programme-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validate programme control
+        run: python scripts/validate_nih_reporter_grants_discovery_programme.py
+      - name: Run programme tests
+        run: python -m unittest tests/test_nih_reporter_grants_discovery_programme.py
