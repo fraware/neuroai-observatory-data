@@ -10,7 +10,7 @@ class OpenFdaDeviceRecallProgrammeTests(unittest.TestCase):
 
     def test_current_programme_validates(self):
         result=validate_programme(self.programme,self.registry)
-        self.assertEqual(result["query_stream_count"],5); self.assertEqual(result["integration_state"],"NOT_IMPLEMENTED")
+        self.assertEqual(result["query_stream_count"],5); self.assertEqual(result["integration_state"],"PENDING_S1_MERGE")
         self.assertFalse(result["network_requests_performed"]); self.assertFalse(result["automatic_reopening"])
 
     def test_identity_is_cfres_and_event_is_lineage(self):
@@ -46,8 +46,9 @@ class OpenFdaDeviceRecallProgrammeTests(unittest.TestCase):
         modified=copy.deepcopy(self.programme); modified["inclusion_policy"]["automatic_reopening_decision"]=True
         with self.assertRaisesRegex(ValueError,"automatic_reopening_decision"): validate_programme(modified,self.registry)
 
-    def test_schema_control_surface(self):
+    def test_schema_blocks_available(self):
         schema=json.loads(Path("schemas/openfda-device-recall-discovery-programme.schema.json").read_text(encoding="utf-8"))
-        self.assertEqual(schema["properties"]["provider_contract"]["properties"]["primary_recall_id_field"]["const"],"cfres_id")
+        states=schema["properties"]["workbench_dependency"]["properties"]["integration_state"]["enum"]
+        self.assertNotIn("AVAILABLE",states)
 
 if __name__ == "__main__": unittest.main()
