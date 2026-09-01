@@ -1,0 +1,30 @@
+name: SU-REGULATION openFDA device recalls programme
+on:
+  pull_request:
+    paths:
+      - "curation/openfda_device_recall_discovery_programme_v0.1.json"
+      - "schemas/openfda-device-recall-discovery-programme.schema.json"
+      - "scripts/validate_openfda_device_recall_discovery_programme.py"
+      - "tests/test_openfda_device_recall_discovery_programme.py"
+      - ".github/workflows/su-regulation-openfda-device-recalls-programme.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validate programme
+        run: python scripts/validate_openfda_device_recall_discovery_programme.py
+      - name: Run programme tests
+        run: python -m unittest tests/test_openfda_device_recall_discovery_programme.py
+      - name: Refuse raw recall captures
+        run: |
+          if find . -path './.git' -prune -o -type f \( -iname '*recall*raw*.json' -o -iname '*recall*response*.json' -o -iname '*recall*page*.json' \) -print | grep -q .; then
+            echo "Raw openFDA recall captures must remain external/ephemeral." >&2
+            exit 1
+          fi
