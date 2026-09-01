@@ -20,49 +20,21 @@ EXPECTED_QUERY_IDS = {
     "DISCOVERY-OPS-GREY-WORKPLACE-ATTENTION-001",
     "DISCOVERY-OPS-KNOWN-APPLICANTS-001",
 }
-
 EXPECTED_APPLICANTS = {
-    "Neuralink",
-    "Synchron",
-    "Paradromics",
-    "Precision Neuroscience",
-    "Science Corporation",
-    "Blackrock Neurotech",
-    "Kernel",
-    "Emotiv",
+    "Neuralink", "Synchron", "Paradromics", "Precision Neuroscience",
+    "Science Corporation", "Blackrock Neurotech", "Kernel", "Emotiv",
 }
-
 REQUIRED_CANDIDATE_FIELDS = {
-    "docdb_publication_reference",
-    "country",
-    "document_number",
-    "kind_code",
-    "title",
-    "publication_date",
-    "applicants",
-    "inventors",
-    "ipc_symbols",
-    "cpc_symbols",
-    "application_references",
-    "priority_references",
-    "query_memberships",
-    "normalized_record_sha256",
+    "docdb_publication_reference", "country", "document_number", "kind_code", "title",
+    "publication_date", "applicants", "inventors", "ipc_symbols", "cpc_symbols",
+    "application_references", "priority_references", "query_memberships", "normalized_record_sha256",
 }
-
 REQUIRED_COVERAGE_METRICS = {
-    "requested_range_count",
-    "returned_publication_reference_count",
-    "unique_docdb_publication_count",
-    "reported_total_result_count",
-    "reported_total_result_count_state",
-    "range_sequence_valid",
-    "range_coverage_state",
-    "over_2000_limit",
-    "partition_required",
-    "known_controlled_duplicate_count",
-    "new_candidate_count",
-    "cross_query_duplicate_representation_count",
-    "unresolved_docdb_identity_count",
+    "requested_range_count", "returned_publication_reference_count", "unique_docdb_publication_count",
+    "reported_total_result_count", "reported_total_result_count_state", "range_sequence_valid",
+    "range_coverage_state", "over_2000_limit", "partition_required",
+    "known_controlled_duplicate_count", "new_candidate_count",
+    "cross_query_duplicate_representation_count", "unresolved_docdb_identity_count",
 }
 
 
@@ -76,36 +48,31 @@ def _require(condition: bool, message: str) -> None:
 
 
 def _universe(registry: dict[str, Any], universe_id: str) -> dict[str, Any]:
-    universes = registry.get("universes")
-    _require(isinstance(universes, list), "Source-universe registry must contain universes")
-    matches = [row for row in universes if row.get("universe_id") == universe_id]
+    rows = registry.get("universes")
+    _require(isinstance(rows, list), "Source-universe registry must contain universes")
+    matches = [row for row in rows if row.get("universe_id") == universe_id]
     _require(len(matches) == 1, f"Expected exactly one {universe_id} universe")
     return matches[0]
 
 
 def _balanced_cql(query: str) -> bool:
     depth = 0
-    in_quote = False
+    quoted = False
     escaped = False
     for char in query:
         if escaped:
             escaped = False
-            continue
-        if char == "\\":
+        elif char == "\\":
             escaped = True
-            continue
-        if char == '"':
-            in_quote = not in_quote
-            continue
-        if in_quote:
-            continue
-        if char == "(":
+        elif char == '"':
+            quoted = not quoted
+        elif not quoted and char == "(":
             depth += 1
-        elif char == ")":
+        elif not quoted and char == ")":
             depth -= 1
             if depth < 0:
                 return False
-    return depth == 0 and not in_quote and not escaped
+    return depth == 0 and not quoted and not escaped
 
 
 def validate_programme(programme: dict[str, Any], registry: dict[str, Any]) -> dict[str, Any]:
@@ -114,16 +81,17 @@ def validate_programme(programme: dict[str, Any], registry: dict[str, Any]) -> d
     _require(programme.get("source_universe_id") == "SU-PATENTS", "Programme must bind SU-PATENTS")
     _require(programme.get("source_system") == "EPO_OPS", "Unexpected source system")
 
-    patent_universe = _universe(registry, "SU-PATENTS")
-    _require(patent_universe.get("canonical_completeness_claim") is False, "SU-PATENTS must not claim completeness")
-    _require(patent_universe.get("implementation_state") in {"PLANNED", "PARTIAL", "CURRENT_BOUNDED"}, "Unexpected SU-PATENTS implementation state")
+    universe = _universe(registry, "SU-PATENTS")
+    _require(universe.get("canonical_completeness_claim") is False, "SU-PATENTS must not claim completeness")
+    _require(universe.get("implementation_state") in {"PLANNED", "PARTIAL", "CURRENT_BOUNDED"}, "Unexpected SU-PATENTS implementation state")
 
     provider = programme.get("provider_contract") or {}
     expected_provider = {
         "provider": "European Patent Office Open Patent Services",
         "api_version": "3.2",
         "server": "https://ops.epo.org/3.2/rest-services",
-        "search_endpoint": "/published-data/search",
+        "search_endpoint": "/published-data/search/biblio",
+        "search_constituent": "biblio",
         "query_language": "CQL",
         "query_parameter": "q",
         "response_media_type": "application/exchange+xml",
@@ -139,17 +107,14 @@ def validate_programme(programme: dict[str, Any], registry: dict[str, Any]) -> d
 
     dependency = programme.get("workbench_dependency") or {}
     _require(dependency.get("required_capability") == "project_epo_ops_search_pages", "Unexpected Workbench capability")
-    _require(dependency.get("integration_state") == "NOT_IMPLEMENTED", "Unimplemented EPO OPS projector must remain NOT_IMPLEMENTED")
+    _require(dependency.get("integration_state") == "PENDING_S1_MERGE", "Proposed EPO OPS projector must remain PENDING_S1_MERGE until merged")
 
     identity = programme.get("identity_policy") or {}
     _require(identity.get("primary_identity") == "DOCDB_PUBLICATION_REFERENCE", "DOCDB publication reference must be primary identity")
     _require(identity.get("required_identity_parts") == ["country", "document_number", "kind_code"], "DOCDB identity parts changed")
     for key in (
-        "publication_step_auto_merge",
-        "patent_family_auto_merge",
-        "fuzzy_title_identity_merge_allowed",
-        "applicant_name_auto_entity_merge",
-        "inventor_name_auto_entity_merge",
+        "publication_step_auto_merge", "patent_family_auto_merge", "fuzzy_title_identity_merge_allowed",
+        "applicant_name_auto_entity_merge", "inventor_name_auto_entity_merge",
     ):
         _require(identity.get(key) is False, f"{key} must remain false")
     _require(identity.get("conflicting_same_publication_policy") == "FAIL_CLOSED", "Publication conflicts must fail closed")
@@ -157,20 +122,16 @@ def validate_programme(programme: dict[str, Any], registry: dict[str, Any]) -> d
 
     inclusion = programme.get("inclusion_policy") or {}
     for key in (
-        "automatic_patent_source_admission",
-        "automatic_patent_family_creation",
-        "automatic_applicant_or_inventor_entity_creation",
-        "automatic_product_or_system_relationship_creation",
-        "automatic_capability_claim_creation",
-        "automatic_assessment_mutation",
-        "automatic_monitor_creation",
+        "automatic_patent_source_admission", "automatic_patent_family_creation",
+        "automatic_applicant_or_inventor_entity_creation", "automatic_product_or_system_relationship_creation",
+        "automatic_capability_claim_creation", "automatic_assessment_mutation", "automatic_monitor_creation",
     ):
         _require(inclusion.get(key) is False, f"{key} must remain false")
     _require(inclusion.get("human_relevance_review_required") is True, "Human relevance review must remain required")
 
     partition = programme.get("search_partition_policy") or {}
     _require(partition.get("initial_range") == "1-100", "Initial OPS range changed")
-    _require(partition.get("subsequent_range_size") == 100, "OPS range size must be 100")
+    _require(partition.get("subsequent_range_size") == 100, "OPS range size must remain 100")
     _require(partition.get("total_result_count_attribute") == "total-result-count", "OPS denominator attribute changed")
     _require(partition.get("leaf_query_max_total_result_count") == 2000, "OPS leaf-query cap must remain 2000")
     _require(partition.get("over_limit_policy") == "SPLIT_QUERY_BEFORE_MATERIALIZATION", "Over-limit queries must split before materialization")
@@ -204,11 +165,7 @@ def validate_programme(programme: dict[str, Any], registry: dict[str, Any]) -> d
     projection = programme.get("candidate_projection") or {}
     _require(set(projection.get("required_fields") or []) == REQUIRED_CANDIDATE_FIELDS, "Patent candidate field contract changed")
     _require(projection.get("abstract_capture_allowed_for_relevance_review") is True, "Abstract metadata must remain available for relevance review")
-    for key in (
-        "claims_or_description_capture_in_discovery_layer",
-        "facsimile_or_image_capture_in_discovery_layer",
-        "raw_ops_xml_emitted_to_s2",
-    ):
+    for key in ("claims_or_description_capture_in_discovery_layer", "facsimile_or_image_capture_in_discovery_layer", "raw_ops_xml_emitted_to_s2"):
         _require(projection.get(key) is False, f"{key} must remain false")
 
     coverage = programme.get("coverage_contract") or {}
@@ -220,21 +177,14 @@ def validate_programme(programme: dict[str, Any], registry: dict[str, Any]) -> d
         "over_2000_limit": False,
         "partition_required": False,
     }, "Patent mechanical completion contract changed")
-    for key in (
-        "epo_database_completeness_claim",
-        "global_neuroai_patent_recall_claim",
-        "query_recall_claim",
-        "patent_family_completeness_claim",
-    ):
+    for key in ("epo_database_completeness_claim", "global_neuroai_patent_recall_claim", "query_recall_claim", "patent_family_completeness_claim"):
         _require(coverage.get(key) is False, f"{key} must remain false")
 
     review = programme.get("human_review_contract") or {}
     _require(review.get("required_dispositions") == ["ACCEPT", "REJECT", "DEFER", "EXCLUDE"], "Patent review dispositions changed")
     for key in (
-        "automatic_acceptance",
-        "patent_existence_is_capability_evidence",
-        "patent_existence_is_product_implementation_evidence",
-        "patent_existence_is_freedom_to_operate_evidence",
+        "automatic_acceptance", "patent_existence_is_capability_evidence",
+        "patent_existence_is_product_implementation_evidence", "patent_existence_is_freedom_to_operate_evidence",
         "patent_existence_is_validity_or_enforceability_determination",
     ):
         _require(review.get(key) is False, f"{key} must remain false")
@@ -263,8 +213,7 @@ def validate_programme(programme: dict[str, Any], registry: dict[str, Any]) -> d
 
 
 def main() -> None:
-    result = validate_programme(_load(PROGRAMME_PATH), _load(UNIVERSE_REGISTRY_PATH))
-    print(json.dumps(result, indent=2, sort_keys=True))
+    print(json.dumps(validate_programme(_load(PROGRAMME_PATH), _load(UNIVERSE_REGISTRY_PATH)), indent=2, sort_keys=True))
 
 
 if __name__ == "__main__":
