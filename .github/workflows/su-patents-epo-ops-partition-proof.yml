@@ -1,0 +1,53 @@
+name: SU-PATENTS EPO OPS partition proof
+
+on:
+  pull_request:
+    paths:
+      - "schemas/epo-ops-patent-partition-proof-input.schema.json"
+      - "scripts/reconcile_su_patents_epo_ops_partitions.py"
+      - "tests/test_epo_ops_patent_partition_proof.py"
+      - ".github/workflows/su-patents-epo-ops-partition-proof.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  partition-proof-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout observatory data
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Checkout exact proposed Workbench EPO OPS capability
+        uses: actions/checkout@v4
+        with:
+          repository: fraware/neuroai-workbench
+          ref: f8c9c6e073a87677c9065cb64aae9549e6ed684c
+          path: .workbench
+          persist-credentials: false
+
+      - name: Install exact Workbench tree
+        run: python -m pip install --disable-pip-version-check -e .workbench
+
+      - name: Verify exact Workbench projector
+        run: |
+          python - <<'PY'
+          from neuroai_workbench.discovery import project_epo_ops_search_pages
+          assert callable(project_epo_ops_search_pages)
+          PY
+
+      - name: Run partition-proof unit tests
+        run: python -m unittest tests/test_epo_ops_patent_partition_proof.py
+
+      - name: Verify proof cannot emit raw OPS parent-probe XML
+        run: |
+          if find . -path './.git' -prune -o -path './.workbench' -prune -o -type f \( -iname '*parent*probe*.xml' -o -iname '*partition*raw*.xml' \) -print | grep -q .; then
+            echo "Raw OPS parent-probe XML must remain external/ephemeral." >&2
+            exit 1
+          fi
