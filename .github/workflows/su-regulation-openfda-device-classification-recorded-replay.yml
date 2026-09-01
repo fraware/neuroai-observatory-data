@@ -1,0 +1,102 @@
+name: SU-REGULATION openFDA device-classification recorded replay
+
+on:
+  pull_request:
+    paths:
+      - "curation/openfda_device_classification_discovery_programme_v0.1.json"
+      - "schemas/openfda-device-classification-discovery-programme.schema.json"
+      - "schemas/openfda-device-classification-discovery-replay-input.schema.json"
+      - "scripts/current_source_namespace.py"
+      - "scripts/run_su_regulation_openfda_device_classification_recorded_replay.py"
+      - "scripts/validate_openfda_device_classification_discovery_programme.py"
+      - "tests/test_current_source_namespace.py"
+      - "tests/test_openfda_device_classification_discovery_programme.py"
+      - "tests/test_openfda_device_classification_recorded_replay.py"
+      - "releases/data-v0.1.0-public-governing/records/canonical_observatory_release_v1.4.json"
+      - "releases/data-v0.1.0-public-governing/records/canonical_live_refresh_release_v1.6.json"
+      - "supplemental_records/PRIMA_NEW_UNIQUE_SOURCE_REGISTER_v1.7.json"
+      - ".github/workflows/su-regulation-openfda-device-classification-recorded-replay.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  replay-contract:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Checkout exact corrected Workbench classification capability
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: fraware/neuroai-workbench
+          ref: 81052c54f125db3c925eded451b81cb1571d05e8
+          path: .workbench
+          persist-credentials: false
+      - name: Install exact Workbench tree
+        run: python -m pip install --disable-pip-version-check -e .workbench
+      - name: Verify exact classification projector
+        run: |
+          python - <<'PY'
+          from neuroai_workbench.discovery import project_openfda_device_classification_pages
+          assert callable(project_openfda_device_classification_pages)
+          PY
+      - name: Validate S2 programme and governing Source namespace
+        run: |
+          python scripts/validate_openfda_device_classification_discovery_programme.py
+          python -m unittest tests.test_current_source_namespace
+      - name: Run S2 programme and replay tests
+        run: |
+          python -m unittest tests.test_openfda_device_classification_discovery_programme
+          python -m unittest tests.test_openfda_device_classification_recorded_replay
+      - name: Run exact Workbench classification projection tests
+        run: python .workbench/tests/test_openfda_device_classification_discovery_projection.py
+      - name: Exercise exact Workbench projector through S2 replay boundary
+        run: |
+          python - <<'PY'
+          import sys
+          sys.path.insert(0,"scripts")
+          import run_su_regulation_openfda_device_classification_recorded_replay as replay
+          p=replay._programme();stream=p["query_streams"][0]
+          rows=[
+            {
+              "product_code":"ABC","device_name":"Neural interface category","definition":"Generic neural interface device category","device_class":"2","regulation_number":"882.1320","medical_specialty":"NE","medical_specialty_description":"Neurology","review_code":"N","implant_flag":"Y","life_sustain_support_flag":"N","gmp_exempt_flag":"N",
+              "openfda":{"device_name":"EXCLUDED HARMONIZED DEVICE NAME","k_number":["EXCLUDED K NUMBER"],"pma_number":["EXCLUDED PMA NUMBER"]}
+            },
+            {
+              "product_code":"XYZ","device_name":"Emerging neural category","definition":"Generic category pending classification","device_class":"2","medical_specialty":"NE","medical_specialty_description":"Neurology","review_code":"N","implant_flag":"N","life_sustain_support_flag":"N","gmp_exempt_flag":"N",
+              "openfda":{"device_name":"EXCLUDED SECOND HARMONIZED NAME"}
+            }
+          ]
+          page={"meta":{"results":{"total":2,"skip":0,"limit":1000}},"results":rows}
+          bundle={"schema_version":"0.1.0","programme_id":p["programme_id"],"provider":p["provider_contract"]["provider"],"capture_scope":"PARTIAL_VALIDATION","captured_at":"2026-09-01T00:00:00Z","leaf_query_captures":[{"query_id":stream["query_id"],"leaf_query_id":"integration-root","effective_search":stream["search"],"partition_path":[],"pages":[page]}]}
+          result=replay.build_replay(bundle)
+          assert result["reconciliation"]["materialized_source_namespace_count"]==248
+          assert len(result["reconciliation"]["controlled_source_id_set_sha256"])==64
+          assert result["reconciliation"]["union_unique_product_code_count"]==2
+          assert result["reconciliation"]["leaf_mechanical_blocker_count"]==0
+          assert result["reconciliation"]["mechanically_complete"] is False
+          assert result["reconciliation"]["partition_strategy_authorized"] is False
+          records={row["product_code"]:row for row in result["normalized_records"]}
+          assert records["ABC"]["classification_finality"]=="REGULATION_REFERENCED_CLASSIFICATION"
+          assert records["ABC"]["regulation_number"]=="882.1320"
+          assert records["XYZ"]["classification_finality"]=="PROPOSED_CLASS_NOT_FINAL"
+          assert records["XYZ"]["regulation_number"] is None
+          text=str(result)
+          for secret in ("EXCLUDED HARMONIZED DEVICE NAME","EXCLUDED K NUMBER","EXCLUDED PMA NUMBER","EXCLUDED SECOND HARMONIZED NAME"):
+              assert secret not in text
+          assert result["reconciliation"]["product_code_is_exact_device_identity_claim"] is False
+          assert result["reconciliation"]["classification_record_is_marketing_authorization_claim"] is False
+          assert result["reconciliation"]["classification_record_is_clearance_or_approval_claim"] is False
+          assert result["reconciliation"]["device_class_is_system_conformance_claim"] is False
+          assert result["reconciliation"]["canonical_successor_ready"] is False
+          PY
+      - name: Verify no raw classification capture is committed
+        run: |
+          if find . -path './.git' -prune -o -path './.workbench' -prune -o -type f \( -iname '*classification*raw*.json' -o -iname '*classification*page*.json' -o -iname '*classification*response*.json' \) -print | grep -q .; then
+            echo "Raw openFDA device-classification replay pages must remain external/ephemeral." >&2
+            exit 1
+          fi
