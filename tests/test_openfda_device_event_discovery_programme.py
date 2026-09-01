@@ -22,7 +22,7 @@ class OpenFdaDeviceEventProgrammeTests(unittest.TestCase):
         result = validate_programme(self.programme, self.registry)
         self.assertEqual(result["programme_id"], "SU-REGULATION-OPENFDA-DEVICE-EVENTS-v0.1")
         self.assertEqual(result["query_stream_count"], 5)
-        self.assertEqual(result["integration_state"], "NOT_IMPLEMENTED")
+        self.assertEqual(result["integration_state"], "PENDING_S1_MERGE")
         self.assertFalse(result["network_requests_performed"])
         self.assertFalse(result["patient_level_fields_projected"])
         self.assertFalse(result["mdr_narratives_projected"])
@@ -68,6 +68,12 @@ class OpenFdaDeviceEventProgrammeTests(unittest.TestCase):
         self.assertFalse(paging["silent_truncation_allowed"])
         self.assertFalse(paging["partial_over_limit_candidate_emission_allowed"])
 
+    def test_unmerged_projector_cannot_be_called_available(self) -> None:
+        modified = copy.deepcopy(self.programme)
+        modified["workbench_dependency"]["integration_state"] = "AVAILABLE"
+        with self.assertRaisesRegex(ValueError, "PENDING_S1_MERGE"):
+            validate_programme(modified, self.registry)
+
     def test_implicit_boolean_search_fails_closed(self) -> None:
         modified = copy.deepcopy(self.programme)
         modified["query_streams"][0]["search"] = modified["query_streams"][0]["search"].replace("+OR+", "+")
@@ -96,6 +102,7 @@ class OpenFdaDeviceEventProgrammeTests(unittest.TestCase):
         schema = json.loads(Path("schemas/openfda-device-event-discovery-programme.schema.json").read_text(encoding="utf-8"))
         self.assertEqual(schema["properties"]["programme_id"]["const"], "SU-REGULATION-OPENFDA-DEVICE-EVENTS-v0.1")
         self.assertEqual(schema["properties"]["provider_contract"]["properties"]["max_records_per_request"]["const"], 1000)
+        self.assertEqual(schema["properties"]["workbench_dependency"]["properties"]["integration_state"]["const"], "PENDING_S1_MERGE")
 
 
 if __name__ == "__main__":
