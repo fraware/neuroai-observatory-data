@@ -11,6 +11,7 @@ on:
       - "scripts/probe_source_route_resilience.py"
       - "scripts/source_lifecycle_overlay.py"
       - "scripts/run_successor_discovery.py"
+      - "scripts/run_live_interruption_resume_drill.py"
       - "scripts/build_monitoring_eligibility.py"
       - "scripts/build_current_monitor_accountability.py"
       - "scripts/build_development_monitor_registry.py"
@@ -19,6 +20,7 @@ on:
       - "tests/test_monitoring_transition_manifest.py"
       - "tests/test_operational_health.py"
       - "tests/test_operational_health_route_resilience.py"
+      - "tests/test_production_monitoring_hardening.py"
       - "tests/test_source_lifecycle_overlay.py"
       - "tests/test_source_route_resilience.py"
       - "tests/test_successor_discovery.py"
@@ -29,6 +31,9 @@ on:
       - "fixtures/source_monitor_registry_v1.5.json"
       - "supplemental_records/**"
       - ".github/workflows/operational-live-cycle.yml"
+      - ".github/workflows/successor-discovery.yml"
+      - ".github/workflows/operational-interruption-resume-drill.yml"
+      - ".github/workflows/observatory-v2-release.yml"
   schedule:
     - cron: "17 5 * * 1"
   workflow_dispatch:
@@ -48,7 +53,7 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: "3.12"
-      - name: Verify lifecycle-aware accountability and health contracts
+      - name: Verify lifecycle-aware accountability, health, and production hardening contracts
         run: |
           python -m unittest \
             tests/test_current_monitor_accountability.py \
@@ -56,6 +61,7 @@ jobs:
             tests/test_monitoring_transition_manifest.py \
             tests/test_operational_health.py \
             tests/test_operational_health_route_resilience.py \
+            tests/test_production_monitoring_hardening.py \
             tests/test_source_lifecycle_overlay.py \
             tests/test_source_route_resilience.py \
             tests/test_successor_discovery.py -v
@@ -69,11 +75,11 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: "3.12"
-      - name: Checkout exact merged workbench lifecycle stack
+      - name: Checkout exact current workbench production transport stack
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           repository: fraware/neuroai-workbench
-          ref: 428b4e8d797c0729bc4f36678daec88711688689
+          ref: 0a69a39d33334f29bf1629ec918c78b2a0759190
           path: workbench
       - name: Install hash-locked exact workbench runtime
         run: |
@@ -94,7 +100,9 @@ jobs:
             tests/test_monitoring_transition_manifest.py
             tests/test_operational_health.py
             tests/test_operational_health_route_resilience.py
+            tests/test_production_monitoring_hardening.py
             tests/test_source_lifecycle_overlay.py
+            tests/test_source_route_resilience.py
             tests/test_successor_discovery.py
           )
           python -m compileall -q scripts tests
@@ -126,6 +134,8 @@ jobs:
           routes = report["route_resilience"]
           registry = report["registry"]
 
+          assert report["schema_version"] == "5"
+          assert execution["transport_security"] == "DNS_PINNED_VALIDATED_ADDRESS_SET"
           assert registry["effective_sources"] == 248
           assert registry["automatic_monitors"] == 226
           assert registry["lifecycle_resolved_sources"] == 1
@@ -165,6 +175,7 @@ jobs:
           assert "SRC-PR-015" not in target_source_ids
 
           print("POST_TRANSITION_PROOF=" + json.dumps({
+              "transport_security": execution["transport_security"],
               "automatic_monitors": registry["automatic_monitors"],
               "effective_sources": registry["effective_sources"],
               "lifecycle_resolved_source_ids": registry["lifecycle_resolved_source_ids"],
@@ -178,6 +189,13 @@ jobs:
               "route_report_sha256": routes["report_sha256"],
           }, sort_keys=True))
           PY
+      - name: Retain sanitized operational proof
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: operational-live-proof-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/neuroai-live/operational-live-report.json
+          retention-days: 90
+          if-no-files-found: error
       - name: Prove protected capture material was not added to repository
         run: |
           rm -rf workbench

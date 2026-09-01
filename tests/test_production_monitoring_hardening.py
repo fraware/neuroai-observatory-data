@@ -1,0 +1,81 @@
+from __future__ import annotations
+
+import re
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+WORKBENCH_SHA = "0a69a39d33334f29bf1629ec918c78b2a0759190"
+PINNED_TRANSPORT = "PinnedSocketHttpTransport"
+LEGACY_TRANSPORT = "StdlibHttpTransport"
+UPLOAD_ARTIFACT_SHA = "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a"
+
+NETWORK_SCRIPTS = (
+    "scripts/run_operational_due_cycle.py",
+    "scripts/probe_source_route_resilience.py",
+    "scripts/run_successor_discovery.py",
+    "scripts/run_live_interruption_resume_drill.py",
+)
+WORKBENCH_WORKFLOWS = (
+    ".github/workflows/operational-live-cycle.yml",
+    ".github/workflows/successor-discovery.yml",
+    ".github/workflows/operational-interruption-resume-drill.yml",
+)
+HARDENED_WORKFLOWS = WORKBENCH_WORKFLOWS + (
+    ".github/workflows/observatory-v2-release.yml",
+)
+
+
+def _read(path: str) -> str:
+    return (ROOT / path).read_text(encoding="utf-8")
+
+
+class ProductionMonitoringHardeningTests(unittest.TestCase):
+    def test_all_live_network_paths_use_dns_pinned_transport(self) -> None:
+        for path in NETWORK_SCRIPTS:
+            with self.subTest(path=path):
+                text = _read(path)
+                self.assertIn(PINNED_TRANSPORT, text)
+                self.assertNotIn(LEGACY_TRANSPORT, text)
+
+    def test_all_live_workflows_pin_exact_current_workbench(self) -> None:
+        for path in WORKBENCH_WORKFLOWS:
+            with self.subTest(path=path):
+                text = _read(path)
+                self.assertIn(f"ref: {WORKBENCH_SHA}", text)
+                self.assertNotIn("428b4e8d797c0729bc4f36678daec88711688689", text)
+                self.assertNotIn("65c32abce505f0915e8b5a146b914c9ce7be07f8", text)
+
+    def test_workflow_actions_are_immutable_sha_pins(self) -> None:
+        floating = re.compile(r"uses:\s+actions/(?:checkout|setup-python|upload-artifact)@v\d+")
+        immutable = re.compile(
+            r"uses:\s+actions/(?:checkout|setup-python|upload-artifact)@[0-9a-f]{40}"
+        )
+        for path in HARDENED_WORKFLOWS:
+            with self.subTest(path=path):
+                text = _read(path)
+                self.assertIsNone(floating.search(text))
+                self.assertIsNotNone(immutable.search(text))
+
+    def test_sanitized_operational_outputs_are_retained(self) -> None:
+        expectations = {
+            ".github/workflows/operational-live-cycle.yml": "operational-live-report.json",
+            ".github/workflows/successor-discovery.yml": "successor-discovery.json",
+            ".github/workflows/operational-interruption-resume-drill.yml": "report.json",
+        }
+        for path, artifact_path in expectations.items():
+            with self.subTest(path=path):
+                text = _read(path)
+                self.assertIn(f"actions/upload-artifact@{UPLOAD_ARTIFACT_SHA}", text)
+                self.assertIn(artifact_path, text)
+                self.assertIn("retention-days: 90", text)
+                self.assertIn("if-no-files-found: error", text)
+
+    def test_reports_declare_transport_security_contract(self) -> None:
+        for path in NETWORK_SCRIPTS:
+            with self.subTest(path=path):
+                self.assertIn("DNS_PINNED_VALIDATED_ADDRESS_SET", _read(path))
+
+
+if __name__ == "__main__":
+    unittest.main()

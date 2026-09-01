@@ -13,9 +13,13 @@ from typing import Any
 
 from build_analytical_projection import DEFAULT_RECORDS_DIR, DEFAULT_SUPPLEMENTAL_DIR, build_tables, load_inputs
 from build_development_monitor_registry import build_development_registry, verify_development_registry, write_registry
-from neuroai_workbench.collector import CollectionScheduler, CollectorConfig, SchedulerConfig
-from neuroai_workbench.collector.http_client import HttpRequest
-from neuroai_workbench.collector.transport import StdlibHttpTransport
+from neuroai_workbench.collector import (
+    CollectionScheduler,
+    CollectorConfig,
+    PinnedSocketHttpTransport,
+    SchedulerConfig,
+)
+from neuroai_workbench.collector.http_client import HttpRequest, TransportResult
 from neuroai_workbench.monitoring import initialize_monitoring, plan_monitoring_run, validate_source_registry
 from run_operational_due_cycle import CountingTransport, _configuration_hash
 
@@ -28,7 +32,7 @@ BOUNDARY = (
 
 def _collector_config() -> CollectorConfig:
     return CollectorConfig(
-        collector_version="0.3.0-dev-operational",
+        collector_version="0.3.0-dev-operational-pinned-dns",
         configuration_hash=_configuration_hash(),
         connect_timeout_seconds=8.0,
         read_timeout_seconds=20.0,
@@ -68,7 +72,7 @@ def _scheduler_config() -> SchedulerConfig:
 
 class SlowTransport:
     def __init__(self, delay_seconds: float = 0.8) -> None:
-        self.inner = StdlibHttpTransport()
+        self.inner = PinnedSocketHttpTransport()
         self.delay_seconds = delay_seconds
 
     def send(
@@ -77,7 +81,7 @@ class SlowTransport:
         *,
         connect_timeout: float,
         read_timeout: float,
-    ) -> tuple[int, dict[str, str], bytes]:
+    ) -> TransportResult:
         time.sleep(self.delay_seconds)
         return self.inner.send(request, connect_timeout=connect_timeout, read_timeout=read_timeout)
 
@@ -192,8 +196,9 @@ def execute(
         raise ValueError("At least one pre-interruption terminal checkpoint changed during resume")
 
     return {
-        "schema_version": "1",
+        "schema_version": "2",
         "boundary": BOUNDARY,
+        "transport_security": "DNS_PINNED_VALIDATED_ADDRESS_SET",
         "plan_id": plan.get("plan_id"),
         "due_source_count": len(plan.get("due", [])),
         "interrupted_exitcode": interrupted_exitcode,
@@ -231,6 +236,7 @@ def main() -> int:
         "SANITIZED_INTERRUPTION_RESUME_DRILL="
         + json.dumps(
             {
+                "transport_security": report["transport_security"],
                 "due_source_count": report["due_source_count"],
                 "interrupted_exitcode": report["interrupted_exitcode"],
                 "terminal_targets_before_kill": report["terminal_targets_before_kill"],

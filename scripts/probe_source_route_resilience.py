@@ -67,12 +67,12 @@ def _lifecycle_resolved(report: dict[str, Any]) -> bool:
 
 
 def probe_policy(policy: dict[str, Any], *, observed_at: str | None = None) -> dict[str, Any]:
+    from neuroai_workbench.collector import PinnedSocketHttpTransport
     from neuroai_workbench.collector.config import CollectorConfig
     from neuroai_workbench.collector.errors import CollectionFailureError
     from neuroai_workbench.collector.http_client import HttpClient
     from neuroai_workbench.collector.source_lifecycle import evaluate_source_lifecycle
     from neuroai_workbench.collector.source_routes import RouteSpec, run_registered_route_failover
-    from neuroai_workbench.collector.transport import StdlibHttpTransport
 
     sources = policy.get("sources")
     if not isinstance(sources, list) or not sources:
@@ -80,7 +80,7 @@ def probe_policy(policy: dict[str, Any], *, observed_at: str | None = None) -> d
     observation_time = observed_at or datetime.now(timezone.utc).isoformat()
 
     config = CollectorConfig(
-        collector_version="route-resilience-live-v0.2",
+        collector_version="route-resilience-live-v0.3-dns-pinned",
         configuration_hash="0" * 64,
         max_response_bytes=5 * 1024 * 1024,
         max_redirects=8,
@@ -90,7 +90,7 @@ def probe_policy(policy: dict[str, Any], *, observed_at: str | None = None) -> d
         max_attempts=1,
         requests_per_host_per_minute=20,
     )
-    client = HttpClient(config=config, transport=StdlibHttpTransport())
+    client = HttpClient(config=config, transport=PinnedSocketHttpTransport())
     reports: list[dict[str, Any]] = []
 
     for raw_source in sources:
@@ -193,8 +193,9 @@ def probe_policy(policy: dict[str, Any], *, observed_at: str | None = None) -> d
         item["evidence_substitution_allowed"] is True for item in active_reports
     )
     semantic = {
-        "schema_version": "3",
+        "schema_version": "4",
         "observed_at": observation_time,
+        "transport_security": "DNS_PINNED_VALIDATED_ADDRESS_SET",
         "policy_sha256": sha256(policy),
         "source_count": len(reports),
         "active_source_count": len(active_reports),
@@ -228,6 +229,7 @@ def main() -> int:
         "SANITIZED_ROUTE_RESILIENCE="
         + json.dumps(
             {
+                "transport_security": report["transport_security"],
                 "source_resolution_state": report["source_resolution_state"],
                 "active_source_availability_state": report["active_source_availability_state"],
                 "active_evidence_payload_availability_state": report[
