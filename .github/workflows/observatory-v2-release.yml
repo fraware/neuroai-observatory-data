@@ -1,0 +1,43 @@
+name: Observatory v2 release contract
+
+on:
+  pull_request:
+    paths:
+      - "scripts/verify_observatory_v2_release.py"
+      - "tests/test_observatory_v2_release_contract.py"
+      - "schemas/observatory-v2-*.schema.json"
+      - "releases/data-v0.3.0-observatory-v2*/**"
+      - "docs/observatory-v2-release-contract.md"
+      - ".github/workflows/observatory-v2-release.yml"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/verify_observatory_v2_release.py"
+      - "tests/test_observatory_v2_release_contract.py"
+      - "schemas/observatory-v2-*.schema.json"
+      - "releases/data-v0.3.0-observatory-v2*/**"
+      - "docs/observatory-v2-release-contract.md"
+      - ".github/workflows/observatory-v2-release.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-contract:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Parse v2 release schemas
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          for path in sorted(Path("schemas").glob("observatory-v2-*.schema.json")):
+              json.loads(path.read_text(encoding="utf-8"))
+              print(path)
+          PY
+      - name: Observatory v2 release contract tests
+        run: python -m unittest tests/test_observatory_v2_release_contract.py -v
