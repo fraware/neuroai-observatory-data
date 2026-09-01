@@ -67,7 +67,9 @@ REQUIRED_COVERAGE_METRICS = {
     "cross_query_duplicate_representation_count",
     "unresolved_identity_count",
     "preprint_count",
-    "peer_reviewed_or_journal_count",
+    "non_preprint_record_count",
+    "publication_type_missing_count",
+    "source_distribution",
 }
 
 
@@ -141,7 +143,7 @@ def validate_programme(
 
     dependency = programme.get("workbench_dependency") or {}
     _require(dependency.get("required_capability") == "project_europepmc_search_pages", "Unexpected Workbench capability name")
-    _require(dependency.get("integration_state") in {"NOT_IMPLEMENTED", "PENDING_S1_MERGE", "AVAILABLE"}, "Invalid integration_state")
+    _require(dependency.get("integration_state") == "PENDING_S1_MERGE", "Europe PMC projector exists only on the proposed Workbench stack and must remain PENDING_S1_MERGE until merged")
 
     identity = programme.get("identity_policy") or {}
     _require(identity.get("preferred_identity_order") == ["DOI", "PMID", "PMCID", "SOURCE_PLUS_EXT_ID"], "Identity precedence changed")
@@ -197,6 +199,7 @@ def validate_programme(
 
     coverage = programme.get("coverage_contract") or {}
     _require(set(coverage.get("required_metrics_per_query") or []) == REQUIRED_COVERAGE_METRICS, "Coverage metric contract changed")
+    _require("peer_reviewed_or_journal_count" not in set(coverage.get("required_metrics_per_query") or []), "Non-preprint records must not be relabelled as peer-reviewed/journal evidence")
     completion = coverage.get("mechanical_completion_requires") or {}
     _require(completion == {
         "cursor_sequence_valid": True,
