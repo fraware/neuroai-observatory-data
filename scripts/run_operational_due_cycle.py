@@ -29,10 +29,14 @@ from evaluate_operational_health import evaluate_health
 from neuroai_workbench.collector import (
     CollectionScheduler,
     CollectorConfig,
+    PinnedSocketHttpTransport,
     SchedulerConfig,
 )
-from neuroai_workbench.collector.http_client import HttpRequest, HttpTransport
-from neuroai_workbench.collector.transport import StdlibHttpTransport
+from neuroai_workbench.collector.http_client import (
+    HttpRequest,
+    HttpTransport,
+    TransportResult,
+)
 from neuroai_workbench.monitoring import (
     initialize_monitoring,
     plan_monitoring_run,
@@ -52,11 +56,12 @@ BOUNDARY = (
     "view. Network success/failure, lifecycle monitoring eligibility, and successor-discovery separation are not assessment "
     "adjudication and do not authorize canonical publication or human governance claims."
 )
+TRANSPORT_SECURITY = "DNS_PINNED_VALIDATED_ADDRESS_SET"
 
 
 @dataclass
 class CountingTransport:
-    inner: HttpTransport = field(default_factory=StdlibHttpTransport)
+    inner: HttpTransport = field(default_factory=PinnedSocketHttpTransport)
     _lock: threading.Lock = field(
         default_factory=threading.Lock, init=False, repr=False
     )
@@ -69,7 +74,7 @@ class CountingTransport:
         *,
         connect_timeout: float,
         read_timeout: float,
-    ) -> tuple[int, dict[str, str], bytes]:
+    ) -> TransportResult:
         from urllib.parse import urlparse
 
         host = (urlparse(request.url).hostname or "unknown").lower().rstrip(".")
@@ -85,7 +90,7 @@ class CountingTransport:
 
 def _configuration_hash() -> str:
     return hashlib.sha256(
-        b"neuroai-operational-live-cycle-v3-lifecycle-active-monitoring"
+        b"neuroai-operational-live-cycle-v4-lifecycle-active-monitoring-dns-pinned"
     ).hexdigest()
 
 
@@ -188,7 +193,7 @@ def execute(
 
     transport = CountingTransport()
     collector_config = CollectorConfig(
-        collector_version="0.3.0-dev-operational-lifecycle",
+        collector_version="0.3.0-dev-operational-lifecycle-pinned-dns",
         configuration_hash=_configuration_hash(),
         connect_timeout_seconds=8.0,
         read_timeout_seconds=20.0,
@@ -300,7 +305,7 @@ def execute(
     ]
 
     report: dict[str, Any] = {
-        "schema_version": "4",
+        "schema_version": "5",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "as_of": as_of,
         "boundary": BOUNDARY,
@@ -330,6 +335,7 @@ def execute(
         "execution": {
             "run_id": first.get("run_id"),
             "execution_status": execution_status,
+            "transport_security": TRANSPORT_SECURITY,
             "counts": first.get("counts"),
             "slo": slo,
             "semantic_summary_sha256": first.get("semantic_summary_sha256"),
@@ -427,6 +433,7 @@ def main() -> int:
         json.dumps(
             {
                 "execution_status": report["execution"]["execution_status"],
+                "transport_security": report["execution"]["transport_security"],
                 "health": report["health"]["state"],
                 "engineering_state": report["health"]["engineering_state"],
                 "source_resolution_state": report["health"]["source_resolution_state"],
