@@ -13,7 +13,7 @@
     "source_system":{"const":"OPENFDA_DEVICE_UDI_GUDID"},
     "as_of":{"type":"string","format":"date"},
     "provider_contract":{"type":"object"},
-    "workbench_dependency":{"type":"object","additionalProperties":false,"required":["minimum_package_line","required_capability","integration_state"],"properties":{"minimum_package_line":{"const":"0.3.0.dev0"},"required_capability":{"const":"project_openfda_udi_pages"},"integration_state":{"const":"NOT_IMPLEMENTED"}}},
+    "workbench_dependency":{"type":"object","additionalProperties":false,"required":["minimum_package_line","required_capability","integration_state"],"properties":{"minimum_package_line":{"const":"0.3.0.dev0"},"required_capability":{"const":"project_openfda_udi_pages"},"integration_state":{"const":"PENDING_S1_MERGE"}}},
     "identity_policy":{"type":"object"},
     "inclusion_policy":{"type":"object"},
     "paging_policy":{"type":"object"},
