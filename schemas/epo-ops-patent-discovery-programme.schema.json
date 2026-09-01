@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "epo-ops-patent-discovery-programme.schema.json",
+  "title": "SU-PATENTS EPO OPS discovery programme",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "programme_id",
+    "status",
+    "source_universe_id",
+    "source_system",
+    "as_of",
+    "provider_contract",
+    "workbench_dependency",
+    "identity_policy",
+    "inclusion_policy",
+    "search_partition_policy",
+    "query_streams",
+    "candidate_projection",
+    "coverage_contract",
+    "human_review_contract",
+    "network_policy",
+    "boundary"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0-draft"},
+    "programme_id": {"const": "SU-PATENTS-EPO-OPS-v0.1"},
+    "status": {"const": "NONCANONICAL_PROGRAMME_CONTROL"},
+    "source_universe_id": {"const": "SU-PATENTS"},
+    "source_system": {"const": "EPO_OPS"},
+    "as_of": {"type": "string", "format": "date"},
+    "provider_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider", "api_version", "server", "search_endpoint", "query_language",
+        "query_parameter", "response_media_type", "range_transport", "max_records_per_range",
+        "max_retrievable_results_per_search", "authentication",
+        "registration_required_for_programmatic_execution", "free_weekly_data_threshold_gb",
+        "configuration_performs_http"
+      ],
+      "properties": {
+        "provider": {"const": "European Patent Office Open Patent Services"},
+        "api_version": {"const": "3.2"},
+        "server": {"const": "https://ops.epo.org/3.2/rest-services"},
+        "search_endpoint": {"const": "/published-data/search"},
+        "query_language": {"const": "CQL"},
+        "query_parameter": {"const": "q"},
+        "response_media_type": {"const": "application/exchange+xml"},
+        "range_transport": {"const": "X-OPS-Range"},
+        "max_records_per_range": {"const": 100},
+        "max_retrievable_results_per_search": {"const": 2000},
+        "authentication": {"const": "OAUTH_2_REGISTERED_APPLICATION"},
+        "registration_required_for_programmatic_execution": {"const": true},
+        "free_weekly_data_threshold_gb": {"const": 4},
+        "configuration_performs_http": {"const": false}
+      }
+    },
+    "workbench_dependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimum_package_line", "required_capability", "integration_state"],
+      "properties": {
+        "minimum_package_line": {"const": "0.3.0.dev0"},
+        "required_capability": {"const": "project_epo_ops_search_pages"},
+        "integration_state": {"enum": ["NOT_IMPLEMENTED", "PENDING_S1_MERGE", "AVAILABLE"]}
+      }
+    },
+    "identity_policy": {"type": "object"},
+    "inclusion_policy": {"type": "object"},
+    "search_partition_policy": {"type": "object"},
+    "query_streams": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["query_id", "cadence", "status", "scope_tiers", "purpose", "completeness_claim"],
+        "properties": {
+          "query_id": {"type": "string", "pattern": "^DISCOVERY-OPS-[A-Z0-9-]+$"},
+          "cql": {"type": "string", "minLength": 1},
+          "query_mode": {"type": "string"},
+          "applicant_terms": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+          "cql_template": {"type": "string", "minLength": 1},
+          "cadence": {"enum": ["MONTHLY", "QUARTERLY"]},
+          "status": {"const": "ACTIVE"},
+          "scope_tiers": {"type": "array", "items": {"enum": ["A", "B", "C", "D"]}, "minItems": 1, "uniqueItems": true},
+          "purpose": {"type": "string", "minLength": 1},
+          "completeness_claim": {"const": false}
+        }
+      }
+    },
+    "candidate_projection": {"type": "object"},
+    "coverage_contract": {"type": "object"},
+    "human_review_contract": {"type": "object"},
+    "network_policy": {"type": "object"},
+    "boundary": {"type": "string", "minLength": 1}
+  }
+}
