@@ -1,0 +1,10 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"openfda-510k-discovery-replay-input.schema.json",
+  "type":"object","additionalProperties":false,
+  "required":["schema_version","programme_id","provider","capture_scope","captured_at","leaf_query_captures"],
+  "properties":{
+    "schema_version":{"const":"0.1.0"},"programme_id":{"const":"SU-REGULATION-OPENFDA-510K-v0.1"},"provider":{"const":"U.S. FDA openFDA Device 510(k) API"},"capture_scope":{"enum":["FULL_PROGRAMME","PARTIAL_VALIDATION"]},"captured_at":{"type":"string","minLength":1},
+    "leaf_query_captures":{"type":"array","minItems":1,"items":{"type":"object","additionalProperties":false,"required":["query_id","leaf_query_id","effective_search","partition_path","pages"],"properties":{"query_id":{"type":"string"},"leaf_query_id":{"type":"string","minLength":1},"effective_search":{"type":"string","minLength":1},"partition_path":{"type":"array","items":{"type":"object","required":["dimension","lower_bound","upper_bound"],"properties":{"dimension":{"const":"DECISION_DATE"},"lower_bound":{"type":"string","pattern":"^[0-9]{8}$"},"upper_bound":{"type":"string","pattern":"^[0-9]{8}$"}}}},"pages":{"type":"array","minItems":1,"items":{"type":"object"}}}}}
+  }
+}
