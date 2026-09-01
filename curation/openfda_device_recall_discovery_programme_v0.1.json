@@ -1,0 +1,197 @@
+{
+  "schema_version": "1.0.0-draft",
+  "programme_id": "SU-REGULATION-OPENFDA-DEVICE-RECALLS-v0.1",
+  "status": "NONCANONICAL_PROGRAMME_CONTROL",
+  "source_universe_id": "SU-REGULATION",
+  "source_system": "OPENFDA_DEVICE_RECALL",
+  "as_of": "2026-09-01",
+  "provider_contract": {
+    "provider": "U.S. FDA openFDA Device Recall API",
+    "endpoint": "https://api.fda.gov/device/recall.json",
+    "method": "GET",
+    "response_media_type": "application/json",
+    "source_dataset": "Medical Device Recalls",
+    "time_period_start": "2002",
+    "provider_update_frequency": "WEEKLY",
+    "reported_denominator_path": "meta.results.total",
+    "skip_path": "meta.results.skip",
+    "limit_path": "meta.results.limit",
+    "results_path": "results",
+    "primary_recall_id_field": "cfres_id",
+    "event_lineage_field": "res_event_number",
+    "max_records_per_request": 1000,
+    "max_skip": 25000,
+    "max_direct_result_count": 26000,
+    "provider_supports_search_after": true,
+    "provider_supports_bulk_downloads": true,
+    "configuration_performs_http": false
+  },
+  "workbench_dependency": {
+    "minimum_package_line": "0.3.0.dev0",
+    "required_capability": "project_openfda_device_recall_pages",
+    "integration_state": "NOT_IMPLEMENTED"
+  },
+  "identity_policy": {
+    "primary_identity": "CFRES_ID",
+    "res_event_number_is_lineage_not_record_identity": true,
+    "same_event_number_auto_merge": false,
+    "k_number_auto_system_merge": false,
+    "pma_number_auto_system_merge": false,
+    "product_code_auto_system_merge": false,
+    "recalling_firm_auto_entity_merge": false,
+    "record_content_change_is_successor_observation_not_new_recall_identity": true,
+    "conflicting_same_cfres_id_policy": "FAIL_CLOSED"
+  },
+  "inclusion_policy": {
+    "candidate_scope": "DECLARED_OPENFDA_DEVICE_RECALL_SEARCH_MATCH",
+    "automatic_source_admission": false,
+    "automatic_recall_event_entity_creation": false,
+    "automatic_system_or_device_entity_creation": false,
+    "automatic_firm_entity_creation": false,
+    "automatic_submission_relationship_creation": false,
+    "automatic_system_nonconformance_claim_creation": false,
+    "automatic_assessment_mutation": false,
+    "automatic_reopening_decision": false,
+    "automatic_monitor_creation": false,
+    "human_relevance_review_required": true
+  },
+  "paging_policy": {
+    "execution_mode_v0_1": "SKIP_LIMIT_BOUNDED",
+    "page_limit": 1000,
+    "initial_skip": 0,
+    "max_skip": 25000,
+    "max_direct_result_count": 26000,
+    "over_limit_policy": "SEARCH_AFTER_OR_DATE_PARTITION_REQUIRED_BEFORE_MATERIALIZATION",
+    "preferred_partition_field": "event_date_posted",
+    "silent_truncation_allowed": false,
+    "partial_over_limit_candidate_emission_allowed": false,
+    "search_after_not_yet_authorized_by_v0_1_projector": true,
+    "partition_provenance_required": true
+  },
+  "query_streams": [
+    {
+      "query_id": "DISCOVERY-OPENFDA-RECALL-BCI-001",
+      "search": "product_description:\"brain+computer+interface\"+OR+product_description:\"brain+machine+interface\"+OR+product_description:\"neural+interface\"",
+      "cadence": "WEEKLY",
+      "status": "ACTIVE",
+      "scope_tiers": ["A"],
+      "purpose": "Recall discovery for explicit BCI/neural-interface product descriptions.",
+      "completeness_claim": false
+    },
+    {
+      "query_id": "DISCOVERY-OPENFDA-RECALL-DBS-NEUROSTIM-001",
+      "search": "product_description:\"deep+brain+stimulator\"+OR+product_description:\"deep+brain+stimulation\"+OR+product_description:neurostimulator",
+      "cadence": "WEEKLY",
+      "status": "ACTIVE",
+      "scope_tiers": ["A", "B"],
+      "purpose": "Recall discovery for DBS and neurostimulator product descriptions.",
+      "completeness_claim": false
+    },
+    {
+      "query_id": "DISCOVERY-OPENFDA-RECALL-NEUROPROSTHESIS-001",
+      "search": "product_description:neuroprosthesis+OR+product_description:\"neural+prosthesis\"+OR+product_description:\"brain+prosthesis\"",
+      "cadence": "WEEKLY",
+      "status": "ACTIVE",
+      "scope_tiers": ["A", "B"],
+      "purpose": "Recall discovery for neuroprosthetic product descriptions.",
+      "completeness_claim": false
+    },
+    {
+      "query_id": "DISCOVERY-OPENFDA-RECALL-VISUAL-NEUROPROSTHESIS-001",
+      "search": "product_description:\"retinal+prosthesis\"+OR+product_description:\"retinal+implant\"+OR+product_description:\"visual+prosthesis\"",
+      "cadence": "WEEKLY",
+      "status": "ACTIVE",
+      "scope_tiers": ["A", "B"],
+      "purpose": "Recall discovery for retinal and visual prosthetic product descriptions.",
+      "completeness_claim": false
+    },
+    {
+      "query_id": "DISCOVERY-OPENFDA-RECALL-NEURAL-RECORDING-001",
+      "search": "product_description:\"intracortical+electrode\"+OR+product_description:\"brain+electrode\"+OR+product_description:electrocorticography",
+      "cadence": "WEEKLY",
+      "status": "ACTIVE",
+      "scope_tiers": ["A", "B"],
+      "purpose": "Recall discovery for implanted/invasive neural-recording product descriptions.",
+      "completeness_claim": false
+    }
+  ],
+  "candidate_projection": {
+    "required_fields": [
+      "cfres_id",
+      "res_event_number",
+      "product_res_number",
+      "event_date_initiated",
+      "event_date_created",
+      "event_date_posted",
+      "event_date_terminated",
+      "recall_status",
+      "recalling_firm",
+      "firm_fei_number",
+      "reason_for_recall",
+      "root_cause_description",
+      "action",
+      "product_description",
+      "product_code",
+      "k_numbers",
+      "pma_numbers",
+      "query_memberships",
+      "normalized_record_sha256"
+    ],
+    "address_or_contact_fields_in_discovery_layer": false,
+    "code_info_lot_serial_text_in_discovery_layer": false,
+    "distribution_pattern_in_discovery_layer": false,
+    "raw_api_pages_emitted_to_s2": false
+  },
+  "coverage_contract": {
+    "required_metrics_per_leaf_query": [
+      "supplied_page_count",
+      "returned_record_count",
+      "unique_cfres_id_count",
+      "reported_total_count",
+      "reported_total_count_state",
+      "skip_sequence_valid",
+      "skip_coverage_state",
+      "over_26000_limit",
+      "search_after_or_partition_required",
+      "known_controlled_duplicate_count",
+      "new_candidate_count",
+      "duplicate_representation_count",
+      "unresolved_cfres_id_count"
+    ],
+    "mechanical_completion_requires": {
+      "reported_total_count_state": "CONSISTENT",
+      "skip_sequence_valid": true,
+      "skip_coverage_state": "MATCH",
+      "over_26000_limit": false,
+      "search_after_or_partition_required": false
+    },
+    "device_recall_database_completeness_claim": false,
+    "global_neuroai_recall_recall_claim": false,
+    "query_recall_claim": false,
+    "recall_status_is_complete_lifecycle_tracker": false,
+    "recall_record_establishes_broader_system_nonconformance": false
+  },
+  "human_review_contract": {
+    "required_dispositions": ["ACCEPT", "REJECT", "DEFER", "EXCLUDE"],
+    "review_questions": [
+      "Is this exact recall record materially relevant to a represented NeuroAI/neurotechnology device or system?",
+      "Is the cfres_id exact and distinct from the broader res_event_number lineage?",
+      "Do K/PMA numbers or product codes support an exact relationship without automatic system merging?",
+      "What exact product/configuration/scope is covered by the recall record?",
+      "Does this record create a candidate assessment reopening trigger, and if so what human authority must decide it?",
+      "What broader safety, effectiveness or system-conformance inference is prohibited?"
+    ],
+    "automatic_acceptance": false,
+    "recall_record_is_global_product_unsafety_evidence": false,
+    "recall_record_is_all_configuration_nonconformance_evidence": false,
+    "recall_status_is_authoritative_live_lifecycle_state": false,
+    "recall_record_automatically_reopens_assessment": false
+  },
+  "network_policy": {
+    "live_execution": "OPT_IN_ONLY",
+    "requires_workbench_network_gate": true,
+    "configuration_performs_http": false,
+    "hosted_success_claim_allowed_without_runner_steps": false
+  },
+  "boundary": "This programme discovers exact FDA device recall records. A recall record is stronger regulatory/post-market evidence than a passive adverse-event report, but it remains scoped to the exact recalled product/action and provider record. It does not by itself establish that every configuration of a broader system is unsafe or nonconforming, that the recall status is a complete live lifecycle state, that a linked K/PMA number identifies the exact assessed configuration, or that an assessment must automatically change."
+}
