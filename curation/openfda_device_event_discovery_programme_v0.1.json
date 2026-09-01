@@ -71,7 +71,7 @@
   "query_streams": [
     {
       "query_id": "DISCOVERY-OPENFDA-MAUDE-BCI-001",
-      "search": "device.generic_name:\"brain+computer+interface\"+device.generic_name:\"brain+machine+interface\"+device.generic_name:\"neural+interface\"",
+      "search": "device.generic_name:\"brain+computer+interface\"+OR+device.generic_name:\"brain+machine+interface\"+OR+device.generic_name:\"neural+interface\"",
       "cadence": "WEEKLY",
       "status": "ACTIVE",
       "scope_tiers": ["A"],
@@ -80,7 +80,7 @@
     },
     {
       "query_id": "DISCOVERY-OPENFDA-MAUDE-DBS-NEUROSTIM-001",
-      "search": "device.generic_name:\"deep+brain+stimulator\"+device.generic_name:\"deep+brain+stimulation\"+device.generic_name:neurostimulator",
+      "search": "device.generic_name:\"deep+brain+stimulator\"+OR+device.generic_name:\"deep+brain+stimulation\"+OR+device.generic_name:neurostimulator",
       "cadence": "WEEKLY",
       "status": "ACTIVE",
       "scope_tiers": ["A", "B"],
@@ -89,7 +89,7 @@
     },
     {
       "query_id": "DISCOVERY-OPENFDA-MAUDE-NEUROPROSTHESIS-001",
-      "search": "device.generic_name:neuroprosthesis+device.generic_name:\"neural+prosthesis\"+device.generic_name:\"brain+prosthesis\"",
+      "search": "device.generic_name:neuroprosthesis+OR+device.generic_name:\"neural+prosthesis\"+OR+device.generic_name:\"brain+prosthesis\"",
       "cadence": "WEEKLY",
       "status": "ACTIVE",
       "scope_tiers": ["A", "B"],
@@ -98,7 +98,7 @@
     },
     {
       "query_id": "DISCOVERY-OPENFDA-MAUDE-VISUAL-NEUROPROSTHESIS-001",
-      "search": "device.generic_name:\"retinal+prosthesis\"+device.generic_name:\"retinal+implant\"+device.generic_name:\"visual+prosthesis\"",
+      "search": "device.generic_name:\"retinal+prosthesis\"+OR+device.generic_name:\"retinal+implant\"+OR+device.generic_name:\"visual+prosthesis\"",
       "cadence": "WEEKLY",
       "status": "ACTIVE",
       "scope_tiers": ["A", "B"],
@@ -107,7 +107,7 @@
     },
     {
       "query_id": "DISCOVERY-OPENFDA-MAUDE-IMPLANTED-NEURAL-RECORDING-001",
-      "search": "device.generic_name:\"intracortical+electrode\"+device.generic_name:\"brain+electrode\"+device.generic_name:electrocorticography",
+      "search": "device.generic_name:\"intracortical+electrode\"+OR+device.generic_name:\"brain+electrode\"+OR+device.generic_name:electrocorticography",
       "cadence": "WEEKLY",
       "status": "ACTIVE",
       "scope_tiers": ["A", "B"],
