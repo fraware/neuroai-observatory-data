@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/fraware/neuroai-observatory-data/schemas/observatory-v2-release-manifest.schema.json",
+  "title": "Observatory v2 S2 candidate manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "candidate_id",
+    "candidate_content_sha256",
+    "files",
+    "descriptor_sha256",
+    "release_authorized",
+    "published",
+    "boundary",
+    "manifest_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "candidate_id": {"type": "string", "pattern": "^OBS-V2-CAND-[0-9A-F]{20}$"},
+    "candidate_content_sha256": {"$ref": "#/$defs/sha256"},
+    "files": {
+      "type": "array",
+      "minItems": 21,
+      "maxItems": 21,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256"],
+        "properties": {
+          "path": {"type": "string", "minLength": 1},
+          "sha256": {"$ref": "#/$defs/sha256"}
+        }
+      }
+    },
+    "descriptor_sha256": {"$ref": "#/$defs/sha256"},
+    "release_authorized": {"const": false},
+    "published": {"const": false},
+    "boundary": {"type": "string", "minLength": 1},
+    "manifest_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}
