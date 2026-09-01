@@ -10,7 +10,7 @@ This repository holds **public canonical data only**:
 - credential-free source registries and aliases;
 - disposition summaries approved for publication;
 - assessment dependency manifests and reopening decisions;
-- release manifests, checksums, and release descriptors.
+- release manifests, checksums, release descriptors, and public publication-lineage records.
 
 ## Explicit exclusions
 
@@ -24,24 +24,82 @@ Checksum verification, schema validation, and signed release mechanics confirm *
 
 Missing or inaccessible public evidence is typed explicitly; it is never converted into automatic failure by manifest tooling alone.
 
+For Observatory v2, three states are deliberately separate:
+
+```text
+candidate != authorization != publication
+```
+
+A candidate descriptor remains permanently non-authoritative. Explicit authorization and publication are separate immutable governance records; no candidate boolean, schema pass, manifest digest, repository presence, or successful test independently confers publication authority.
+
 ## Layout
 
 ```text
-schemas/                 JSON Schema for release descriptors and future record types
-releases/                Release descriptors (metadata + manifest references)
+schemas/                 JSON Schema for release and governance records
+releases/                Versioned public release directories
 fixtures/                Synthetic public examples only; never production captures
-scripts/                 Deterministic SHA-256 manifest generation and verification
-docs/                    Branch protection and signed-release policy
+scripts/                 Deterministic manifest and release verification
+scripts/verify_observatory_v2_release.py
+                         Independent S2 verifier for graph-native Observatory v2 releases
+docs/                    Release, branch-protection, and signed-publication policy
 WORKBENCH_VERSION        Pinned compatible neuroai-workbench package version
 ```
 
-## Releases
+## Observatory v2 graph-native release contract
 
-1. Place canonical public records under a versioned release directory (`releases/<tag>/records/` for authorized governing sets).
-2. Run `python scripts/generate_manifest.py <release-root> releases/<tag>/SHA256SUMS.txt`.
-3. Author or update `releases/<tag>/release-descriptor.json` against `schemas/release-descriptor.schema.json`.
-4. Open a reviewed pull request; merge to `main`.
-5. Create an immutable annotated tag and signed GitHub release per [docs/signed-release-policy.md](docs/signed-release-policy.md).
+The first graph-native release family uses this stable shape:
+
+```text
+releases/<tag>/
+  descriptor.json
+  manifest.json
+  records/
+    entities.jsonl
+    sources.jsonl
+    observations.jsonl
+    assertions.jsonl
+    events.jsonl
+    relationships.jsonl
+    candidates.jsonl
+    reopening-decisions.jsonl
+  migration/
+    entity-predecessor-traces.jsonl
+    preserved-organizations.jsonl
+    source-predecessor-traces.jsonl
+    predecessor-observation-evidence.jsonl
+    event-predecessor-traces.jsonl
+    candidate-predecessor-traces.jsonl
+    v16-adjudication-state.json
+    v17-successor-lineage.json
+    residual-predecessor-state.json
+    duplicate-container-proofs.json
+    gate-a-descriptor.json
+    gate-a-manifest.json
+    gate-a-decision.json
+  governance/
+    authorizations/*.json
+    publication.json
+```
+
+The 21 candidate files under `records/` and `migration/` are the immutable candidate surface. Governance records are deliberately outside that candidate manifest so explicit authorization never rewrites candidate bytes.
+
+Candidate verification:
+
+```bash
+python scripts/verify_observatory_v2_release.py releases/<tag>
+```
+
+Require an exact active `AUTHORIZE` record plus matching publication record:
+
+```bash
+python scripts/verify_observatory_v2_release.py releases/<tag> --require-published
+```
+
+The verifier is standard-library-only and intentionally independent of `neuroai-workbench`. S1 produces the candidate; S2 recomputes its identities, validates the fixed file surface and graph classes, re-checks Gate-A lineage, and verifies publication binding independently.
+
+See [docs/observatory-v2-release-contract.md](docs/observatory-v2-release-contract.md).
+
+## Legacy/current governing releases
 
 ### data-v0.1.0-public-governing
 
@@ -60,6 +118,8 @@ Records live under `releases/data-v0.1.0-public-governing/records/` and are mirr
 python scripts/verify_manifest.py releases/data-v0.1.0-public-governing/records releases/data-v0.1.0-public-governing/SHA256SUMS.txt
 ```
 
+The existing v2.3 development candidate remains a historical development projection and does not define the graph-native Observatory-v2 release contract.
+
 ## Workbench coupling
 
-Import and validation adapters in `fraware/neuroai-workbench` consume tagged releases from this repository. The pinned workbench version is recorded in `WORKBENCH_VERSION`. Publish tooling: `python scripts/publish_observatory_data.py --release-set public-governing-v1` (requires local `NEUROAI_OPS_WORKSPACE`).
+Import and validation adapters in `fraware/neuroai-workbench` consume tagged releases from this repository. The pinned compatible package line is recorded in `WORKBENCH_VERSION`; exact producer commit, runtime execution pin, graph schema generation, S2 predecessor commit, frozen predecessor inputs, and Gate-A proof identities are additionally bound by each Observatory-v2 candidate descriptor.
