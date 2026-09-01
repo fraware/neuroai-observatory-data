@@ -1,0 +1,11 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"europepmc-publications-discovery-replay-input.schema.json",
+  "title":"Recorded replay input for SU-PUBLICATIONS Europe PMC",
+  "type":"object","additionalProperties":false,
+  "required":["schema_version","programme_id","provider","capture_scope","captured_at","raw_input_contains_full_text","participant_level_data_expected","query_captures"],
+  "properties":{
+    "schema_version":{"const":"0.1.0"},"programme_id":{"const":"SU-PUBLICATIONS-EUROPEPMC-v0.1"},"provider":{"const":"Europe PMC"},"capture_scope":{"enum":["FULL_PROGRAMME","PARTIAL_VALIDATION"]},"captured_at":{"type":"string","minLength":1},"raw_input_contains_full_text":{"const":false},"participant_level_data_expected":{"const":false},
+    "query_captures":{"type":"array","minItems":1,"items":{"type":"object","additionalProperties":false,"required":["query_id","query_term","request","pages"],"properties":{"query_id":{"type":"string","minLength":1},"query_term":{"type":"string","minLength":1},"request":{"type":"object","additionalProperties":false,"required":["endpoint","format","result_type","page_size","synonym_expansion","first_cursor_mark"],"properties":{"endpoint":{"type":"string","minLength":1},"format":{"const":"json"},"result_type":{"const":"lite"},"page_size":{"const":1000},"synonym_expansion":{"const":false},"first_cursor_mark":{"const":"*"}}},"pages":{"type":"array","minItems":1,"items":{"type":"object"}}}}}
+  }
+}
