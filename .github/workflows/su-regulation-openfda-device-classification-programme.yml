@@ -1,0 +1,33 @@
+name: SU-REGULATION openFDA device-classification programme
+
+on:
+  pull_request:
+    paths:
+      - 'curation/openfda_device_classification_discovery_programme_v0.1.json'
+      - 'schemas/openfda-device-classification-discovery-programme.schema.json'
+      - 'scripts/validate_openfda_device_classification_discovery_programme.py'
+      - 'tests/test_openfda_device_classification_discovery_programme.py'
+      - 'curation/source_universe_registry_v0.1.json'
+      - '.github/workflows/su-regulation-openfda-device-classification-programme.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Parse programme and schema
+        run: |
+          python - <<'PY'
+          import json
+          for path in ['curation/openfda_device_classification_discovery_programme_v0.1.json','schemas/openfda-device-classification-discovery-programme.schema.json']:
+              json.load(open(path,encoding='utf-8'))
+          PY
+      - name: Run deterministic validator
+        run: python scripts/validate_openfda_device_classification_discovery_programme.py
+      - name: Run focused tests
+        run: python -m unittest tests.test_openfda_device_classification_discovery_programme
