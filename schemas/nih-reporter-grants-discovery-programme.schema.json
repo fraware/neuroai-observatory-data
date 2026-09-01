@@ -43,7 +43,16 @@
         "configuration_performs_http": {"const": false}
       }
     },
-    "workbench_dependency": {"type": "object"},
+    "workbench_dependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimum_package_line", "required_capability", "integration_state"],
+      "properties": {
+        "minimum_package_line": {"const": "0.3.0.dev0"},
+        "required_capability": {"const": "project_nih_reporter_search_pages"},
+        "integration_state": {"const": "PENDING_S1_MERGE"}
+      }
+    },
     "identity_policy": {"type": "object"},
     "inclusion_policy": {"type": "object"},
     "pagination_partition_policy": {"type": "object"},
