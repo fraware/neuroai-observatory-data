@@ -1,0 +1,123 @@
+name: SU-PATENTS EPO OPS recorded replay
+
+on:
+  pull_request:
+    paths:
+      - "curation/epo_ops_patent_discovery_programme_v0.1.json"
+      - "schemas/epo-ops-patent-discovery-programme.schema.json"
+      - "schemas/epo-ops-patent-discovery-replay-input.schema.json"
+      - "scripts/run_su_patents_epo_ops_recorded_replay.py"
+      - "scripts/validate_epo_ops_patent_discovery_programme.py"
+      - "tests/test_epo_ops_patent_discovery_programme.py"
+      - "tests/test_epo_ops_patent_recorded_replay.py"
+      - ".github/workflows/su-patents-epo-ops-recorded-replay.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  replay-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout observatory data
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Checkout exact proposed Workbench EPO OPS capability
+        uses: actions/checkout@v4
+        with:
+          repository: fraware/neuroai-workbench
+          ref: f8c9c6e073a87677c9065cb64aae9549e6ed684c
+          path: .workbench
+          persist-credentials: false
+
+      - name: Install exact Workbench tree
+        run: python -m pip install --disable-pip-version-check -e .workbench
+
+      - name: Verify exact Workbench patent projector is available
+        run: |
+          python - <<'PY'
+          from neuroai_workbench.discovery import project_epo_ops_search_pages
+          assert callable(project_epo_ops_search_pages)
+          PY
+
+      - name: Validate S2 programme control
+        run: python scripts/validate_epo_ops_patent_discovery_programme.py
+
+      - name: Run S2 patent programme and replay tests
+        run: |
+          python -m unittest tests/test_epo_ops_patent_discovery_programme.py
+          python -m unittest tests/test_epo_ops_patent_recorded_replay.py
+
+      - name: Run exact Workbench EPO OPS projection tests
+        run: python .workbench/tests/test_epo_ops_discovery_projection.py
+
+      - name: Exercise actual projector against S2 replay boundary
+        run: |
+          python - <<'PY'
+          import sys
+          sys.path.insert(0, "scripts")
+          import run_su_patents_epo_ops_recorded_replay as replay
+
+          programme = replay._programme()
+          stream = next(row for row in programme["query_streams"] if row["query_id"] == "DISCOVERY-OPS-BCI-001")
+          xml = '''
+          <world-patent-data>
+            <biblio-search total-result-count="1">
+              <query syntax="CQL">synthetic</query>
+              <range begin="1" end="1" />
+              <search-result>
+                <exchange-document country="EP" doc-number="1234567" kind="A1">
+                  <bibliographic-data>
+                    <publication-reference>
+                      <document-id document-id-type="docdb">
+                        <country>EP</country><doc-number>1234567</doc-number><kind>A1</kind><date>20260801</date>
+                      </document-id>
+                    </publication-reference>
+                    <parties><applicants><applicant><applicant-name><name>Integration Fixture Applicant</name></applicant-name></applicant></applicants></parties>
+                    <invention-title lang="en">Integration fixture neural interface</invention-title>
+                  </bibliographic-data>
+                </exchange-document>
+              </search-result>
+            </biblio-search>
+          </world-patent-data>
+          '''
+          bundle = {
+              "schema_version": "0.1.0",
+              "programme_id": programme["programme_id"],
+              "capture_scope": "PARTIAL_VALIDATION",
+              "captured_at": "2026-09-01T00:00:00Z",
+              "provider": programme["provider_contract"]["provider"],
+              "leaf_query_captures": [{
+                  "query_id": stream["query_id"],
+                  "leaf_query_id": "integration-root",
+                  "effective_cql": stream["cql"],
+                  "applicant_term": None,
+                  "partition_path": [],
+                  "search_constituent": "biblio",
+                  "response_media_type": "application/exchange+xml",
+                  "range_transport": "X-OPS-Range",
+                  "pages": [{"xml": xml}],
+              }],
+          }
+          result = replay.build_replay(bundle)
+          assert result["reconciliation"]["materialized_source_namespace_count"] == 248
+          assert result["reconciliation"]["union_unique_docdb_publication_count"] == 1
+          assert result["reconciliation"]["leaf_mechanical_blocker_count"] == 0
+          assert result["reconciliation"]["mechanically_complete"] is False
+          assert result["reconciliation"]["automatic_patent_family_creation"] is False
+          assert result["reconciliation"]["automatic_applicant_or_inventor_entity_creation"] is False
+          assert result["reconciliation"]["canonical_successor_ready"] is False
+          PY
+
+      - name: Verify no raw OPS XML capture is committed
+        run: |
+          if find . -path './.git' -prune -o -path './.workbench' -prune -o -type f \( -iname '*ops*raw*.xml' -o -iname '*ops*page*.xml' -o -iname '*epo*response*.xml' \) -print | grep -q .; then
+            echo "Raw EPO OPS replay XML must remain external/ephemeral." >&2
+            exit 1
+          fi
