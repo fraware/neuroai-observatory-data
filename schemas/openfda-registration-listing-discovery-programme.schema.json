@@ -1,0 +1,15 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"openfda-registration-listing-discovery-programme.schema.json",
+  "title":"SU-REGULATION openFDA registration/listing discovery programme",
+  "type":"object","additionalProperties":false,
+  "required":["schema_version","programme_id","status","source_universe_id","source_system","as_of","provider_contract","workbench_dependency","identity_policy","inclusion_policy","paging_policy","query_streams","candidate_projection","coverage_contract","human_review_contract","network_policy","boundary"],
+  "properties":{
+    "schema_version":{"const":"1.0.0-draft"},"programme_id":{"const":"SU-REGULATION-OPENFDA-REGISTRATION-LISTING-v0.1"},"status":{"const":"NONCANONICAL_PROGRAMME_CONTROL"},"source_universe_id":{"const":"SU-REGULATION"},"source_system":{"const":"OPENFDA_DEVICE_REGISTRATION_LISTING"},"as_of":{"type":"string","format":"date"},
+    "provider_contract":{"type":"object"},
+    "workbench_dependency":{"type":"object","additionalProperties":false,"required":["minimum_package_line","required_capability","integration_state"],"properties":{"minimum_package_line":{"const":"0.3.0.dev0"},"required_capability":{"const":"project_openfda_registration_listing_pages"},"integration_state":{"const":"AVAILABLE"}}},
+    "identity_policy":{"type":"object"},"inclusion_policy":{"type":"object"},"paging_policy":{"type":"object"},
+    "query_streams":{"type":"array","minItems":5,"maxItems":5,"items":{"type":"object","additionalProperties":false,"required":["query_id","search","cadence","status","scope_tiers","purpose","completeness_claim"],"properties":{"query_id":{"type":"string","pattern":"^DISCOVERY-OPENFDA-REGLIST-[A-Z0-9-]+$"},"search":{"type":"string","minLength":1},"cadence":{"const":"MONTHLY"},"status":{"const":"ACTIVE"},"scope_tiers":{"type":"array","minItems":1,"uniqueItems":true,"items":{"enum":["A","B","C","D"]}},"purpose":{"type":"string","minLength":1},"completeness_claim":{"const":false}}}},
+    "candidate_projection":{"type":"object"},"coverage_contract":{"type":"object"},"human_review_contract":{"type":"object"},"network_policy":{"type":"object"},"boundary":{"type":"string","minLength":1}
+  }
+}
