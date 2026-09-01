@@ -1,0 +1,86 @@
+name: SU-PUBLICATIONS Europe PMC recorded replay
+
+on:
+  pull_request:
+    paths:
+      - "curation/europepmc_publications_discovery_programme_v0.1.json"
+      - "schemas/europepmc-publications-discovery-programme.schema.json"
+      - "schemas/europepmc-publications-discovery-replay-input.schema.json"
+      - "scripts/current_source_namespace.py"
+      - "scripts/run_su_publications_europepmc_recorded_replay.py"
+      - "scripts/validate_europepmc_publications_discovery_programme.py"
+      - "tests/test_current_source_namespace.py"
+      - "tests/test_europepmc_publications_discovery_programme.py"
+      - "tests/test_europepmc_publications_recorded_replay.py"
+      - "releases/data-v0.1.0-public-governing/records/canonical_observatory_release_v1.4.json"
+      - "releases/data-v0.1.0-public-governing/records/canonical_live_refresh_release_v1.6.json"
+      - "supplemental_records/PRIMA_NEW_UNIQUE_SOURCE_REGISTER_v1.7.json"
+      - ".github/workflows/su-publications-europepmc-recorded-replay.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  replay-contract:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Checkout exact merged Workbench Europe PMC capability
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: fraware/neuroai-workbench
+          ref: 29f3a93e7a9050684687cc11b0568b7a9c6ef867
+          path: .workbench
+          persist-credentials: false
+      - name: Install exact Workbench tree
+        run: python -m pip install --disable-pip-version-check -e .workbench
+      - name: Verify exact Europe PMC projector
+        run: |
+          python - <<'PY'
+          from neuroai_workbench.discovery import project_europepmc_search_pages
+          assert callable(project_europepmc_search_pages)
+          PY
+      - name: Validate programme and governing Source namespace
+        run: |
+          python scripts/validate_europepmc_publications_discovery_programme.py
+          python -m unittest tests.test_current_source_namespace
+      - name: Run S2 programme and replay tests
+        run: |
+          python -m unittest tests.test_europepmc_publications_discovery_programme
+          python -m unittest tests.test_europepmc_publications_recorded_replay
+      - name: Run exact Workbench Europe PMC projection tests
+        run: python .workbench/tests/test_europepmc_discovery_projection.py
+      - name: Exercise PRIMA bibliographic continuity through replay boundary
+        run: |
+          python - <<'PY'
+          import sys
+          sys.path.insert(0,"scripts")
+          import run_su_publications_europepmc_recorded_replay as replay
+          p=replay._programme();stream=next(r for r in p["query_streams"] if r["query_id"]=="DISCOVERY-EPMC-VISUAL-NEUROPROSTHESIS-COMPUTATION-001");provider=p["provider_contract"]
+          page={"hitCount":1,"resultList":{"result":[{"id":"41124203","source":"MED","title":"Subretinal Photovoltaic Implant to Restore Vision in Geographic Atrophy Due to AMD","authorString":"Example Authors","journalTitle":"New England Journal of Medicine","pubYear":"2025","pubType":"Journal Article","doi":"10.1056/NEJMoa2501396","pmid":"41124203"}]}}
+          request={"endpoint":provider["api_endpoint"],"format":provider["format"],"result_type":provider["result_type"],"page_size":provider["page_size"],"synonym_expansion":provider["synonym_expansion"],"first_cursor_mark":provider["first_cursor_mark"]}
+          bundle={"schema_version":"0.1.0","programme_id":p["programme_id"],"provider":"Europe PMC","capture_scope":"PARTIAL_VALIDATION","captured_at":"2026-09-01T00:00:00Z","raw_input_contains_full_text":False,"participant_level_data_expected":False,"query_captures":[{"query_id":stream["query_id"],"query_term":stream["query_term"],"request":request,"pages":[page]}]}
+          result=replay.build_replay(bundle)
+          assert result["reconciliation"]["materialized_source_namespace_count"]==248
+          assert len(result["reconciliation"]["controlled_source_id_set_sha256"])==64
+          assert result["reconciliation"]["union_unique_publication_count"]==1
+          assert result["reconciliation"]["leaf_mechanical_blocker_count"]==0
+          assert result["reconciliation"]["mechanically_complete"] is False
+          assert len(result["known_duplicates"])==1
+          assert result["known_duplicates"][0]["duplicate_of_source_id"]=="SRC-PR-013"
+          assert result["normalized_records"][0]["resolved_identity"]=="DOI:10.1056/nejmoa2501396"
+          assert result["reconciliation"]["publication_database_completeness_claim"] is False
+          assert result["reconciliation"]["global_neuroai_publication_recall_claim"] is False
+          assert result["reconciliation"]["query_recall_claim"] is False
+          assert result["reconciliation"]["canonical_successor_ready"] is False
+          PY
+      - name: Verify no raw Europe PMC capture is committed
+        run: |
+          if find . -path './.git' -prune -o -path './.workbench' -prune -o -type f \( -iname '*europepmc*raw*.json' -o -iname '*europepmc*page*.json' -o -iname '*europepmc*response*.json' \) -print | grep -q .; then
+            echo "Raw Europe PMC replay pages must remain external/ephemeral." >&2
+            exit 1
+          fi
