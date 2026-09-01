@@ -166,7 +166,7 @@
       "search_after_or_partition_required": false
     },
     "device_recall_database_completeness_claim": false,
-    "global_neuroai_recall_recall_claim": false,
+    "global_neuroai_device_recall_claim": false,
     "query_recall_claim": false,
     "recall_status_is_complete_lifecycle_tracker": false,
     "recall_record_establishes_broader_system_nonconformance": false
