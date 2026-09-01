@@ -8,7 +8,6 @@ class T(unittest.TestCase):
  def test_den_split(c):i=c.p['identity_policy'];c.assertTrue(i['den_prefix_is_de_novo_and_out_of_scope_for_v0_1']);c.assertEqual(i['admitted_prefixes'],['K','BK'])
  def test_decision_allowlist(c):c.assertEqual(c.p['decision_semantics_policy']['recognized_substantial_equivalence_codes'],['SEKD','SESD','SESE','SESK','SESP','SESU','SESR'])
  def test_record_presence_not_clearance(c):c.assertFalse(c.p['coverage_contract']['record_presence_is_clearance_claim']);c.assertFalse(c.p['human_review_contract']['record_presence_is_clearance_evidence'])
- def test_dependency_regression_fails(c):p=copy.deepcopy(c.p);p['workbench_dependency']['integration_state']='PENDING_S1_MERGE';
  def test_dependency_regression_fails(c):
   p=copy.deepcopy(c.p);p['workbench_dependency']['integration_state']='PENDING_S1_MERGE'
   with c.assertRaisesRegex(ValueError,'AVAILABLE'):validate_programme(p,c.r)
