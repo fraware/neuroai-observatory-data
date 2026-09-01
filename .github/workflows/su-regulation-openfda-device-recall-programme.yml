@@ -1,0 +1,40 @@
+name: SU-REGULATION openFDA device-recall programme
+on:
+  pull_request:
+    paths:
+      - 'curation/openfda_device_recall_discovery_programme_v0.1.json'
+      - 'schemas/openfda-device-recall-discovery-programme.schema.json'
+      - 'scripts/validate_openfda_device_recall_discovery_programme.py'
+      - 'tests/test_openfda_device_recall_discovery_programme.py'
+      - 'curation/source_universe_registry_v0.1.json'
+      - '.github/workflows/su-regulation-openfda-device-recall-programme.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate-programme:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - run: python -m json.tool curation/openfda_device_recall_discovery_programme_v0.1.json >/dev/null
+      - run: python -m json.tool schemas/openfda-device-recall-discovery-programme.schema.json >/dev/null
+      - run: python scripts/validate_openfda_device_recall_discovery_programme.py
+      - run: python -m unittest tests.test_openfda_device_recall_discovery_programme
+      - name: Assert recall authority boundary
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('curation/openfda_device_recall_discovery_programme_v0.1.json'))
+          assert p['workbench_dependency']['integration_state']=='AVAILABLE'
+          assert p['identity_policy']['primary_identity']=='CFRES_ID'
+          assert p['identity_policy']['res_event_number_is_lineage_not_record_identity'] is True
+          assert p['candidate_projection']['address_or_contact_fields_in_discovery_layer'] is False
+          assert p['candidate_projection']['code_info_lot_serial_text_in_discovery_layer'] is False
+          assert p['candidate_projection']['distribution_pattern_in_discovery_layer'] is False
+          assert p['inclusion_policy']['automatic_reopening_decision'] is False
+          assert p['coverage_contract']['recall_status_is_complete_lifecycle_tracker'] is False
+          assert p['coverage_contract']['recall_record_establishes_broader_system_nonconformance'] is False
+          PY
