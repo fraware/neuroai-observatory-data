@@ -84,7 +84,7 @@ def validate_programme(programme: dict[str, Any], registry: dict[str, Any]) -> d
 
     dependency = programme.get("workbench_dependency") or {}
     _require(dependency.get("required_capability") == "project_openfda_device_event_pages", "Unexpected Workbench capability")
-    _require(dependency.get("integration_state") == "NOT_IMPLEMENTED", "Unimplemented openFDA projector must remain NOT_IMPLEMENTED")
+    _require(dependency.get("integration_state") == "PENDING_S1_MERGE", "Proposed openFDA projector must remain PENDING_S1_MERGE until merged")
 
     identity = programme.get("identity_policy") or {}
     _require(identity.get("primary_identity") == "MDR_REPORT_KEY", "MDR report identity changed")
