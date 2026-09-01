@@ -1,0 +1,53 @@
+name: Source-universe expansion foundation
+
+on:
+  pull_request:
+    paths:
+      - "scripts/audit_source_monitor_registry.py"
+      - "tests/test_source_monitor_registry_audit.py"
+      - "curation/source_universe_expansion_backlog_v0.1.json"
+      - ".github/workflows/source-universe-expansion-foundation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-foundation:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Parse planning control
+        run: python -m json.tool curation/source_universe_expansion_backlog_v0.1.json >/dev/null
+      - name: Run audit unit tests
+        run: python -m unittest tests/test_source_monitor_registry_audit.py -v
+      - name: Audit governing source-monitor registry
+        run: |
+          python scripts/audit_source_monitor_registry.py --output "$RUNNER_TEMP/source-registry-audit.json"
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          audit = json.loads(
+              (Path(os.environ["RUNNER_TEMP"]) / "source-registry-audit.json").read_text()
+          counts = audit["counts"]
+          assert counts["registry_record_count"] == 224, counts
+          assert counts["unique_monitor_id_count"] == 224, counts
+          assert counts["unique_source_id_count"] == 224, counts
+          assert counts["controlled_local_input_record_count"] == 3, counts
+          assert counts["other_locator_record_count"] == 0, counts
+          assert (
+              counts["external_http_record_count"]
+              + counts["controlled_local_input_record_count"]
+              + counts["other_locator_record_count"]
+              == counts["registry_record_count"]
+          ), counts
+          assert audit["metadata"]["network_requests_performed"] is False
+          assert audit["metadata"]["retrieval_success_reverified"] is False
+          assert audit["metadata"]["canonical_mutation_performed"] is False
+          print(json.dumps(counts, sort_keys=True))
+          PY
