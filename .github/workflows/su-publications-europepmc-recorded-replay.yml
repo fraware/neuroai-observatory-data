@@ -1,0 +1,129 @@
+name: SU-PUBLICATIONS Europe PMC recorded replay
+
+on:
+  pull_request:
+    paths:
+      - "curation/europepmc_publications_discovery_programme_v0.1.json"
+      - "schemas/europepmc-publications-discovery-programme.schema.json"
+      - "schemas/europepmc-publications-discovery-replay-input.schema.json"
+      - "scripts/run_su_publications_europepmc_recorded_replay.py"
+      - "scripts/validate_europepmc_publications_discovery_programme.py"
+      - "tests/test_europepmc_publications_discovery_programme.py"
+      - "tests/test_europepmc_replay_known_index.py"
+      - "tests/test_europepmc_replay_contract.py"
+      - ".github/workflows/su-publications-europepmc-recorded-replay.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  replay-contract:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout observatory data
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Checkout exact proposed Workbench capability
+        uses: actions/checkout@v4
+        with:
+          repository: fraware/neuroai-workbench
+          ref: f3c3594b37a6aafb89ed53c29783562e470d6d69
+          path: .workbench
+          persist-credentials: false
+
+      - name: Install exact Workbench tree
+        run: python -m pip install --disable-pip-version-check -e .workbench
+
+      - name: Verify exact Workbench Europe PMC capability
+        run: |
+          python - <<'PY'
+          from neuroai_workbench.discovery import project_europepmc_search_pages
+          assert callable(project_europepmc_search_pages)
+          PY
+
+      - name: Validate programme control
+        run: python scripts/validate_europepmc_publications_discovery_programme.py
+
+      - name: Run Europe PMC programme and replay tests
+        run: |
+          python -m unittest tests/test_europepmc_publications_discovery_programme.py
+          python -m unittest tests/test_europepmc_replay_known_index.py
+          python -m unittest tests/test_europepmc_replay_contract.py
+
+      - name: Exercise actual Workbench projector against S2 bibliographic namespace
+        run: |
+          python - <<'PY'
+          import sys
+          sys.path.insert(0, "scripts")
+          import run_su_publications_europepmc_recorded_replay as replay
+
+          programme = replay._programme()
+          stream = next(
+              row for row in programme["query_streams"]
+              if row["query_id"] == "DISCOVERY-EPMC-VISUAL-NEUROPROSTHESIS-COMPUTATION-001"
+          )
+          provider = programme["provider_contract"]
+          bundle = {
+              "schema_version": "0.1.0",
+              "programme_id": programme["programme_id"],
+              "provider": "Europe PMC",
+              "capture_scope": "PARTIAL_VALIDATION",
+              "captured_at": "2026-09-01T00:00:00Z",
+              "api_data_timestamp": "2026-09-01",
+              "raw_input_contains_full_text": False,
+              "participant_level_data_expected": False,
+              "query_captures": [{
+                  "query_id": stream["query_id"],
+                  "query_term": stream["query_term"],
+                  "request": {
+                      "endpoint": provider["api_endpoint"],
+                      "format": provider["format"],
+                      "result_type": provider["result_type"],
+                      "page_size": provider["page_size"],
+                      "synonym_expansion": provider["synonym_expansion"],
+                      "first_cursor_mark": provider["first_cursor_mark"],
+                  },
+                  "pages": [{
+                      "payload": {
+                          "hitCount": 1,
+                          "resultList": {
+                              "result": [{
+                                  "source": "MED",
+                                  "id": "41124203",
+                                  "pmid": "41124203",
+                                  "doi": "10.1056/NEJMoa2501396",
+                                  "title": "Subretinal Photovoltaic Implant to Restore Vision in Geographic Atrophy Due to AMD",
+                                  "authorString": "Controlled integration fixture",
+                                  "journalTitle": "New England Journal of Medicine",
+                                  "pubYear": "2025",
+                                  "pubType": "Journal Article"
+                              }]
+                          }
+                      }
+                  }]
+              }]
+          }
+          result = replay.build_replay(bundle)
+          assert result["reconciliation"]["materialized_source_namespace_count"] == 248
+          assert result["reconciliation"]["known_bibliographic_duplicate_count"] == 1
+          assert result["reconciliation"]["new_candidate_input_count"] == 0
+          duplicate = result["known_bibliographic_duplicates"][0]
+          assert duplicate["record_key"] == "DOI:10.1056/nejmoa2501396"
+          assert duplicate["duplicate_of_source_id"] == "SRC-PR-013"
+          assert result["query_reports"][0]["mechanical_blockers"] == []
+          assert result["reconciliation"]["mechanically_complete"] is False
+          assert result["reconciliation"]["canonical_successor_ready"] is False
+          PY
+
+      - name: Verify no raw Europe PMC capture bundle is committed
+        run: |
+          if find . -path './.git' -prune -o -path './.workbench' -prune -o -type f \( -iname '*europepmc*raw*.json' -o -iname '*europepmc*page*.json' -o -iname '*europepmc*capture*.json' \) -print | grep -q .; then
+            echo "Raw Europe PMC replay page material must remain external/ephemeral." >&2
+            exit 1
+          fi
