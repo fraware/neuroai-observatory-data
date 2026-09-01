@@ -23,7 +23,7 @@
   "workbench_dependency": {
     "minimum_package_line": "0.3.0.dev0",
     "required_capability": "project_europepmc_search_pages",
-    "integration_state": "NOT_IMPLEMENTED"
+    "integration_state": "PENDING_S1_MERGE"
   },
   "identity_policy": {
     "preferred_identity_order": ["DOI", "PMID", "PMCID", "SOURCE_PLUS_EXT_ID"],
@@ -175,7 +175,9 @@
       "cross_query_duplicate_representation_count",
       "unresolved_identity_count",
       "preprint_count",
-      "peer_reviewed_or_journal_count"
+      "non_preprint_record_count",
+      "publication_type_missing_count",
+      "source_distribution"
     ],
     "mechanical_completion_requires": {
       "cursor_sequence_valid": true,
@@ -186,7 +188,7 @@
     "publication_database_completeness_claim": false,
     "global_neuroai_publication_recall_claim": false,
     "query_recall_claim": false,
-    "mechanical_completion_semantics": "Mechanical completion means only that one exact configured Europe PMC query traversal is cursor-valid and reconciles its materialized unique-result denominator against the reported hitCount for that traversal. It does not establish exhaustive NeuroAI publication recall, relevance, evidence quality, or scientific truth."
+    "mechanical_completion_semantics": "Mechanical completion means only that one exact configured Europe PMC query traversal is cursor-valid and reconciles its materialized unique-result denominator against the reported hitCount for that traversal. It does not establish exhaustive NeuroAI publication recall, relevance, evidence quality, peer-review status, or scientific truth."
   },
   "human_review_contract": {
     "required_dispositions": ["ACCEPT", "REJECT", "DEFER", "EXCLUDE"],
