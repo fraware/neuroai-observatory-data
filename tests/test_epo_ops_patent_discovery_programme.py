@@ -24,11 +24,18 @@ class EpoOpsPatentDiscoveryProgrammeTests(unittest.TestCase):
         self.assertEqual(result["query_stream_count"], 9)
         self.assertEqual(result["grey_area_stream_count"], 3)
         self.assertEqual(result["known_applicant_count"], 8)
-        self.assertEqual(result["integration_state"], "NOT_IMPLEMENTED")
+        self.assertEqual(result["integration_state"], "PENDING_S1_MERGE")
         self.assertFalse(result["network_requests_performed"])
         self.assertFalse(result["credentials_accessed"])
         self.assertFalse(result["canonical_mutation_performed"])
         self.assertFalse(result["global_recall_claim"])
+
+    def test_provider_requests_bibliographic_search_metadata(self) -> None:
+        provider = self.programme["provider_contract"]
+        self.assertEqual(provider["search_endpoint"], "/published-data/search/biblio")
+        self.assertEqual(provider["search_constituent"], "biblio")
+        self.assertEqual(provider["max_records_per_range"], 100)
+        self.assertEqual(provider["max_retrievable_results_per_search"], 2000)
 
     def test_over_limit_queries_must_split_not_truncate(self) -> None:
         policy = self.programme["search_partition_policy"]
@@ -39,10 +46,7 @@ class EpoOpsPatentDiscoveryProgrammeTests(unittest.TestCase):
         self.assertTrue(policy["partition_provenance_required"])
 
     def test_grey_area_streams_are_tier_c_only(self) -> None:
-        grey = [
-            row for row in self.programme["query_streams"]
-            if row["query_id"].startswith("DISCOVERY-OPS-GREY-")
-        ]
+        grey = [row for row in self.programme["query_streams"] if row["query_id"].startswith("DISCOVERY-OPS-GREY-")]
         self.assertEqual(len(grey), 3)
         for row in grey:
             self.assertEqual(row["scope_tiers"], ["C"])
@@ -62,10 +66,10 @@ class EpoOpsPatentDiscoveryProgrammeTests(unittest.TestCase):
         self.assertFalse(identity["applicant_name_auto_entity_merge"])
         self.assertTrue(identity["family_relationship_requires_explicit_family_retrieval"])
 
-    def test_unimplemented_projector_cannot_be_called_available(self) -> None:
+    def test_unmerged_projector_cannot_be_called_available(self) -> None:
         modified = copy.deepcopy(self.programme)
         modified["workbench_dependency"]["integration_state"] = "AVAILABLE"
-        with self.assertRaisesRegex(ValueError, "NOT_IMPLEMENTED"):
+        with self.assertRaisesRegex(ValueError, "PENDING_S1_MERGE"):
             validate_programme(modified, self.registry)
 
     def test_silent_truncation_fails_closed(self) -> None:
@@ -90,6 +94,7 @@ class EpoOpsPatentDiscoveryProgrammeTests(unittest.TestCase):
         schema = json.loads(Path("schemas/epo-ops-patent-discovery-programme.schema.json").read_text(encoding="utf-8"))
         self.assertEqual(schema["properties"]["programme_id"]["const"], "SU-PATENTS-EPO-OPS-v0.1")
         self.assertEqual(schema["properties"]["source_universe_id"]["const"], "SU-PATENTS")
+        self.assertEqual(schema["properties"]["provider_contract"]["properties"]["search_endpoint"]["const"], "/published-data/search/biblio")
 
 
 if __name__ == "__main__":
