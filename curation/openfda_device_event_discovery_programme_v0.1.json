@@ -1,0 +1,201 @@
+{
+  "schema_version": "1.0.0-draft",
+  "programme_id": "SU-REGULATION-OPENFDA-DEVICE-EVENTS-v0.1",
+  "status": "NONCANONICAL_PROGRAMME_CONTROL",
+  "source_universe_id": "SU-REGULATION",
+  "source_system": "OPENFDA_DEVICE_EVENT",
+  "as_of": "2026-09-01",
+  "provider_contract": {
+    "provider": "U.S. FDA openFDA Device Adverse Event API",
+    "endpoint": "https://api.fda.gov/device/event.json",
+    "method": "GET",
+    "response_media_type": "application/json",
+    "source_dataset": "MAUDE",
+    "reported_denominator_path": "meta.results.total",
+    "skip_path": "meta.results.skip",
+    "limit_path": "meta.results.limit",
+    "results_path": "results",
+    "primary_report_id_field": "mdr_report_key",
+    "max_records_per_request": 1000,
+    "max_skip": 25000,
+    "max_direct_skip_limit_result_count": 26000,
+    "provider_supports_search_after": true,
+    "provider_supports_bulk_downloads": true,
+    "api_key_required": false,
+    "api_key_recommended_for_regular_use": true,
+    "provider_update_frequency": "WEEKLY",
+    "configuration_performs_http": false
+  },
+  "workbench_dependency": {
+    "minimum_package_line": "0.3.0.dev0",
+    "required_capability": "project_openfda_device_event_pages",
+    "integration_state": "NOT_IMPLEMENTED"
+  },
+  "identity_policy": {
+    "primary_identity": "MDR_REPORT_KEY",
+    "report_number_auto_merge": false,
+    "followup_or_supplement_auto_new_identity": false,
+    "record_content_change_is_successor_observation_not_new_report_identity": true,
+    "device_brand_name_auto_system_merge": false,
+    "manufacturer_name_auto_entity_merge": false,
+    "udi_auto_system_merge": false,
+    "product_code_auto_system_merge": false,
+    "conflicting_same_mdr_report_key_policy": "FAIL_CLOSED"
+  },
+  "inclusion_policy": {
+    "candidate_scope": "DECLARED_OPENFDA_SEARCH_MATCH",
+    "automatic_source_admission": false,
+    "automatic_system_or_device_entity_creation": false,
+    "automatic_manufacturer_entity_creation": false,
+    "automatic_safety_signal_creation": false,
+    "automatic_causality_claim_creation": false,
+    "automatic_incidence_or_rate_claim_creation": false,
+    "automatic_regulatory_action_creation": false,
+    "automatic_assessment_mutation": false,
+    "automatic_monitor_creation": false,
+    "human_relevance_review_required": true
+  },
+  "paging_policy": {
+    "execution_mode_v0_1": "SKIP_LIMIT_BOUNDED",
+    "page_limit": 1000,
+    "initial_skip": 0,
+    "max_skip": 25000,
+    "max_direct_result_count": 26000,
+    "over_limit_policy": "SEARCH_AFTER_OR_DATE_PARTITION_REQUIRED_BEFORE_MATERIALIZATION",
+    "preferred_partition_field": "date_received",
+    "silent_truncation_allowed": false,
+    "partial_over_limit_candidate_emission_allowed": false,
+    "search_after_not_yet_authorized_by_v0_1_projector": true,
+    "partition_provenance_required": true
+  },
+  "query_streams": [
+    {
+      "query_id": "DISCOVERY-OPENFDA-MAUDE-BCI-001",
+      "search": "device.generic_name:\"brain+computer+interface\"+device.generic_name:\"brain+machine+interface\"+device.generic_name:\"neural+interface\"",
+      "cadence": "WEEKLY",
+      "status": "ACTIVE",
+      "scope_tiers": ["A"],
+      "purpose": "Post-market adverse-event discovery for explicit BCI/neural-interface generic-name records.",
+      "completeness_claim": false
+    },
+    {
+      "query_id": "DISCOVERY-OPENFDA-MAUDE-DBS-NEUROSTIM-001",
+      "search": "device.generic_name:\"deep+brain+stimulator\"+device.generic_name:\"deep+brain+stimulation\"+device.generic_name:neurostimulator",
+      "cadence": "WEEKLY",
+      "status": "ACTIVE",
+      "scope_tiers": ["A", "B"],
+      "purpose": "Post-market discovery for deep-brain stimulation and neurostimulator records.",
+      "completeness_claim": false
+    },
+    {
+      "query_id": "DISCOVERY-OPENFDA-MAUDE-NEUROPROSTHESIS-001",
+      "search": "device.generic_name:neuroprosthesis+device.generic_name:\"neural+prosthesis\"+device.generic_name:\"brain+prosthesis\"",
+      "cadence": "WEEKLY",
+      "status": "ACTIVE",
+      "scope_tiers": ["A", "B"],
+      "purpose": "Post-market discovery for neuroprosthetic device terminology.",
+      "completeness_claim": false
+    },
+    {
+      "query_id": "DISCOVERY-OPENFDA-MAUDE-VISUAL-NEUROPROSTHESIS-001",
+      "search": "device.generic_name:\"retinal+prosthesis\"+device.generic_name:\"retinal+implant\"+device.generic_name:\"visual+prosthesis\"",
+      "cadence": "WEEKLY",
+      "status": "ACTIVE",
+      "scope_tiers": ["A", "B"],
+      "purpose": "Post-market discovery for retinal and visual prosthetic device terminology.",
+      "completeness_claim": false
+    },
+    {
+      "query_id": "DISCOVERY-OPENFDA-MAUDE-IMPLANTED-NEURAL-RECORDING-001",
+      "search": "device.generic_name:\"intracortical+electrode\"+device.generic_name:\"brain+electrode\"+device.generic_name:electrocorticography",
+      "cadence": "WEEKLY",
+      "status": "ACTIVE",
+      "scope_tiers": ["A", "B"],
+      "purpose": "Post-market discovery for implanted or invasive neural-recording device terminology.",
+      "completeness_claim": false
+    }
+  ],
+  "candidate_projection": {
+    "required_fields": [
+      "mdr_report_key",
+      "report_number",
+      "date_received",
+      "report_date",
+      "event_type",
+      "product_problems",
+      "source_type",
+      "remedial_action",
+      "removal_correction_number",
+      "devices",
+      "query_memberships",
+      "normalized_record_sha256"
+    ],
+    "device_fields": [
+      "brand_name",
+      "generic_name",
+      "udi_di",
+      "device_report_product_code",
+      "model_number",
+      "manufacturer_d_name",
+      "implant_flag"
+    ],
+    "patient_level_fields_in_discovery_layer": false,
+    "mdr_text_narrative_capture_in_discovery_layer": false,
+    "raw_api_pages_emitted_to_s2": false
+  },
+  "coverage_contract": {
+    "required_metrics_per_leaf_query": [
+      "supplied_page_count",
+      "returned_record_count",
+      "unique_mdr_report_key_count",
+      "reported_total_count",
+      "reported_total_count_state",
+      "skip_sequence_valid",
+      "skip_coverage_state",
+      "over_26000_limit",
+      "search_after_or_partition_required",
+      "known_controlled_duplicate_count",
+      "new_candidate_count",
+      "duplicate_representation_count",
+      "unresolved_mdr_report_key_count"
+    ],
+    "mechanical_completion_requires": {
+      "reported_total_count_state": "CONSISTENT",
+      "skip_sequence_valid": true,
+      "skip_coverage_state": "MATCH",
+      "over_26000_limit": false,
+      "search_after_or_partition_required": false
+    },
+    "maude_database_completeness_claim": false,
+    "global_neuroai_postmarket_recall_claim": false,
+    "query_recall_claim": false,
+    "causality_claim": false,
+    "incidence_or_rate_claim": false,
+    "comparative_safety_claim": false
+  },
+  "human_review_contract": {
+    "required_dispositions": ["ACCEPT", "REJECT", "DEFER", "EXCLUDE"],
+    "review_questions": [
+      "Is the report materially relevant to an exact represented NeuroAI/neurotechnology system or device class?",
+      "Is the MDR report identity exact and stable?",
+      "Can the reported device/manufacturer be resolved without name-only automatic merging?",
+      "Does the report create a bounded post-market evidence item, a potential reopening trigger, or neither?",
+      "What causal, frequency, comparative-safety or regulatory inference is prohibited by this report alone?"
+    ],
+    "automatic_acceptance": false,
+    "mdr_report_is_causality_evidence": false,
+    "mdr_count_is_incidence_evidence": false,
+    "mdr_count_is_comparative_safety_evidence": false,
+    "mdr_report_is_fda_conclusion": false,
+    "mdr_report_is_recall_or_enforcement_action": false,
+    "mdr_report_is_system_nonconformance_evidence_by_itself": false
+  },
+  "network_policy": {
+    "live_execution": "OPT_IN_ONLY",
+    "requires_workbench_network_gate": true,
+    "api_key_secret_may_be_committed": false,
+    "configuration_performs_http": false,
+    "hosted_success_claim_allowed_without_runner_steps": false
+  },
+  "boundary": "This programme defines bounded openFDA/MAUDE adverse-event discovery for NeuroAI-relevant medical devices. An MDR establishes that a public report exists in the provider data. It does not by itself establish device causation, incidence/prevalence, a change in event rate, comparative safety, confirmed severity, regulatory action, recall, safety/effectiveness, system nonconformance, assessment failure, global post-market completeness or UNESCO/institutional endorsement."
+}
