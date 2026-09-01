@@ -8,7 +8,7 @@ class OpenFdaHdeProgrammeTests(unittest.TestCase):
     def setUpClass(cls):
         cls.programme=json.loads(PROGRAMME_PATH.read_text(encoding="utf-8"));cls.registry=json.loads(UNIVERSE_REGISTRY_PATH.read_text(encoding="utf-8"))
     def test_current_programme_validates_offline(self):
-        r=validate_programme(self.programme,self.registry);self.assertEqual(r["query_stream_count"],5);self.assertEqual(r["integration_state"],"NOT_IMPLEMENTED");self.assertFalse(r["network_requests_performed"]);self.assertFalse(r["effectiveness_claim_created"]);self.assertFalse(r["facility_irb_approval_claim_created"])
+        r=validate_programme(self.programme,self.registry);self.assertEqual(r["query_stream_count"],5);self.assertEqual(r["integration_state"],"PENDING_S1_MERGE");self.assertFalse(r["network_requests_performed"]);self.assertFalse(r["effectiveness_claim_created"]);self.assertFalse(r["facility_irb_approval_claim_created"])
     def test_every_stream_is_h_prefix_bounded(self):
         for row in self.programme["query_streams"]:self.assertIn("+AND+pma_number:H*",row["search"])
     def test_exact_appr_is_only_hde_approval_state(self):
@@ -31,6 +31,9 @@ class OpenFdaHdeProgrammeTests(unittest.TestCase):
     def test_automatic_reopening_fails_closed(self):
         m=copy.deepcopy(self.programme);m["inclusion_policy"]["automatic_reopening_decision"]=True
         with self.assertRaisesRegex(ValueError,"automatic_reopening_decision"):validate_programme(m,self.registry)
-    def test_schema_keeps_workbench_unimplemented(self):
-        s=json.loads(Path("schemas/openfda-hde-discovery-programme.schema.json").read_text(encoding="utf-8"));self.assertEqual(s["properties"]["workbench_dependency"]["properties"]["integration_state"]["const"],"NOT_IMPLEMENTED")
+    def test_premature_available_state_fails_closed(self):
+        m=copy.deepcopy(self.programme);m["workbench_dependency"]["integration_state"]="AVAILABLE"
+        with self.assertRaisesRegex(ValueError,"PENDING_S1_MERGE"):validate_programme(m,self.registry)
+    def test_schema_requires_pending_merge(self):
+        s=json.loads(Path("schemas/openfda-hde-discovery-programme.schema.json").read_text(encoding="utf-8"));self.assertEqual(s["properties"]["workbench_dependency"]["properties"]["integration_state"]["const"],"PENDING_S1_MERGE")
 if __name__=="__main__":unittest.main()
