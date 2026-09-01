@@ -1,0 +1,24 @@
+name: Runner allocation diagnostic
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostic:
+    name: hosted-runner-diagnostic
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Prove runner step execution
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "runner-step-executed=true"
+          echo "event=${GITHUB_EVENT_NAME}"
+          echo "sha=${GITHUB_SHA}"
+          uname -a
+          python --version
