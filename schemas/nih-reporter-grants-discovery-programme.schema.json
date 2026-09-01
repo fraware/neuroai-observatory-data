@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "nih-reporter-grants-discovery-programme.schema.json",
+  "title": "SU-GRANTS NIH RePORTER discovery programme",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "programme_id", "status", "source_universe_id", "source_system", "as_of",
+    "provider_contract", "workbench_dependency", "identity_policy", "inclusion_policy",
+    "pagination_partition_policy", "incremental_refresh_policy", "query_streams",
+    "candidate_projection", "coverage_contract", "human_review_contract", "network_policy", "boundary"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0-draft"},
+    "programme_id": {"const": "SU-GRANTS-NIH-REPORTER-v0.1"},
+    "status": {"const": "NONCANONICAL_PROGRAMME_CONTROL"},
+    "source_universe_id": {"const": "SU-GRANTS"},
+    "source_system": {"const": "NIH_REPORTER_V2"},
+    "as_of": {"type": "string", "format": "date"},
+    "provider_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider", "endpoint", "method", "request_media_type", "response_media_type",
+        "reported_denominator_path", "offset_path", "limit_path", "results_path",
+        "primary_application_id_field", "max_records_per_request", "max_offset",
+        "recommended_max_requests_per_second", "configuration_performs_http"
+      ],
+      "properties": {
+        "provider": {"const": "NIH RePORTER API"},
+        "endpoint": {"const": "https://api.reporter.nih.gov/v2/projects/search"},
+        "method": {"const": "POST"},
+        "request_media_type": {"const": "application/json"},
+        "response_media_type": {"const": "application/json"},
+        "reported_denominator_path": {"const": "meta.total"},
+        "offset_path": {"const": "meta.offset"},
+        "limit_path": {"const": "meta.limit"},
+        "results_path": {"const": "results"},
+        "primary_application_id_field": {"const": "appl_id"},
+        "max_records_per_request": {"const": 500},
+        "max_offset": {"const": 14999},
+        "recommended_max_requests_per_second": {"const": 1},
+        "configuration_performs_http": {"const": false}
+      }
+    },
+    "workbench_dependency": {"type": "object"},
+    "identity_policy": {"type": "object"},
+    "inclusion_policy": {"type": "object"},
+    "pagination_partition_policy": {"type": "object"},
+    "incremental_refresh_policy": {"type": "object"},
+    "query_streams": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["query_id", "advanced_text_search", "cadence", "status", "scope_tiers", "purpose", "completeness_claim"],
+        "properties": {
+          "query_id": {"type": "string", "pattern": "^DISCOVERY-REPORTER-[A-Z0-9-]+$"},
+          "advanced_text_search": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["operator", "search_field", "search_text"],
+            "properties": {
+              "operator": {"enum": ["and", "or", "advanced"]},
+              "search_field": {"const": "projecttitle,abstracttext,terms"},
+              "search_text": {"type": "string", "minLength": 1}
+            }
+          },
+          "cadence": {"enum": ["MONTHLY", "QUARTERLY"]},
+          "status": {"const": "ACTIVE"},
+          "scope_tiers": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["A", "B", "C", "D"]}},
+          "purpose": {"type": "string", "minLength": 1},
+          "completeness_claim": {"const": false}
+        }
+      }
+    },
+    "candidate_projection": {"type": "object"},
+    "coverage_contract": {"type": "object"},
+    "human_review_contract": {"type": "object"},
+    "network_policy": {"type": "object"},
+    "boundary": {"type": "string", "minLength": 1}
+  }
+}
