@@ -5,19 +5,27 @@ on:
     paths:
       - "scripts/verify_observatory_v2_release.py"
       - "tests/test_observatory_v2_release_contract.py"
+      - "tests/test_production_monitoring_hardening.py"
       - "schemas/observatory-v2-*.schema.json"
       - "releases/data-v0.3.0-observatory-v2*/**"
       - "docs/observatory-v2-release-contract.md"
       - ".github/workflows/observatory-v2-release.yml"
+      - ".github/workflows/operational-live-cycle.yml"
+      - ".github/workflows/successor-discovery.yml"
+      - ".github/workflows/operational-interruption-resume-drill.yml"
   push:
     branches: [main]
     paths:
       - "scripts/verify_observatory_v2_release.py"
       - "tests/test_observatory_v2_release_contract.py"
+      - "tests/test_production_monitoring_hardening.py"
       - "schemas/observatory-v2-*.schema.json"
       - "releases/data-v0.3.0-observatory-v2*/**"
       - "docs/observatory-v2-release-contract.md"
       - ".github/workflows/observatory-v2-release.yml"
+      - ".github/workflows/operational-live-cycle.yml"
+      - ".github/workflows/successor-discovery.yml"
+      - ".github/workflows/operational-interruption-resume-drill.yml"
 
 permissions:
   contents: read
@@ -26,8 +34,8 @@ jobs:
   verify-contract:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: "3.12"
       - name: Parse v2 release schemas
@@ -41,3 +49,5 @@ jobs:
           PY
       - name: Observatory v2 release contract tests
         run: python -m unittest tests/test_observatory_v2_release_contract.py -v
+      - name: Production monitoring hardening contract
+        run: python -m unittest tests/test_production_monitoring_hardening.py -v
