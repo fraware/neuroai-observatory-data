@@ -8,7 +8,7 @@ class OpenFdaRegistrationListingProgrammeTests(unittest.TestCase):
     def setUpClass(cls):
         cls.programme=json.loads(PROGRAMME_PATH.read_text(encoding="utf-8"));cls.registry=json.loads(UNIVERSE_REGISTRY_PATH.read_text(encoding="utf-8"))
     def test_current_programme_validates_offline(self):
-        r=validate_programme(self.programme,self.registry);self.assertEqual(r["query_stream_count"],5);self.assertEqual(r["integration_state"],"NOT_IMPLEMENTED");self.assertFalse(r["network_requests_performed"]);self.assertFalse(r["exact_device_identity_claim_created"]);self.assertFalse(r["authorization_claim_created"])
+        r=validate_programme(self.programme,self.registry);self.assertEqual(r["query_stream_count"],5);self.assertEqual(r["integration_state"],"PENDING_S1_MERGE");self.assertFalse(r["network_requests_performed"]);self.assertFalse(r["exact_device_identity_claim_created"]);self.assertFalse(r["authorization_claim_created"])
     def test_representation_is_explicitly_not_exact_device_identity(self):
         i=self.programme["identity_policy"];self.assertTrue(i["provider_exposes_no_stable_listing_number_in_v0_1_surface"]);self.assertTrue(i["representation_identity_is_not_exact_device_identity"]);self.assertTrue(i["registration_number_is_establishment_registration_not_device_identity"])
     def test_registration_listing_never_becomes_authorization(self):
@@ -32,6 +32,9 @@ class OpenFdaRegistrationListingProgrammeTests(unittest.TestCase):
     def test_automatic_reopening_fails_closed(self):
         m=copy.deepcopy(self.programme);m["inclusion_policy"]["automatic_reopening_decision"]=True
         with self.assertRaisesRegex(ValueError,"automatic_reopening_decision"):validate_programme(m,self.registry)
-    def test_schema_keeps_workbench_unimplemented(self):
-        s=json.loads(Path("schemas/openfda-registration-listing-discovery-programme.schema.json").read_text(encoding="utf-8"));self.assertEqual(s["properties"]["workbench_dependency"]["properties"]["integration_state"]["const"],"NOT_IMPLEMENTED")
+    def test_available_before_merge_fails_closed(self):
+        m=copy.deepcopy(self.programme);m["workbench_dependency"]["integration_state"]="AVAILABLE"
+        with self.assertRaisesRegex(ValueError,"cannot be AVAILABLE"):validate_programme(m,self.registry)
+    def test_schema_records_pending_merge_only(self):
+        s=json.loads(Path("schemas/openfda-registration-listing-discovery-programme.schema.json").read_text(encoding="utf-8"));self.assertEqual(s["properties"]["workbench_dependency"]["properties"]["integration_state"]["const"],"PENDING_S1_MERGE")
 if __name__=="__main__":unittest.main()
