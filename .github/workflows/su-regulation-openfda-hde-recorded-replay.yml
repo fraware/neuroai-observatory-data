@@ -1,0 +1,84 @@
+name: SU-REGULATION openFDA HDE recorded replay
+
+on:
+  pull_request:
+    paths:
+      - "curation/openfda_hde_discovery_programme_v0.1.json"
+      - "schemas/openfda-hde-discovery-programme.schema.json"
+      - "schemas/openfda-hde-discovery-replay-input.schema.json"
+      - "scripts/run_su_regulation_openfda_hde_recorded_replay.py"
+      - "scripts/validate_openfda_hde_discovery_programme.py"
+      - "tests/test_openfda_hde_discovery_programme.py"
+      - "tests/test_openfda_hde_recorded_replay.py"
+      - ".github/workflows/su-regulation-openfda-hde-recorded-replay.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  replay-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Checkout exact proposed Workbench HDE capability
+        uses: actions/checkout@v4
+        with:
+          repository: fraware/neuroai-workbench
+          ref: 0cf399e7bcefd5dce4d47aff95ec1c53718febe8
+          path: .workbench
+          persist-credentials: false
+      - name: Install exact Workbench tree
+        run: python -m pip install --disable-pip-version-check -e .workbench
+      - name: Verify exact HDE projector
+        run: |
+          python - <<'PY'
+          from neuroai_workbench.discovery import project_openfda_hde_pages
+          assert callable(project_openfda_hde_pages)
+          PY
+      - name: Validate S2 HDE programme
+        run: python scripts/validate_openfda_hde_discovery_programme.py
+      - name: Run S2 HDE programme and replay tests
+        run: |
+          python -m unittest tests/test_openfda_hde_discovery_programme.py
+          python -m unittest tests/test_openfda_hde_recorded_replay.py
+      - name: Run exact Workbench HDE projection tests
+        run: python .workbench/tests/test_openfda_hde_discovery_projection.py
+      - name: Exercise exact Workbench projector through S2 replay boundary
+        run: |
+          python - <<'PY'
+          import sys
+          sys.path.insert(0,"scripts")
+          import run_su_regulation_openfda_hde_recorded_replay as replay
+          p=replay._programme();stream=p["query_streams"][0]
+          page={"meta":{"results":{"total":2,"skip":0,"limit":1000}},"results":[
+            {"pma_number":"H999999","supplement_number":None,"trade_name":"HUD Integration System","generic_name":"Neural interface","applicant":"HUD Applicant","decision_date":"20260801","decision_code":"APPR","product_code":"XYZ","street_1":"EXCLUDED ADDRESS"},
+            {"pma_number":"H999999","supplement_number":"S001","trade_name":"HUD Integration System","generic_name":"Neural interface","applicant":"HUD Applicant","decision_date":"20260802","decision_code":"WTDR","product_code":"XYZ","zip":"EXCLUDED ZIP"}
+          ]}
+          bundle={"schema_version":"0.1.0","programme_id":p["programme_id"],"provider":p["provider_contract"]["provider"],"capture_scope":"PARTIAL_VALIDATION","captured_at":"2026-09-01T00:00:00Z","leaf_query_captures":[{"query_id":stream["query_id"],"leaf_query_id":"integration-root","effective_search":stream["search"],"partition_path":[],"pages":[page]}]}
+          result=replay.build_replay(bundle);by={r["record_identity"]:r for r in result["normalized_records"]}
+          assert result["reconciliation"]["materialized_source_namespace_count"]==248
+          assert result["reconciliation"]["union_unique_composite_record_count"]==2
+          assert result["reconciliation"]["leaf_mechanical_blocker_count"]==0
+          assert result["reconciliation"]["mechanically_complete"] is False
+          assert by["HDE:H999999:ORIGINAL"]["decision_semantics"]=="HDE_APPROVAL_RECORDED"
+          assert by["HDE:H999999:ORIGINAL"]["decision_supports_hde_approval"] is True
+          assert by["HDE:H999999:ORIGINAL"]["decision_supports_reasonable_assurance_of_effectiveness"] is False
+          assert by["HDE:H999999:ORIGINAL"]["decision_establishes_facility_irb_approval"] is False
+          assert by["HDE:H999999:S001"]["decision_semantics"]=="WITHDRAWAL_RECORDED"
+          assert "EXCLUDED ADDRESS" not in str(result) and "EXCLUDED ZIP" not in str(result)
+          assert result["reconciliation"]["hde_approval_is_reasonable_assurance_effectiveness_claim"] is False
+          assert result["reconciliation"]["hde_approval_establishes_facility_irb_approval"] is False
+          assert result["reconciliation"]["automatic_effectiveness_claim_creation"] is False
+          assert result["reconciliation"]["automatic_facility_irb_authorization_claim_creation"] is False
+          assert result["reconciliation"]["canonical_successor_ready"] is False
+          PY
+      - name: Verify no raw HDE capture is committed
+        run: |
+          if find . -path './.git' -prune -o -path './.workbench' -prune -o -type f \( -iname '*hde*raw*.json' -o -iname '*hde*page*.json' -o -iname '*hde*response*.json' \) -print | grep -q .; then
+            echo "Raw openFDA HDE replay pages must remain external/ephemeral." >&2
+            exit 1
+          fi
