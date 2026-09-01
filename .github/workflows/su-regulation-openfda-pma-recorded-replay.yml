@@ -1,0 +1,135 @@
+name: SU-REGULATION openFDA PMA recorded replay
+
+on:
+  pull_request:
+    paths:
+      - "curation/openfda_pma_discovery_programme_v0.1.json"
+      - "schemas/openfda-pma-discovery-programme.schema.json"
+      - "schemas/openfda-pma-discovery-replay-input.schema.json"
+      - "scripts/run_su_regulation_openfda_pma_recorded_replay.py"
+      - "scripts/validate_openfda_pma_discovery_programme.py"
+      - "tests/test_openfda_pma_discovery_programme.py"
+      - "tests/test_openfda_pma_recorded_replay.py"
+      - ".github/workflows/su-regulation-openfda-pma-recorded-replay.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  replay-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout observatory data
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Checkout exact proposed Workbench PMA capability
+        uses: actions/checkout@v4
+        with:
+          repository: fraware/neuroai-workbench
+          ref: eee2b6a4ba8ff996c029f75661f65c9f96ebbbef
+          path: .workbench
+          persist-credentials: false
+
+      - name: Install exact Workbench tree
+        run: python -m pip install --disable-pip-version-check -e .workbench
+
+      - name: Verify exact Workbench PMA projector is available
+        run: |
+          python - <<'PY'
+          from neuroai_workbench.discovery import project_openfda_pma_pages
+          assert callable(project_openfda_pma_pages)
+          PY
+
+      - name: Validate S2 PMA programme control
+        run: python scripts/validate_openfda_pma_discovery_programme.py
+
+      - name: Run S2 PMA programme and replay tests
+        run: |
+          python -m unittest tests/test_openfda_pma_discovery_programme.py
+          python -m unittest tests/test_openfda_pma_recorded_replay.py
+
+      - name: Run exact Workbench PMA projection tests
+        run: python .workbench/tests/test_openfda_pma_discovery_projection.py
+
+      - name: Exercise exact Workbench projector through S2 replay boundary
+        run: |
+          python - <<'PY'
+          import sys
+          sys.path.insert(0, "scripts")
+          import run_su_regulation_openfda_pma_recorded_replay as replay
+
+          programme = replay._programme()
+          stream = programme["query_streams"][0]
+          page = {
+              "meta": {"results": {"total": 2, "skip": 0, "limit": 1000}},
+              "results": [
+                  {
+                      "pma_number": "P999999",
+                      "supplement_number": None,
+                      "trade_name": "Integration Neural System",
+                      "generic_name": "Neural interface",
+                      "applicant": "Integration Applicant",
+                      "decision_date": "20260801",
+                      "decision_code": "APPR",
+                      "product_code": "XYZ",
+                      "address_1": "EXCLUDED RAW ADDRESS"
+                  },
+                  {
+                      "pma_number": "P999999",
+                      "supplement_number": "S001",
+                      "trade_name": "Integration Neural System",
+                      "generic_name": "Neural interface",
+                      "applicant": "Integration Applicant",
+                      "decision_date": "20260802",
+                      "decision_code": "WTDR",
+                      "product_code": "XYZ",
+                      "applicant_street_1": "EXCLUDED RAW CONTACT FIELD"
+                  }
+              ]
+          }
+          bundle = {
+              "schema_version": "0.1.0",
+              "programme_id": programme["programme_id"],
+              "provider": programme["provider_contract"]["provider"],
+              "capture_scope": "PARTIAL_VALIDATION",
+              "captured_at": "2026-09-01T00:00:00Z",
+              "leaf_query_captures": [{
+                  "query_id": stream["query_id"],
+                  "leaf_query_id": "integration-root",
+                  "effective_search": stream["search"],
+                  "partition_path": [],
+                  "pages": [page]
+              }]
+          }
+          result = replay.build_replay(bundle)
+          assert result["reconciliation"]["materialized_source_namespace_count"] == 248
+          assert result["reconciliation"]["union_unique_composite_record_count"] == 2
+          assert result["reconciliation"]["leaf_mechanical_blocker_count"] == 0
+          assert result["reconciliation"]["mechanically_complete"] is False
+          by_id = {r["record_identity"]: r for r in result["normalized_records"]}
+          assert by_id["PMA:P999999:ORIGINAL"]["decision_semantics"] == "APPROVAL_RECORDED"
+          assert by_id["PMA:P999999:ORIGINAL"]["decision_supports_approval"] is True
+          assert by_id["PMA:P999999:S001"]["decision_semantics"] == "WITHDRAWAL_RECORDED"
+          assert by_id["PMA:P999999:S001"]["decision_supports_approval"] is False
+          serialized = str(result)
+          assert "EXCLUDED RAW ADDRESS" not in serialized
+          assert "EXCLUDED RAW CONTACT FIELD" not in serialized
+          assert result["reconciliation"]["automatic_original_supplement_lineage_relationship_creation"] is False
+          assert result["reconciliation"]["automatic_current_commercial_configuration_claim_creation"] is False
+          assert result["reconciliation"]["automatic_global_authorization_claim_creation"] is False
+          assert result["reconciliation"]["automatic_reopening_decision"] is False
+          assert result["reconciliation"]["canonical_successor_ready"] is False
+          PY
+
+      - name: Verify no raw PMA capture is committed
+        run: |
+          if find . -path './.git' -prune -o -path './.workbench' -prune -o -type f \( -iname '*pma*raw*.json' -o -iname '*pma*page*.json' -o -iname '*pma*response*.json' \) -print | grep -q .; then
+            echo "Raw openFDA PMA replay pages must remain external/ephemeral." >&2
+            exit 1
+          fi
