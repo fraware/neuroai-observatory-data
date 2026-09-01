@@ -23,7 +23,7 @@ class NihReporterGrantsDiscoveryProgrammeTests(unittest.TestCase):
         self.assertEqual(result["programme_id"], "SU-GRANTS-NIH-REPORTER-v0.1")
         self.assertEqual(result["query_stream_count"], 7)
         self.assertEqual(result["grey_area_stream_count"], 1)
-        self.assertEqual(result["integration_state"], "NOT_IMPLEMENTED")
+        self.assertEqual(result["integration_state"], "PENDING_S1_MERGE")
         self.assertFalse(result["network_requests_performed"])
         self.assertFalse(result["canonical_mutation_performed"])
         self.assertFalse(result["global_recall_claim"])
@@ -60,6 +60,12 @@ class NihReporterGrantsDiscoveryProgrammeTests(unittest.TestCase):
         self.assertFalse(review["award_is_research_success_evidence"])
         self.assertFalse(review["award_is_system_effectiveness_evidence"])
         self.assertFalse(review["award_is_commercial_strength_evidence"])
+
+    def test_unmerged_projector_cannot_be_called_available(self) -> None:
+        modified = copy.deepcopy(self.programme)
+        modified["workbench_dependency"]["integration_state"] = "AVAILABLE"
+        with self.assertRaisesRegex(ValueError, "PENDING_S1_MERGE"):
+            validate_programme(modified, self.registry)
 
     def test_silent_truncation_fails_closed(self) -> None:
         modified = copy.deepcopy(self.programme)
