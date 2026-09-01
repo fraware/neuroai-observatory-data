@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/fraware/neuroai-observatory-data/schemas/observatory-v2-authorization.schema.json",
+  "title": "Observatory v2 explicit operator authorization",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "authorization_type",
+    "authorization_id",
+    "recorded_at",
+    "recorded_by",
+    "candidate_reference",
+    "decision",
+    "decision_rationale",
+    "boundary",
+    "authorization_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "authorization_type": {"const": "OBSERVATORY_V2_S2_OPERATOR_AUTHORIZATION"},
+    "authorization_id": {"type": "string", "pattern": "^OBSAUTH-[0-9A-F]{20}$"},
+    "recorded_at": {"type": "string", "minLength": 1},
+    "recorded_by": {"const": "fraware"},
+    "candidate_reference": {"$ref": "#/$defs/candidateReference"},
+    "decision": {"enum": ["AUTHORIZE", "WITHHOLD"]},
+    "decision_rationale": {"type": "string", "minLength": 1},
+    "supersedes_authorization_id": {"type": "string", "pattern": "^OBSAUTH-[0-9A-F]{20}$"},
+    "boundary": {"type": "string", "minLength": 1},
+    "authorization_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "gitSha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "candidateReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_id",
+        "release_tag",
+        "manifest_sha256",
+        "descriptor_sha256",
+        "candidate_content_sha256",
+        "workbench_compatibility_version",
+        "producer_workbench_commit",
+        "runtime_execution_pin",
+        "observatory_graph_schema_version",
+        "s2_predecessor_release_tag",
+        "s2_predecessor_commit"
+      ],
+      "properties": {
+        "candidate_id": {"type": "string", "pattern": "^OBS-V2-CAND-[0-9A-F]{20}$"},
+        "release_tag": {"type": "string", "minLength": 1},
+        "manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "descriptor_sha256": {"$ref": "#/$defs/sha256"},
+        "candidate_content_sha256": {"$ref": "#/$defs/sha256"},
+        "workbench_compatibility_version": {"type": "string", "minLength": 1},
+        "producer_workbench_commit": {"$ref": "#/$defs/gitSha"},
+        "runtime_execution_pin": {"$ref": "#/$defs/gitSha"},
+        "observatory_graph_schema_version": {"type": "string", "minLength": 1},
+        "s2_predecessor_release_tag": {"type": "string", "minLength": 1},
+        "s2_predecessor_commit": {"$ref": "#/$defs/gitSha"}
+      }
+    }
+  }
+}

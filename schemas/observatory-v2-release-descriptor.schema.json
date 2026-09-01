@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/fraware/neuroai-observatory-data/schemas/observatory-v2-release-descriptor.schema.json",
+  "title": "Observatory v2 S2 candidate descriptor",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "release_type",
+    "release_tag",
+    "candidate_id",
+    "state",
+    "canonical_publication_state",
+    "release_authorized",
+    "published",
+    "record_counts",
+    "candidate_content_sha256",
+    "workbench_compatibility_version",
+    "producer_workbench_commit",
+    "runtime_execution_pin",
+    "observatory_graph_schema_version",
+    "s2_predecessor",
+    "frozen_inputs",
+    "migration_proof",
+    "boundary"
+  ],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "release_type": {"const": "OBSERVATORY_V2_S2_CANDIDATE"},
+    "release_tag": {"type": "string", "minLength": 1},
+    "candidate_id": {"type": "string", "pattern": "^OBS-V2-CAND-[0-9A-F]{20}$"},
+    "state": {"const": "NONCANONICAL_CANDIDATE"},
+    "canonical_publication_state": {"const": "NOT_AUTHORIZED"},
+    "release_authorized": {"const": false},
+    "published": {"const": false},
+    "record_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "Entity",
+        "Source",
+        "Observation",
+        "Assertion",
+        "Event",
+        "Relationship",
+        "Candidate",
+        "ReopeningDecision"
+      ],
+      "properties": {
+        "Entity": {"type": "integer", "minimum": 0},
+        "Source": {"type": "integer", "minimum": 0},
+        "Observation": {"type": "integer", "minimum": 0},
+        "Assertion": {"type": "integer", "minimum": 0},
+        "Event": {"type": "integer", "minimum": 0},
+        "Relationship": {"type": "integer", "minimum": 0},
+        "Candidate": {"type": "integer", "minimum": 0},
+        "ReopeningDecision": {"type": "integer", "minimum": 0}
+      }
+    },
+    "candidate_content_sha256": {"$ref": "#/$defs/sha256"},
+    "workbench_compatibility_version": {"type": "string", "minLength": 1},
+    "producer_workbench_commit": {"$ref": "#/$defs/gitSha"},
+    "runtime_execution_pin": {"$ref": "#/$defs/gitSha"},
+    "observatory_graph_schema_version": {"type": "string", "minLength": 1},
+    "s2_predecessor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["release_tag", "commit"],
+      "properties": {
+        "release_tag": {"type": "string", "minLength": 1},
+        "commit": {"$ref": "#/$defs/gitSha"}
+      }
+    },
+    "frozen_inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["V14", "V16", "DELTA16", "V17", "PRIMA17", "SOURCE_REGISTER14", "MONITOR15"],
+      "properties": {
+        "V14": {"$ref": "#/$defs/sha256"},
+        "V16": {"$ref": "#/$defs/sha256"},
+        "DELTA16": {"$ref": "#/$defs/sha256"},
+        "V17": {"$ref": "#/$defs/sha256"},
+        "PRIMA17": {"$ref": "#/$defs/sha256"},
+        "SOURCE_REGISTER14": {"$ref": "#/$defs/sha256"},
+        "MONITOR15": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "migration_proof": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "field_proof_sha256",
+        "gate_a_decision_sha256",
+        "gate_a_manifest_sha256",
+        "gate_a_descriptor_sha256",
+        "native_candidate_manifest_sha256"
+      ],
+      "properties": {
+        "field_proof_sha256": {"$ref": "#/$defs/sha256"},
+        "gate_a_decision_sha256": {"$ref": "#/$defs/sha256"},
+        "gate_a_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "gate_a_descriptor_sha256": {"$ref": "#/$defs/sha256"},
+        "native_candidate_manifest_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "boundary": {"type": "string", "minLength": 1}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "gitSha": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
+  }
+}
