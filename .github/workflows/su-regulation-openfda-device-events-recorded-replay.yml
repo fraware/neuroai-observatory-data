@@ -1,0 +1,121 @@
+name: SU-REGULATION openFDA device-event recorded replay
+
+on:
+  pull_request:
+    paths:
+      - 'curation/openfda_device_event_discovery_programme_v0.1.json'
+      - 'schemas/openfda-device-event-discovery-programme.schema.json'
+      - 'schemas/openfda-device-event-discovery-replay-input.schema.json'
+      - 'scripts/current_source_namespace.py'
+      - 'scripts/run_su_regulation_openfda_device_events_recorded_replay.py'
+      - 'scripts/validate_openfda_device_event_discovery_programme.py'
+      - 'tests/test_openfda_device_event_discovery_programme.py'
+      - 'tests/test_openfda_device_event_recorded_replay.py'
+      - '.github/workflows/su-regulation-openfda-device-events-recorded-replay.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  replay-contract:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout observatory data
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+
+      - name: Checkout exact merged Workbench provider integration
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: fraware/neuroai-workbench
+          ref: 29f3a93e7a9050684687cc11b0568b7a9c6ef867
+          path: .workbench
+          persist-credentials: false
+
+      - name: Install exact Workbench tree
+        run: python -m pip install --disable-pip-version-check -e .workbench
+
+      - name: Parse replay control
+        run: python -m json.tool schemas/openfda-device-event-discovery-replay-input.schema.json >/dev/null
+
+      - name: Validate current programme
+        run: python scripts/validate_openfda_device_event_discovery_programme.py
+
+      - name: Run S2 programme and replay tests
+        run: |
+          python -m unittest tests.test_openfda_device_event_discovery_programme
+          python -m unittest tests.test_openfda_device_event_recorded_replay
+
+      - name: Run exact Workbench MAUDE projector tests
+        run: python .workbench/tests/test_openfda_device_event_discovery_projection.py
+
+      - name: Exercise exact projector and minimization through current S2 replay
+        run: |
+          python - <<'PY'
+          import sys
+          sys.path.insert(0, 'scripts')
+          import run_su_regulation_openfda_device_events_recorded_replay as replay
+
+          programme = replay._programme()
+          stream = programme['query_streams'][0]
+          page = {
+              'meta': {'results': {'total': 1, 'skip': 0, 'limit': 1000}},
+              'results': [{
+                  'mdr_report_key': '987654321',
+                  'report_number': 'INTEGRATION-MDR',
+                  'date_received': '20260801',
+                  'event_type': 'Malfunction',
+                  'device': [{
+                      'brand_name': 'Integration Fixture Device',
+                      'generic_name': 'neural interface',
+                      'manufacturer_d_name': 'Integration Fixture Manufacturer',
+                      'serial_number': 'MUST-NOT-PROJECT'
+                  }],
+                  'patient': [{'patient_age': 'MUST-NOT-PROJECT'}],
+                  'mdr_text': [{'text': 'MUST-NOT-PROJECT'}]
+              }]
+          }
+          bundle = {
+              'schema_version': '0.1.0',
+              'programme_id': programme['programme_id'],
+              'provider': programme['provider_contract']['provider'],
+              'capture_scope': 'PARTIAL_VALIDATION',
+              'captured_at': '2026-09-02T00:00:00Z',
+              'leaf_query_captures': [{
+                  'query_id': stream['query_id'],
+                  'leaf_query_id': 'integration-root',
+                  'effective_search': stream['search'],
+                  'partition_path': [],
+                  'pages': [page]
+              }]
+          }
+          result = replay.build_replay(bundle)
+          rec = result['reconciliation']
+          assert rec['materialized_source_namespace_count'] == 248
+          assert len(rec['controlled_source_id_set_sha256']) == 64
+          assert rec['union_unique_mdr_report_key_count'] == 1
+          assert rec['leaf_mechanical_blocker_count'] == 0
+          assert rec['mechanically_complete'] is False
+          normalized = result['normalized_mdr_reports'][0]
+          assert 'patient' not in normalized
+          assert 'mdr_text' not in normalized
+          assert 'serial_number' not in normalized['devices'][0]
+          assert normalized['patient_level_fields_included'] is False
+          assert normalized['mdr_text_narrative_included'] is False
+          assert rec['patient_level_fields_emitted'] is False
+          assert rec['mdr_text_narratives_emitted'] is False
+          assert rec['causality_claim'] is False
+          assert rec['canonical_successor_ready'] is False
+          PY
+
+      - name: Verify no raw MAUDE/openFDA capture is committed
+        run: |
+          if find . -path './.git' -prune -o -path './.workbench' -prune -o -type f \( -iname '*maude*raw*.json' -o -iname '*openfda*response*.json' -o -iname '*openfda*page*.json' \) -print | grep -q .; then
+            echo 'Raw openFDA/MAUDE replay pages must remain external/ephemeral.' >&2
+            exit 1
+          fi
