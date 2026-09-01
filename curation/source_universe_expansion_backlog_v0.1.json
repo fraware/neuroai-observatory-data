@@ -1,0 +1,405 @@
+{
+  "schema_version": "0.1.0-draft",
+  "control_id": "NEUROAI-SOURCE-UNIVERSE-EXPANSION-v0.1",
+  "status": "NONCANONICAL_PLANNING_CONTROL",
+  "as_of": "2026-09-01",
+  "objective": "Expand the NeuroAI observatory from a curated locator registry into reproducible source-universe discovery programmes with explicit identity, coverage, provenance, human-adjudication, and publication boundaries.",
+  "baseline": {
+    "governing_registry_path": "releases/data-v0.1.0-public-governing/records/source_monitor_registry_v1.5.json",
+    "registry_record_count_assertion": 224,
+    "audit_required_before_expansion": true,
+    "audit_script": "scripts/audit_source_monitor_registry.py",
+    "note": "Registry record count is not a claim of 224 unique external datasets or providers. Exact external/local/duplicate structure must be derived by the audit script from controlled bytes."
+  },
+  "programme_invariants": [
+    "DISCOVERY_RESULT_IS_NOT_CANONICAL_SOURCE",
+    "SOURCE_IDENTITY_ACCEPTANCE_REQUIRES_HUMAN_DISPOSITION",
+    "SOURCE_ADMISSION_AND_MONITOR_CREATION_ARE_SEPARATE_DECISIONS",
+    "CAPTURE_PROVENANCE_IS_REQUIRED_BEFORE_RETRIEVAL_SUCCESS_IS_CLAIMED",
+    "MECHANICAL_COMPLETION_IS_NOT_DOMAIN_COMPLETENESS",
+    "NO_AUTOMATIC_TRIAL_SYSTEM_RELATIONSHIP_OR_ASSESSMENT_MUTATION",
+    "NO_SILENT_CANONICAL_MUTATION",
+    "QUERY_VERSION_AND_DENOMINATOR_MUST_BE_PRESERVED_WHERE_PROVIDER_SUPPORTS_THEM"
+  ],
+  "scope_dimensions": {
+    "neural_modality": [
+      "EEG",
+      "ECOG",
+      "SEEG",
+      "INTRACORTICAL",
+      "LFP",
+      "MEG",
+      "FMRI",
+      "FNIRS",
+      "NEURAL_STIMULATION",
+      "RETINAL_NEUROPROSTHESIS",
+      "OTHER_NEURAL_SIGNAL_OR_INTERFACE"
+    ],
+    "computational_role": [
+      "DECODING",
+      "CLASSIFICATION",
+      "PREDICTION",
+      "REPRESENTATION_LEARNING",
+      "FOUNDATION_MODEL",
+      "GENERATIVE_RECONSTRUCTION",
+      "ADAPTIVE_CONTROL",
+      "CLOSED_LOOP_OPTIMIZATION",
+      "PERSONALIZATION",
+      "OTHER_AI_ML_ROLE"
+    ],
+    "system_function": [
+      "READ",
+      "WRITE",
+      "MODULATE",
+      "COMMUNICATE",
+      "DIAGNOSE_OR_MONITOR",
+      "REHABILITATE",
+      "AUGMENT"
+    ],
+    "application_context": [
+      "CLINICAL",
+      "RESEARCH",
+      "CONSUMER",
+      "WELLNESS",
+      "WORKPLACE",
+      "EDUCATION",
+      "DEFENSE",
+      "ENTERTAINMENT",
+      "AUTHENTICATION",
+      "OTHER"
+    ],
+    "lifecycle": [
+      "RESEARCH",
+      "PRECLINICAL",
+      "CLINICAL",
+      "REGULATORY",
+      "COMMERCIAL",
+      "POSTMARKET"
+    ]
+  },
+  "scope_tiers": [
+    {
+      "tier": "A",
+      "name": "DIRECT_NEUROAI",
+      "definition": "AI or machine-learning functionality operating materially on neural data, neural interfaces, adaptive neurostimulation, neural decoding, neural representation models, or neuroprosthetic control."
+    },
+    {
+      "tier": "B",
+      "name": "ENABLING_INFRASTRUCTURE",
+      "definition": "Hardware, software, datasets, chips, electrodes, research infrastructure, or suppliers that materially enable Tier A systems without independently establishing a deployed NeuroAI system."
+    },
+    {
+      "tier": "C",
+      "name": "GREY_AREA_REVIEW",
+      "definition": "Systems or components not necessarily framed as medical neurotechnology or NeuroAI but capable of inferring, modifying, targeting, or operationalizing cognition, emotion, attention, agency, identity, mental state, or neural-derived attributes."
+    },
+    {
+      "tier": "D",
+      "name": "CONTEXTUAL_ECOSYSTEM",
+      "definition": "Regulators, standards bodies, funders, hospitals, research institutions, patient organizations, governance bodies, and other contextual actors."
+    }
+  ],
+  "streams": [
+    {
+      "stream_id": "SU-TRIALS",
+      "priority": 0,
+      "domain": "CLINICAL_TRIALS",
+      "state": "IMPLEMENTATION_STACK_OPEN",
+      "provider_programmes": [
+        {
+          "provider": "ClinicalTrials.gov",
+          "surface": "REST_API_V2",
+          "documentation": "https://clinicaltrials.gov/data-about-studies/learn-about-api",
+          "identity_key": "NCT_ID",
+          "access": "PUBLIC",
+          "existing_work": "PR_90_THROUGH_PR_99_STACK"
+        }
+      ],
+      "next_gate": "Land and independently validate the existing SU-TRIALS stack before adding additional trial registries."
+    },
+    {
+      "stream_id": "SU-PUBLICATIONS-BIOMED",
+      "priority": 1,
+      "domain": "SCIENTIFIC_PUBLICATIONS",
+      "state": "NEXT_PROGRAMME",
+      "provider_programmes": [
+        {
+          "provider": "Europe PMC",
+          "surface": "ARTICLES_REST_API",
+          "documentation": "https://europepmc.org/developers",
+          "identity_keys": ["PMID", "PMCID", "DOI"],
+          "access": "PUBLIC"
+        }
+      ],
+      "required_controls": [
+        "QUERY_VERSION",
+        "CURSOR_OR_PAGE_PROVENANCE",
+        "EXACT_IDENTIFIER_DEDUPLICATION",
+        "PUBLICATION_TYPE_STATE",
+        "PREPRINT_VS_PEER_REVIEWED_BOUNDARY",
+        "HUMAN_RELEVANCE_ADJUDICATION"
+      ]
+    },
+    {
+      "stream_id": "SU-PUBLICATIONS-GRAPH",
+      "priority": 1,
+      "domain": "SCIENTIFIC_GRAPH_DISCOVERY",
+      "state": "NEXT_PROGRAMME",
+      "provider_programmes": [
+        {
+          "provider": "OpenAlex",
+          "surface": "REST_API",
+          "documentation": "https://help.openalex.org/api/",
+          "identity_keys": ["OPENALEX_ID", "DOI", "ORCID", "ROR"],
+          "access": "PUBLIC_WITH_KEY_RECOMMENDED_FOR_SCALE"
+        }
+      ],
+      "required_controls": [
+        "CURSOR_PAGINATION",
+        "QUERY_VERSION",
+        "ENTITY_TYPE_PRESERVATION",
+        "CITATION_GRAPH_IS_DISCOVERY_EVIDENCE_ONLY",
+        "HUMAN_RELEVANCE_ADJUDICATION"
+      ]
+    },
+    {
+      "stream_id": "SU-PUBLICATIONS-DOI",
+      "priority": 2,
+      "domain": "BIBLIOGRAPHIC_IDENTITY_AND_METADATA",
+      "state": "PLANNED",
+      "provider_programmes": [
+        {
+          "provider": "Crossref",
+          "surface": "REST_API",
+          "documentation": "https://www.crossref.org/documentation/retrieve-metadata/rest-api/",
+          "identity_key": "DOI",
+          "access": "PUBLIC"
+        }
+      ],
+      "role": "Identifier reconciliation and metadata enrichment; not a substitute for domain relevance adjudication."
+    },
+    {
+      "stream_id": "SU-PATENTS-EPO",
+      "priority": 1,
+      "domain": "PATENTS",
+      "state": "NEXT_PROGRAMME",
+      "provider_programmes": [
+        {
+          "provider": "European Patent Office",
+          "surface": "OPEN_PATENT_SERVICES",
+          "documentation": "https://www.epo.org/en/searching-for-patents/data/web-services/ops",
+          "identity_keys": ["DOCDB_FAMILY", "PUBLICATION_NUMBER", "APPLICATION_NUMBER"],
+          "access": "OAUTH_CREDENTIALS_REQUIRED"
+        }
+      ],
+      "required_controls": [
+        "PATENT_FAMILY_DEDUPLICATION",
+        "BIBLIOGRAPHIC_VS_LEGAL_STATUS_BOUNDARY",
+        "APPLICATION_LANGUAGE_DOES_NOT_ESTABLISH_DEPLOYMENT",
+        "GREY_AREA_SEMANTIC_RETRIEVAL",
+        "HUMAN_RELEVANCE_ADJUDICATION"
+      ]
+    },
+    {
+      "stream_id": "SU-GRANTS-US",
+      "priority": 1,
+      "domain": "RESEARCH_FUNDING",
+      "state": "NEXT_PROGRAMME",
+      "provider_programmes": [
+        {
+          "provider": "NIH RePORTER",
+          "surface": "PROJECT_API_V2",
+          "documentation": "https://api.reporter.nih.gov/",
+          "identity_keys": ["APPLICATION_ID", "CORE_PROJECT_NUMBER"],
+          "access": "PUBLIC"
+        }
+      ],
+      "required_controls": [
+        "AWARD_VS_PROJECT_IDENTITY",
+        "FISCAL_YEAR_STATE",
+        "FUNDED_PROJECT_DOES_NOT_ESTABLISH_RESULT_OR_SYSTEM_VALIDITY",
+        "PI_AND_ORGANIZATION_ENTITY_RESOLUTION"
+      ]
+    },
+    {
+      "stream_id": "SU-GRANTS-EU",
+      "priority": 1,
+      "domain": "RESEARCH_FUNDING",
+      "state": "NEXT_PROGRAMME",
+      "provider_programmes": [
+        {
+          "provider": "CORDIS",
+          "surface": "DATA_EXTRACTION_REST_API",
+          "documentation": "https://cordis.europa.eu/about/dataextractions-api",
+          "identity_keys": ["CORDIS_PROJECT_ID", "GRANT_AGREEMENT_NUMBER"],
+          "access": "REGISTERED_API_KEY"
+        },
+        {
+          "provider": "OpenAIRE",
+          "surface": "GRAPH_API_V3",
+          "documentation": "https://graph.openaire.eu/docs/apis/graph-api/overview/",
+          "identity_keys": ["OPENAIRE_PROJECT_ID", "DOI", "ORCID", "ROR"],
+          "access": "PUBLIC_SUBJECT_TO_RATE_LIMITS"
+        }
+      ],
+      "required_controls": [
+        "PROJECT_IDENTITY_RECONCILIATION",
+        "FUNDER_AND_PROGRAMME_PRESERVATION",
+        "PROJECT_TO_OUTPUT_RELATIONSHIP_PROVENANCE"
+      ]
+    },
+    {
+      "stream_id": "SU-REGULATORY-US",
+      "priority": 1,
+      "domain": "DEVICE_REGULATORY_RECORDS",
+      "state": "NEXT_PROGRAMME",
+      "provider_programmes": [
+        {
+          "provider": "openFDA",
+          "surface": "DEVICE_APIS",
+          "documentation": "https://open.fda.gov/apis/device/",
+          "identity_keys": ["K_NUMBER", "PMA_NUMBER", "PRODUCT_CODE", "UDI_DI"],
+          "access": "PUBLIC_WITH_KEY_RECOMMENDED_FOR_REGULAR_USE"
+        }
+      ],
+      "required_controls": [
+        "REGULATORY_PATHWAY_TYPED_EXPLICITLY",
+        "AUTHORIZATION_SCOPE_BOUND_TO_EXACT_RECORD",
+        "PRODUCT_CODE_AND_MANUFACTURER_ENTITY_RESOLUTION",
+        "NO_EFFECTIVENESS_OR_CONFORMANCE_INFERENCE_BEYOND_RECORD"
+      ]
+    },
+    {
+      "stream_id": "SU-SAFETY-US",
+      "priority": 1,
+      "domain": "POSTMARKET_SAFETY",
+      "state": "NEXT_PROGRAMME",
+      "provider_programmes": [
+        {
+          "provider": "openFDA",
+          "surface": "DEVICE_ADVERSE_EVENT_AND_RECALL_APIS",
+          "documentation": "https://open.fda.gov/apis/device/",
+          "identity_keys": ["MDR_REPORT_KEY", "RECALL_NUMBER", "PRODUCT_CODE", "UDI_DI"],
+          "access": "PUBLIC_WITH_KEY_RECOMMENDED_FOR_REGULAR_USE"
+        }
+      ],
+      "required_controls": [
+        "REPORT_IS_NOT_CAUSALITY_DETERMINATION",
+        "DUPLICATE_REPORT_HANDLING",
+        "DEVICE_IDENTITY_RECONCILIATION",
+        "AGGREGATION_DENOMINATOR_LIMITS",
+        "NO_CLINICAL_ADVICE_INFERENCE"
+      ]
+    },
+    {
+      "stream_id": "SU-DATA-OPENNEURO",
+      "priority": 1,
+      "domain": "NEURAL_DATASETS",
+      "state": "NEXT_PROGRAMME",
+      "provider_programmes": [
+        {
+          "provider": "OpenNeuro",
+          "surface": "GRAPHQL_API",
+          "documentation": "https://docs.openneuro.org/api.html",
+          "identity_keys": ["OPENNEURO_DATASET_ID", "SNAPSHOT_TAG"],
+          "access": "PUBLIC_FOR_MOST_READS"
+        }
+      ],
+      "required_controls": [
+        "DATASET_VS_SNAPSHOT_IDENTITY",
+        "MODALITY_AND_SPECIES_CLASSIFICATION",
+        "LICENSE_AND_DATA_USE_METADATA",
+        "NO_CONSENT_SUITABILITY_INFERENCE_FROM_PUBLICATION_ALONE"
+      ]
+    },
+    {
+      "stream_id": "SU-DATA-DANDI",
+      "priority": 1,
+      "domain": "NEUROPHYSIOLOGY_DATASETS",
+      "state": "NEXT_PROGRAMME",
+      "provider_programmes": [
+        {
+          "provider": "DANDI Archive",
+          "surface": "REST_API",
+          "documentation": "https://dandi.readthedocs.io/en/stable/modref/dandiapi.html",
+          "identity_keys": ["DANDISET_ID", "VERSION"],
+          "access": "PUBLIC_FOR_READS"
+        }
+      ],
+      "required_controls": [
+        "DANDISET_VS_VERSION_IDENTITY",
+        "ASSET_COUNTS_ARE_NOT_DATA_QUALITY",
+        "LICENSE_AND_REUSE_METADATA",
+        "LINKED_PUBLICATION_RECONCILIATION"
+      ]
+    },
+    {
+      "stream_id": "SU-FINANCE-US-PUBLIC",
+      "priority": 2,
+      "domain": "OWNERSHIP_AND_CORPORATE_EVENTS",
+      "state": "PLANNED",
+      "provider_programmes": [
+        {
+          "provider": "SEC EDGAR",
+          "surface": "DATA_SEC_GOV_APIS",
+          "documentation": "https://www.sec.gov/search-filings/edgar-application-programming-interfaces",
+          "identity_keys": ["CIK", "ACCESSION_NUMBER"],
+          "access": "PUBLIC"
+        }
+      ],
+      "required_controls": [
+        "LEGAL_ENTITY_IDENTITY",
+        "FILING_EVENT_VS_SUBSTANTIVE_TRANSACTION_BOUNDARY",
+        "PRIVATE_COMPANY_COVERAGE_LIMIT_EXPLICIT"
+      ]
+    },
+    {
+      "stream_id": "SU-GREY-AREA",
+      "priority": 1,
+      "domain": "NONMEDICAL_AND_RIGHTS_RELEVANT_DISCOVERY",
+      "state": "CROSS_UNIVERSE_DESIGN_REQUIRED",
+      "provider_programmes": [],
+      "strategy": "Run controlled lexical, semantic, and graph-expansion retrieval across patents, publications, trials, grants, company/system evidence, and datasets. Rank candidates for human review; do not classify ethical acceptability automatically.",
+      "review_dimensions": [
+        "NEURAL_PROXIMITY",
+        "AI_CENTRALITY",
+        "MENTAL_STATE_INFERENCE",
+        "NEURAL_OR_COGNITIVE_MODIFICATION",
+        "INDIVIDUAL_LEVEL_TARGETING",
+        "CLOSED_LOOP_CAPABILITY",
+        "DEPLOYMENT_PROXIMITY",
+        "RIGHTS_RELEVANCE"
+      ],
+      "prohibited_inference": "A high grey-area priority score is a triage signal only and does not establish harm, illegality, ethical unacceptability, medical-device status, or UNESCO concern."
+    }
+  ],
+  "execution_gates": [
+    "G0_OPERATIONAL_RUNNER_HEALTH",
+    "G1_BASELINE_REGISTRY_AUDIT",
+    "G2_SOURCE_UNIVERSE_PROGRAMME_CONTRACT",
+    "G3_RECORDED_REPLAY_AND_DENOMINATOR_RECONCILIATION",
+    "G4_HUMAN_RELEVANCE_AND_IDENTITY_ADJUDICATION",
+    "G5_NONCANONICAL_SOURCE_MATERIALIZATION",
+    "G6_MONITOR_PROPOSAL_AND_REVIEW",
+    "G7_COVERAGE_EVALUATION",
+    "G8_EXPLICIT_SUCCESSOR_AUTHORIZATION_AND_PUBLICATION"
+  ],
+  "coverage_metrics": [
+    "KNOWN_REFERENCE_RECALL",
+    "DISCOVERY_YIELD",
+    "DUPLICATE_RATE",
+    "UNRESOLVED_ENTITY_RATE",
+    "PRIMARY_SOURCE_COVERAGE",
+    "GEOGRAPHIC_COVERAGE",
+    "SOURCE_UNIVERSE_COVERAGE",
+    "STABLE_IDENTIFIER_COVERAGE",
+    "CAPTURE_PROVENANCE_COVERAGE",
+    "FRESHNESS_BY_SOURCE_CLASS",
+    "SUCCESSFUL_RETRIEVAL_RATE",
+    "ADJUDICATION_BACKLOG",
+    "NEW_QUALIFYING_ENTITIES_PER_CYCLE",
+    "GREY_AREA_DISCOVERY_YIELD",
+    "DISCOVERY_SATURATION_BY_INDEPENDENT_STREAM"
+  ],
+  "authority_boundary": "This backlog defines noncanonical discovery work. Provider availability, query execution, mechanical reconciliation, human acceptance, Source materialization, monitor creation, canonical succession, scientific truth, regulatory authorization, system conformance, and UNESCO or institutional endorsement remain separate states."
+}
