@@ -1,10 +1,10 @@
 # Observatory v2 S2 release contract
 
-Status: **contract and independent verifier; no production v2 candidate is committed by this change**.
+Status: **graph-native release contract with transitive Gate-A verification**.
 
 ## Purpose
 
-Store S2 is the public data authority for the NeuroAI Observatory. Store S1 (`neuroai-workbench`) produces graph-native candidate bytes after mechanical Gate-A completion; S2 independently verifies those bytes and records explicit publication lineage.
+Store S2 is the public data authority for the NeuroAI Observatory. Store S1 (`neuroai-workbench`) produces graph-native migration artifacts after mechanical Gate-A completion; S2 independently verifies those bytes and records explicit publication lineage.
 
 The controlling lifecycle invariant is:
 
@@ -29,7 +29,7 @@ These fields are never flipped in place. Publication status is derived only from
 
 ## Exact candidate surface
 
-The immutable candidate manifest contains exactly 21 files.
+The immutable candidate manifest contains exactly 25 files.
 
 Eight stable graph-class files:
 
@@ -44,7 +44,7 @@ records/candidates.jsonl
 records/reopening-decisions.jsonl
 ```
 
-Ten governed predecessor-state files:
+Twelve governed predecessor/native-candidate files:
 
 ```text
 migration/entity-predecessor-traces.jsonl
@@ -53,25 +53,40 @@ migration/source-predecessor-traces.jsonl
 migration/predecessor-observation-evidence.jsonl
 migration/event-predecessor-traces.jsonl
 migration/candidate-predecessor-traces.jsonl
+migration/identity-resolution-history.jsonl
+migration/regional-expansion-history.jsonl
 migration/v16-adjudication-state.json
 migration/v17-successor-lineage.json
 migration/residual-predecessor-state.json
 migration/duplicate-container-proofs.json
 ```
 
-Three Gate-A lineage files:
+Five transitive lineage files:
 
 ```text
 migration/gate-a-descriptor.json
 migration/gate-a-manifest.json
 migration/gate-a-decision.json
+migration/native-candidate-descriptor.json
+migration/native-candidate-manifest.json
 ```
 
 Empty graph classes use zero-byte JSONL files. This keeps the public object-file contract stable as native graph coverage expands.
 
-The verifier rejects missing files, extra manifested files, duplicate paths, absolute paths, parent traversal, paths resolving outside the release root, file-digest substitution, malformed JSONL records, or records whose `object_class` does not match the file.
+The verifier rejects missing files, extra manifested files, duplicate paths, absolute paths, parent traversal, paths resolving outside the release root, file-digest substitution, malformed JSONL records, records whose `object_class` does not match the file, or non-empty files for graph classes that the bound native candidate did not materialize.
 
-## Identity hierarchy
+## Transitive identity hierarchy
+
+The S2 candidate does not trust its own manifest as sufficient evidence. It verifies the complete identity chain:
+
+```text
+S2 candidate manifest
+  -> copied Gate-A decision
+  -> copied Gate-A manifest + descriptor
+  -> copied native-candidate manifest + descriptor
+  -> exact copied native graph/traces/history files
+  -> exact copied root governed-preservation files
+```
 
 The candidate binds independent identity dimensions rather than collapsing them:
 
@@ -88,9 +103,24 @@ The candidate binds independent identity dimensions rather than collapsing them:
 - corrected field-proof digest;
 - Gate-A package manifest and descriptor identities;
 - Gate-A mechanical-decision identity;
-- native-candidate manifest identity.
+- native-candidate manifest raw-file identity and canonical manifest identity.
 
 The candidate ID is derived from the candidate content digest.
+
+The distinction between raw-file SHA-256 and canonical-JSON identity is deliberate. The Gate-A package records both for the native-candidate subpackage; S2 recomputes both and does not substitute one for the other.
+
+## Preservation completeness
+
+The first migration candidate preserves two history surfaces that are not native graph objects:
+
+```text
+identity-resolution-history.jsonl   26 records
+regional-expansion-history.jsonl    13 records
+```
+
+These 39 records are part of the governed predecessor state and are digest-bound through the native-candidate manifest. Omitting them or changing them while recomputing only the top-level S2 candidate manifest fails closed.
+
+Likewise, the root Gate-A manifest independently binds the v1.6 adjudication state, v1.7 successor lineage, residual predecessor state, and duplicate-container proofs. Recomputing the top-level S2 manifest cannot launder a substitution in any of these files.
 
 ## Gate-A requirement
 
@@ -111,7 +141,23 @@ The independent verifier checks that this decision:
 - binds the same producer commit, runtime pin, S2 predecessor commit, and graph schema generation;
 - binds the field-proof identity used by the S2 descriptor.
 
-A Gate-A package without the separate PASS decision is insufficient for S2 candidate publication.
+It additionally verifies that the copied Gate-A manifest binds the copied native-candidate subpackage and root preserved files byte-for-byte.
+
+A Gate-A package without the separate PASS decision is insufficient for S2 publication.
+
+## Deterministic candidate builder
+
+The repository provides:
+
+```bash
+python scripts/build_observatory_v2_candidate.py \
+  --gate-a-output <executed-gate-a-output> \
+  --output releases/<tag> \
+  --release-tag <tag> \
+  --predecessor-release-tag <published-predecessor-tag>
+```
+
+The builder copies the exact bound Gate-A/native-candidate bytes, creates zero-byte files for currently absent graph classes, constructs the content-derived S2 candidate identity, and then invokes the independent S2 verifier. It never creates authorization or publication records.
 
 ## Explicit operator authorization
 
@@ -168,6 +214,8 @@ python scripts/verify_observatory_v2_release.py releases/<tag> --require-publish
 
 The verifier is pure Python standard library. It intentionally does not import `neuroai-workbench`, so S2 recomputes release identity independently from S1.
 
+The adversarial contract tests explicitly modify graph records, history sidecars, root preserved state, and the native-candidate manifest and then recompute the top-level S2 candidate identities. Those substitutions must still fail through the transitive lineage chain.
+
 ## Schema files
 
 Declarative contracts:
@@ -179,7 +227,7 @@ schemas/observatory-v2-authorization.schema.json
 schemas/observatory-v2-publication.schema.json
 ```
 
-The executable verifier remains the controlling cross-file integrity check because JSON Schema alone cannot recompute hashes, inspect filesystem path resolution, verify Gate-A digest chains, or determine active authorization state.
+The executable verifier remains the controlling cross-file integrity check because JSON Schema alone cannot recompute hashes, inspect filesystem path resolution, verify transitive Gate-A/native-candidate digest chains, or determine active authorization state.
 
 ## S3 exclusion
 
@@ -187,4 +235,4 @@ No protected S3 capture, credential, private regulatory material, participant da
 
 ## Authority boundary
 
-Successful verification establishes artifact identity and publication lineage. It does not establish scientific truth, clinical validity, regulatory authorization, system conformance, institutional endorsement, UNESCO endorsement, or global completeness.
+Successful candidate verification establishes artifact and migration-lineage integrity. Published-release verification additionally establishes publication lineage. Neither establishes scientific truth, clinical validity, regulatory authorization, system conformance, institutional endorsement, UNESCO endorsement, or global completeness.
