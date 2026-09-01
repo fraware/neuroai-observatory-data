@@ -1,0 +1,106 @@
+name: SU-PATENTS EPO OPS partition proof
+
+on:
+  pull_request:
+    paths:
+      - "curation/epo_ops_patent_discovery_programme_v0.1.json"
+      - "schemas/epo-ops-patent-discovery-replay-input.schema.json"
+      - "schemas/epo-ops-patent-partition-proof-input.schema.json"
+      - "scripts/current_source_namespace.py"
+      - "scripts/run_su_patents_epo_ops_recorded_replay.py"
+      - "scripts/reconcile_su_patents_epo_ops_partitions.py"
+      - "tests/test_epo_ops_patent_recorded_replay.py"
+      - "tests/test_epo_ops_patent_partition_proof.py"
+      - ".github/workflows/su-patents-epo-ops-partition-proof.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  partition-proof-contract:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Checkout exact merged Workbench EPO OPS capability
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: fraware/neuroai-workbench
+          ref: 29f3a93e7a9050684687cc11b0568b7a9c6ef867
+          path: .workbench
+          persist-credentials: false
+      - name: Install exact Workbench tree
+        run: python -m pip install --disable-pip-version-check -e .workbench
+      - name: Verify exact EPO OPS projector
+        run: |
+          python - <<'PY'
+          from neuroai_workbench.discovery import project_epo_ops_search_pages
+          assert callable(project_epo_ops_search_pages)
+          PY
+      - name: Run S2 EPO replay and proof tests
+        run: |
+          python scripts/validate_epo_ops_patent_discovery_programme.py
+          python -m unittest tests.test_epo_ops_patent_recorded_replay
+          python -m unittest tests.test_epo_ops_patent_partition_proof
+      - name: Run exact Workbench EPO OPS tests
+        run: python .workbench/tests/test_epo_ops_discovery_projection.py
+      - name: Verify replay manifest integrity gate detects tampering
+        run: |
+          python - <<'PY'
+          import sys, tempfile
+          from pathlib import Path
+          sys.path.insert(0, "scripts")
+          import run_su_patents_epo_ops_recorded_replay as replay
+          import reconcile_su_patents_epo_ops_partitions as proof
+          sha = "a" * 64
+          result = {
+              "status":"NONCANONICAL_SU_PATENTS_EPO_OPS_RECORDED_REPLAY_PROJECTION",
+              "programme_id":"SU-PATENTS-EPO-OPS-v0.1",
+              "input_provenance":{"captured_at":"2026-09-02T00:00:00Z","controlled_source_id_set_sha256":sha},
+              "known_source_index_summary":{"materialized_source_count":248,"source_id_set_sha256":sha},
+              "query_reports":[],"normalized_patents":[],"known_duplicates":[],"new_candidate_inputs":[],
+              "reconciliation":{"materialized_source_namespace_count":248,"controlled_source_id_set_sha256":sha}
+          }
+          with tempfile.TemporaryDirectory() as td:
+              out = Path(td)
+              manifest = replay.write_projection(result, out)
+              loaded = proof.load_replay_output(out)
+              assert loaded["manifest_sha256"] == manifest["manifest_sha256"]
+              (out / "reconciliation.json").write_text("{}\n", encoding="utf-8")
+              try:
+                  proof.load_replay_output(out)
+              except ValueError as exc:
+                  assert "hash mismatch" in str(exc) or "byte-count mismatch" in str(exc)
+              else:
+                  raise AssertionError("tampered replay package was accepted")
+          PY
+      - name: Verify actual projector fails closed on over-limit bounded parent
+        run: |
+          python - <<'PY'
+          from neuroai_workbench.discovery import project_epo_ops_search_pages
+          xml = '''
+          <world-patent-data><biblio-search total-result-count="2101"><range begin="1" end="1"/><search-result>
+            <exchange-document country="EP" doc-number="1234567" kind="A1"><bibliographic-data>
+              <publication-reference><document-id document-id-type="docdb"><country>EP</country><doc-number>1234567</doc-number><kind>A1</kind><date>20260801</date></document-id></publication-reference>
+              <invention-title lang="en">Synthetic bounded parent</invention-title>
+            </bibliographic-data></exchange-document>
+          </search-result></biblio-search></world-patent-data>
+          '''
+          result = project_epo_ops_search_pages(query_id="DISCOVERY-OPS-BCI-001", query_text='(ta=neural) and pd within "18000101 20260902"', pages=[{"xml":xml}], known_docdb_sources={})
+          c = result["coverage"]
+          assert c["reported_total_result_count"] == 2101
+          assert c["range_sequence_valid"] is True
+          assert c["over_2000_limit"] is True
+          assert c["partition_required"] is True
+          assert c["candidate_emission_refused_due_to_over_limit"] is True
+          assert result["result_records"] == [] and result["normalized_records"] == []
+          PY
+      - name: Verify no raw OPS proof/replay XML is committed
+        run: |
+          if find . -path './.git' -prune -o -path './.workbench' -prune -o -type f \( -iname '*parent*probe*.xml' -o -iname '*partition*raw*.xml' -o -iname '*ops*raw*.xml' -o -iname '*ops*page*.xml' \) -print | grep -q .; then
+            echo "Raw EPO OPS XML must remain external/ephemeral." >&2
+            exit 1
+          fi
