@@ -1,0 +1,71 @@
+name: SU-REGULATION openFDA PMA recorded replay
+on:
+  pull_request:
+    paths:
+      - 'curation/openfda_pma_discovery_programme_v0.1.json'
+      - 'schemas/openfda-pma-discovery-programme.schema.json'
+      - 'schemas/openfda-pma-discovery-replay-input.schema.json'
+      - 'scripts/current_source_namespace.py'
+      - 'scripts/run_su_regulation_openfda_pma_recorded_replay.py'
+      - 'scripts/validate_openfda_pma_discovery_programme.py'
+      - 'tests/test_openfda_pma_discovery_programme.py'
+      - 'tests/test_openfda_pma_recorded_replay.py'
+      - '.github/workflows/su-regulation-openfda-pma-recorded-replay.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  replay-contract:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Checkout exact merged Workbench provider integration
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: fraware/neuroai-workbench
+          ref: 29f3a93e7a9050684687cc11b0568b7a9c6ef867
+          path: .workbench
+          persist-credentials: false
+      - run: python -m pip install --disable-pip-version-check -e .workbench
+      - run: python -m json.tool schemas/openfda-pma-discovery-replay-input.schema.json >/dev/null
+      - run: python scripts/validate_openfda_pma_discovery_programme.py
+      - run: python -m unittest tests.test_openfda_pma_discovery_programme tests.test_openfda_pma_recorded_replay
+      - name: Run exact Workbench PMA projector tests
+        run: python .workbench/tests/test_openfda_pma_discovery_projection.py
+      - name: Exercise original/supplement and pathway semantics through current S2 replay
+        run: |
+          python - <<'PY'
+          import sys
+          sys.path.insert(0,'scripts')
+          import run_su_regulation_openfda_pma_recorded_replay as replay
+          p=replay._programme();s=p['query_streams'][0]
+          page={'meta':{'results':{'total':4,'skip':0,'limit':1000}},'results':[
+            {'pma_number':'P123456','supplement_number':None,'trade_name':'Neural Device','decision_code':'APPR','openfda':{'manufacturer_name':['MUST-NOT-PROJECT']}},
+            {'pma_number':'P123456','supplement_number':'S001','trade_name':'Neural Device','decision_code':'WTDR'},
+            {'pma_number':'H123456','decision_code':'APPR'},
+            {'pma_number':'N123456','decision_code':'APPR'}
+          ]}
+          bundle={'schema_version':'0.1.0','programme_id':p['programme_id'],'provider':p['provider_contract']['provider'],'capture_scope':'PARTIAL_VALIDATION','captured_at':'2026-09-02T00:00:00Z','leaf_query_captures':[{'query_id':s['query_id'],'leaf_query_id':'integration-root','effective_search':s['search'],'partition_path':[],'pages':[page]}]}
+          result=replay.build_replay(bundle);records={x['record_identity']:x for x in result['normalized_pma_records']};q=result['reconciliation']
+          assert set(records)=={'PMA:P123456:ORIGINAL','PMA:P123456:S001'}
+          assert records['PMA:P123456:ORIGINAL']['record_role']=='ORIGINAL_APPLICATION'
+          assert records['PMA:P123456:ORIGINAL']['decision_semantics']=='APPROVAL_RECORDED'
+          assert records['PMA:P123456:ORIGINAL']['decision_supports_approval'] is True
+          assert records['PMA:P123456:S001']['record_role']=='SUPPLEMENT'
+          assert records['PMA:P123456:S001']['decision_semantics']=='WITHDRAWAL_RECORDED'
+          assert records['PMA:P123456:S001']['decision_supports_approval'] is False
+          assert 'openfda' not in records['PMA:P123456:ORIGINAL']
+          assert q['out_of_scope_hde_count']==1 and q['out_of_scope_legacy_nda_count']==1
+          assert q['supplement_approval_is_original_application_approval_claim'] is False
+          assert q['automatic_original_supplement_lineage_relationship_creation'] is False
+          assert q['canonical_successor_ready'] is False
+          PY
+      - name: Verify no raw PMA capture is committed
+        run: |
+          if find . -path './.git' -prune -o -path './.workbench' -prune -o -type f \( -iname '*pma*raw*.json' -o -iname '*pma*response*.json' -o -iname '*pma*page*.json' \) -print | grep -q .; then
+            echo 'Raw openFDA PMA pages must remain external/ephemeral.' >&2
+            exit 1
+          fi
