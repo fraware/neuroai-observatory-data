@@ -2,9 +2,9 @@
 """Independently verify one graph-native Observatory-v2 S2 release directory.
 
 This verifier intentionally uses only the Python standard library. It does not import
-`neuroai-workbench`: S1 produces the release, while S2 independently checks candidate
-identity, fixed public file surface, Gate-A lineage, and optional authorization/publication
-binding.
+neuroai-workbench: S1 produces migration artifacts, while S2 independently checks the
+immutable candidate surface, transitive Gate-A/native-candidate lineage, and optional
+operator authorization/publication binding.
 """
 
 from __future__ import annotations
@@ -43,6 +43,8 @@ MIGRATION_FILES = frozenset(
         "predecessor-observation-evidence.jsonl",
         "event-predecessor-traces.jsonl",
         "candidate-predecessor-traces.jsonl",
+        "identity-resolution-history.jsonl",
+        "regional-expansion-history.jsonl",
         "v16-adjudication-state.json",
         "v17-successor-lineage.json",
         "residual-predecessor-state.json",
@@ -50,12 +52,41 @@ MIGRATION_FILES = frozenset(
         "gate-a-descriptor.json",
         "gate-a-manifest.json",
         "gate-a-decision.json",
+        "native-candidate-descriptor.json",
+        "native-candidate-manifest.json",
     }
 )
 CANDIDATE_FILE_PATHS = frozenset(
     {f"records/{filename}" for filename in OBJECT_CLASS_BY_FILE}
     | {f"migration/{filename}" for filename in MIGRATION_FILES}
 )
+GATE_A_ROOT_FILE_MAP = {
+    "duplicate-container-proofs.json": "migration/duplicate-container-proofs.json",
+    "residual-predecessor-state.json": "migration/residual-predecessor-state.json",
+    "v16-adjudication-state.json": "migration/v16-adjudication-state.json",
+    "v17-successor-lineage.json": "migration/v17-successor-lineage.json",
+}
+NATIVE_CANDIDATE_FILE_MAP = {
+    "candidate-predecessor-traces.jsonl": "migration/candidate-predecessor-traces.jsonl",
+    "candidates.jsonl": "records/candidates.jsonl",
+    "entities.jsonl": "records/entities.jsonl",
+    "entity-predecessor-traces.jsonl": "migration/entity-predecessor-traces.jsonl",
+    "event-predecessor-traces.jsonl": "migration/event-predecessor-traces.jsonl",
+    "events.jsonl": "records/events.jsonl",
+    "identity-resolution-history.jsonl": "migration/identity-resolution-history.jsonl",
+    "predecessor-observation-evidence.jsonl": "migration/predecessor-observation-evidence.jsonl",
+    "preserved-organizations.jsonl": "migration/preserved-organizations.jsonl",
+    "regional-expansion-history.jsonl": "migration/regional-expansion-history.jsonl",
+    "source-predecessor-traces.jsonl": "migration/source-predecessor-traces.jsonl",
+    "sources.jsonl": "records/sources.jsonl",
+}
+NATIVE_GRAPH_COUNT_FIELDS = {
+    "Entity": "native_entities",
+    "Source": "native_sources",
+    "Event": "native_capital_events",
+    "Candidate": "native_change_candidates",
+}
+EMPTY_NATIVE_CLASSES = frozenset({"Observation", "Assertion", "Relationship", "ReopeningDecision"})
 
 
 class VerificationError(ValueError):
@@ -145,12 +176,38 @@ def candidate_reference(descriptor: dict[str, Any], manifest: dict[str, Any]) ->
     }
 
 
+def _manifest_entries(manifest: dict[str, Any], *, label: str) -> tuple[dict[str, str], list[str]]:
+    errors: list[str] = []
+    result: dict[str, str] = {}
+    raw_entries = manifest.get("files")
+    if not isinstance(raw_entries, list):
+        return {}, [f"{label} files manifest is missing"]
+    for item in raw_entries:
+        if not isinstance(item, dict) or set(item) != {"path", "sha256"}:
+            errors.append(f"{label} file entry is invalid")
+            continue
+        path = item.get("path")
+        digest = item.get("sha256")
+        if not isinstance(path, str) or not path or path in result or not is_hex(digest, 64):
+            errors.append(f"{label} file entry identity is invalid")
+            continue
+        result[path] = digest
+    return result, errors
+
+
 def verify_gate_a_lineage(release_dir: Path, descriptor: dict[str, Any]) -> list[str]:
     errors: list[str] = []
     try:
-        gate_descriptor = load_object(release_dir / "migration/gate-a-descriptor.json", "Gate-A descriptor")
-        gate_manifest = load_object(release_dir / "migration/gate-a-manifest.json", "Gate-A manifest")
-        decision = load_object(release_dir / "migration/gate-a-decision.json", "Gate-A decision")
+        gate_descriptor_path = release_dir / "migration/gate-a-descriptor.json"
+        gate_manifest_path = release_dir / "migration/gate-a-manifest.json"
+        decision_path = release_dir / "migration/gate-a-decision.json"
+        native_descriptor_path = release_dir / "migration/native-candidate-descriptor.json"
+        native_manifest_path = release_dir / "migration/native-candidate-manifest.json"
+        gate_descriptor = load_object(gate_descriptor_path, "Gate-A descriptor")
+        gate_manifest = load_object(gate_manifest_path, "Gate-A manifest")
+        decision = load_object(decision_path, "Gate-A decision")
+        native_descriptor = load_object(native_descriptor_path, "native-candidate descriptor")
+        native_manifest = load_object(native_manifest_path, "native-candidate manifest")
     except VerificationError as exc:
         return [str(exc)]
 
@@ -169,15 +226,87 @@ def verify_gate_a_lineage(release_dir: Path, descriptor: dict[str, Any]) -> list
     if decision.get("native_v2_materialization_complete") is not False:
         errors.append("Gate-A decision improperly claims full native materialization")
 
-    controlled_manifest = {key: value for key, value in gate_manifest.items() if key != "manifest_sha256"}
-    if gate_manifest.get("manifest_sha256") != sha256_bytes(canonical_json_bytes(controlled_manifest)):
+    controlled_gate_manifest = {key: value for key, value in gate_manifest.items() if key != "manifest_sha256"}
+    gate_manifest_identity = sha256_bytes(canonical_json_bytes(controlled_gate_manifest))
+    gate_descriptor_identity = sha256_bytes(canonical_json_bytes(gate_descriptor))
+    if gate_manifest.get("manifest_sha256") != gate_manifest_identity:
         errors.append("Gate-A manifest identity mismatch")
-    if gate_manifest.get("descriptor_sha256") != sha256_bytes(canonical_json_bytes(gate_descriptor)):
+    if gate_manifest.get("descriptor_sha256") != gate_descriptor_identity:
         errors.append("Gate-A descriptor identity mismatch")
-    if decision.get("gate_a_package_manifest_sha256") != gate_manifest.get("manifest_sha256"):
+    if decision.get("gate_a_package_manifest_sha256") != gate_manifest_identity:
         errors.append("Gate-A decision/manifest binding mismatch")
-    if decision.get("gate_a_package_descriptor_sha256") != gate_manifest.get("descriptor_sha256"):
+    if decision.get("gate_a_package_descriptor_sha256") != gate_descriptor_identity:
         errors.append("Gate-A decision/descriptor binding mismatch")
+
+    gate_entries, gate_entry_errors = _manifest_entries(gate_manifest, label="Gate-A")
+    errors.extend(gate_entry_errors)
+    if set(gate_entries) != set(GATE_A_ROOT_FILE_MAP):
+        errors.append("Gate-A root file surface mismatch")
+    for source_name, candidate_path in GATE_A_ROOT_FILE_MAP.items():
+        path = release_dir / candidate_path
+        if path.is_file() and gate_entries.get(source_name) != sha256_bytes(path.read_bytes()):
+            errors.append(f"Gate-A copied file digest mismatch: {source_name}")
+
+    subpackages = gate_manifest.get("subpackages")
+    if not isinstance(subpackages, list) or len(subpackages) != 1 or not isinstance(subpackages[0], dict):
+        errors.append("Gate-A native-candidate subpackage declaration mismatch")
+        subpackage: dict[str, Any] = {}
+    else:
+        subpackage = subpackages[0]
+        if subpackage.get("path") != "native-candidate":
+            errors.append("Gate-A native-candidate subpackage path mismatch")
+
+    native_manifest_file_sha = sha256_bytes(native_manifest_path.read_bytes())
+    native_descriptor_file_sha = sha256_bytes(native_descriptor_path.read_bytes())
+    controlled_native_manifest = {key: value for key, value in native_manifest.items() if key != "manifest_sha256"}
+    native_manifest_identity = sha256_bytes(canonical_json_bytes(controlled_native_manifest))
+    native_descriptor_identity = sha256_bytes(canonical_json_bytes(native_descriptor))
+    if native_manifest.get("manifest_sha256") != native_manifest_identity:
+        errors.append("native-candidate manifest identity mismatch")
+    if native_manifest.get("descriptor_sha256") != native_descriptor_identity:
+        errors.append("native-candidate descriptor identity mismatch")
+    if subpackage.get("manifest_file_sha256") != native_manifest_file_sha:
+        errors.append("Gate-A native-candidate manifest file binding mismatch")
+    if subpackage.get("manifest_identity") != native_manifest_identity:
+        errors.append("Gate-A native-candidate manifest identity binding mismatch")
+    if gate_descriptor.get("native_candidate_manifest_sha256") != native_manifest_file_sha:
+        errors.append("Gate-A descriptor native-candidate manifest file binding mismatch")
+    if gate_descriptor.get("native_candidate_descriptor_sha256") != native_descriptor_file_sha:
+        errors.append("Gate-A descriptor native-candidate descriptor file binding mismatch")
+    if gate_descriptor.get("native_candidate_manifest_identity") != native_manifest_identity:
+        errors.append("Gate-A descriptor native-candidate manifest identity mismatch")
+
+    native_entries, native_entry_errors = _manifest_entries(native_manifest, label="native-candidate")
+    errors.extend(native_entry_errors)
+    if set(native_entries) != set(NATIVE_CANDIDATE_FILE_MAP):
+        errors.append("native-candidate governed file surface mismatch")
+    for source_name, candidate_path in NATIVE_CANDIDATE_FILE_MAP.items():
+        path = release_dir / candidate_path
+        if path.is_file() and native_entries.get(source_name) != sha256_bytes(path.read_bytes()):
+            errors.append(f"native-candidate copied file digest mismatch: {source_name}")
+
+    for filename, object_class in OBJECT_CLASS_BY_FILE.items():
+        if object_class in EMPTY_NATIVE_CLASSES:
+            path = release_dir / "records" / filename
+            if path.is_file() and path.read_bytes() != b"":
+                errors.append(f"{filename} must be exactly empty for this migrated candidate")
+
+    native_counts = native_descriptor.get("counts")
+    candidate_counts = descriptor.get("record_counts")
+    if not isinstance(native_counts, dict) or not isinstance(candidate_counts, dict):
+        errors.append("native/S2 record count lineage is missing")
+    else:
+        for object_class, native_field in NATIVE_GRAPH_COUNT_FIELDS.items():
+            if candidate_counts.get(object_class) != native_counts.get(native_field):
+                errors.append(f"native/S2 {object_class} count binding mismatch")
+        if sum(int(candidate_counts.get(name, 0)) for name in OBJECT_CLASS_BY_FILE.values()) != native_counts.get(
+            "native_candidate_objects"
+        ):
+            errors.append("native/S2 total object count binding mismatch")
+        if native_counts.get("preserved_identity_resolution_history") != 26:
+            errors.append("native-candidate identity-resolution history count mismatch")
+        if native_counts.get("preserved_regional_expansion_history") != 13:
+            errors.append("native-candidate regional-expansion history count mismatch")
 
     for field in ("producer_workbench_commit", "runtime_execution_pin", "s2_predecessor_commit"):
         if decision.get(field) != gate_descriptor.get(field):
@@ -187,6 +316,20 @@ def verify_gate_a_lineage(release_dir: Path, descriptor: dict[str, Any]) -> list
     ):
         errors.append("Gate-A graph-schema binding mismatch")
 
+    candidate_bindings = {
+        "workbench_compatibility_version": gate_descriptor.get("workbench_compatibility_version"),
+        "producer_workbench_commit": gate_descriptor.get("producer_workbench_commit"),
+        "runtime_execution_pin": gate_descriptor.get("runtime_execution_pin"),
+        "observatory_graph_schema_version": str(gate_descriptor.get("observatory_graph_schema_version") or ""),
+    }
+    for field, expected in candidate_bindings.items():
+        observed = str(descriptor.get(field) or "") if field == "observatory_graph_schema_version" else descriptor.get(field)
+        if observed != expected:
+            errors.append(f"candidate/Gate-A {field} binding mismatch")
+    predecessor = descriptor.get("s2_predecessor")
+    if not isinstance(predecessor, dict) or predecessor.get("commit") != gate_descriptor.get("s2_predecessor_commit"):
+        errors.append("candidate/Gate-A S2 predecessor commit mismatch")
+
     proof = descriptor.get("migration_proof")
     if not isinstance(proof, dict):
         errors.append("candidate migration_proof is missing")
@@ -194,8 +337,9 @@ def verify_gate_a_lineage(release_dir: Path, descriptor: dict[str, Any]) -> list
         bindings = {
             "field_proof_sha256": decision.get("field_proof_sha256"),
             "gate_a_decision_sha256": decision.get("decision_sha256"),
-            "gate_a_manifest_sha256": gate_manifest.get("manifest_sha256"),
-            "gate_a_descriptor_sha256": gate_manifest.get("descriptor_sha256"),
+            "gate_a_manifest_sha256": gate_manifest_identity,
+            "gate_a_descriptor_sha256": gate_descriptor_identity,
+            "native_candidate_manifest_sha256": native_manifest_file_sha,
         }
         for field, expected in bindings.items():
             if proof.get(field) != expected:
