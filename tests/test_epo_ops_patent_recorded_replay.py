@@ -155,7 +155,8 @@ class EpoOpsPatentRecordedReplayTests(unittest.TestCase):
             projector=lambda **_: _projection(),
             known_index=_known(),
         )
-        self.assertIn(term, result["reconciliation"]["missing_applicant_terms"])
+        self.assertNotIn(term, result["reconciliation"]["missing_applicant_terms"])
+        self.assertEqual(len(result["reconciliation"]["missing_applicant_terms"]), len(q["applicant_terms"]) - 1)
         self.assertFalse(result["reconciliation"]["all_logical_queries_represented"])
 
         bad = _capture(q["query_id"], cql, applicant="Not in watch set")
