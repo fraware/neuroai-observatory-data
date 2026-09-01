@@ -1,0 +1,60 @@
+name: SU-REGULATION openFDA device recalls recorded replay
+on:
+  pull_request:
+    paths:
+      - "curation/openfda_device_recall_discovery_programme_v0.1.json"
+      - "schemas/openfda-device-recall-discovery-programme.schema.json"
+      - "schemas/openfda-device-recall-discovery-replay-input.schema.json"
+      - "scripts/run_su_regulation_openfda_device_recalls_recorded_replay.py"
+      - "tests/test_openfda_device_recall_discovery_programme.py"
+      - "tests/test_openfda_device_recall_recorded_replay.py"
+      - ".github/workflows/su-regulation-openfda-device-recalls-recorded-replay.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  replay-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Checkout exact proposed Workbench recall projector
+        uses: actions/checkout@v4
+        with:
+          repository: fraware/neuroai-workbench
+          ref: cc98a33fd24e9ea2cbaad4588d29babfb25ba6d3
+          path: .workbench
+          persist-credentials: false
+      - name: Install exact Workbench tree
+        run: python -m pip install --disable-pip-version-check -e .workbench
+      - name: Validate S2 programme and replay
+        run: |
+          python scripts/validate_openfda_device_recall_discovery_programme.py
+          python -m unittest tests/test_openfda_device_recall_discovery_programme.py
+          python -m unittest tests/test_openfda_device_recall_recorded_replay.py
+      - name: Run exact Workbench recall projection tests
+        run: python .workbench/tests/test_openfda_device_recall_discovery_projection.py
+      - name: Exercise exact projector through S2 replay boundary
+        run: |
+          python - <<'PY'
+          import sys
+          sys.path.insert(0,"scripts")
+          import run_su_regulation_openfda_device_recalls_recorded_replay as replay
+          p=replay._programme(); q=p["query_streams"][0]
+          raw={"cfres_id":"FIXTURE-1","res_event_number":"EVENT-1","product_description":"Synthetic neural interface recall","recall_status":"Ongoing","address_1":"must disappear","code_info":"LOT SERIAL must disappear","distribution_pattern":"must disappear"}
+          bundle={"schema_version":"0.1.0","programme_id":p["programme_id"],"provider":p["provider_contract"]["provider"],"capture_scope":"PARTIAL_VALIDATION","captured_at":"2026-09-01T00:00:00Z","leaf_query_captures":[{"query_id":q["query_id"],"leaf_query_id":"integration-root","effective_search":q["search"],"partition_path":[],"pages":[{"meta":{"results":{"total":1,"skip":0,"limit":1000}},"results":[raw]}]}]}
+          result=replay.build_replay(bundle)
+          assert result["reconciliation"]["materialized_source_namespace_count"]==248
+          assert result["reconciliation"]["union_unique_cfres_id_count"]==1
+          assert result["reconciliation"]["canonical_successor_ready"] is False
+          n=result["normalized_records"][0]
+          assert "address_1" not in n and "code_info" not in n and "distribution_pattern" not in n
+          PY
+      - name: Refuse committed raw recall captures
+        run: |
+          if find . -path './.git' -prune -o -path './.workbench' -prune -o -type f \( -iname '*recall*raw*.json' -o -iname '*recall*response*.json' -o -iname '*recall*page*.json' \) -print | grep -q .; then
+            echo "Raw openFDA recall pages must remain external/ephemeral." >&2
+            exit 1
+          fi
