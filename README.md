@@ -39,6 +39,8 @@ schemas/                 JSON Schema for release and governance records
 releases/                Versioned public release directories
 fixtures/                Synthetic public examples only; never production captures
 scripts/                 Deterministic manifest and release verification
+scripts/build_observatory_v2_candidate.py
+                         Deterministic builder from exact executed Gate-A output
 scripts/verify_observatory_v2_release.py
                          Independent S2 verifier for graph-native Observatory v2 releases
 docs/                    Release, branch-protection, and signed-publication policy
@@ -69,6 +71,8 @@ releases/<tag>/
     predecessor-observation-evidence.jsonl
     event-predecessor-traces.jsonl
     candidate-predecessor-traces.jsonl
+    identity-resolution-history.jsonl
+    regional-expansion-history.jsonl
     v16-adjudication-state.json
     v17-successor-lineage.json
     residual-predecessor-state.json
@@ -76,12 +80,16 @@ releases/<tag>/
     gate-a-descriptor.json
     gate-a-manifest.json
     gate-a-decision.json
+    native-candidate-descriptor.json
+    native-candidate-manifest.json
   governance/
     authorizations/*.json
     publication.json
 ```
 
-The 21 candidate files under `records/` and `migration/` are the immutable candidate surface. Governance records are deliberately outside that candidate manifest so explicit authorization never rewrites candidate bytes.
+The 25 candidate files under `records/` and `migration/` are the immutable candidate surface. Governance records are deliberately outside that candidate manifest so explicit authorization never rewrites candidate bytes.
+
+S2 verification is transitive, not self-referential. The verifier recomputes the S2 candidate identities, the Gate-A decision/package identities, the native-candidate manifest/descriptor identities, and the byte-level bindings from those manifests to copied graph, trace, history, and root preservation files. Recomputing only the top-level S2 manifest cannot launder a substituted predecessor-state or graph file.
 
 Candidate verification:
 
@@ -95,7 +103,7 @@ Require an exact active `AUTHORIZE` record plus matching publication record:
 python scripts/verify_observatory_v2_release.py releases/<tag> --require-published
 ```
 
-The verifier is standard-library-only and intentionally independent of `neuroai-workbench`. S1 produces the candidate; S2 recomputes its identities, validates the fixed file surface and graph classes, re-checks Gate-A lineage, and verifies publication binding independently.
+The verifier is standard-library-only and intentionally independent of `neuroai-workbench`. S1 produces migration artifacts; S2 independently recomputes artifact identity and publication lineage.
 
 See [docs/observatory-v2-release-contract.md](docs/observatory-v2-release-contract.md).
 
