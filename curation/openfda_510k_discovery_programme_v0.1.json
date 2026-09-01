@@ -1,0 +1,102 @@
+{
+  "schema_version":"1.0.0-draft",
+  "programme_id":"SU-REGULATION-OPENFDA-510K-v0.1",
+  "status":"NONCANONICAL_PROGRAMME_CONTROL",
+  "source_universe_id":"SU-REGULATION",
+  "source_system":"OPENFDA_DEVICE_510K",
+  "as_of":"2026-09-01",
+  "provider_contract":{
+    "provider":"U.S. FDA openFDA Device 510(k) API",
+    "endpoint":"https://api.fda.gov/device/510k.json",
+    "method":"GET",
+    "response_media_type":"application/json",
+    "source_dataset":"510(k) Clearances",
+    "time_period_start":"1976",
+    "provider_update_frequency":"MONTHLY",
+    "reported_denominator_path":"meta.results.total",
+    "skip_path":"meta.results.skip",
+    "limit_path":"meta.results.limit",
+    "results_path":"results",
+    "primary_submission_id_field":"k_number",
+    "max_records_per_request":1000,
+    "max_skip":25000,
+    "max_direct_result_count":26000,
+    "provider_supports_search_after":true,
+    "provider_supports_bulk_downloads":true,
+    "configuration_performs_http":false
+  },
+  "workbench_dependency":{"minimum_package_line":"0.3.0.dev0","required_capability":"project_openfda_510k_pages","integration_state":"NOT_IMPLEMENTED"},
+  "identity_policy":{
+    "primary_identity":"K_NUMBER",
+    "admitted_prefixes":["K","BK"],
+    "den_prefix_is_de_novo_and_out_of_scope_for_v0_1":true,
+    "same_device_name_auto_merge":false,
+    "same_applicant_auto_entity_merge":false,
+    "product_code_auto_system_merge":false,
+    "openfda_harmonized_fields_auto_identity_merge":false,
+    "record_content_change_is_successor_observation_not_new_submission_identity":true,
+    "conflicting_same_k_number_policy":"FAIL_CLOSED"
+  },
+  "inclusion_policy":{
+    "candidate_scope":"DECLARED_OPENFDA_510K_SEARCH_MATCH_WITH_K_OR_BK_PREFIX",
+    "automatic_source_admission":false,
+    "automatic_system_or_device_entity_creation":false,
+    "automatic_applicant_entity_creation":false,
+    "automatic_predicate_relationship_creation":false,
+    "automatic_global_authorization_claim_creation":false,
+    "automatic_safety_effectiveness_claim_creation":false,
+    "automatic_system_conformance_claim_creation":false,
+    "automatic_assessment_mutation":false,
+    "automatic_reopening_decision":false,
+    "automatic_monitor_creation":false,
+    "human_relevance_review_required":true
+  },
+  "paging_policy":{
+    "execution_mode_v0_1":"SKIP_LIMIT_BOUNDED",
+    "page_limit":1000,
+    "initial_skip":0,
+    "max_skip":25000,
+    "max_direct_result_count":26000,
+    "over_limit_policy":"SEARCH_AFTER_OR_DECISION_DATE_PARTITION_REQUIRED_BEFORE_MATERIALIZATION",
+    "preferred_partition_field":"decision_date",
+    "silent_truncation_allowed":false,
+    "partial_over_limit_candidate_emission_allowed":false,
+    "search_after_not_yet_authorized_by_v0_1_projector":true,
+    "partition_provenance_required":true
+  },
+  "query_streams":[
+    {"query_id":"DISCOVERY-OPENFDA-510K-BCI-001","search":"device_name:\"brain+computer+interface\"+OR+device_name:\"brain+machine+interface\"+OR+device_name:\"neural+interface\"","cadence":"MONTHLY","status":"ACTIVE","scope_tiers":["A"],"purpose":"510(k) discovery for explicit BCI/neural-interface device names.","completeness_claim":false},
+    {"query_id":"DISCOVERY-OPENFDA-510K-DBS-NEUROSTIM-001","search":"device_name:\"deep+brain+stimulator\"+OR+device_name:\"deep+brain+stimulation\"+OR+device_name:neurostimulator","cadence":"MONTHLY","status":"ACTIVE","scope_tiers":["A","B"],"purpose":"510(k) discovery for DBS and neurostimulator device names.","completeness_claim":false},
+    {"query_id":"DISCOVERY-OPENFDA-510K-NEUROPROSTHESIS-001","search":"device_name:neuroprosthesis+OR+device_name:\"neural+prosthesis\"+OR+device_name:\"brain+prosthesis\"","cadence":"MONTHLY","status":"ACTIVE","scope_tiers":["A","B"],"purpose":"510(k) discovery for neuroprosthetic device names.","completeness_claim":false},
+    {"query_id":"DISCOVERY-OPENFDA-510K-VISUAL-NEUROPROSTHESIS-001","search":"device_name:\"retinal+prosthesis\"+OR+device_name:\"retinal+implant\"+OR+device_name:\"visual+prosthesis\"","cadence":"MONTHLY","status":"ACTIVE","scope_tiers":["A","B"],"purpose":"510(k) discovery for retinal and visual prosthetic device names.","completeness_claim":false},
+    {"query_id":"DISCOVERY-OPENFDA-510K-NEURAL-RECORDING-001","search":"device_name:\"intracortical+electrode\"+OR+device_name:\"brain+electrode\"+OR+device_name:electrocorticography","cadence":"MONTHLY","status":"ACTIVE","scope_tiers":["A","B"],"purpose":"510(k) discovery for invasive neural-recording device names.","completeness_claim":false}
+  ],
+  "candidate_projection":{
+    "required_fields":["k_number","device_name","applicant","date_received","decision_date","decision_code","decision_description","clearance_type","product_code","statement_or_summary","expedited_review_flag","third_party_flag","query_memberships","normalized_record_sha256"],
+    "address_or_contact_fields_in_discovery_layer":false,
+    "raw_api_pages_emitted_to_s2":false,
+    "den_records_emitted_as_510k_candidates":false
+  },
+  "coverage_contract":{
+    "required_metrics_per_leaf_query":["supplied_page_count","returned_record_count","unique_k_number_count","reported_total_count","reported_total_count_state","skip_sequence_valid","skip_coverage_state","over_26000_limit","search_after_or_partition_required","out_of_scope_den_count","known_controlled_duplicate_count","new_candidate_count","duplicate_representation_count","unresolved_k_number_count"],
+    "mechanical_completion_requires":{"reported_total_count_state":"CONSISTENT","skip_sequence_valid":true,"skip_coverage_state":"MATCH","over_26000_limit":false,"search_after_or_partition_required":false},
+    "device_510k_database_completeness_claim":false,
+    "global_neuroai_510k_recall_claim":false,
+    "query_recall_claim":false,
+    "clearance_is_pma_approval_claim":false,
+    "clearance_is_global_authorization_claim":false,
+    "clearance_is_all_configuration_conformance_claim":false
+  },
+  "human_review_contract":{
+    "required_dispositions":["ACCEPT","REJECT","DEFER","EXCLUDE"],
+    "review_questions":["Is the K/BK submission materially relevant to an exact represented NeuroAI/neurotechnology system?","Is k_number exact and is the record truly in 510(k) scope rather than DEN De Novo scope?","What exact device/intended-use/configuration relationship is supported by this clearance record?","Can applicant/product-code links be resolved without name-only automatic merging?","Does this clearance create a bounded assessment reopening trigger, and what human authority decides that?","What approval, global-authorization, safety/effectiveness or conformance inference is prohibited beyond the FDA decision scope?"],
+    "automatic_acceptance":false,
+    "clearance_record_is_pma_approval":false,
+    "clearance_record_is_global_authorization":false,
+    "clearance_record_is_full_clinical_effectiveness_determination":false,
+    "clearance_record_is_all_configuration_conformance_evidence":false,
+    "clearance_record_automatically_reopens_assessment":false
+  },
+  "network_policy":{"live_execution":"OPT_IN_ONLY","requires_workbench_network_gate":true,"configuration_performs_http":false,"hosted_success_claim_allowed_without_runner_steps":false},
+  "boundary":"This programme discovers exact FDA 510(k) clearance records for K/BK submissions. A 510(k) record establishes an FDA substantial-equivalence decision within the submission's scope. It does not establish PMA approval, global authorization, complete clinical effectiveness, exact identity of every commercial configuration, system-wide conformance, automatic assessment reopening, or UNESCO/institutional endorsement. DEN-prefixed De Novo records are explicitly out of scope for v0.1 and require a separate programme."
+}
