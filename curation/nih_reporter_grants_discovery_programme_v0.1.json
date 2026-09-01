@@ -24,7 +24,7 @@
   "workbench_dependency": {
     "minimum_package_line": "0.3.0.dev0",
     "required_capability": "project_nih_reporter_search_pages",
-    "integration_state": "NOT_IMPLEMENTED"
+    "integration_state": "PENDING_S1_MERGE"
   },
   "identity_policy": {
     "primary_identity": "NIH_REPORTER_APPL_ID",
