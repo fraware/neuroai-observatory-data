@@ -1,0 +1,37 @@
+name: SU-REGULATION openFDA device-event programme
+
+on:
+  pull_request:
+    paths:
+      - "curation/openfda_device_event_discovery_programme_v0.1.json"
+      - "schemas/openfda-device-event-discovery-programme.schema.json"
+      - "scripts/validate_openfda_device_event_discovery_programme.py"
+      - "tests/test_openfda_device_event_discovery_programme.py"
+      - ".github/workflows/su-regulation-openfda-device-events-programme.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-programme:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validate programme offline
+        run: python scripts/validate_openfda_device_event_discovery_programme.py
+      - name: Run programme tests
+        run: python -m unittest tests/test_openfda_device_event_discovery_programme.py
+      - name: Verify no provider captures or secrets are committed
+        run: |
+          if find . -path './.git' -prune -o -type f \( -iname '*maude*raw*.json' -o -iname '*openfda*response*.json' -o -iname '*openfda*page*.json' \) -print | grep -q .; then
+            echo "Raw openFDA/MAUDE captures must remain external to this programme-definition layer." >&2
+            exit 1
+          fi
+          if grep -R -I -n -E '(OPENFDA_API_KEY|api_key)[[:space:]]*[:=][[:space:]]*[A-Za-z0-9_-]{16,}' . --exclude-dir=.git; then
+            echo "Potential openFDA API key material found." >&2
+            exit 1
+          fi
