@@ -1,0 +1,37 @@
+name: SU-REGULATION openFDA HDE programme
+
+on:
+  pull_request:
+    paths:
+      - "curation/openfda_hde_discovery_programme_v0.1.json"
+      - "schemas/openfda-hde-discovery-programme.schema.json"
+      - "scripts/validate_openfda_hde_discovery_programme.py"
+      - "tests/test_openfda_hde_discovery_programme.py"
+      - ".github/workflows/su-regulation-openfda-hde-programme.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validate HDE programme control
+        run: python scripts/validate_openfda_hde_discovery_programme.py
+      - name: Run HDE programme tests
+        run: python -m unittest tests/test_openfda_hde_discovery_programme.py
+      - name: Verify no raw FDA capture or API key is committed
+        run: |
+          if find . -path './.git' -prune -o -type f \( -iname '*hde*raw*.json' -o -iname '*hde*page*.json' -o -iname '*hde*response*.json' \) -print | grep -q .; then
+            echo "Raw HDE provider pages must remain external/ephemeral." >&2
+            exit 1
+          fi
+          if grep -RIn --exclude-dir=.git -E 'api_key[=:][[:space:]]*[A-Za-z0-9_-]{16,}' .; then
+            echo "Apparent API key committed." >&2
+            exit 1
+          fi
