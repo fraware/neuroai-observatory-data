@@ -1,0 +1,267 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "europepmc-publications-discovery-programme.schema.json",
+  "title": "SU-PUBLICATIONS Europe PMC discovery programme",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "programme_id",
+    "status",
+    "source_universe_id",
+    "source_system",
+    "as_of",
+    "provider_contract",
+    "workbench_dependency",
+    "identity_policy",
+    "inclusion_policy",
+    "known_identifier_anchors",
+    "query_streams",
+    "candidate_projection",
+    "coverage_contract",
+    "human_review_contract",
+    "network_policy",
+    "boundary"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0-draft"},
+    "programme_id": {"const": "SU-PUBLICATIONS-EUROPEPMC-v0.1"},
+    "status": {"const": "NONCANONICAL_PROGRAMME_CONTROL"},
+    "source_universe_id": {"const": "SU-PUBLICATIONS"},
+    "source_system": {"const": "EUROPE_PMC"},
+    "as_of": {"type": "string", "format": "date"},
+    "provider_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "api_endpoint",
+        "documentation",
+        "query_parameter",
+        "format",
+        "result_type",
+        "page_size",
+        "pagination_mode",
+        "first_cursor_mark",
+        "next_cursor_field",
+        "reported_denominator_field",
+        "synonym_expansion",
+        "configuration_performs_http"
+      ],
+      "properties": {
+        "provider": {"const": "Europe PMC"},
+        "api_endpoint": {"const": "https://www.ebi.ac.uk/europepmc/webservices/rest/search"},
+        "documentation": {"type": "string", "format": "uri"},
+        "query_parameter": {"const": "query"},
+        "format": {"const": "json"},
+        "result_type": {"enum": ["idlist", "lite", "core"]},
+        "page_size": {"type": "integer", "minimum": 1, "maximum": 1000},
+        "pagination_mode": {"const": "CURSOR_MARK"},
+        "first_cursor_mark": {"const": "*"},
+        "next_cursor_field": {"const": "nextCursorMark"},
+        "reported_denominator_field": {"const": "hitCount"},
+        "synonym_expansion": {"const": false},
+        "configuration_performs_http": {"const": false}
+      }
+    },
+    "workbench_dependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimum_package_line", "required_capability", "integration_state"],
+      "properties": {
+        "minimum_package_line": {"const": "0.3.0.dev0"},
+        "required_capability": {"const": "project_europepmc_search_pages"},
+        "integration_state": {"enum": ["NOT_IMPLEMENTED", "PENDING_S1_MERGE", "AVAILABLE"]}
+      }
+    },
+    "identity_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preferred_identity_order",
+        "doi_normalization",
+        "pmid_normalization",
+        "pmcid_normalization",
+        "fallback_identity",
+        "fuzzy_title_identity_merge_allowed",
+        "cross_query_deduplication",
+        "conflicting_same_identity_policy",
+        "preprint_journal_version_auto_merge"
+      ],
+      "properties": {
+        "preferred_identity_order": {
+          "type": "array",
+          "prefixItems": [
+            {"const": "DOI"},
+            {"const": "PMID"},
+            {"const": "PMCID"},
+            {"const": "SOURCE_PLUS_EXT_ID"}
+          ],
+          "items": false,
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "doi_normalization": {"const": "LOWERCASE_TRIMMED_DOI_WITHOUT_HTTPS_PREFIX"},
+        "pmid_normalization": {"const": "DECIMAL_STRING"},
+        "pmcid_normalization": {"const": "UPPERCASE_PMC_IDENTIFIER"},
+        "fallback_identity": {"const": "SOURCE_PLUS_EXT_ID"},
+        "fuzzy_title_identity_merge_allowed": {"const": false},
+        "cross_query_deduplication": {"const": "EXACT_PREFERRED_RESOLVED_IDENTIFIER"},
+        "conflicting_same_identity_policy": {"const": "FAIL_CLOSED"},
+        "preprint_journal_version_auto_merge": {"const": false}
+      }
+    },
+    "inclusion_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_scope",
+        "automatic_publication_source_admission",
+        "automatic_model_or_system_relationship_creation",
+        "automatic_dataset_relationship_creation",
+        "automatic_assessment_mutation",
+        "automatic_monitor_creation",
+        "human_relevance_review_required",
+        "full_text_required_for_discovery"
+      ],
+      "properties": {
+        "candidate_scope": {"const": "TITLE_OR_ABSTRACT_MATCH_UNDER_DECLARED_QUERY_STREAM"},
+        "automatic_publication_source_admission": {"const": false},
+        "automatic_model_or_system_relationship_creation": {"const": false},
+        "automatic_dataset_relationship_creation": {"const": false},
+        "automatic_assessment_mutation": {"const": false},
+        "automatic_monitor_creation": {"const": false},
+        "human_relevance_review_required": {"const": true},
+        "full_text_required_for_discovery": {"const": false}
+      }
+    },
+    "known_identifier_anchors": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["anchor_id", "title", "doi", "pmid", "purpose", "counts_as_new_discovery"],
+        "properties": {
+          "anchor_id": {"type": "string", "minLength": 1},
+          "title": {"type": "string", "minLength": 1},
+          "doi": {"type": "string", "pattern": "^10\\.[^/]+/.+$"},
+          "pmid": {"type": "string", "pattern": "^[0-9]+$"},
+          "purpose": {"type": "string", "minLength": 1},
+          "counts_as_new_discovery": {"const": false}
+        }
+      }
+    },
+    "query_streams": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["query_id", "query_term", "cadence", "status", "scope_tiers", "purpose", "completeness_claim"],
+        "properties": {
+          "query_id": {"type": "string", "pattern": "^DISCOVERY-EPMC-[A-Z0-9-]+$"},
+          "query_term": {"type": "string", "minLength": 1},
+          "cadence": {"enum": ["DAILY", "WEEKLY", "MONTHLY", "QUARTERLY"]},
+          "status": {"enum": ["ACTIVE", "PAUSED", "RETIRED"]},
+          "scope_tiers": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {"enum": ["A", "B", "C", "D"]}
+          },
+          "purpose": {"type": "string", "minLength": 1},
+          "completeness_claim": {"const": false}
+        }
+      }
+    },
+    "candidate_projection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required_fields", "raw_api_page_payloads_emitted_to_s2", "full_text_emitted_to_s2", "participant_level_data_emitted"],
+      "properties": {
+        "required_fields": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "raw_api_page_payloads_emitted_to_s2": {"const": false},
+        "full_text_emitted_to_s2": {"const": false},
+        "participant_level_data_emitted": {"const": false}
+      }
+    },
+    "coverage_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required_metrics_per_query",
+        "mechanical_completion_requires",
+        "publication_database_completeness_claim",
+        "global_neuroai_publication_recall_claim",
+        "query_recall_claim",
+        "mechanical_completion_semantics"
+      ],
+      "properties": {
+        "required_metrics_per_query": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "mechanical_completion_requires": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["cursor_sequence_valid", "terminal_cursor_state", "reported_hit_count_state", "reported_total_reconciliation_state"],
+          "properties": {
+            "cursor_sequence_valid": {"const": true},
+            "terminal_cursor_state": {"const": "TERMINAL"},
+            "reported_hit_count_state": {"const": "CONSISTENT"},
+            "reported_total_reconciliation_state": {"const": "MATCH"}
+          }
+        },
+        "publication_database_completeness_claim": {"const": false},
+        "global_neuroai_publication_recall_claim": {"const": false},
+        "query_recall_claim": {"const": false},
+        "mechanical_completion_semantics": {"type": "string", "minLength": 1}
+      }
+    },
+    "human_review_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required_dispositions", "review_questions", "automatic_acceptance"],
+      "properties": {
+        "required_dispositions": {
+          "type": "array",
+          "prefixItems": [
+            {"const": "ACCEPT"},
+            {"const": "REJECT"},
+            {"const": "DEFER"},
+            {"const": "EXCLUDE"}
+          ],
+          "items": false,
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "review_questions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "automatic_acceptance": {"const": false}
+      }
+    },
+    "network_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["live_execution", "requires_workbench_network_gate", "configuration_performs_http", "hosted_success_claim_allowed_without_runner_steps"],
+      "properties": {
+        "live_execution": {"const": "OPT_IN_ONLY"},
+        "requires_workbench_network_gate": {"const": true},
+        "configuration_performs_http": {"const": false},
+        "hosted_success_claim_allowed_without_runner_steps": {"const": false}
+      }
+    },
+    "boundary": {"type": "string", "minLength": 1}
+  }
+}
