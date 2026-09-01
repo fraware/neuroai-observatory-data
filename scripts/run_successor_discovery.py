@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_WATCH_CONFIG = ROOT / "curation" / "successor_discovery_watches_v0.1.json"
 STATUS = "DEVELOPMENT_SUCCESSOR_DISCOVERY_WATCHES_NOT_CANONICAL"
 REPORT_STATUS = "DEVELOPMENT_SUCCESSOR_DISCOVERY_REPORT_NOT_CANONICAL"
+TRANSPORT_SECURITY = "DNS_PINNED_VALIDATED_ADDRESS_SET"
 
 
 class _LinkParser(HTMLParser):
@@ -174,14 +175,14 @@ def discover_from_html(watch: dict[str, Any], body: bytes) -> list[dict[str, Any
 
 
 def run_discovery(config: dict[str, Any], overlay: dict[str, Any]) -> dict[str, Any]:
+    from neuroai_workbench.collector import PinnedSocketHttpTransport
     from neuroai_workbench.collector.config import CollectorConfig
     from neuroai_workbench.collector.http_client import HttpClient
-    from neuroai_workbench.collector.transport import StdlibHttpTransport
 
     watches = verify_watch_config(config, overlay)
     client = HttpClient(
         config=CollectorConfig(
-            collector_version="successor-discovery-v0.1",
+            collector_version="successor-discovery-v0.2-dns-pinned",
             configuration_hash="0" * 64,
             max_response_bytes=5 * 1024 * 1024,
             max_redirects=8,
@@ -191,7 +192,7 @@ def run_discovery(config: dict[str, Any], overlay: dict[str, Any]) -> dict[str, 
             max_attempts=1,
             requests_per_host_per_minute=20,
         ),
-        transport=StdlibHttpTransport(),
+        transport=PinnedSocketHttpTransport(),
     )
     reports: list[dict[str, Any]] = []
     for watch_id in sorted(watches):
@@ -220,8 +221,9 @@ def run_discovery(config: dict[str, Any], overlay: dict[str, Any]) -> dict[str, 
         semantic["watch_report_sha256"] = sha256(semantic)
         reports.append(semantic)
     report: dict[str, Any] = {
-        "schema_version": "1",
+        "schema_version": "2",
         "status": REPORT_STATUS,
+        "transport_security": TRANSPORT_SECURITY,
         "watch_config_sha256": sha256(config),
         "lifecycle_overlay_sha256": overlay["overlay_sha256"],
         "watch_count": len(reports),
@@ -254,6 +256,7 @@ def main() -> int:
         json.dumps(
             {
                 "status": report["status"],
+                "transport_security": report["transport_security"],
                 "watch_count": report["watch_count"],
                 "candidate_count": report["candidate_count"],
                 "report_sha256": report["report_sha256"],
