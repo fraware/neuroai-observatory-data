@@ -74,7 +74,7 @@ def validate_programme(programme: dict[str, Any], registry: dict[str, Any]) -> d
 
     dependency = programme.get("workbench_dependency") or {}
     _require(dependency.get("required_capability") == "project_nih_reporter_search_pages", "Unexpected Workbench capability")
-    _require(dependency.get("integration_state") in {"NOT_IMPLEMENTED", "PENDING_S1_MERGE", "AVAILABLE"}, "Invalid integration state")
+    _require(dependency.get("integration_state") == "PENDING_S1_MERGE", "Proposed RePORTER projector must remain PENDING_S1_MERGE until merged")
 
     identity = programme.get("identity_policy") or {}
     _require(identity.get("primary_identity") == "NIH_REPORTER_APPL_ID", "appl_id identity changed")
