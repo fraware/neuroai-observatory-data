@@ -3,11 +3,15 @@ import hashlib,json,tempfile,unittest
 from pathlib import Path
 import scripts.run_su_regulation_openfda_device_classification_recorded_replay as replay
 
+def _mock_code(query_id:str)->str:
+    raw=hashlib.sha256(query_id.encode()).digest()
+    return "".join(chr(ord("A")+(raw[index]%26)) for index in range(3))
+
 def _coverage(query_id:str,*,proposed:bool=False)->dict:
     return {"supplied_page_count":1,"returned_record_count":1,"unique_product_code_count":1,"reported_total_count":1,"reported_total_count_state":"CONSISTENT","skip_sequence_valid":True,"skip_coverage_state":"MATCH","over_26000_limit":False,"bulk_download_or_partition_required":False,"known_controlled_duplicate_count":0,"new_candidate_count":1,"duplicate_representation_count":0,"unresolved_product_code_count":0,"regulation_referenced_classification_count":0 if proposed else 1,"proposed_not_final_classification_count":1 if proposed else 0,"query_id":query_id,"product_code_is_exact_device_identity_claim":False,"classification_record_is_marketing_authorization_claim":False,"classification_record_is_clearance_or_approval_claim":False,"device_class_is_system_conformance_claim":False}
 
 def _mock_projector(*,query_id,search,pages,known_product_code_sources):
-    code=("A"+hashlib.sha256(query_id.encode()).hexdigest()[:2]).upper()
+    code=_mock_code(query_id)
     finality="PROPOSED_CLASS_NOT_FINAL" if query_id.endswith("RECORDING-001") else "REGULATION_REFERENCED_CLASSIFICATION"
     normalized={"record_identity":code,"product_code":code,"device_name":"Device category","definition":"Generic category","device_class":"2","classification_finality":finality,"regulation_number":None if finality=="PROPOSED_CLASS_NOT_FINAL" else "882.9999","medical_specialty":"NE","medical_specialty_description":"Neurology","review_code":"N","implant_flag":"Y","life_sustain_support_flag":"N","gmp_exempt_flag":"N","query_memberships":[query_id],"normalized_record_sha256":hashlib.sha256((code+finality).encode()).hexdigest()}
     duplicate=known_product_code_sources.get(code)
@@ -35,7 +39,7 @@ class DeviceClassificationReplayTests(unittest.TestCase):
         bundle=_bundle();bundle["leaf_query_captures"][0]["partition_path"]=[{"dimension":"UNAUTHORIZED"}]
         with self.assertRaisesRegex(ValueError,"does not authorize partitioned"):replay.build_replay(bundle,projector=_mock_projector,known_index=_known())
     def test_exact_known_product_code_is_preserved_as_duplicate(self):
-        query_id=replay._programme()["query_streams"][0]["query_id"];code=("A"+hashlib.sha256(query_id.encode()).hexdigest()[:2]).upper();result=replay.build_replay(_bundle(),projector=_mock_projector,known_index=_known({code:"SRC-EXACT"}));self.assertEqual(result["known_duplicates"][0]["duplicate_of_source_id"],"SRC-EXACT")
+        query_id=replay._programme()["query_streams"][0]["query_id"];code=_mock_code(query_id);result=replay.build_replay(_bundle(),projector=_mock_projector,known_index=_known({code:"SRC-EXACT"}));self.assertEqual(result["known_duplicates"][0]["duplicate_of_source_id"],"SRC-EXACT")
     def test_cross_query_content_conflict_fails_closed(self):
         bundle=_bundle("PARTIAL_VALIDATION",2)
         def conflicting(*,query_id,search,pages,known_product_code_sources):
