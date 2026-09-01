@@ -1,0 +1,48 @@
+name: SU-REGULATION openFDA device-event programme
+
+on:
+  pull_request:
+    paths:
+      - 'curation/openfda_device_event_discovery_programme_v0.1.json'
+      - 'schemas/openfda-device-event-discovery-programme.schema.json'
+      - 'scripts/validate_openfda_device_event_discovery_programme.py'
+      - 'tests/test_openfda_device_event_discovery_programme.py'
+      - 'curation/source_universe_registry_v0.1.json'
+      - '.github/workflows/su-regulation-openfda-device-event-programme.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-programme:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Parse controls
+        run: |
+          python -m json.tool curation/openfda_device_event_discovery_programme_v0.1.json >/dev/null
+          python -m json.tool schemas/openfda-device-event-discovery-programme.schema.json >/dev/null
+      - name: Validate programme
+        run: python scripts/validate_openfda_device_event_discovery_programme.py
+      - name: Run focused tests
+        run: python -m unittest tests.test_openfda_device_event_discovery_programme
+      - name: Assert minimization and nonauthority boundary
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('curation/openfda_device_event_discovery_programme_v0.1.json',encoding='utf-8'))
+          assert p['workbench_dependency']['integration_state']=='AVAILABLE'
+          assert p['candidate_projection']['patient_level_fields_in_discovery_layer'] is False
+          assert p['candidate_projection']['mdr_text_narrative_capture_in_discovery_layer'] is False
+          assert p['candidate_projection']['raw_api_pages_emitted_to_s2'] is False
+          assert p['paging_policy']['search_after_not_yet_authorized_by_v0_1_projector'] is True
+          assert p['coverage_contract']['causality_claim'] is False
+          assert p['coverage_contract']['incidence_or_rate_claim'] is False
+          assert p['coverage_contract']['comparative_safety_claim'] is False
+          assert p['inclusion_policy']['automatic_safety_signal_creation'] is False
+          assert p['network_policy']['api_key_secret_may_be_committed'] is False
+          PY

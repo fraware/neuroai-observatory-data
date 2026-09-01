@@ -1,0 +1,37 @@
+"""Validate bounded openFDA/MAUDE device-event programme offline."""
+from __future__ import annotations
+import json
+from pathlib import Path
+from typing import Any
+PROGRAMME_PATH=Path("curation/openfda_device_event_discovery_programme_v0.1.json");UNIVERSE_REGISTRY_PATH=Path("curation/source_universe_registry_v0.1.json")
+EXPECTED={"DISCOVERY-OPENFDA-MAUDE-BCI-001","DISCOVERY-OPENFDA-MAUDE-DBS-NEUROSTIM-001","DISCOVERY-OPENFDA-MAUDE-NEUROPROSTHESIS-001","DISCOVERY-OPENFDA-MAUDE-VISUAL-NEUROPROSTHESIS-001","DISCOVERY-OPENFDA-MAUDE-IMPLANTED-NEURAL-RECORDING-001"}
+FIELDS={"mdr_report_key","report_number","date_received","report_date","event_type","product_problems","source_type","remedial_action","removal_correction_number","devices","query_memberships","normalized_record_sha256"}
+DEVICE_FIELDS={"brand_name","generic_name","udi_di","device_report_product_code","model_number","manufacturer_d_name","implant_flag"}
+COVERAGE={"supplied_page_count","returned_record_count","unique_mdr_report_key_count","reported_total_count","reported_total_count_state","skip_sequence_valid","skip_coverage_state","over_26000_limit","search_after_or_partition_required","known_controlled_duplicate_count","new_candidate_count","duplicate_representation_count","unresolved_mdr_report_key_count"}
+def _load(p:Path)->Any:return json.loads(p.read_text(encoding="utf-8"))
+def _require(c:bool,m:str)->None:
+    if not c:raise ValueError(m)
+def _universe(reg:dict[str,Any])->dict[str,Any]:
+    rows=reg.get("universes");_require(isinstance(rows,list),"Source-universe registry must contain universes");matches=[r for r in rows if r.get("universe_id")=="SU-REGULATION"];_require(len(matches)==1,"Expected exactly one SU-REGULATION universe");return matches[0]
+def validate_programme(p:dict[str,Any],reg:dict[str,Any])->dict[str,Any]:
+    _require(p.get("programme_id")=="SU-REGULATION-OPENFDA-DEVICE-EVENTS-v0.1","Unexpected programme_id");_require(p.get("status")=="NONCANONICAL_PROGRAMME_CONTROL","Programme must remain noncanonical");_require(p.get("source_universe_id")=="SU-REGULATION","Programme must bind SU-REGULATION");_require(_universe(reg).get("canonical_completeness_claim") is False,"SU-REGULATION must not claim completeness")
+    provider=p.get("provider_contract") or {};_require(provider.get("endpoint")=="https://api.fda.gov/device/event.json" and provider.get("method")=="GET","Provider endpoint changed");_require(provider.get("source_dataset")=="MAUDE","Dataset changed");_require(provider.get("primary_report_id_field")=="mdr_report_key","MDR identity changed");_require(provider.get("max_records_per_request")==1000 and provider.get("max_skip")==25000 and provider.get("max_direct_skip_limit_result_count")==26000,"Paging bounds changed");_require(provider.get("configuration_performs_http") is False,"Programme config must not perform HTTP")
+    dep=p.get("workbench_dependency") or {};_require(dep.get("required_capability")=="project_openfda_device_event_pages","Unexpected Workbench capability");_require(dep.get("integration_state")=="AVAILABLE","Merged MAUDE projector must be AVAILABLE")
+    ident=p.get("identity_policy") or {};_require(ident.get("primary_identity")=="MDR_REPORT_KEY" and ident.get("conflicting_same_mdr_report_key_policy")=="FAIL_CLOSED","MDR identity policy changed")
+    for k in ("report_number_auto_merge","followup_or_supplement_auto_new_identity","device_brand_name_auto_system_merge","manufacturer_name_auto_entity_merge","udi_auto_system_merge","product_code_auto_system_merge"):_require(ident.get(k) is False,f"{k} must remain false")
+    _require(ident.get("record_content_change_is_successor_observation_not_new_report_identity") is True,"Same-key content change semantics changed")
+    inc=p.get("inclusion_policy") or {}
+    for k in ("automatic_source_admission","automatic_system_or_device_entity_creation","automatic_manufacturer_entity_creation","automatic_safety_signal_creation","automatic_causality_claim_creation","automatic_incidence_or_rate_claim_creation","automatic_regulatory_action_creation","automatic_assessment_mutation","automatic_monitor_creation"):_require(inc.get(k) is False,f"{k} must remain false")
+    _require(inc.get("human_relevance_review_required") is True,"Human review required")
+    paging=p.get("paging_policy") or {};_require(paging.get("execution_mode_v0_1")=="SKIP_LIMIT_BOUNDED" and paging.get("page_limit")==1000 and paging.get("max_skip")==25000 and paging.get("max_direct_result_count")==26000,"Paging policy changed");_require(paging.get("preferred_partition_field")=="date_received","Partition field changed");_require(paging.get("silent_truncation_allowed") is False and paging.get("partial_over_limit_candidate_emission_allowed") is False and paging.get("search_after_not_yet_authorized_by_v0_1_projector") is True,"Over-limit boundary changed")
+    streams=p.get("query_streams");_require(isinstance(streams,list),"query_streams required");ids=[str(r.get("query_id") or "") for r in streams];_require(set(ids)==EXPECTED and len(ids)==len(set(ids)),"MAUDE query set changed")
+    for r in streams:_require(r.get("cadence")=="WEEKLY" and r.get("status")=="ACTIVE" and r.get("completeness_claim") is False,f"{r.get('query_id')}: cadence/status/completeness changed");_require("+OR+" in str(r.get("search") or ""),f"{r.get('query_id')}: explicit OR semantics required")
+    proj=p.get("candidate_projection") or {};_require(set(proj.get("required_fields") or [])==FIELDS and set(proj.get("device_fields") or [])==DEVICE_FIELDS,"Projection fields changed");_require(proj.get("patient_level_fields_in_discovery_layer") is False and proj.get("mdr_text_narrative_capture_in_discovery_layer") is False and proj.get("raw_api_pages_emitted_to_s2") is False,"Minimization boundary changed")
+    cov=p.get("coverage_contract") or {};_require(set(cov.get("required_metrics_per_leaf_query") or [])==COVERAGE,"Coverage metrics changed");_require(cov.get("mechanical_completion_requires")=={"reported_total_count_state":"CONSISTENT","skip_sequence_valid":True,"skip_coverage_state":"MATCH","over_26000_limit":False,"search_after_or_partition_required":False},"Mechanical completion contract changed")
+    for k in ("maude_database_completeness_claim","global_neuroai_postmarket_recall_claim","query_recall_claim","causality_claim","incidence_or_rate_claim","comparative_safety_claim"):_require(cov.get(k) is False,f"{k} must remain false")
+    review=p.get("human_review_contract") or {}
+    for k in ("automatic_acceptance","mdr_report_is_causality_evidence","mdr_count_is_incidence_evidence","mdr_count_is_comparative_safety_evidence","mdr_report_is_fda_conclusion","mdr_report_is_recall_or_enforcement_action","mdr_report_is_system_nonconformance_evidence_by_itself"):_require(review.get(k) is False,f"{k} must remain false")
+    net=p.get("network_policy") or {};_require(net.get("live_execution")=="OPT_IN_ONLY" and net.get("requires_workbench_network_gate") is True and net.get("api_key_secret_may_be_committed") is False and net.get("configuration_performs_http") is False,"Network/security boundary changed")
+    return {"programme_id":p["programme_id"],"query_stream_count":len(streams),"integration_state":dep["integration_state"],"network_requests_performed":False,"patient_fields_authorized":False,"mdr_narrative_authorized":False,"canonical_mutation_performed":False}
+def main()->None:print(json.dumps(validate_programme(_load(PROGRAMME_PATH),_load(UNIVERSE_REGISTRY_PATH)),indent=2,sort_keys=True))
+if __name__=="__main__":main()
