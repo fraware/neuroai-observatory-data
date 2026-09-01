@@ -55,7 +55,7 @@ jobs:
           python -m unittest tests/test_nih_reporter_grants_recorded_replay.py
 
       - name: Run exact Workbench RePORTER projection tests
-        run: python .workbench/tests/test_nih_reporter_grants_discovery_projection.py
+        run: python .workbench/tests/test_nih_reporter_discovery_projection.py
 
       - name: Exercise actual projector through S2 replay boundary
         run: |
