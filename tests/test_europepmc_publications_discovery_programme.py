@@ -24,7 +24,7 @@ class EuropePmcPublicationsDiscoveryProgrammeTests(unittest.TestCase):
         self.assertEqual(result["source_universe_id"], "SU-PUBLICATIONS")
         self.assertEqual(result["query_stream_count"], 8)
         self.assertEqual(result["anchor_count"], 2)
-        self.assertEqual(result["integration_state"], "NOT_IMPLEMENTED")
+        self.assertEqual(result["integration_state"], "PENDING_S1_MERGE")
         self.assertFalse(result["network_requests_performed"])
         self.assertFalse(result["canonical_mutation_performed"])
         self.assertFalse(result["global_recall_claim"])
@@ -53,6 +53,13 @@ class EuropePmcPublicationsDiscoveryProgrammeTests(unittest.TestCase):
         self.assertFalse(self.programme["identity_policy"]["fuzzy_title_identity_merge_allowed"])
         self.assertEqual(self.programme["identity_policy"]["conflicting_same_identity_policy"], "FAIL_CLOSED")
 
+    def test_non_preprint_metric_does_not_assert_peer_review(self) -> None:
+        metrics = set(self.programme["coverage_contract"]["required_metrics_per_query"])
+        self.assertIn("non_preprint_record_count", metrics)
+        self.assertIn("publication_type_missing_count", metrics)
+        self.assertIn("source_distribution", metrics)
+        self.assertNotIn("peer_reviewed_or_journal_count", metrics)
+
     def test_anchor_cannot_be_counted_as_new_discovery(self) -> None:
         modified = copy.deepcopy(self.programme)
         modified["known_identifier_anchors"][0]["counts_as_new_discovery"] = True
@@ -69,6 +76,12 @@ class EuropePmcPublicationsDiscoveryProgrammeTests(unittest.TestCase):
         modified = copy.deepcopy(self.programme)
         modified["identity_policy"]["fuzzy_title_identity_merge_allowed"] = True
         with self.assertRaisesRegex(ValueError, "Fuzzy title identity merge"):
+            validate_programme(modified, self.registry)
+
+    def test_unmerged_projector_cannot_be_called_available(self) -> None:
+        modified = copy.deepcopy(self.programme)
+        modified["workbench_dependency"]["integration_state"] = "AVAILABLE"
+        with self.assertRaisesRegex(ValueError, "PENDING_S1_MERGE"):
             validate_programme(modified, self.registry)
 
     def test_completeness_claim_fails_closed(self) -> None:
