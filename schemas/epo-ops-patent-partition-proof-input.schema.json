@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "epo-ops-patent-partition-proof-input.schema.json",
+  "title": "SU-PATENTS EPO OPS dated partition proof input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "programme_id",
+    "proof_id",
+    "replay_manifest_sha256",
+    "captured_at",
+    "dated_universe_lower_bound",
+    "partition_roots"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1.0"},
+    "programme_id": {"const": "SU-PATENTS-EPO-OPS-v0.1"},
+    "proof_id": {"type": "string", "pattern": "^OPS-PARTITION-PROOF-[A-Za-z0-9._-]+$"},
+    "replay_manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "captured_at": {"type": "string", "minLength": 1},
+    "dated_universe_lower_bound": {"const": "18000101"},
+    "partition_roots": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "query_id",
+          "applicant_term",
+          "bounded_parent_cql",
+          "parent_probe_pages",
+          "leaf_intervals"
+        ],
+        "properties": {
+          "query_id": {"type": "string", "pattern": "^DISCOVERY-OPS-[A-Z0-9-]+$"},
+          "applicant_term": {"type": ["string", "null"]},
+          "bounded_parent_cql": {"type": "string", "minLength": 1},
+          "parent_probe_pages": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["xml"],
+              "properties": {"xml": {"type": "string", "minLength": 1}}
+            }
+          },
+          "leaf_intervals": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["leaf_query_id", "lower_date", "upper_date"],
+              "properties": {
+                "leaf_query_id": {"type": "string", "minLength": 1},
+                "lower_date": {"type": "string", "pattern": "^[0-9]{8}$"},
+                "upper_date": {"type": "string", "pattern": "^[0-9]{8}$"}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
