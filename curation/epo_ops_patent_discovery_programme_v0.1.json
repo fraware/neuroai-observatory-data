@@ -9,7 +9,8 @@
     "provider": "European Patent Office Open Patent Services",
     "api_version": "3.2",
     "server": "https://ops.epo.org/3.2/rest-services",
-    "search_endpoint": "/published-data/search",
+    "search_endpoint": "/published-data/search/biblio",
+    "search_constituent": "biblio",
     "query_language": "CQL",
     "query_parameter": "q",
     "response_media_type": "application/exchange+xml",
@@ -24,7 +25,7 @@
   "workbench_dependency": {
     "minimum_package_line": "0.3.0.dev0",
     "required_capability": "project_epo_ops_search_pages",
-    "integration_state": "NOT_IMPLEMENTED"
+    "integration_state": "PENDING_S1_MERGE"
   },
   "identity_policy": {
     "primary_identity": "DOCDB_PUBLICATION_REFERENCE",
