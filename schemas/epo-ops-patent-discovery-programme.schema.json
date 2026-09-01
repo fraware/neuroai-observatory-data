@@ -34,7 +34,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "provider", "api_version", "server", "search_endpoint", "query_language",
+        "provider", "api_version", "server", "search_endpoint", "search_constituent", "query_language",
         "query_parameter", "response_media_type", "range_transport", "max_records_per_range",
         "max_retrievable_results_per_search", "authentication",
         "registration_required_for_programmatic_execution", "free_weekly_data_threshold_gb",
@@ -44,7 +44,8 @@
         "provider": {"const": "European Patent Office Open Patent Services"},
         "api_version": {"const": "3.2"},
         "server": {"const": "https://ops.epo.org/3.2/rest-services"},
-        "search_endpoint": {"const": "/published-data/search"},
+        "search_endpoint": {"const": "/published-data/search/biblio"},
+        "search_constituent": {"const": "biblio"},
         "query_language": {"const": "CQL"},
         "query_parameter": {"const": "q"},
         "response_media_type": {"const": "application/exchange+xml"},
