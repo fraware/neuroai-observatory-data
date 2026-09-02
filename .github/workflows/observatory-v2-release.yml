@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "scripts/verify_observatory_v2_release.py"
+      - "scripts/run_pre_g0_b02_controlled_live_proof.py"
       - "tests/test_observatory_v2_release_contract.py"
       - "tests/test_production_monitoring_hardening.py"
       - "schemas/observatory-v2-*.schema.json"
@@ -13,10 +14,12 @@ on:
       - ".github/workflows/operational-live-cycle.yml"
       - ".github/workflows/successor-discovery.yml"
       - ".github/workflows/operational-interruption-resume-drill.yml"
+      - ".github/workflows/pre-g0-b02-controlled-live-proof.yml"
   push:
     branches: [main]
     paths:
       - "scripts/verify_observatory_v2_release.py"
+      - "scripts/run_pre_g0_b02_controlled_live_proof.py"
       - "tests/test_observatory_v2_release_contract.py"
       - "tests/test_production_monitoring_hardening.py"
       - "schemas/observatory-v2-*.schema.json"
@@ -26,6 +29,7 @@ on:
       - ".github/workflows/operational-live-cycle.yml"
       - ".github/workflows/successor-discovery.yml"
       - ".github/workflows/operational-interruption-resume-drill.yml"
+      - ".github/workflows/pre-g0-b02-controlled-live-proof.yml"
 
 permissions:
   contents: read
