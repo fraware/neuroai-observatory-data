@@ -1,0 +1,105 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-02_B04_PROOF_PATH_SUCCESSOR",
+  "status": "PRE_G0_SUCCESSOR_STATE_NONCANONICAL",
+  "as_of": "2026-09-02",
+  "purpose": "Append-only successor state after merging the non-production PRE-G0 B04 graph publication authority proof path. The proof path is installed but has not executed because hosted runner allocation still fails before repository steps.",
+  "predecessor": {
+    "path": "curation/PROGRAMME_EXECUTION_STATE_2026-09-02_B02_PROOF_PATH_SUCCESSOR.json",
+    "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-02_B02_PROOF_PATH_SUCCESSOR",
+    "predecessor_is_modified_by_this_successor": false
+  },
+  "frozen_baseline": {
+    "path": "curation/PROGRAMME_EXECUTION_BASELINE_2026-09-01.json",
+    "baseline_id": "PROGRAMME_EXECUTION_BASELINE_2026-09-01",
+    "modified_by_this_successor": false
+  },
+  "g0": {
+    "decision": "BLOCKED_NOT_PASSED",
+    "passed": false,
+    "open_blocker_ids": ["G0-B01", "G0-B02", "G0-B04", "G0-B05"],
+    "reason": "B02 and B04 proof paths are now installed, but neither has executed on a functioning hosted runner; PRE-G0 source-universe workflows remain hosted-unvalidated and hosted runner allocation remains unavailable."
+  },
+  "repositories": {
+    "workbench": {
+      "repository": "fraware/neuroai-workbench",
+      "main_commit": "33414065e53c45221d29209ef4703b6d900781f7",
+      "package_line": "0.3.0.dev0"
+    },
+    "observatory_data": {
+      "repository": "fraware/neuroai-observatory-data",
+      "main_commit_observed_before_successor_branch": "4c5e3f64ee34e37aa7f0b0722b314a52819367c9",
+      "b04_proof_path_pr": 174,
+      "b04_proof_path_issue": 173
+    }
+  },
+  "b02": {
+    "state": "GOVERNED_PROOF_PATH_MERGED_LIVE_EVIDENCE_PENDING",
+    "blocks_g0": true,
+    "controlled_live_proof_executed": false
+  },
+  "b04": {
+    "state": "NONPRODUCTION_PROOF_PATH_MERGED_EXECUTION_PENDING",
+    "blocks_g0": true,
+    "proof_script": "scripts/run_pre_g0_b04_publication_authority_proof.py",
+    "workflow": ".github/workflows/pre-g0-b04-publication-authority-proof.yml",
+    "workbench_commit": "33414065e53c45221d29209ef4703b6d900781f7",
+    "proof_scope": "EPHEMERAL_SYNTHETIC_CANDIDATE_WITHHOLD_AUTHORIZE_PUBLICATION_BINDING_PUBLIC_V1_TAMPER_REFUSAL",
+    "substantive_s2_release_authorized": false,
+    "substantive_s2_release_published": false,
+    "proof_executed": false,
+    "interpretation": "The authority-boundary design is resolved without publishing substantive Observatory data. B04 remains open until the offline workflow actually executes and its sanitized artifact proves candidate-only refusal, WITHHOLD publication refusal, exact AUTHORIZE supersession, pre-publication public refusal, valid synthetic publication binding, read-only /v1 availability only after binding, and tamper refusal."
+  },
+  "runner_evidence": {
+    "pr_run": {
+      "run_id": 33640376483,
+      "job_id": 100281650000,
+      "conclusion": "failure",
+      "steps_present": false,
+      "logs_present": false
+    },
+    "post_merge_run": {
+      "run_id": 33640558688,
+      "job_id": 100282259868,
+      "conclusion": "failure",
+      "steps_present": false,
+      "logs_present": false
+    },
+    "proof_execution_reached": false,
+    "interpretation": "Both B04 workflow attempts terminated before repository steps. These are infrastructure failures only, not proof or code verdicts."
+  },
+  "blockers": [
+    {
+      "id": "G0-B01",
+      "state": "OPEN",
+      "description": "Hosted runner allocation remains unavailable on current evidence."
+    },
+    {
+      "id": "G0-B02",
+      "state": "GOVERNED_PROOF_PATH_MERGED_LIVE_EVIDENCE_PENDING",
+      "description": "Manual one-source controlled-live proof has not executed."
+    },
+    {
+      "id": "G0-B03",
+      "state": "SOFTWARE_REMEDIATED_HOSTED_VALIDATION_PENDING",
+      "blocks_g0_independently": false,
+      "description": "Software remediation is merged; hosted validation remains inherited by B01/B05."
+    },
+    {
+      "id": "G0-B04",
+      "state": "NONPRODUCTION_PROOF_PATH_MERGED_EXECUTION_PENDING",
+      "description": "Synthetic authority proof path is merged but has not executed. No substantive S2 publication is required or performed for this PRE-G0 proof."
+    },
+    {
+      "id": "G0-B05",
+      "state": "OPEN",
+      "description": "PRE-G0 source-universe execution workflows remain hosted-unvalidated."
+    }
+  ],
+  "next_control_actions": [
+    "Reassess B05 workflow pins against current Workbench before waiting solely on runner recovery.",
+    "Keep B01 on infrastructure diagnostics/escalation rather than scientific or collector code churn.",
+    "When runner execution recovers, execute B02, B04, and B05 evidence paths and inspect their actual steps/logs/artifacts before closing any blocker."
+  ],
+  "boundary": "This successor is execution-control bookkeeping only. It does not claim B02 or B04 proof execution, substantive S2 authorization/publication, scientific truth, source completeness, operational health, assessment authority, or G0 passage."
+}
