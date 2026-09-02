@@ -1,0 +1,88 @@
+name: G0 ClinicalTrials transport diagnostic
+
+on:
+  pull_request:
+    paths:
+      - "scripts/diagnose_clinicaltrials_transport.py"
+      - "tests/test_clinicaltrials_transport_diagnostic.py"
+      - ".github/workflows/g0-clinicaltrials-transport-diagnostic.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: neuroai-g0-clinicaltrials-transport-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout diagnostic repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Checkout exact Workbench production transport
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: fraware/neuroai-workbench
+          ref: 33414065e53c45221d29209ef4703b6d900781f7
+          path: workbench
+          persist-credentials: false
+      - name: Install hash-locked exact Workbench runtime
+        run: |
+          python -m pip install --require-hashes -r workbench/requirements/constraints.txt
+          python -m pip install --no-deps ./workbench
+      - name: Verify diagnostic contract
+        run: |
+          python -m compileall -q scripts/diagnose_clinicaltrials_transport.py tests/test_clinicaltrials_transport_diagnostic.py
+          python -m ruff format --check scripts/diagnose_clinicaltrials_transport.py tests/test_clinicaltrials_transport_diagnostic.py
+          python -m ruff check scripts/diagnose_clinicaltrials_transport.py tests/test_clinicaltrials_transport_diagnostic.py
+          python -m unittest tests/test_clinicaltrials_transport_diagnostic.py -v
+      - name: Execute same-runner body-free transport A/B diagnostic
+        run: |
+          rm -rf "$RUNNER_TEMP/neuroai-clinicaltrials-transport"
+          python scripts/diagnose_clinicaltrials_transport.py \
+            --output "$RUNNER_TEMP/neuroai-clinicaltrials-transport/report.json"
+      - name: Enforce diagnostic evidence boundary
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          report = json.loads((Path(os.environ["RUNNER_TEMP"]) / "neuroai-clinicaltrials-transport/report.json").read_text())
+          if report.get("schema_version") != "1":
+              raise SystemExit("unexpected diagnostic schema")
+          if report.get("response_body_retained") is not False:
+              raise SystemExit("diagnostic retained a response body")
+          if report.get("source_state_mutated") is not False:
+              raise SystemExit("diagnostic mutated source state")
+          expected = {
+              "curl_default",
+              "curl_http1_1",
+              "python_requests_http1_1",
+              "workbench_pinned_http1_1",
+          }
+          if set(report.get("probes", {})) != expected:
+              raise SystemExit("diagnostic probe set drifted")
+          print("CLINICALTRIALS_TRANSPORT_DIAGNOSTIC_BOUNDARY=PASS")
+          PY
+      - name: Retain sanitized transport diagnostic
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: clinicaltrials-transport-diagnostic-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/neuroai-clinicaltrials-transport/report.json
+          retention-days: 90
+          if-no-files-found: error
+      - name: Prove protected material remains ephemeral
+        if: always()
+        run: |
+          rm -rf workbench
+          git status --porcelain
+          test -z "$(git status --porcelain)"
