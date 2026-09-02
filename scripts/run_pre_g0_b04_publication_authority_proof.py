@@ -42,9 +42,7 @@ SYNTHETIC_ENTITY_ID = "ORG-PRE-G0-B04-SYNTHETIC"
 SYNTHETIC_RELEASE_TAG = "pre-g0-b04-synthetic"
 SYNTHETIC_PREDECESSOR_TAG = "pre-g0-b04-synthetic-predecessor"
 SYNTHETIC_PUBLICATION_REFERENCE = "public-ref:pre-g0-b04:synthetic-test-only"
-SYNTHETIC_PUBLICATION_EVIDENCE = (
-    b"PRE-G0 B04 synthetic publication evidence only; no substantive or public release performed."
-)
+SYNTHETIC_PUBLICATION_EVIDENCE = b"PRE-G0 B04 synthetic publication evidence only; no substantive or public release performed."
 BOUNDARY = (
     "This PRE-G0 proof exercises candidate, authorization, publication binding, and public /v1 gating only in "
     "ephemeral synthetic state. It does not create, authorize, publish, mutate, or validate a substantive S2 release; "
@@ -204,7 +202,9 @@ def _expect_public_loader_refusal(release: Path, *, stage: str) -> str:
         load_published_release(release)
     except PublicObservatoryApiError as exc:
         return type(exc).__name__
-    raise AssertionError(f"Public loader unexpectedly accepted synthetic release at stage {stage}")
+    raise AssertionError(
+        f"Public loader unexpectedly accepted synthetic release at stage {stage}"
+    )
 
 
 def _expect_publication_refusal(release: Path) -> str:
@@ -230,12 +230,18 @@ def run_proof(*, workspace: Path, workbench_commit: str) -> dict[str, Any]:
     release = build_synthetic_candidate(workspace / "synthetic-release")
     candidate_errors = verify_observatory_v2_s2_candidate(release)
     if candidate_errors:
-        raise AssertionError(f"Synthetic candidate failed verification: {candidate_errors}")
+        raise AssertionError(
+            f"Synthetic candidate failed verification: {candidate_errors}"
+        )
 
     preview = load_candidate_preview(release)
     if preview.get("canonical") is not False or preview.get("published") is not False:
-        raise AssertionError("Synthetic candidate preview lost noncanonical candidate boundary")
-    candidate_only_refusal = _expect_public_loader_refusal(release, stage="candidate_only")
+        raise AssertionError(
+            "Synthetic candidate preview lost noncanonical candidate boundary"
+        )
+    candidate_only_refusal = _expect_public_loader_refusal(
+        release, stage="candidate_only"
+    )
 
     withhold = record_s2_authorization(
         release,
@@ -260,9 +266,13 @@ def run_proof(*, workspace: Path, workbench_commit: str) -> dict[str, Any]:
     if authorize.get("decision") != "AUTHORIZE":
         raise AssertionError("Synthetic AUTHORIZE decision was not recorded")
     if authorize.get("supersedes_authorization_id") != withhold.get("authorization_id"):
-        raise AssertionError("Synthetic AUTHORIZE did not supersede exact WITHHOLD record")
+        raise AssertionError(
+            "Synthetic AUTHORIZE did not supersede exact WITHHOLD record"
+        )
 
-    prepublication_refusal = _expect_public_loader_refusal(release, stage="authorized_not_published")
+    prepublication_refusal = _expect_public_loader_refusal(
+        release, stage="authorized_not_published"
+    )
     evidence_sha = sha256_bytes(SYNTHETIC_PUBLICATION_EVIDENCE)
     publication = record_s2_publication(
         release,
@@ -273,7 +283,9 @@ def run_proof(*, workspace: Path, workbench_commit: str) -> dict[str, Any]:
         recorded_at="2026-09-02T14:05:03Z",
     )["publication"]
     if publication.get("automatic_publication_performed") is not False:
-        raise AssertionError("Synthetic publication record claimed automatic publication")
+        raise AssertionError(
+            "Synthetic publication record claimed automatic publication"
+        )
     binding = verify_s2_publication_binding(release)
     if binding.get("valid") is not True:
         raise AssertionError(f"Synthetic publication binding failed: {binding}")
@@ -288,13 +300,21 @@ def run_proof(*, workspace: Path, workbench_commit: str) -> dict[str, Any]:
         and health.get("read_only") is True
         and health.get("writes_supported") is False
     ):
-        raise AssertionError("Synthetic published /v1 context lost public read-only authority boundary")
+        raise AssertionError(
+            "Synthetic published /v1 context lost public read-only authority boundary"
+        )
 
     tampered = workspace / "tampered-copy"
     shutil.copytree(release, tampered)
-    with (tampered / "records" / "entities.jsonl").open("a", encoding="utf-8") as handle:
-        handle.write(json.dumps({"object_class": "Entity", "entity_id": "ORG-TAMPER"}) + "\n")
-    tamper_refusal = _expect_public_loader_refusal(tampered, stage="tampered_published_copy")
+    with (tampered / "records" / "entities.jsonl").open(
+        "a", encoding="utf-8"
+    ) as handle:
+        handle.write(
+            json.dumps({"object_class": "Entity", "entity_id": "ORG-TAMPER"}) + "\n"
+        )
+    tamper_refusal = _expect_public_loader_refusal(
+        tampered, stage="tampered_published_copy"
+    )
 
     descriptor = json.loads((release / "descriptor.json").read_text(encoding="utf-8"))
     manifest = json.loads((release / "manifest.json").read_text(encoding="utf-8"))
@@ -370,7 +390,9 @@ def execute(*, workspace: Path, output: Path, workbench_commit: str) -> dict[str
     workspace = workspace.expanduser().resolve()
     output = output.expanduser().resolve()
     if output == workspace or output.is_relative_to(workspace):
-        raise ValueError("Sanitized proof output must be outside the ephemeral synthetic workspace")
+        raise ValueError(
+            "Sanitized proof output must be outside the ephemeral synthetic workspace"
+        )
     workspace.mkdir(parents=True, exist_ok=True)
     try:
         proof = run_proof(workspace=workspace, workbench_commit=workbench_commit)

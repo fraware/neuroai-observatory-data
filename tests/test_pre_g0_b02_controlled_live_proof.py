@@ -73,7 +73,9 @@ class PreG0B02ControlledLiveProofTests(unittest.TestCase):
         resolved = proof._resolve_fixed_source(registry)
         self.assertEqual(resolved["source_id"], proof.PROOF_SOURCE_ID)
 
-        tampered = {"sources": [dict(proof.PROOF_SOURCE_EXPECTED, url="https://example.com/")]}
+        tampered = {
+            "sources": [dict(proof.PROOF_SOURCE_EXPECTED, url="https://example.com/")]
+        }
         with self.assertRaisesRegex(ValueError, "fixed proof source identity changed"):
             proof._resolve_fixed_source(tampered)
 
@@ -122,12 +124,16 @@ class PreG0B02ControlledLiveProofTests(unittest.TestCase):
 
         def fake_live(**kwargs):
             self.assertEqual(os.environ[proof.LIVE_COLLECTION_ENV], "1")
-            self.assertIn("authorization_sha256", os.environ[proof.LIVE_AUTHORIZATION_ENV])
+            self.assertIn(
+                "authorization_sha256", os.environ[proof.LIVE_AUTHORIZATION_ENV]
+            )
             self.assertEqual(kwargs["registry_sha256"], "c" * 64)
             return {"status": "synthetic"}
 
         try:
-            with mock.patch.object(proof, "run_live_cohort_collection", side_effect=fake_live):
+            with mock.patch.object(
+                proof, "run_live_cohort_collection", side_effect=fake_live
+            ):
                 returned = proof._execute_live(
                     plan={"due": [], "not_due": [], "manual": []},
                     registry={"sources": []},
@@ -150,9 +156,9 @@ class PreG0B02ControlledLiveProofTests(unittest.TestCase):
                 os.environ[proof.LIVE_AUTHORIZATION_ENV] = prior_auth
 
     def test_workflow_is_manual_fixed_source_and_sanitized_artifact_only(self) -> None:
-        workflow = (ROOT / ".github/workflows/pre-g0-b02-controlled-live-proof.yml").read_text(
-            encoding="utf-8"
-        )
+        workflow = (
+            ROOT / ".github/workflows/pre-g0-b02-controlled-live-proof.yml"
+        ).read_text(encoding="utf-8")
         script = (ROOT / "scripts/run_pre_g0_b02_controlled_live_proof.py").read_text(
             encoding="utf-8"
         )
@@ -168,7 +174,7 @@ class PreG0B02ControlledLiveProofTests(unittest.TestCase):
         self.assertNotIn("CollectionScheduler", script)
         self.assertIn("proof.json", workflow)
         self.assertNotIn("quarantine/**", workflow)
-        self.assertIn("rm -rf \"$RUNNER_TEMP/pre-g0-b02-proof/workspace\"", workflow)
+        self.assertIn('rm -rf "$RUNNER_TEMP/pre-g0-b02-proof/workspace"', workflow)
 
 
 if __name__ == "__main__":

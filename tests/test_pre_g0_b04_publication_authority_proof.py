@@ -28,7 +28,9 @@ class PreG0B04PublicationAuthorityProofTests(unittest.TestCase):
             )
 
             self.assertEqual(result["status"], proof.STATUS)
-            self.assertEqual(result["workbench_commit"], proof.EXPECTED_WORKBENCH_COMMIT)
+            self.assertEqual(
+                result["workbench_commit"], proof.EXPECTED_WORKBENCH_COMMIT
+            )
             self.assertTrue(result["candidate"]["candidate_verification_valid"])
             self.assertFalse(result["candidate"]["preview_canonical"])
             self.assertFalse(result["candidate"]["preview_published"])
@@ -43,12 +45,16 @@ class PreG0B04PublicationAuthorityProofTests(unittest.TestCase):
             )
             self.assertTrue(result["authorize"]["authorization_store_valid"])
             self.assertEqual(result["authorize"]["active_authorization_count"], 1)
-            self.assertTrue(result["authorize"]["public_loader_refused_before_publication"])
+            self.assertTrue(
+                result["authorize"]["public_loader_refused_before_publication"]
+            )
 
             self.assertTrue(result["publication"]["publication_binding_valid"])
             self.assertFalse(result["publication"]["automatic_publication_performed"])
             self.assertFalse(result["publication"]["substantive_publication_performed"])
-            self.assertTrue(result["public_v1"]["loaded_only_after_publication_binding"])
+            self.assertTrue(
+                result["public_v1"]["loaded_only_after_publication_binding"]
+            )
             self.assertTrue(result["public_v1"]["canonical"])
             self.assertTrue(result["public_v1"]["published"])
             self.assertTrue(result["public_v1"]["release_authorized"])
@@ -78,7 +84,9 @@ class PreG0B04PublicationAuthorityProofTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             workspace = root / "workspace"
-            with self.assertRaisesRegex(ValueError, "outside the ephemeral synthetic workspace"):
+            with self.assertRaisesRegex(
+                ValueError, "outside the ephemeral synthetic workspace"
+            ):
                 proof.execute(
                     workspace=workspace,
                     output=workspace / "proof.json",
