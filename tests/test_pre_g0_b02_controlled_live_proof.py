@@ -41,7 +41,7 @@ class PreG0B02ControlledLiveProofTests(unittest.TestCase):
                 "outcomes": [
                     {
                         "source_id": proof.PROOF_SOURCE_ID,
-                        "status": "SUCCESS",
+                        "status": "RESULT",
                         "record_id": "RES-test",
                     }
                 ],
