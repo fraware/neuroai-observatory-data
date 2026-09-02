@@ -10,12 +10,12 @@ SCRIPTS = ROOT / "scripts"
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
-from probe_source_route_resilience import (  # noqa: E402
+from probe_source_route_resilience import (
     _check_body,
     _extract_nct_ids,
     canonical_bytes,
     sha256,
-)
+)  # noqa: E402
 
 
 class SourceRouteResilienceTests(unittest.TestCase):
