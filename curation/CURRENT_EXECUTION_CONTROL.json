@@ -1,0 +1,10 @@
+{
+  "schema_version": "0.1.0",
+  "status": "CURRENT_CONTROL_POINTER_NONCANONICAL",
+  "as_of": "2026-09-02",
+  "programme_execution_baseline": "curation/PROGRAMME_EXECUTION_BASELINE_2026-09-01.json",
+  "source_universe_execution_state": "curation/source_universe_execution_state_2026-09-02.json",
+  "historical_planning_control": "curation/source_universe_expansion_backlog_v0.1.json",
+  "historical_planning_control_status": "SUPERSEDED_FOR_CURRENT_EXECUTION_INTERPRETATION",
+  "boundary": "This pointer identifies current execution-control records only. It does not confer canonical publication authority, operational health, scientific truth, completeness, assessment authority, or a G0 pass."
+}
