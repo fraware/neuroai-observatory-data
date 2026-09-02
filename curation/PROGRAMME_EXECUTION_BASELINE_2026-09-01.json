@@ -1,0 +1,139 @@
+{
+  "schema_version": "0.1.0",
+  "baseline_id": "PROGRAMME_EXECUTION_BASELINE_2026-09-01",
+  "programme_snapshot_date": "2026-09-01",
+  "reconciled_as_of": "2026-09-02",
+  "status": "PRE_G0_BASELINE_FROZEN_WITH_BLOCKERS",
+  "g0": {
+    "decision": "BLOCKED_NOT_PASSED",
+    "passed": false,
+    "reason": "The implementation/control baseline can be frozen, but operational execution and publication evidence required for a trustworthy G0 pass do not yet exist."
+  },
+  "governing_semantics": {
+    "assessment_version": "v4.2",
+    "requirements": 78,
+    "modules": 13,
+    "changed_by_this_baseline": false
+  },
+  "repositories": {
+    "workbench": {
+      "repository": "fraware/neuroai-workbench",
+      "main_commit": "4ca77e901a6790fac418aa6d5b013c84a664abfa",
+      "package_line": "0.3.0.dev0"
+    },
+    "observatory_data": {
+      "repository": "fraware/neuroai-observatory-data",
+      "main_commit_observed_before_baseline_branch": "394a4b61b97e8bc19f87bf0e1abc8406d2c70469",
+      "note": "The commit that merges this baseline will necessarily post-date the observed pre-baseline S2 main and is not self-referentially embedded here."
+    }
+  },
+  "observatory_v2_migration_gate_a": {
+    "decision": "PASS_REPRESENTATIONAL_MIGRATION_MECHANICALLY_COMPLETE",
+    "gate_a_complete": true,
+    "representational_scope_complete": true,
+    "native_v2_materialization_complete": false,
+    "release_authorized": false,
+    "producer_runtime_commit": "719170f2fd3556f4b9710f2b14ba96e8e34a8855",
+    "s2_predecessor_commit": "3a94d7c1277988f342cad184d3a6f866653f42d2",
+    "field_proof_sha256": "0e69937b898eb09697ee57ce9e1f4e055162f1e158807a0932b606b17d391df9",
+    "package_manifest_sha256": "4006f1d95b40b8d7f093d236dca54f90a898a835845bdc16dd492322e1a8c539",
+    "package_descriptor_sha256": "fb7089e3127f200342fcfc0b4bb8c1835f0ae0a86850a9f06005abbb593e9827",
+    "gate_a_decision_sha256": "5d3b1aa02d44dfe4391cad32a51846586ee30868ebdb4a1864e5e44f91356bc2",
+    "native_objects": 403,
+    "typed_reference_checks": 36,
+    "temporal_values_checked": 14,
+    "cross_class_id_collisions": 0,
+    "declared_loss_or_invention_counters_nonzero": 0,
+    "boundary": "Mechanical Gate-A completion is representational engineering evidence only. It is not G0, publication authorization, substantive truth, native graph completeness, or institutional approval."
+  },
+  "publication_state": {
+    "s1_graph_native_candidate_authorization_publication_path": "IMPLEMENTED",
+    "s2_graph_native_v2_release_directory_present": false,
+    "s2_graph_native_v2_publication_performed": false,
+    "current_public_governing_legacy_release": "data-v0.1.0-public-governing",
+    "historical_development_candidate": "data-v0.2.0-v2.3.0-dev-candidate",
+    "boundary": "Software capability to create, authorize, verify, and serve a published release does not mean that a graph-native Observatory-v2 release has been authorized or published."
+  },
+  "source_universe_state": {
+    "current_control": "curation/source_universe_execution_state_2026-09-02.json",
+    "historical_planning_control": "curation/source_universe_expansion_backlog_v0.1.json",
+    "su_trials": {
+      "implementation_state": "CURRENT_REPLACEMENT_CHAIN_MERGED_NONCANONICAL",
+      "workbench_execution_pin": "4ca77e901a6790fac418aa6d5b013c84a664abfa",
+      "replacement_prs": [157, 158, 159, 160, 161],
+      "superseded_historical_prs": [90, 93, 95, 97, 99],
+      "live_execution_on_current_pin_demonstrated": false,
+      "hosted_ci_success_on_current_pin_claimed": false
+    }
+  },
+  "operational_evidence": {
+    "hosted_runner_issue": {
+      "repository": "fraware/neuroai-observatory-data",
+      "issue": 105,
+      "state": "OPEN"
+    },
+    "scheduled_operational_live_due_cycle": {
+      "run_id": 33387613206,
+      "event": "schedule",
+      "conclusion": "failure",
+      "latest_scheduled_run_resolved_in_schedule_history": true,
+      "issue_105_pre_execution_evidence": {
+        "validate_conclusion": "failure",
+        "steps_executed": false,
+        "dependent_live_job": "skipped"
+      },
+      "interpretation": "No collector failure or success is inferred because the validation job did not execute workflow steps."
+    },
+    "scheduled_successor_discovery": {
+      "run_id": 33505126070,
+      "event": "schedule",
+      "conclusion": "failure",
+      "date": "2026-09-01",
+      "interpretation": "Failure is recorded; no root cause or collector verdict is inferred here without step-level execution evidence."
+    },
+    "scheduled_current_monitor_accountability": {
+      "run_id": 33610570245,
+      "event": "schedule",
+      "conclusion": "failure",
+      "date": "2026-09-02",
+      "interpretation": "Continued scheduled failure corroborates that operational health has not been re-established."
+    },
+    "push_triggered_operational_live_corroboration": {
+      "run_id": 33547896984,
+      "event": "push",
+      "conclusion": "failure",
+      "validate_job_id": 99989860143,
+      "validate_steps": null,
+      "live_job_state": "skipped",
+      "interpretation": "This is corroborating pre-runner evidence only and is not a substitute for a fresh scheduled due-cycle."
+    }
+  },
+  "current_live_collection_control": {
+    "workbench_commit": "4ca77e901a6790fac418aa6d5b013c84a664abfa",
+    "network_gate_requires_explicit_live_environment_switch": true,
+    "network_gate_requires_verified_digest_bound_authorization_packet": true,
+    "tampered_or_missing_network_authorization_fails_closed": true,
+    "authorization_provenance_recorded_in_live_run_output": true,
+    "hosted_execution_of_this_exact_current_path_demonstrated": false,
+    "residual_content_safety_boundary": {
+      "state": "UNRESOLVED_PRE_G0_CONTROL_POINT",
+      "description": "The live-shadow scheduler path has the dual authorization gate and hardened transport controls but does not currently execute through the EvidenceCollectionService content-safety scanning facade.",
+      "treated_as_solved": false
+    }
+  },
+  "blockers": [
+    {"id": "G0-B01", "state": "OPEN", "description": "Hosted runner execution is not restored; issue #105 remains open and fresh scheduled workflows continue to fail."},
+    {"id": "G0-B02", "state": "OPEN", "description": "No fresh controlled live acquisition has executed under the exact current Workbench dual network-authorization gate."},
+    {"id": "G0-B03", "state": "OPEN", "description": "The live-shadow content-safety scanning boundary requires deliberate resolution and verification before production-readiness can be claimed."},
+    {"id": "G0-B04", "state": "OPEN", "description": "No graph-native Observatory-v2 S2 candidate-to-authorization-to-publication operation has been performed."},
+    {"id": "G0-B05", "state": "OPEN", "description": "The workflow pin reconciliation in this baseline branch cannot be claimed hosted-validated until a runner executes its steps."}
+  ],
+  "reconsider_g0_when": [
+    "A hosted runner executes and retains step-level/log evidence.",
+    "A fresh scheduled operational live due-cycle validates successfully and reaches collector execution.",
+    "A controlled live acquisition executes under the exact current Workbench pin with verified dual authorization.",
+    "The live-shadow content-safety boundary is explicitly resolved and verified.",
+    "Publication-state requirements for the intended G0 definition are satisfied or explicitly scoped as a later gate without ambiguity."
+  ],
+  "boundary": "This baseline freezes the observed execution state with blockers. It does not authorize publication, establish scientific truth, establish global or source-universe completeness, establish system conformance, establish operational health, or constitute a G0 pass."
+}
