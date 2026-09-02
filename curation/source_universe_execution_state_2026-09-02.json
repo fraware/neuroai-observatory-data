@@ -1,0 +1,59 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "SOURCE_UNIVERSE_EXECUTION_STATE_2026-09-02",
+  "status": "PRE_G0_CURRENT_EXECUTION_STATE_NONCANONICAL",
+  "as_of": "2026-09-02",
+  "purpose": "Superseding current-state control for source-universe execution readiness. This record corrects stale implementation-stack planning state without rewriting the historical backlog.",
+  "supersedes_for_current_execution": {
+    "path": "curation/source_universe_expansion_backlog_v0.1.json",
+    "scope": "Current execution-state interpretation, especially SU-TRIALS. The older file remains historical planning evidence and must not be read as the current implementation status."
+  },
+  "repository_pins": {
+    "workbench_main": "4ca77e901a6790fac418aa6d5b013c84a664abfa",
+    "observatory_data_main_observed_before_this_control_branch": "394a4b61b97e8bc19f87bf0e1abc8406d2c70469"
+  },
+  "source_universes": {
+    "SU-TRIALS": {
+      "programme_id": "SU-TRIALS-CTGOV-v0.1",
+      "source_system": "CLINICALTRIALS_GOV",
+      "implementation_state": "CURRENT_REPLACEMENT_CHAIN_MERGED_NONCANONICAL",
+      "exact_workbench_pin_for_execution_workflows": "4ca77e901a6790fac418aa6d5b013c84a664abfa",
+      "merged_replacement_chain": [
+        {"pr": 157, "merge_commit": "c9b0c96264388d2487d327e2fc8344864206eea1", "role": "programme definition"},
+        {"pr": 158, "merge_commit": "acd08ea1adf7c0695680c51ba4e56921d06ef35d", "role": "deterministic recorded replay"},
+        {"pr": 159, "merge_commit": "e31625d777afe3917792a8ea0f0ba4806211cb32", "role": "human-review staging"},
+        {"pr": 160, "merge_commit": "71f62d601b230a3c79cb95fa004d708d7f7004ba", "role": "draft Source-namespace adjudication"},
+        {"pr": 161, "merge_commit": "394a4b61b97e8bc19f87bf0e1abc8406d2c70469", "role": "Source materialization and monitoring proposals"}
+      ],
+      "historical_superseded_prs": [90, 93, 95, 97, 99],
+      "live_execution_state": "NOT_DEMONSTRATED_ON_CURRENT_PIN",
+      "hosted_validation_state": "BLOCKED_BY_PRE_RUNNER_FAILURE_PATTERN",
+      "canonical_publication_state": "NOT_CONFERRED_BY_IMPLEMENTATION_CHAIN",
+      "automatic_monitor_creation_claim": false,
+      "automatic_assessment_mutation_claim": false,
+      "registry_completeness_claim": false,
+      "global_neuroai_trial_recall_claim": false
+    }
+  },
+  "operational_gate": {
+    "issue": 105,
+    "state": "OPEN_BLOCKER",
+    "required_before_operational_health_claim": [
+      "Hosted runner executes actual workflow steps.",
+      "Operational live due-cycle validation executes and succeeds.",
+      "A fresh scheduled live job reaches collector execution after validation.",
+      "Run steps and logs are retained and retrievable for audit.",
+      "A controlled live acquisition executes under the exact current Workbench network-authorization contract."
+    ]
+  },
+  "next_gate": {
+    "state": "PRE_G0_BLOCKER_REMOVAL",
+    "required_actions": [
+      "Restore hosted runner execution and obtain fresh step-level evidence.",
+      "Execute a fresh controlled live acquisition on the exact current Workbench pin with both live environment gate and verified digest-bound authorization packet.",
+      "Deliberately resolve and verify the live-shadow content-safety scanning boundary before treating the path as production-ready.",
+      "Re-evaluate G0 only after the above evidence exists."
+    ]
+  },
+  "boundary": "This control records current implementation and operational readiness only. Merged code, replay fixtures, staging, adjudication bridges, Source materialization, or monitoring proposals do not establish live retrieval, candidate acceptance, monitor creation, scientific truth, registry completeness, assessment effect, canonical publication, or operational health."
+}
