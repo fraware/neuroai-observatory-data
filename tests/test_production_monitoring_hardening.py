@@ -99,7 +99,7 @@ class ProductionMonitoringHardeningTests(unittest.TestCase):
         self.assertNotIn("pull_request:", workflow)
         self.assertIn("persist-credentials: false", workflow)
         self.assertIn("raw_response_body_exposed", workflow)
-        self.assertIn("rm -rf \"$RUNNER_TEMP/pre-g0-b02-proof/workspace\"", workflow)
+        self.assertIn('rm -rf "$RUNNER_TEMP/pre-g0-b02-proof/workspace"', workflow)
 
         self.assertIn("pull_request:", contract)
         self.assertIn("push:", contract)
