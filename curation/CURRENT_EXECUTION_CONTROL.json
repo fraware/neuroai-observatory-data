@@ -3,9 +3,9 @@
   "status": "CURRENT_CONTROL_POINTER_NONCANONICAL",
   "as_of": "2026-09-02",
   "programme_execution_baseline": "curation/PROGRAMME_EXECUTION_BASELINE_2026-09-01.json",
-  "current_programme_execution_state": "curation/PROGRAMME_EXECUTION_STATE_2026-09-02_B03_SUCCESSOR.json",
+  "current_programme_execution_state": "curation/PROGRAMME_EXECUTION_STATE_2026-09-02_B02_PIN_SUCCESSOR.json",
   "source_universe_execution_state": "curation/source_universe_execution_state_2026-09-02.json",
   "historical_planning_control": "curation/source_universe_expansion_backlog_v0.1.json",
   "historical_planning_control_status": "SUPERSEDED_FOR_CURRENT_EXECUTION_INTERPRETATION",
-  "boundary": "This pointer identifies current execution-control records only. The frozen programme baseline remains immutable and separate from its successor state. This pointer does not confer canonical publication authority, operational health, scientific truth, completeness, assessment authority, or a G0 pass."
+  "boundary": "This pointer identifies current execution-control records only. The frozen programme baseline and prior successor states remain immutable and separate from the current successor. This pointer does not confer canonical publication authority, operational health, scientific truth, completeness, assessment authority, or a G0 pass."
 }
