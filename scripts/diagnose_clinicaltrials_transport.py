@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import argparse
+import http.client
 import json
 import re
+import ssl
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -21,9 +23,14 @@ BOUNDARY = (
     "authorize source substitution or a production transport change, and does not establish G0 completion."
 )
 _HTTP_STATUS_RE = re.compile(r"\bstatus\s+(\d{3})\b", re.IGNORECASE)
+_REQUEST_HEADERS = {
+    "User-Agent": USER_AGENT,
+    "Accept": "application/json",
+    "Accept-Encoding": "gzip, deflate",
+}
 
 
-def _curl_probe(*, force_http11: bool) -> dict[str, Any]:
+def _curl_probe(*, force_http11: bool, resolve_address: str | None = None) -> dict[str, Any]:
     command = [
         "curl",
         "--silent",
@@ -42,9 +49,14 @@ def _curl_probe(*, force_http11: bool) -> dict[str, Any]:
         "Accept: application/json",
         "--header",
         "Accept-Encoding: gzip, deflate",
+        "--header",
+        "Connection: close",
     ]
     if force_http11:
         command.append("--http1.1")
+    if resolve_address is not None:
+        curl_address = f"[{resolve_address}]" if ":" in resolve_address else resolve_address
+        command.extend(["--resolve", f"{TARGET_HOST}:443:{curl_address}"])
     command.append(TARGET_URL)
     completed = subprocess.run(
         command, capture_output=True, text=True, check=False, timeout=35
@@ -64,12 +76,7 @@ def _requests_probe() -> dict[str, Any]:
     try:
         response = requests.get(
             TARGET_URL,
-            headers={
-                "User-Agent": USER_AGENT,
-                "Accept": "application/json",
-                "Accept-Encoding": "gzip, deflate",
-                "Connection": "close",
-            },
+            headers={**_REQUEST_HEADERS, "Connection": "close"},
             timeout=(10, 20),
             allow_redirects=False,
             stream=True,
@@ -88,7 +95,39 @@ def _requests_probe() -> dict[str, Any]:
         }
 
 
-def _workbench_pinned_probe() -> dict[str, Any]:
+def _stdlib_hostname_probe() -> dict[str, Any]:
+    connection: http.client.HTTPSConnection | None = None
+    response: http.client.HTTPResponse | None = None
+    try:
+        connection = http.client.HTTPSConnection(
+            TARGET_HOST,
+            443,
+            timeout=30,
+            context=ssl.create_default_context(),
+        )
+        connection.request(
+            "GET",
+            TARGET_PATH,
+            headers={**_REQUEST_HEADERS, "Connection": "close"},
+        )
+        response = connection.getresponse()
+        return {
+            "outcome": "HTTP_RESPONSE",
+            "http_status": int(response.status),
+        }
+    except (OSError, TimeoutError, http.client.HTTPException) as exc:
+        return {
+            "outcome": "TRANSPORT_FAILURE",
+            "exception_type": type(exc).__name__,
+        }
+    finally:
+        if response is not None:
+            response.close()
+        if connection is not None:
+            connection.close()
+
+
+def _workbench_http_client_probe() -> dict[str, Any]:
     from neuroai_workbench.collector import PinnedSocketHttpTransport
     from neuroai_workbench.collector.config import CollectorConfig
     from neuroai_workbench.collector.errors import CollectionFailureError
@@ -117,6 +156,7 @@ def _workbench_pinned_probe() -> dict[str, Any]:
             "outcome": "HTTP_RESPONSE",
             "http_status": int(response.status),
             "redirect_hops": len(response.redirect_chain),
+            "connected_address": response.connected_address,
         }
     except CollectionFailureError as exc:
         status = None
@@ -136,9 +176,61 @@ def _workbench_pinned_probe() -> dict[str, Any]:
         }
 
 
+def _validated_addresses() -> tuple[list[str], str]:
+    from neuroai_workbench.collector.dns import DnsGuard
+
+    resolution = DnsGuard().resolve(TARGET_URL)
+    return list(resolution.addresses), resolution.rebinding_check
+
+
+def _workbench_single_address_probe(address: str) -> dict[str, Any]:
+    from neuroai_workbench.collector import PinnedSocketHttpTransport
+    from neuroai_workbench.collector.http_client import HttpRequest, coerce_transport_response
+
+    transport = PinnedSocketHttpTransport(max_wire_bytes=2_000_000)
+    try:
+        response = coerce_transport_response(
+            transport.send(
+                HttpRequest(
+                    "GET",
+                    TARGET_URL,
+                    dict(_REQUEST_HEADERS),
+                    (address,),
+                ),
+                connect_timeout=10.0,
+                read_timeout=20.0,
+            )
+        )
+        return {
+            "outcome": "HTTP_RESPONSE",
+            "http_status": int(response.status),
+            "connected_address": response.connected_address,
+        }
+    except (OSError, TimeoutError) as exc:
+        return {
+            "outcome": "TRANSPORT_FAILURE",
+            "exception_type": type(exc).__name__,
+        }
+
+
 def execute() -> dict[str, Any]:
+    addresses, rebinding_check = _validated_addresses()
+    per_address = []
+    for address in addresses:
+        per_address.append(
+            {
+                "address": address,
+                "curl_resolve_http1_1": _curl_probe(
+                    force_http11=True, resolve_address=address
+                ),
+                "workbench_single_address_http1_1": _workbench_single_address_probe(
+                    address
+                ),
+            }
+        )
+
     return {
-        "schema_version": "1",
+        "schema_version": "2",
         "boundary": BOUNDARY,
         "target": {
             "host": TARGET_HOST,
@@ -146,12 +238,16 @@ def execute() -> dict[str, Any]:
             "method": "GET",
             "accept": "application/json",
         },
+        "dns_validated_address_count": len(addresses),
+        "dns_rebinding_check": rebinding_check,
         "probes": {
             "curl_default": _curl_probe(force_http11=False),
             "curl_http1_1": _curl_probe(force_http11=True),
             "python_requests_http1_1": _requests_probe(),
-            "workbench_pinned_http1_1": _workbench_pinned_probe(),
+            "python_stdlib_hostname_http1_1": _stdlib_hostname_probe(),
+            "workbench_pinned_http1_1": _workbench_http_client_probe(),
         },
+        "per_validated_address": per_address,
         "response_body_retained": False,
         "source_state_mutated": False,
     }
