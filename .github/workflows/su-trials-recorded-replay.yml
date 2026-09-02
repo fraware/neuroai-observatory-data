@@ -1,3 +1,4 @@
+# PRE-G0 B05 current-main runner recovery probe; no semantic change.
 name: SU-TRIALS ClinicalTrials.gov recorded replay
 
 on:
