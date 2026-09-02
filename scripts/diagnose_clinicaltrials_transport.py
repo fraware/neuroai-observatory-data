@@ -30,7 +30,9 @@ _REQUEST_HEADERS = {
 }
 
 
-def _curl_probe(*, force_http11: bool, resolve_address: str | None = None) -> dict[str, Any]:
+def _curl_probe(
+    *, force_http11: bool, resolve_address: str | None = None
+) -> dict[str, Any]:
     command = [
         "curl",
         "--silent",
@@ -55,7 +57,9 @@ def _curl_probe(*, force_http11: bool, resolve_address: str | None = None) -> di
     if force_http11:
         command.append("--http1.1")
     if resolve_address is not None:
-        curl_address = f"[{resolve_address}]" if ":" in resolve_address else resolve_address
+        curl_address = (
+            f"[{resolve_address}]" if ":" in resolve_address else resolve_address
+        )
         command.extend(["--resolve", f"{TARGET_HOST}:443:{curl_address}"])
     command.append(TARGET_URL)
     completed = subprocess.run(
@@ -185,7 +189,10 @@ def _validated_addresses() -> tuple[list[str], str]:
 
 def _workbench_single_address_probe(address: str) -> dict[str, Any]:
     from neuroai_workbench.collector import PinnedSocketHttpTransport
-    from neuroai_workbench.collector.http_client import HttpRequest, coerce_transport_response
+    from neuroai_workbench.collector.http_client import (
+        HttpRequest,
+        coerce_transport_response,
+    )
 
     transport = PinnedSocketHttpTransport(max_wire_bytes=2_000_000)
     try:
