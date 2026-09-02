@@ -221,7 +221,7 @@ def build_sanitized_proof(
 
     collector = package.get("collector")
     if not isinstance(collector, dict):
-        raise ValueError("Live package collector metadata is missing")
+        raise TypeError("Live package collector metadata is missing")
     expected_collector = {
         "handoff_enabled": False,
         "default_transport": "PinnedSocketHttpTransport",
@@ -236,10 +236,10 @@ def build_sanitized_proof(
 
     run = package.get("collection_run")
     if not isinstance(run, dict):
-        raise ValueError("Live package collection_run is missing")
+        raise TypeError("Live package collection_run is missing")
     counts = run.get("counts")
     if not isinstance(counts, dict):
-        raise ValueError("Live package collection counts are missing")
+        raise TypeError("Live package collection counts are missing")
     expected_counts = {"total": 1, "succeeded": 1, "failed": 0, "skipped": 0}
     for field, expected in expected_counts.items():
         if int(counts.get(field, -1)) != expected:
@@ -273,7 +273,7 @@ def build_sanitized_proof(
 
     content_safety = package.get("content_safety")
     if not isinstance(content_safety, dict):
-        raise ValueError("Live package content-safety summary is missing")
+        raise TypeError("Live package content-safety summary is missing")
     expected_scan_fields = {
         "scope": "ALL_DURABLE_RESULTS_IN_QUARANTINE_ROOT",
         "durable_result_records_checked": 1,
@@ -300,10 +300,10 @@ def build_sanitized_proof(
 
     metadata = package.get("metadata")
     if not isinstance(metadata, dict):
-        raise ValueError("Live package metadata is missing")
+        raise TypeError("Live package metadata is missing")
     authorization = metadata.get("authorization")
     if not isinstance(authorization, dict):
-        raise ValueError("Live package authorization provenance is missing")
+        raise TypeError("Live package authorization provenance is missing")
     if authorization.get("authorization_id") != authorization_id:
         raise ValueError("Authorization provenance does not match requested run ID")
     if authorization.get("identity_boundary") != "LOCAL_UNAUTHENTICATED_ATTRIBUTION":
