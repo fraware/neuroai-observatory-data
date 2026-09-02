@@ -22,6 +22,11 @@ from neuroai_workbench.collector import (
 from neuroai_workbench.collector.http_client import HttpRequest, TransportResult
 from neuroai_workbench.monitoring import initialize_monitoring, plan_monitoring_run, validate_source_registry
 from run_operational_due_cycle import CountingTransport, _configuration_hash
+from source_lifecycle_overlay import (
+    DEFAULT_LIFECYCLE_OVERLAY,
+    DEFAULT_ROUTE_POLICY,
+    load_verified_lifecycle_overlay,
+)
 
 TERMINAL = {"SUCCESS", "FAILURE", "SKIPPED"}
 BOUNDARY = (
@@ -121,7 +126,22 @@ def execute(
     checkpoint_timeout_seconds: float,
 ) -> dict[str, Any]:
     inputs = load_inputs(records_dir.resolve(), supplemental_dir=supplemental_dir.resolve())
-    registry = build_development_registry(inputs)
+    tables = build_tables(inputs)
+    source_ids = {
+        str(row["record_id"]) for row in tables["sources"] if row.get("record_id")
+    }
+    governing_monitor_ids = {
+        str(row["record_id"])
+        for row in tables["source_monitors"]
+        if row.get("record_id")
+    }
+    _, _, transitions = load_verified_lifecycle_overlay(
+        route_policy_path=DEFAULT_ROUTE_POLICY,
+        overlay_path=DEFAULT_LIFECYCLE_OVERLAY,
+        effective_source_ids=source_ids,
+        governing_monitor_source_ids=governing_monitor_ids,
+    )
+    registry = build_development_registry(inputs, transitions)
     verify_development_registry(registry)
     if not validate_source_registry(registry).get("valid"):
         raise ValueError("Development registry failed workbench validation")
@@ -133,6 +153,11 @@ def execute(
     if not plan.get("due"):
         raise ValueError("Interruption drill requires at least one due automatic source")
     source_index = {str(record["source_id"]): record for record in registry["sources"]}
+    forbidden_lifecycle_ids = set(transitions) & set(source_index)
+    if forbidden_lifecycle_ids:
+        raise ValueError(
+            f"Lifecycle-resolved sources remain in active source index: {sorted(forbidden_lifecycle_ids)}"
+        )
 
     process = mp.Process(
         target=_child_run,
