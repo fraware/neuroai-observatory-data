@@ -1,0 +1,66 @@
+name: SU-TRIALS ClinicalTrials.gov recorded replay
+
+on:
+  pull_request:
+    paths:
+      - 'curation/clinicaltrials_discovery_programme_v0.1.json'
+      - 'schemas/clinicaltrials-discovery-replay-input.schema.json'
+      - 'scripts/run_su_trials_recorded_replay.py'
+      - 'tests/test_su_trials_recorded_replay.py'
+      - '.github/workflows/su-trials-recorded-replay.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  replay-contract:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Checkout exact current Workbench
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: fraware/neuroai-workbench
+          ref: 81052c54f125db3c925eded451b81cb1571d05e8
+          path: .workbench
+          persist-credentials: false
+      - name: Install exact Workbench tree
+        run: python -m pip install --disable-pip-version-check -e .workbench
+      - name: Parse replay schema
+        run: python -m json.tool schemas/clinicaltrials-discovery-replay-input.schema.json >/dev/null
+      - name: Run current programme validator
+        run: python scripts/validate_clinicaltrials_discovery_programme.py
+      - name: Run replay tests
+        run: python -m unittest tests.test_su_trials_recorded_replay
+      - name: Run exact Workbench ClinicalTrials projector tests
+        run: python .workbench/tests/test_clinicaltrials_discovery_projection.py
+      - name: Exercise actual projector through current S2 replay boundary
+        run: |
+          python - <<'PY'
+          import json,sys
+          sys.path.insert(0,'scripts')
+          import run_su_trials_recorded_replay as replay
+          p=replay.programme();q=p['query_streams'][0]
+          def study(nct,title,kind='INTERVENTIONAL'):
+              return {'protocolSection':{
+                  'identificationModule':{'nctId':nct,'briefTitle':title},
+                  'statusModule':{'overallStatus':'RECRUITING','lastUpdatePostDateStruct':{'date':'2026-09-02'},'enrollmentInfo':{'count':20}},
+                  'designModule':{'studyType':kind,'phases':['NA']},
+                  'contactsLocationsModule':{'centralContacts':[{'name':'MUST-NOT-PROJECT'}],'locations':[{'facility':'MUST-NOT-PROJECT'}]}}}
+          bundle={'schema_version':'0.1.0','programme_id':p['programme_id'],'capture_scope':'PARTIAL_VALIDATION','captured_at':'2026-09-02T00:00:00Z','api_data_timestamp':'2026-09-02','query_captures':[{'query_id':q['query_id'],'query_term':q['query_term'],'count_total_first_page_requested':True,'count_total_later_pages_requested':False,'pages':[{'payload':{'studies':[study('NCT04676854','Known'),study('NCT00000042','Candidate'),study('NCT00000043','Observational','OBSERVATIONAL')],'totalCount':3}}]}]}
+          result=replay.build_replay(bundle)
+          rec=result['reconciliation'];assert rec['materialized_source_namespace_count']==248;assert len(rec['controlled_source_id_set_sha256'])==64;assert rec['union_unique_nct_count']==2;assert rec['known_controlled_duplicate_count']==1;assert rec['new_candidate_input_count']==1;assert rec['mechanically_complete'] is False;assert rec['raw_api_page_payloads_emitted'] is False;assert rec['participant_level_data_emitted'] is False;assert rec['canonical_successor_ready'] is False
+          rows={r['record_key']:r for r in result['known_duplicates']+result['new_candidate_inputs']};assert rows['NCT04676854']['duplicate_of_source_id']=='SRC-PR-002';assert rows['NCT00000042']['classification_hint']=='NEW';assert 'NCT00000043' not in rows
+          serialized=json.dumps(result,sort_keys=True);assert 'MUST-NOT-PROJECT' not in serialized
+          assert result['query_reports'][0]['coverage']['excluded_by_study_type_count']==1
+          PY
+      - name: Verify no raw ClinicalTrials capture is committed
+        run: |
+          if find . -path './.git' -prune -o -path './.workbench' -prune -o -type f \( -iname '*clinicaltrials*raw*.json' -o -iname '*ctgov*page*.json' \) -print | grep -q .; then
+            echo 'Raw ClinicalTrials replay pages must remain external/ephemeral.' >&2
+            exit 1
+          fi
