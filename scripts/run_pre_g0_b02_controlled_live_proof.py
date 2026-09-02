@@ -82,9 +82,7 @@ def _build_registry(
     )
     tables = build_tables(inputs)
     source_ids = {
-        str(row["record_id"])
-        for row in tables["sources"]
-        if row.get("record_id")
+        str(row["record_id"]) for row in tables["sources"] if row.get("record_id")
     }
     monitor_source_ids = {
         str(row["record_id"])
@@ -250,11 +248,11 @@ def build_sanitized_proof(
                 f"{field}={counts.get(field)!r}"
             )
 
-    outcomes = [
-        item for item in run.get("outcomes", []) if isinstance(item, dict)
-    ]
+    outcomes = [item for item in run.get("outcomes", []) if isinstance(item, dict)]
     if len(outcomes) != 1 or outcomes[0].get("source_id") != PROOF_SOURCE_ID:
-        raise ValueError("Live package outcome identity does not match fixed proof source")
+        raise ValueError(
+            "Live package outcome identity does not match fixed proof source"
+        )
     if outcomes[0].get("status") != "RESULT":
         raise ValueError(
             f"Fixed proof source did not succeed: {outcomes[0].get('status')!r}"
