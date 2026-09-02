@@ -255,7 +255,7 @@ def build_sanitized_proof(
     ]
     if len(outcomes) != 1 or outcomes[0].get("source_id") != PROOF_SOURCE_ID:
         raise ValueError("Live package outcome identity does not match fixed proof source")
-    if outcomes[0].get("status") != "SUCCESS":
+    if outcomes[0].get("status") != "RESULT":
         raise ValueError(
             f"Fixed proof source did not succeed: {outcomes[0].get('status')!r}"
         )
