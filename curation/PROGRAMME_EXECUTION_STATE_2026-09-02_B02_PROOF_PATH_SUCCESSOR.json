@@ -1,0 +1,141 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-02_B02_PROOF_PATH_SUCCESSOR",
+  "status": "PRE_G0_SUCCESSOR_STATE_NONCANONICAL",
+  "as_of": "2026-09-02",
+  "purpose": "Append-only successor control state after merging the governed one-source PRE-G0 B02 controlled-live proof path. This record does not close B02 because the manual live proof has not executed and hosted runner allocation remains unavailable on current evidence.",
+  "predecessor": {
+    "path": "curation/PROGRAMME_EXECUTION_STATE_2026-09-02_B02_PIN_SUCCESSOR.json",
+    "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-02_B02_PIN_SUCCESSOR",
+    "predecessor_is_modified_by_this_successor": false
+  },
+  "frozen_baseline": {
+    "path": "curation/PROGRAMME_EXECUTION_BASELINE_2026-09-01.json",
+    "baseline_id": "PROGRAMME_EXECUTION_BASELINE_2026-09-01",
+    "modified_by_this_successor": false
+  },
+  "g0": {
+    "decision": "BLOCKED_NOT_PASSED",
+    "passed": false,
+    "open_blocker_ids": ["G0-B01", "G0-B02", "G0-B04", "G0-B05"],
+    "reason": "The governed B02 proof path is merged, but no hosted runner has executed it, no controlled-live acquisition proof exists yet, no graph-native Observatory-v2 candidate-to-authorization-to-publication proof has been completed, and PRE-G0 source-universe workflows remain hosted-unvalidated."
+  },
+  "repositories": {
+    "workbench": {
+      "repository": "fraware/neuroai-workbench",
+      "main_commit": "33414065e53c45221d29209ef4703b6d900781f7",
+      "package_line": "0.3.0.dev0"
+    },
+    "observatory_data": {
+      "repository": "fraware/neuroai-observatory-data",
+      "main_commit_observed_before_successor_branch": "0ec1464c27e21cac526e65023fe2a54496db8516",
+      "b02_proof_path_pr": 170,
+      "b02_proof_path_issue": 169,
+      "note": "The commit that merges this successor will post-date the observed pre-successor S2 main and is not self-referentially embedded here."
+    }
+  },
+  "b02_execution_boundary": {
+    "state": "GOVERNED_PROOF_PATH_MERGED_LIVE_EVIDENCE_PENDING",
+    "blocks_g0": true,
+    "proof_script": "scripts/run_pre_g0_b02_controlled_live_proof.py",
+    "automatic_contract_workflow": ".github/workflows/pre-g0-b02-contract.yml",
+    "manual_live_workflow": ".github/workflows/pre-g0-b02-controlled-live-proof.yml",
+    "manual_live_trigger": "workflow_dispatch",
+    "fixed_source_id": "SRC-0002",
+    "fixed_source_url": "https://neurosity.co/",
+    "workbench_commit": "33414065e53c45221d29209ef4703b6d900781f7",
+    "live_facade": "run_live_cohort_collection",
+    "expected_transport": "PinnedSocketHttpTransport",
+    "expected_dns_guard": "DnsGuard",
+    "handoff_enabled": false,
+    "expected_default_scan_state": "NOT_EXECUTED_FAIL_CLOSED",
+    "expected_default_scanner_id": "workbench.fail_closed_default",
+    "substantive_clean_claim_permitted": false,
+    "controlled_live_proof_executed": false,
+    "interpretation": "B02 execution design is now resolved by a separate one-source, manual-only governed proof path. The path uses the Workbench live-shadow facade and keeps raw bytes in ephemeral quarantine. B02 remains open until an actual runner executes the manual workflow and the sanitized proof artifact satisfies every acceptance invariant."
+  },
+  "post_merge_runner_evidence": {
+    "s2_main_commit": "0ec1464c27e21cac526e65023fe2a54496db8516",
+    "workflow_runs": [
+      {
+        "workflow": "PRE-G0 B02 controlled live contract",
+        "run_id": 33638658519,
+        "event": "push",
+        "conclusion": "failure",
+        "jobs": [
+          {
+            "job_id": 100275848610,
+            "name": "verify-contract",
+            "conclusion": "failure",
+            "steps_present": false,
+            "logs_url_present": false
+          }
+        ]
+      },
+      {
+        "workflow": "Operational live due cycle",
+        "run_id": 33638658588,
+        "event": "push",
+        "conclusion": "failure",
+        "jobs": [
+          {
+            "job_id": 100275849241,
+            "name": "validate",
+            "conclusion": "failure",
+            "steps_present": false,
+            "logs_url_present": false
+          },
+          {
+            "job_id": 100275880434,
+            "name": "live",
+            "conclusion": "skipped",
+            "steps_present": false,
+            "logs_url_present": false
+          }
+        ]
+      }
+    ],
+    "automatic_b02_contract_executed": false,
+    "manual_b02_live_workflow_dispatched_in_this_transition": false,
+    "current_workbench_checkout_executed": false,
+    "collector_execution_reached": false,
+    "controlled_live_acquisition_executed": false,
+    "operational_health_reestablished": false,
+    "interpretation": "The automatic B02 contract and operational-live validation both failed before repository steps. The dependent operational live job was skipped. These records are infrastructure evidence only; they are not code, collector, source-health, or scientific verdicts."
+  },
+  "blockers": [
+    {
+      "id": "G0-B01",
+      "state": "OPEN",
+      "description": "Hosted runner allocation remains unavailable on current evidence; fresh jobs still terminate before repository steps and logs."
+    },
+    {
+      "id": "G0-B02",
+      "state": "GOVERNED_PROOF_PATH_MERGED_LIVE_EVIDENCE_PENDING",
+      "description": "The execution-design boundary is resolved and the one-source governed proof path is merged, but no manual controlled-live proof has executed on a functioning runner."
+    },
+    {
+      "id": "G0-B03",
+      "state": "SOFTWARE_REMEDIATED_HOSTED_VALIDATION_PENDING",
+      "blocks_g0_independently": false,
+      "description": "Workbench B03 software remediation remains merged at 33414065e53c45221d29209ef4703b6d900781f7; hosted validation remains unavailable and is inherited by B01/B05."
+    },
+    {
+      "id": "G0-B04",
+      "state": "OPEN",
+      "description": "No graph-native Observatory-v2 S2 candidate-to-authorization-to-publication proof has been completed. This requirement may be satisfied by a deliberately non-production authority-boundary proof; substantive publication is not required merely to clear PRE-G0."
+    },
+    {
+      "id": "G0-B05",
+      "state": "OPEN",
+      "description": "PRE-G0 SU-TRIALS execution workflows remain hosted-unvalidated."
+    }
+  ],
+  "next_control_actions": [
+    "Keep B01 on infrastructure escalation/diagnostic evidence; do not alter scientific or collector logic to compensate for zero-step runner failures.",
+    "When a functioning runner is available, execute the manual B02 controlled-live workflow and inspect the complete sanitized proof artifact before changing B02 state.",
+    "Resolve B04 with a non-production graph-native candidate-to-authorization-to-publication authority-boundary proof; do not publish substantive Observatory data merely to satisfy PRE-G0.",
+    "Execute the PRE-G0 source-universe workflows on a functioning runner before B05 closure."
+  ],
+  "boundary": "This successor records execution-control state only. It does not rewrite prior control records, establish hosted runner health, claim controlled-live success, claim source authenticity or a content CLEAN verdict, establish scientific truth or completeness, mutate assessments, authorize substantive publication, or constitute a G0 pass."
+}
