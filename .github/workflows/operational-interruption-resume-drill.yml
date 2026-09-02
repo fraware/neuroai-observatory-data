@@ -36,7 +36,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           repository: fraware/neuroai-workbench
-          ref: 0a69a39d33334f29bf1629ec918c78b2a0759190
+          ref: 33414065e53c45221d29209ef4703b6d900781f7
           path: workbench
       - name: Install hash-locked workbench runtime
         run: |

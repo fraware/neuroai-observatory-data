@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-WORKBENCH_SHA = "0a69a39d33334f29bf1629ec918c78b2a0759190"
+WORKBENCH_SHA = "33414065e53c45221d29209ef4703b6d900781f7"
 PINNED_TRANSPORT = "PinnedSocketHttpTransport"
 LEGACY_TRANSPORT = "StdlibHttpTransport"
 UPLOAD_ARTIFACT_SHA = "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a"
