@@ -1,0 +1,70 @@
+name: PRE-G0 B02 controlled live contract
+
+on:
+  pull_request:
+    paths:
+      - "scripts/run_pre_g0_b02_controlled_live_proof.py"
+      - "tests/test_pre_g0_b02_controlled_live_proof.py"
+      - "tests/test_production_monitoring_hardening.py"
+      - ".github/workflows/pre-g0-b02-contract.yml"
+      - ".github/workflows/pre-g0-b02-controlled-live-proof.yml"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/run_pre_g0_b02_controlled_live_proof.py"
+      - "tests/test_pre_g0_b02_controlled_live_proof.py"
+      - "tests/test_production_monitoring_hardening.py"
+      - ".github/workflows/pre-g0-b02-contract.yml"
+      - ".github/workflows/pre-g0-b02-controlled-live-proof.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout S2 control repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+
+      - name: Checkout exact post-B03 Workbench tree
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: fraware/neuroai-workbench
+          ref: 33414065e53c45221d29209ef4703b6d900781f7
+          path: workbench
+          persist-credentials: false
+
+      - name: Install hash-locked exact Workbench runtime
+        run: |
+          python -m pip install --require-hashes -r workbench/requirements/constraints.txt
+          python -m pip install --no-deps ./workbench
+
+      - name: Verify B02 proof code without live retrieval
+        run: |
+          python -m compileall -q scripts tests
+          python -m ruff format --check \
+            scripts/run_pre_g0_b02_controlled_live_proof.py \
+            tests/test_pre_g0_b02_controlled_live_proof.py \
+            tests/test_production_monitoring_hardening.py
+          python -m ruff check \
+            scripts/run_pre_g0_b02_controlled_live_proof.py \
+            tests/test_pre_g0_b02_controlled_live_proof.py \
+            tests/test_production_monitoring_hardening.py
+          python -m unittest \
+            tests/test_pre_g0_b02_controlled_live_proof.py \
+            tests/test_production_monitoring_hardening.py -v
+
+      - name: Prove contract workflow performs no live proof invocation
+        run: |
+          test -z "${NEUROAI_LIVE_COLLECTION:-}"
+          test -z "${NEUROAI_LIVE_COLLECTION_AUTHORIZATION_JSON:-}"
+          test -z "$(git status --porcelain --untracked-files=no)"
