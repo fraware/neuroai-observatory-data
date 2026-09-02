@@ -10,15 +10,18 @@ SCRIPTS = ROOT / "scripts"
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
-from probe_source_route_resilience import _check_body, _extract_nct_ids, canonical_bytes, sha256  # noqa: E402
+from probe_source_route_resilience import (  # noqa: E402
+    _check_body,
+    _extract_nct_ids,
+    canonical_bytes,
+    sha256,
+)
 
 
 class SourceRouteResilienceTests(unittest.TestCase):
     def test_extract_nct_id_from_single_study(self) -> None:
         payload = {
-            "protocolSection": {
-                "identificationModule": {"nctId": "NCT04676854"}
-            }
+            "protocolSection": {"identificationModule": {"nctId": "NCT04676854"}}
         }
         self.assertEqual(_extract_nct_ids(payload), {"NCT04676854"})
 
@@ -35,19 +38,30 @@ class SourceRouteResilienceTests(unittest.TestCase):
         body = json.dumps(
             {"protocolSection": {"identificationModule": {"nctId": "NCT04676854"}}}
         ).encode()
-        self.assertTrue(_check_body(body, {"kind": "JSON_NCT_ID", "expected": "NCT04676854"}))
-        self.assertFalse(_check_body(body, {"kind": "JSON_NCT_ID", "expected": "NCT99999999"}))
-        self.assertFalse(_check_body(b"not-json", {"kind": "JSON_NCT_ID", "expected": "NCT04676854"}))
+        self.assertTrue(
+            _check_body(body, {"kind": "JSON_NCT_ID", "expected": "NCT04676854"})
+        )
+        self.assertFalse(
+            _check_body(body, {"kind": "JSON_NCT_ID", "expected": "NCT99999999"})
+        )
+        self.assertFalse(
+            _check_body(b"not-json", {"kind": "JSON_NCT_ID", "expected": "NCT04676854"})
+        )
 
     def test_text_liveness_check_is_case_insensitive(self) -> None:
         body = b"<html><title>Vision Rehabilitation Specialist, EU</title></html>"
         self.assertTrue(
             _check_body(
                 body,
-                {"kind": "TEXT_CONTAINS", "expected": "vision rehabilitation specialist, eu"},
+                {
+                    "kind": "TEXT_CONTAINS",
+                    "expected": "vision rehabilitation specialist, eu",
+                },
             )
         )
-        self.assertFalse(_check_body(body, {"kind": "TEXT_CONTAINS", "expected": "different role"}))
+        self.assertFalse(
+            _check_body(body, {"kind": "TEXT_CONTAINS", "expected": "different role"})
+        )
 
     def test_unknown_check_kind_fails_closed(self) -> None:
         with self.assertRaisesRegex(ValueError, "unsupported live route check kind"):
