@@ -1,0 +1,50 @@
+name: Discovery Source materialization and monitoring proposals
+
+on:
+  pull_request:
+    paths:
+      - 'schemas/observatory-v2-source.schema.json'
+      - 'schemas/source-monitoring-eligibility-proposal.schema.json'
+      - 'scripts/materialize_discovery_sources_monitoring.py'
+      - 'tests/test_discovery_source_materialization_monitoring.py'
+      - '.github/workflows/discovery-source-materialization-monitor-proposals.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  materialization-contract:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Checkout exact current Workbench
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: fraware/neuroai-workbench
+          ref: 81052c54f125db3c925eded451b81cb1571d05e8
+          path: .workbench
+          persist-credentials: false
+      - name: Install exact Workbench tree
+        run: python -m pip install --disable-pip-version-check -e .workbench
+      - name: Parse schemas and compile current SU-TRIALS chain
+        run: |
+          python -m json.tool schemas/observatory-v2-source.schema.json >/dev/null
+          python -m json.tool schemas/source-monitoring-eligibility-proposal.schema.json >/dev/null
+          python -m py_compile scripts/run_su_trials_recorded_replay.py scripts/stage_su_trials_human_review.py scripts/adjudicate_su_trials_source_namespace.py scripts/materialize_discovery_sources_monitoring.py
+      - name: Verify v2 Source schema preserves both provenance branches
+        run: |
+          python - <<'PY'
+          import json
+          s=json.load(open('schemas/observatory-v2-source.schema.json'))
+          titles={x['title'] for x in s['oneOf']}
+          assert titles=={'Legacy public-release migration provenance','Human-accepted discovery provenance'}
+          dp=s['properties']['discovery_provenance']
+          for k in ('projection_source_id_set_sha256','staging_source_id_set_sha256','adjudication_base_source_id_set_sha256'):
+              assert k in dp['required']
+          PY
+      - name: Run materialization and monitoring-proposal tests
+        run: python -m unittest tests.test_discovery_source_materialization_monitoring
