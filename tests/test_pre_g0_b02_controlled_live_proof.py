@@ -103,9 +103,9 @@ class PreG0B02ControlledLiveProofTests(unittest.TestCase):
                 workbench_commit=proof.EXPECTED_WORKBENCH_COMMIT,
             )
 
-    def test_clean_scan_claim_cannot_pass_default_proof(self) -> None:
+    def test_valid_non_default_scan_state_cannot_pass_default_proof(self) -> None:
         package = self._package()
-        package["content_safety"]["state_counts"] = {"CLEAN": 1}
+        package["content_safety"]["state_counts"] = {"CLEAN_NOT_ADJUDICATION": 1}
         with self.assertRaisesRegex(ValueError, "remain fail-closed"):
             proof.build_sanitized_proof(
                 package,
