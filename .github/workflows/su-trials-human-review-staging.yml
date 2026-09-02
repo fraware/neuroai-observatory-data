@@ -1,0 +1,66 @@
+name: SU-TRIALS human-review staging
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/stage_su_trials_human_review.py'
+      - 'tests/test_su_trials_human_review_staging.py'
+      - 'tests/test_su_trials_human_review_staging_idempotency.py'
+      - '.github/workflows/su-trials-human-review-staging.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  staging-contract:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Checkout exact current Workbench
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: fraware/neuroai-workbench
+          ref: 81052c54f125db3c925eded451b81cb1571d05e8
+          path: .workbench
+          persist-credentials: false
+      - name: Install exact Workbench tree
+        run: python -m pip install --disable-pip-version-check -e .workbench
+      - name: Run staging tests
+        run: |
+          python -m unittest tests.test_su_trials_human_review_staging
+          python -m unittest tests.test_su_trials_human_review_staging_idempotency
+      - name: Exercise real projector, replay, and Workbench OFFLINE_REPLAY staging
+        run: |
+          python - <<'PY'
+          import json,sys,tempfile
+          from pathlib import Path
+          sys.path.insert(0,'scripts')
+          import run_su_trials_recorded_replay as replay
+          import stage_su_trials_human_review as stage
+          p=replay.programme();caps=[]
+          new_ids=['NCT00000101','NCT00000102','NCT00000103','NCT00000104']
+          def study(nct,title):
+              return {'protocolSection':{'identificationModule':{'nctId':nct,'briefTitle':title},'statusModule':{'overallStatus':'RECRUITING','lastUpdatePostDateStruct':{'date':'2026-09-02'}},'designModule':{'studyType':'INTERVENTIONAL','phases':['NA']},'contactsLocationsModule':{'centralContacts':[{'name':'MUST-NOT-PROJECT'}]}}}
+          for i,q in enumerate(p['query_streams']):
+              studies=[study(new_ids[i],f'Candidate {i}')]
+              if i==0:studies.insert(0,study('NCT04676854','Known anchor'))
+              caps.append({'query_id':q['query_id'],'query_term':q['query_term'],'count_total_first_page_requested':True,'count_total_later_pages_requested':False,'pages':[{'payload':{'studies':studies,'totalCount':len(studies)}}]})
+          bundle={'schema_version':'0.1.0','programme_id':p['programme_id'],'capture_scope':'FULL_PROGRAMME','captured_at':'2026-09-02T00:00:00Z','api_data_timestamp':'2026-09-02','query_captures':caps}
+          result=replay.build_replay(bundle);assert result['reconciliation']['mechanically_complete'] is True;assert result['reconciliation']['known_controlled_duplicate_count']==1;assert result['reconciliation']['new_candidate_input_count']==4;assert 'MUST-NOT-PROJECT' not in json.dumps(result)
+          with tempfile.TemporaryDirectory() as pd,tempfile.TemporaryDirectory() as wd:
+              replay.write_projection(result,Path(pd))
+              staged=stage.stage_projection(Path(pd),Path(wd),actor='ci-human-review-stager',staged_at='2026-09-02T01:00:00Z')
+              assert staged['status']=='STAGED_FOR_HUMAN_ACCEPTANCE'
+              assert staged['candidate_count']==4
+              assert len(staged['proposal_ids'])==4
+              assert staged['automatic_mutation_performed'] is False
+              assert staged['human_adjudication_performed'] is False
+              assert staged['canonical_successor_ready'] is False
+              review=json.loads(Path(staged['review_index_path']).read_text())
+              assert review['proposal_count']==4
+              assert review['human_adjudication_performed'] is False
+          PY
