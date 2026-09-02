@@ -1,0 +1,128 @@
+name: PRE-G0 B02 controlled live proof
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: neuroai-pre-g0-b02-controlled-live-proof
+  cancel-in-progress: false
+
+jobs:
+  prove:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout S2 control repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+
+      - name: Checkout exact post-B03 Workbench tree
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: fraware/neuroai-workbench
+          ref: 33414065e53c45221d29209ef4703b6d900781f7
+          path: workbench
+          persist-credentials: false
+
+      - name: Install hash-locked exact Workbench runtime
+        run: |
+          python -m pip install --require-hashes -r workbench/requirements/constraints.txt
+          python -m pip install --no-deps ./workbench
+
+      - name: Verify PRE-G0 B02 offline contracts
+        run: |
+          python -m compileall -q scripts tests
+          python -m ruff format --check \
+            scripts/run_pre_g0_b02_controlled_live_proof.py \
+            tests/test_pre_g0_b02_controlled_live_proof.py \
+            tests/test_production_monitoring_hardening.py
+          python -m ruff check \
+            scripts/run_pre_g0_b02_controlled_live_proof.py \
+            tests/test_pre_g0_b02_controlled_live_proof.py \
+            tests/test_production_monitoring_hardening.py
+          python -m unittest \
+            tests/test_pre_g0_b02_controlled_live_proof.py \
+            tests/test_production_monitoring_hardening.py -v
+
+      - name: Execute one-source governed controlled-live proof
+        run: |
+          proof_root="$RUNNER_TEMP/pre-g0-b02-proof"
+          mkdir -p "$proof_root"
+          python scripts/run_pre_g0_b02_controlled_live_proof.py \
+            --workspace "$proof_root/workspace" \
+            --output "$proof_root/proof.json" \
+            --authorization-id "AUTH-PRE-G0-B02-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" \
+            --actor "github-actions:${GITHUB_ACTOR}" \
+            --as-of "$(date -u +%F)" \
+            --workbench-commit "33414065e53c45221d29209ef4703b6d900781f7"
+
+      - name: Enforce sanitized B02 acceptance boundary
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          path = Path(os.environ["RUNNER_TEMP"]) / "pre-g0-b02-proof" / "proof.json"
+          proof = json.loads(path.read_text(encoding="utf-8"))
+          assert proof["status"] == "PRE_G0_B02_CONTROLLED_LIVE_PROOF_NOT_CANONICAL"
+          assert proof["workbench_commit"] == "33414065e53c45221d29209ef4703b6d900781f7"
+          assert proof["source"]["source_id"] == "SRC-0002"
+          assert proof["source"]["url"] == "https://neurosity.co/"
+          assert proof["collection"]["counts"] == {
+              "total": 1,
+              "succeeded": 1,
+              "failed": 0,
+              "skipped": 0,
+          }
+          assert proof["controls"]["live_facade"] == "run_live_cohort_collection"
+          assert proof["controls"]["default_transport"] == "PinnedSocketHttpTransport"
+          assert proof["controls"]["dns_guard"] == "DnsGuard"
+          assert proof["controls"]["handoff_enabled"] is False
+          assert proof["controls"]["monitoring_handoff_performed"] is False
+          assert proof["controls"]["assessment_mutation_performed"] is False
+          assert proof["controls"]["canonical_publication_performed"] is False
+          assert proof["controls"]["raw_response_body_exposed"] is False
+          assert proof["content_safety"]["durable_result_records_checked"] == 1
+          assert proof["content_safety"]["state_counts"] == {"NOT_EXECUTED_FAIL_CLOSED": 1}
+          assert proof["content_safety"]["scanner_ids"] == ["workbench.fail_closed_default"]
+          assert proof["content_safety"]["substantive_clean_claim"] is False
+          print("PRE_G0_B02_ACCEPTANCE=" + json.dumps({
+              "source_id": proof["source"]["source_id"],
+              "authorization_id": proof["authorization"]["authorization_id"],
+              "capture_sha256": proof["collection"]["capture"]["sha256"],
+              "state_counts": proof["content_safety"]["state_counts"],
+              "handoff_enabled": proof["controls"]["handoff_enabled"],
+              "canonical_publication_performed": proof["controls"]["canonical_publication_performed"],
+          }, sort_keys=True))
+          PY
+
+      - name: Retain sanitized PRE-G0 B02 proof only
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: pre-g0-b02-controlled-live-proof-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/pre-g0-b02-proof/proof.json
+          retention-days: 90
+          if-no-files-found: error
+
+      - name: Delete ephemeral quarantine and monitoring workspace
+        if: always()
+        run: |
+          rm -rf "$RUNNER_TEMP/pre-g0-b02-proof/workspace"
+          test ! -e "$RUNNER_TEMP/pre-g0-b02-proof/workspace"
+
+      - name: Prove repository state remains clean
+        if: always()
+        run: |
+          rm -rf workbench
+          git status --porcelain
+          test -z "$(git status --porcelain)"
