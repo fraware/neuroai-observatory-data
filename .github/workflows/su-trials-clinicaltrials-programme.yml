@@ -1,0 +1,88 @@
+name: SU-TRIALS ClinicalTrials.gov programme
+
+on:
+  pull_request:
+    paths:
+      - 'curation/clinicaltrials_discovery_programme_v0.1.json'
+      - 'schemas/clinicaltrials-discovery-programme.schema.json'
+      - 'scripts/validate_clinicaltrials_discovery_programme.py'
+      - 'tests/test_clinicaltrials_discovery_programme.py'
+      - '.github/workflows/su-trials-clinicaltrials-programme.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-programme:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Checkout exact current Workbench
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: fraware/neuroai-workbench
+          ref: 81052c54f125db3c925eded451b81cb1571d05e8
+          path: .workbench
+          persist-credentials: false
+      - name: Install exact Workbench tree
+        run: python -m pip install --disable-pip-version-check -e .workbench
+      - name: Parse programme and schema
+        run: |
+          python -m json.tool curation/clinicaltrials_discovery_programme_v0.1.json >/dev/null
+          python -m json.tool schemas/clinicaltrials-discovery-programme.schema.json >/dev/null
+      - name: Validate programme
+        run: python scripts/validate_clinicaltrials_discovery_programme.py
+      - name: Run S2 programme tests
+        run: python -m unittest tests.test_clinicaltrials_discovery_programme
+      - name: Run exact Workbench ClinicalTrials projector tests
+        run: python .workbench/tests/test_clinicaltrials_discovery_projection.py
+      - name: Exercise exact projector against current S2 identity boundary
+        run: |
+          python - <<'PY'
+          import sys
+          sys.path.insert(0, 'scripts')
+          from current_source_namespace import materialize_effective_source_namespace
+          from neuroai_workbench.collector.adapters.clinicaltrials import ClinicalTrialsGovAdapter
+          from neuroai_workbench.discovery import project_clinicaltrials_search_pages
+
+          ns=materialize_effective_source_namespace()
+          known={}
+          for s in ns['sources']:
+              loc=s['canonical_locator']
+              if 'NCT04676854' in loc:
+                  known['NCT04676854']=s['source_id']
+          assert known == {'NCT04676854':'SRC-PR-002'}
+          adapter=ClinicalTrialsGovAdapter.__new__(ClinicalTrialsGovAdapter)
+          def study(nct,title,kind='INTERVENTIONAL'):
+              return {'protocolSection':{
+                  'identificationModule':{'nctId':nct,'briefTitle':title},
+                  'statusModule':{'overallStatus':'RECRUITING','lastUpdatePostDateStruct':{'date':'2026-09-01'}},
+                  'designModule':{'studyType':kind,'phases':['NA']}}}
+          result=project_clinicaltrials_search_pages(
+              adapter,
+              query_id='DISCOVERY-CTGOV-INTEGRATION',
+              query_text='neural interface',
+              pages=[{'payload':{'studies':[study('NCT04676854','Known'),study('NCT00000042','Candidate'),study('NCT00000043','Observational','OBSERVATIONAL')],'totalCount':3}}],
+              required_study_types=['INTERVENTIONAL'],
+              known_nct_sources=known,
+          )
+          cov=result['coverage']
+          assert cov['reported_total_count_state']=='CONSISTENT'
+          assert cov['reported_total_reconciliation_state']=='MATCH'
+          assert cov['included_candidate_count']==2
+          assert cov['known_nct_duplicate_count']==1
+          assert cov['new_candidate_count']==1
+          assert cov['excluded_by_study_type_count']==1
+          assert cov['registry_completeness_claim'] is False
+          assert cov['neuroai_discovery_recall_claim'] is False
+          assert cov['automatic_registry_mutation_performed'] is False
+          rows={r['record_key']:r for r in result['result_records']}
+          assert rows['NCT04676854']['classification_hint']=='DUPLICATE'
+          assert rows['NCT04676854']['duplicate_of_source_id']=='SRC-PR-002'
+          assert rows['NCT00000042']['classification_hint']=='NEW'
+          assert 'NCT00000043' not in rows
+          PY
