@@ -1,0 +1,150 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-02_B03_SUCCESSOR",
+  "status": "PRE_G0_SUCCESSOR_STATE_NONCANONICAL",
+  "as_of": "2026-09-02",
+  "purpose": "Append-only successor control state after G0-B03 software remediation. This record preserves the frozen September 1 baseline and updates only current execution-state interpretation.",
+  "predecessor": {
+    "path": "curation/PROGRAMME_EXECUTION_BASELINE_2026-09-01.json",
+    "baseline_id": "PROGRAMME_EXECUTION_BASELINE_2026-09-01",
+    "observatory_data_merge_commit": "686c6cc8c3eba08ffddb7d0a65d131c435ddb018",
+    "predecessor_is_modified_by_this_successor": false
+  },
+  "g0": {
+    "decision": "BLOCKED_NOT_PASSED",
+    "passed": false,
+    "open_blocker_ids": ["G0-B01", "G0-B02", "G0-B04", "G0-B05"],
+    "reason": "G0-B03 software remediation has merged, but hosted execution remains unavailable, the operational live workflow is not pinned to the remediated Workbench tree, no fresh controlled live acquisition has executed on that tree, no graph-native Observatory-v2 publication operation has been performed, and source-universe workflow pins remain hosted-unvalidated."
+  },
+  "repositories": {
+    "workbench": {
+      "repository": "fraware/neuroai-workbench",
+      "main_commit": "33414065e53c45221d29209ef4703b6d900781f7",
+      "package_line": "0.3.0.dev0",
+      "b03_merge_pr": 265,
+      "b03_issue": 264
+    },
+    "observatory_data": {
+      "repository": "fraware/neuroai-observatory-data",
+      "main_commit_observed_before_successor_branch": "686c6cc8c3eba08ffddb7d0a65d131c435ddb018",
+      "note": "The commit that merges this successor will necessarily post-date the observed pre-successor S2 main and is not self-referentially embedded here."
+    }
+  },
+  "g0_b03_transition": {
+    "predecessor_state": "OPEN",
+    "current_state": "SOFTWARE_REMEDIATED_HOSTED_VALIDATION_PENDING",
+    "blocks_g0_in_this_successor": false,
+    "workbench_merge_commit": "33414065e53c45221d29209ef4703b6d900781f7",
+    "workbench_pr": 265,
+    "workbench_issue": 264,
+    "implemented_controls": {
+      "durable_result_scan_primitive_shared_by_collection_service_and_live_shadow": true,
+      "schema_valid_result_root_quarantine_binding_required": true,
+      "existing_valid_scan_record_verified_and_reused": true,
+      "malformed_or_ambiguous_scan_binding_fails_closed": true,
+      "post_persist_pre_checkpoint_durable_results_audited_before_live_package_return": true,
+      "live_package_exposes_bounded_scan_state_counts_and_scanner_ids_only": true,
+      "monitoring_handoff_enabled_by_change": false,
+      "assessment_mutation_performed": false,
+      "canonical_publication_performed": false
+    },
+    "default_scanner_semantics": {
+      "scanner_id": "workbench.fail_closed_default",
+      "normal_state": "NOT_EXECUTED_FAIL_CLOSED",
+      "substantive_clean_claim": false,
+      "real_content_safety_engine_claimed_configured": false
+    },
+    "verification": {
+      "adversarial_tests_added": true,
+      "hosted_ci_executed": false,
+      "hosted_codeql_executed": false,
+      "hosted_dependency_review_executed": false,
+      "pr_head_ci_jobs": 11,
+      "pr_head_codeql_jobs": 1,
+      "pr_head_dependency_review_jobs": 1,
+      "observed_runner_signature": "steps=[]; runner_id=0; runner_name empty",
+      "interpretation": "The software defect is remediated in main and the intended adversarial tests are encoded, but no hosted test, coverage, quality, package, audit, CodeQL, or Dependency Review pass is claimed because runner steps did not execute. Residual hosted verification is inherited by G0-B01 and G0-B05."
+    }
+  },
+  "execution_pin_reconciliation": {
+    "workbench_main": "33414065e53c45221d29209ef4703b6d900781f7",
+    "operational_live_due_cycle_workflow": {
+      "path": ".github/workflows/operational-live-cycle.yml",
+      "observed_workbench_pin": "0a69a39d33334f29bf1629ec918c78b2a0759190",
+      "matches_workbench_main": false,
+      "contains_b03_remediation": false,
+      "contains_digest_bound_live_authorization_change_from_4ca77e": false,
+      "interpretation": "The scheduled operational live workflow cannot currently demonstrate the exact B03-remediated dual-authorization live path. Pin reconciliation is required before B02 can be closed."
+    },
+    "su_trials_execution_workflows": {
+      "control": "curation/source_universe_execution_state_2026-09-02.json",
+      "observed_workbench_pin": "4ca77e901a6790fac418aa6d5b013c84a664abfa",
+      "matches_workbench_main": false,
+      "deliberately_rewritten_by_this_successor": false,
+      "interpretation": "These source-universe workflows remain at the frozen PRE-G0 execution pin. This successor records the divergence without silently repinning or claiming hosted validation."
+    }
+  },
+  "operational_evidence": {
+    "hosted_runner_issue": {
+      "repository": "fraware/neuroai-observatory-data",
+      "issue": 105,
+      "state": "OPEN"
+    },
+    "latest_scheduled_run_observed": {
+      "run_id": 33610570245,
+      "workflow": "Current monitor accountability",
+      "event": "schedule",
+      "date": "2026-09-02",
+      "conclusion": "failure"
+    },
+    "fresh_scheduled_run_after_pre_g0_baseline_merge_observed": false,
+    "operational_health_reestablished": false,
+    "fresh_controlled_live_acquisition_on_workbench_33414065_demonstrated": false
+  },
+  "publication_state": {
+    "release_directories_observed": [
+      "data-v0.0.1-bootstrap",
+      "data-v0.1.0-public-governing",
+      "data-v0.2.0-v2.3.0-dev-candidate"
+    ],
+    "graph_native_observatory_v2_release_directory_present": false,
+    "graph_native_observatory_v2_candidate_authorization_publication_operation_performed": false,
+    "boundary": "The absence of a graph-native v2 release operation keeps G0-B04 open. Software release capability is not publication authority."
+  },
+  "blockers": [
+    {
+      "id": "G0-B01",
+      "state": "OPEN",
+      "description": "Hosted runner execution is not restored; observatory-data issue #105 remains open and no later scheduled run demonstrates step execution."
+    },
+    {
+      "id": "G0-B02",
+      "state": "OPEN",
+      "description": "No fresh controlled live acquisition has executed under Workbench 33414065e53c45221d29209ef4703b6d900781f7. The scheduled operational live workflow still pins 0a69a39d33334f29bf1629ec918c78b2a0759190, so pin reconciliation is required before this blocker can be tested honestly."
+    },
+    {
+      "id": "G0-B03",
+      "state": "SOFTWARE_REMEDIATED_HOSTED_VALIDATION_PENDING",
+      "blocks_g0_in_this_successor": false,
+      "description": "The live-shadow durable content-safety audit defect is remediated in Workbench main through PR #265. Hosted verification did not execute and remains an operational validation dependency under B01/B05."
+    },
+    {
+      "id": "G0-B04",
+      "state": "OPEN",
+      "description": "No graph-native Observatory-v2 S2 candidate-to-authorization-to-publication operation has been performed."
+    },
+    {
+      "id": "G0-B05",
+      "state": "OPEN",
+      "description": "The PRE-G0 SU-TRIALS workflow pin reconciliation remains hosted-unvalidated, and those workflows remain pinned to 4ca77e901a6790fac418aa6d5b013c84a664abfa rather than current Workbench main."
+    }
+  ],
+  "next_control_actions": [
+    "Restore hosted runner execution and retain step-level/log evidence for issue #105.",
+    "Reconcile the operational live due-cycle Workbench pin to the exact intended post-B03 tree before attempting B02 evidence.",
+    "Execute a fresh scheduled operational live cycle that reaches collector execution under the reconciled pin and dual authorization boundary.",
+    "Resolve the intended G0 publication requirement by performing the governed graph-native v2 candidate-to-authorization-to-publication operation or explicitly moving that requirement to a later gate through a separate reviewed control decision.",
+    "Re-run and validate the PRE-G0 source-universe execution workflows on a functioning hosted runner before claiming B05 closure."
+  ],
+  "boundary": "This successor records current execution-control state only. It does not rewrite the frozen baseline, authorize publication, establish scientific truth, establish source-universe completeness, establish system conformance, establish operational health, claim a content CLEAN verdict, or constitute a G0 pass."
+}
