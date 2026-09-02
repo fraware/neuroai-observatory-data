@@ -51,7 +51,9 @@ class ProductionMonitoringHardeningTests(unittest.TestCase):
                 self.assertNotIn("65c32abce505f0915e8b5a146b914c9ce7be07f8", text)
 
     def test_workflow_actions_are_immutable_sha_pins(self) -> None:
-        floating = re.compile(r"uses:\s+actions/(?:checkout|setup-python|upload-artifact)@v\d+")
+        floating = re.compile(
+            r"uses:\s+actions/(?:checkout|setup-python|upload-artifact)@v\d+"
+        )
         immutable = re.compile(
             r"uses:\s+actions/(?:checkout|setup-python|upload-artifact)@[0-9a-f]{40}"
         )
