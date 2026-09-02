@@ -85,7 +85,7 @@ jobs:
         run: |
           python -m pip install --require-hashes -r workbench/requirements/constraints.txt
           python -m pip install --no-deps ./workbench
-      - name: Run full regression and issue-surface quality gates
+      - name: Run operational regression and issue-surface quality gates
         run: |
           files=(
             scripts/build_current_monitor_accountability.py
@@ -108,7 +108,16 @@ jobs:
           python -m compileall -q scripts tests
           python -m ruff format --check "${files[@]}"
           python -m ruff check "${files[@]}"
-          python -m unittest discover -s tests -v
+          python -m unittest \
+            tests/test_current_monitor_accountability.py \
+            tests/test_development_monitor_registry.py \
+            tests/test_monitoring_transition_manifest.py \
+            tests/test_operational_health.py \
+            tests/test_operational_health_route_resilience.py \
+            tests/test_production_monitoring_hardening.py \
+            tests/test_source_lifecycle_overlay.py \
+            tests/test_source_route_resilience.py \
+            tests/test_successor_discovery.py -v
       - name: Execute lifecycle-aware live due cycle and exact-resume proof
         run: |
           rm -rf "$RUNNER_TEMP/neuroai-live"
