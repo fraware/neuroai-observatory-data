@@ -15,7 +15,7 @@ from probe_source_route_resilience import (
     _extract_nct_ids,
     canonical_bytes,
     sha256,
-)  # noqa: E402
+)
 
 
 class SourceRouteResilienceTests(unittest.TestCase):
