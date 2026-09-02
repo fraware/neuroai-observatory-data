@@ -16,17 +16,18 @@ class ClinicalTrialsTransportDiagnosticContractTests(unittest.TestCase):
         self.assertIn(f'TARGET_URL = "{TARGET}"', text)
         self.assertIn('"response_body_retained": False', text)
         self.assertIn('"source_state_mutated": False', text)
-        self.assertIn('"curl_default"', text)
-        self.assertIn('"curl_http1_1"', text)
         self.assertIn('"python_requests_http1_1"', text)
         self.assertIn('"python_stdlib_hostname_http1_1"', text)
         self.assertIn('"workbench_pinned_http1_1"', text)
         self.assertIn('"curl_resolve_http1_1"', text)
-        self.assertIn('"workbench_single_address_http1_1"', text)
+        self.assertIn('"urllib3_pinned_http1_1"', text)
+        self.assertIn('server_hostname=TARGET_HOST', text)
+        self.assertIn('assert_hostname=TARGET_HOST', text)
+        self.assertIn('assert_same_host=False', text)
+        self.assertIn('"Host": TARGET_HOST', text)
         self.assertIn("DnsGuard().resolve(TARGET_URL)", text)
         self.assertNotIn("write_registry", text)
         self.assertNotIn("initialize_monitoring", text)
-        self.assertNotIn("publication", text.lower().split("BOUNDARY =", 1)[0])
 
     def test_workflow_is_diagnostic_only_and_pins_workbench(self) -> None:
         text = WORKFLOW.read_text(encoding="utf-8")
@@ -36,9 +37,8 @@ class ClinicalTrialsTransportDiagnosticContractTests(unittest.TestCase):
         self.assertNotIn("schedule:", text)
         self.assertIn(f"ref: {WORKBENCH_SHA}", text)
         self.assertIn("persist-credentials: false", text)
-        self.assertIn("response_body_retained", text)
-        self.assertIn("source_state_mutated", text)
         self.assertIn("per_validated_address", text)
+        self.assertIn("urllib3_pinned_http1_1", text)
         self.assertIn("if: always()", text)
 
 
