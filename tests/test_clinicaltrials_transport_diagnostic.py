@@ -19,7 +19,11 @@ class ClinicalTrialsTransportDiagnosticContractTests(unittest.TestCase):
         self.assertIn('"curl_default"', text)
         self.assertIn('"curl_http1_1"', text)
         self.assertIn('"python_requests_http1_1"', text)
+        self.assertIn('"python_stdlib_hostname_http1_1"', text)
         self.assertIn('"workbench_pinned_http1_1"', text)
+        self.assertIn('"curl_resolve_http1_1"', text)
+        self.assertIn('"workbench_single_address_http1_1"', text)
+        self.assertIn("DnsGuard().resolve(TARGET_URL)", text)
         self.assertNotIn("write_registry", text)
         self.assertNotIn("initialize_monitoring", text)
         self.assertNotIn("publication", text.lower().split("BOUNDARY =", 1)[0])
@@ -34,6 +38,7 @@ class ClinicalTrialsTransportDiagnosticContractTests(unittest.TestCase):
         self.assertIn("persist-credentials: false", text)
         self.assertIn("response_body_retained", text)
         self.assertIn("source_state_mutated", text)
+        self.assertIn("per_validated_address", text)
         self.assertIn("if: always()", text)
 
 
