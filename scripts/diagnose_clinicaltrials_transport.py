@@ -34,37 +34,18 @@ def _curl_probe(
     *, force_http11: bool, resolve_address: str | None = None
 ) -> dict[str, Any]:
     command = [
-        "curl",
-        "--silent",
-        "--show-error",
-        "--output",
-        "/dev/null",
-        "--write-out",
-        "%{http_code}",
-        "--connect-timeout",
-        "10",
-        "--max-time",
-        "30",
-        "--user-agent",
-        USER_AGENT,
-        "--header",
-        "Accept: application/json",
-        "--header",
-        "Accept-Encoding: gzip, deflate",
-        "--header",
-        "Connection: close",
+        "curl", "--silent", "--show-error", "--output", "/dev/null",
+        "--write-out", "%{http_code}", "--connect-timeout", "10", "--max-time", "30",
+        "--user-agent", USER_AGENT, "--header", "Accept: application/json",
+        "--header", "Accept-Encoding: gzip, deflate", "--header", "Connection: close",
     ]
     if force_http11:
         command.append("--http1.1")
     if resolve_address is not None:
-        curl_address = (
-            f"[{resolve_address}]" if ":" in resolve_address else resolve_address
-        )
+        curl_address = f"[{resolve_address}]" if ":" in resolve_address else resolve_address
         command.extend(["--resolve", f"{TARGET_HOST}:443:{curl_address}"])
     command.append(TARGET_URL)
-    completed = subprocess.run(
-        command, capture_output=True, text=True, check=False, timeout=35
-    )
+    completed = subprocess.run(command, capture_output=True, text=True, check=False, timeout=35)
     raw_status = completed.stdout.strip()
     status = int(raw_status) if raw_status.isdigit() and len(raw_status) == 3 else None
     return {
@@ -81,22 +62,14 @@ def _requests_probe() -> dict[str, Any]:
         response = requests.get(
             TARGET_URL,
             headers={**_REQUEST_HEADERS, "Connection": "close"},
-            timeout=(10, 20),
-            allow_redirects=False,
-            stream=True,
+            timeout=(10, 20), allow_redirects=False, stream=True,
         )
         try:
-            return {
-                "outcome": "HTTP_RESPONSE",
-                "http_status": int(response.status_code),
-            }
+            return {"outcome": "HTTP_RESPONSE", "http_status": int(response.status_code)}
         finally:
             response.close()
     except requests.RequestException as exc:
-        return {
-            "outcome": "TRANSPORT_FAILURE",
-            "exception_type": type(exc).__name__,
-        }
+        return {"outcome": "TRANSPORT_FAILURE", "exception_type": type(exc).__name__}
 
 
 def _stdlib_hostname_probe() -> dict[str, Any]:
@@ -104,26 +77,15 @@ def _stdlib_hostname_probe() -> dict[str, Any]:
     response: http.client.HTTPResponse | None = None
     try:
         connection = http.client.HTTPSConnection(
-            TARGET_HOST,
-            443,
-            timeout=30,
-            context=ssl.create_default_context(),
+            TARGET_HOST, 443, timeout=30, context=ssl.create_default_context()
         )
         connection.request(
-            "GET",
-            TARGET_PATH,
-            headers={**_REQUEST_HEADERS, "Connection": "close"},
+            "GET", TARGET_PATH, headers={**_REQUEST_HEADERS, "Connection": "close"}
         )
         response = connection.getresponse()
-        return {
-            "outcome": "HTTP_RESPONSE",
-            "http_status": int(response.status),
-        }
+        return {"outcome": "HTTP_RESPONSE", "http_status": int(response.status)}
     except (OSError, TimeoutError, http.client.HTTPException) as exc:
-        return {
-            "outcome": "TRANSPORT_FAILURE",
-            "exception_type": type(exc).__name__,
-        }
+        return {"outcome": "TRANSPORT_FAILURE", "exception_type": type(exc).__name__}
     finally:
         if response is not None:
             response.close()
@@ -153,9 +115,7 @@ def _workbench_http_client_probe() -> dict[str, Any]:
         config=config, transport=PinnedSocketHttpTransport(max_wire_bytes=2_000_000)
     )
     try:
-        response = client.fetch(
-            TARGET_URL, conditional_headers={"Accept": "application/json"}
-        )
+        response = client.fetch(TARGET_URL, conditional_headers={"Accept": "application/json"})
         return {
             "outcome": "HTTP_RESPONSE",
             "http_status": int(response.status),
@@ -174,10 +134,7 @@ def _workbench_http_client_probe() -> dict[str, Any]:
             "http_status": status,
         }
     except (OSError, TimeoutError) as exc:
-        return {
-            "outcome": "TRANSPORT_FAILURE",
-            "exception_type": type(exc).__name__,
-        }
+        return {"outcome": "TRANSPORT_FAILURE", "exception_type": type(exc).__name__}
 
 
 def _validated_addresses() -> tuple[list[str], str]:
@@ -189,21 +146,13 @@ def _validated_addresses() -> tuple[list[str], str]:
 
 def _workbench_single_address_probe(address: str) -> dict[str, Any]:
     from neuroai_workbench.collector import PinnedSocketHttpTransport
-    from neuroai_workbench.collector.http_client import (
-        HttpRequest,
-        coerce_transport_response,
-    )
+    from neuroai_workbench.collector.http_client import HttpRequest, coerce_transport_response
 
     transport = PinnedSocketHttpTransport(max_wire_bytes=2_000_000)
     try:
         response = coerce_transport_response(
             transport.send(
-                HttpRequest(
-                    "GET",
-                    TARGET_URL,
-                    dict(_REQUEST_HEADERS),
-                    (address,),
-                ),
+                HttpRequest("GET", TARGET_URL, dict(_REQUEST_HEADERS), (address,)),
                 connect_timeout=10.0,
                 read_timeout=20.0,
             )
@@ -214,10 +163,42 @@ def _workbench_single_address_probe(address: str) -> dict[str, Any]:
             "connected_address": response.connected_address,
         }
     except (OSError, TimeoutError) as exc:
-        return {
-            "outcome": "TRANSPORT_FAILURE",
-            "exception_type": type(exc).__name__,
-        }
+        return {"outcome": "TRANSPORT_FAILURE", "exception_type": type(exc).__name__}
+
+
+def _urllib3_single_address_probe(address: str) -> dict[str, Any]:
+    import urllib3
+    from urllib3.util import Timeout
+
+    pool = urllib3.HTTPSConnectionPool(
+        address,
+        port=443,
+        timeout=Timeout(connect=10.0, read=20.0),
+        maxsize=1,
+        block=True,
+        server_hostname=TARGET_HOST,
+        assert_hostname=TARGET_HOST,
+        cert_reqs=ssl.CERT_REQUIRED,
+    )
+    response = None
+    try:
+        response = pool.urlopen(
+            "GET",
+            TARGET_PATH,
+            headers={**_REQUEST_HEADERS, "Host": TARGET_HOST, "Connection": "close"},
+            retries=False,
+            redirect=False,
+            assert_same_host=False,
+            preload_content=False,
+            decode_content=False,
+        )
+        return {"outcome": "HTTP_RESPONSE", "http_status": int(response.status)}
+    except (urllib3.exceptions.HTTPError, OSError, TimeoutError) as exc:
+        return {"outcome": "TRANSPORT_FAILURE", "exception_type": type(exc).__name__}
+    finally:
+        if response is not None:
+            response.close()
+        pool.close()
 
 
 def execute() -> dict[str, Any]:
@@ -227,24 +208,16 @@ def execute() -> dict[str, Any]:
         per_address.append(
             {
                 "address": address,
-                "curl_resolve_http1_1": _curl_probe(
-                    force_http11=True, resolve_address=address
-                ),
-                "workbench_single_address_http1_1": _workbench_single_address_probe(
-                    address
-                ),
+                "curl_resolve_http1_1": _curl_probe(force_http11=True, resolve_address=address),
+                "urllib3_pinned_http1_1": _urllib3_single_address_probe(address),
+                "workbench_single_address_http1_1": _workbench_single_address_probe(address),
             }
         )
 
     return {
-        "schema_version": "2",
+        "schema_version": "3",
         "boundary": BOUNDARY,
-        "target": {
-            "host": TARGET_HOST,
-            "path": TARGET_PATH,
-            "method": "GET",
-            "accept": "application/json",
-        },
+        "target": {"host": TARGET_HOST, "path": TARGET_PATH, "method": "GET", "accept": "application/json"},
         "dns_validated_address_count": len(addresses),
         "dns_rebinding_check": rebinding_check,
         "probes": {
@@ -266,13 +239,8 @@ def main() -> int:
     args = parser.parse_args()
     report = execute()
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(
-        json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
-    print(
-        "SANITIZED_CLINICALTRIALS_TRANSPORT_DIAGNOSTIC="
-        + json.dumps(report, sort_keys=True)
-    )
+    args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    print("SANITIZED_CLINICALTRIALS_TRANSPORT_DIAGNOSTIC=" + json.dumps(report, sort_keys=True))
     return 0
 
 
