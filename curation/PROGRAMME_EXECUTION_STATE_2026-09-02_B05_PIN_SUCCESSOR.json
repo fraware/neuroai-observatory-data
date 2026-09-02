@@ -1,0 +1,149 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-02_B05_PIN_SUCCESSOR",
+  "status": "PRE_G0_SUCCESSOR_STATE_NONCANONICAL",
+  "as_of": "2026-09-02",
+  "purpose": "Append-only programme execution-state successor after aligning the five executable SU-TRIALS PRE-G0 validation workflows to the current Workbench commit. The audited B05 workflow surface is pin-aligned, but all five validation attempts failed before repository steps and therefore do not constitute B05 execution evidence.",
+  "predecessor": {
+    "path": "curation/PROGRAMME_EXECUTION_STATE_2026-09-02_B04_PROOF_PATH_SUCCESSOR.json",
+    "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-02_B04_PROOF_PATH_SUCCESSOR",
+    "predecessor_is_modified_by_this_successor": false
+  },
+  "frozen_baseline": {
+    "path": "curation/PROGRAMME_EXECUTION_BASELINE_2026-09-01.json",
+    "baseline_id": "PROGRAMME_EXECUTION_BASELINE_2026-09-01",
+    "modified_by_this_successor": false
+  },
+  "g0": {
+    "decision": "BLOCKED_NOT_PASSED",
+    "passed": false,
+    "open_blocker_ids": ["G0-B01", "G0-B02", "G0-B04", "G0-B05"],
+    "reason": "The B02 and B04 proof paths are installed but unexecuted; B05 is now aligned to current Workbench on the audited five-workflow SU-TRIALS surface but all five validation attempts failed before runner steps; hosted runner allocation therefore continues to block executable evidence."
+  },
+  "repositories": {
+    "workbench": {
+      "repository": "fraware/neuroai-workbench",
+      "main_commit": "33414065e53c45221d29209ef4703b6d900781f7",
+      "package_line": "0.3.0.dev0"
+    },
+    "observatory_data": {
+      "repository": "fraware/neuroai-observatory-data",
+      "main_commit_after_b05_pin_alignment": "57e0460479e9f25c37f236010d31c7fafff11040",
+      "b05_pin_alignment_issue": 177,
+      "b05_pin_alignment_pr": 178
+    }
+  },
+  "b01": {
+    "state": "OPEN",
+    "blocks_g0": true,
+    "interpretation": "Hosted GitHub jobs continue to terminate before repository steps and without job logs."
+  },
+  "b02": {
+    "state": "GOVERNED_PROOF_PATH_MERGED_LIVE_EVIDENCE_PENDING",
+    "blocks_g0": true,
+    "controlled_live_proof_executed": false
+  },
+  "b04": {
+    "state": "NONPRODUCTION_PROOF_PATH_MERGED_EXECUTION_PENDING",
+    "blocks_g0": true,
+    "proof_executed": false,
+    "substantive_s2_release_authorized": false,
+    "substantive_s2_release_published": false
+  },
+  "b05": {
+    "state": "PIN_ALIGNED_HOSTED_VALIDATION_PENDING",
+    "blocks_g0": true,
+    "workbench_commit": "33414065e53c45221d29209ef4703b6d900781f7",
+    "audited_execution_workflows": [
+      ".github/workflows/su-trials-clinicaltrials-programme.yml",
+      ".github/workflows/su-trials-recorded-replay.yml",
+      ".github/workflows/su-trials-human-review-staging.yml",
+      ".github/workflows/su-trials-source-namespace-successor.yml",
+      ".github/workflows/discovery-source-materialization-monitor-proposals.yml"
+    ],
+    "audited_workflows_pin_current_workbench": true,
+    "configuration_reconciliation_merged": true,
+    "configuration_reconciliation_pr": 178,
+    "current_pin_workflow_execution_reached": false,
+    "source_retrieval_executed": false,
+    "candidate_acceptance_executed": false,
+    "canonical_mutation_executed": false,
+    "interpretation": "Within the audited five-workflow SU-TRIALS PRE-G0 execution surface, the stale Workbench pin is resolved. B05 remains open because no current-pin workflow reached repository execution."
+  },
+  "b05_runner_evidence": [
+    {
+      "workflow": "SU-TRIALS ClinicalTrials.gov programme",
+      "run_id": 33642705674,
+      "job_id": 100289541923,
+      "conclusion": "failure",
+      "steps_present": false,
+      "logs_present": false
+    },
+    {
+      "workflow": "SU-TRIALS ClinicalTrials.gov recorded replay",
+      "run_id": 33642705314,
+      "job_id": 100289540581,
+      "conclusion": "failure",
+      "steps_present": false,
+      "logs_present": false
+    },
+    {
+      "workflow": "SU-TRIALS human-review staging",
+      "run_id": 33642708848,
+      "job_id": 100289553771,
+      "conclusion": "failure",
+      "steps_present": false,
+      "logs_present": false
+    },
+    {
+      "workflow": "SU-TRIALS Source-namespace successor",
+      "run_id": 33642705520,
+      "job_id": 100289541750,
+      "conclusion": "failure",
+      "steps_present": false,
+      "logs_present": false
+    },
+    {
+      "workflow": "Discovery Source materialization and monitoring proposals",
+      "run_id": 33642705565,
+      "job_id": 100289541427,
+      "conclusion": "failure",
+      "steps_present": false,
+      "logs_present": false
+    }
+  ],
+  "blockers": [
+    {
+      "id": "G0-B01",
+      "state": "OPEN",
+      "description": "Hosted runner allocation remains unavailable on current evidence."
+    },
+    {
+      "id": "G0-B02",
+      "state": "GOVERNED_PROOF_PATH_MERGED_LIVE_EVIDENCE_PENDING",
+      "description": "Manual one-source controlled-live proof has not executed."
+    },
+    {
+      "id": "G0-B03",
+      "state": "SOFTWARE_REMEDIATED_HOSTED_VALIDATION_PENDING",
+      "blocks_g0_independently": false,
+      "description": "Software remediation is merged; hosted validation remains inherited by B01/B05."
+    },
+    {
+      "id": "G0-B04",
+      "state": "NONPRODUCTION_PROOF_PATH_MERGED_EXECUTION_PENDING",
+      "description": "Synthetic authority proof path is merged but has not executed."
+    },
+    {
+      "id": "G0-B05",
+      "state": "PIN_ALIGNED_HOSTED_VALIDATION_PENDING",
+      "description": "The five audited SU-TRIALS workflows now pin current Workbench, but all current-pin PR validation attempts terminated before repository steps."
+    }
+  ],
+  "next_control_actions": [
+    "Keep B01 on infrastructure diagnostics/escalation rather than scientific, source, or collector code churn.",
+    "When runner execution becomes available, execute and inspect the B02 controlled-live proof, B04 synthetic publication-authority proof, and all five B05 SU-TRIALS workflows before closing any blocker.",
+    "Treat any future executed failure as a new code/data/contract/infrastructure finding; do not infer success from configuration alignment alone."
+  ],
+  "boundary": "This successor is execution-control bookkeeping only. It does not establish hosted runner health, B02/B04/B05 proof execution, source availability, candidate acceptance, substantive S2 publication, scientific truth, registry completeness, operational health, assessment authority, or a G0 pass."
+}
