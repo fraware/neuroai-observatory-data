@@ -83,6 +83,13 @@ class ProductionMonitoringHardeningTests(unittest.TestCase):
             with self.subTest(path=path):
                 self.assertIn("DNS_PINNED_VALIDATED_ADDRESS_SET", _read(path))
 
+    def test_interruption_drill_consumes_verified_lifecycle_overlay(self) -> None:
+        script = _read("scripts/run_live_interruption_resume_drill.py")
+        self.assertIn("load_verified_lifecycle_overlay", script)
+        self.assertIn("build_development_registry(inputs, transitions)", script)
+        self.assertIn("forbidden_lifecycle_ids = set(transitions) & set(source_index)", script)
+        self.assertNotIn("registry = build_development_registry(inputs)\n", script)
+
     def test_pre_g0_b02_proof_delegates_to_governed_live_facade(self) -> None:
         script = _read("scripts/run_pre_g0_b02_controlled_live_proof.py")
         workflow = _read(".github/workflows/pre-g0-b02-controlled-live-proof.yml")
