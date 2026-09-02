@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Compare body-free ClinicalTrials.gov status observations across transport stacks."""
 
 from __future__ import annotations
