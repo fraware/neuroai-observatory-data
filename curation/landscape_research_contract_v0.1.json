@@ -1,0 +1,202 @@
+{
+  "schema_version": "0.1.0-draft",
+  "contract_id": "LANDSCAPE_RESEARCH_CONTRACT_v0.1",
+  "status": "DRAFT_PRE_G0_NONAUTHORITATIVE",
+  "as_of": "2026-09-02",
+  "governance": {
+    "programme_gate": "G1_RESEARCH_CONTRACT",
+    "g0_dependency": "BLOCKED_NOT_PASSED",
+    "g1_approved": false,
+    "approval_authority": "EXPLICIT_HUMAN_PROGRAMME_GOVERNANCE",
+    "automatic_approval_allowed": false,
+    "validation_confers_approval": false,
+    "repository_presence_confers_approval": false,
+    "candidate_or_release_authority_conferred": false,
+    "approval_record_required": true
+  },
+  "purpose": {
+    "research_objective": "Construct a reproducible, evidence-bounded global NeuroAI landscape that separates inventive activity, commercial representation, exact systems, capabilities, deployment contexts, governance concerns and policy instruments without collapsing evidence states or decision authority.",
+    "primary_audiences": ["POLICYMAKERS", "GENERAL_PUBLIC"],
+    "secondary_audiences": ["RESEARCHERS", "TECHNOLOGY_GOVERNANCE_PRACTITIONERS"],
+    "investor_analysis_is_separate": true,
+    "decision_use": [
+      "Map who is doing what, where, and through which technical and institutional forms.",
+      "Characterize concentration, geographic distribution, inventive activity and commercialization signals under declared source protocols.",
+      "Identify capability and deployment-context patterns that could implicate governance concerns under stated conditions.",
+      "Generate bounded evidence for policy analysis and for selecting exact systems that merit separate v4.2 assessment."
+    ]
+  },
+  "research_questions": {
+    "primary": [
+      "What organizations, products, systems, patent publications and enabling activities are observable within the declared NeuroAI research protocol, and how are they distributed across capability, application context, geography and evidence state?",
+      "Where do inventive activity, commercial representation and observed system capabilities concentrate, and where do they diverge?",
+      "Which recurring capability-by-context patterns could implicate specific governance concerns through explicit mechanisms, and which policy instruments are relevant to those bounded patterns?"
+    ],
+    "secondary": [
+      "How sensitive are landscape conclusions to source universe, search language, query vocabulary, classifier choice and sampling protocol?",
+      "Which gray-area nonclinical applications are missed by scientific or medical terminology and require capability-first discovery?",
+      "Which exact systems warrant separate assessment because of deployment context, sensitivity, decision value or material change?"
+    ],
+    "prohibited_question_substitutions": [
+      "Do not substitute market-size or market-share estimation for the declared evidence-bounded landscape unless a separate denominator-valid study is approved.",
+      "Do not treat patent counts as product deployment, clinical value, legal validity, freedom to operate or current ownership.",
+      "Do not treat product representation as effectiveness, safety, authorization, deployment or system conformance.",
+      "Do not convert exploratory governance concerns into predictions of misuse or future harm."
+    ]
+  },
+  "units_of_analysis": {
+    "ORGANIZATION": "An identified organization or institutional actor. Financing, partnership, subsidiary, acquisition and ownership/control are separate relationship claims requiring their own evidence.",
+    "PRODUCT": "A commercial or formally named product/family representation. Product existence or representation does not identify an exact technical configuration or prove availability, effectiveness, safety, authorization or deployment.",
+    "SYSTEM": "An exact or bounded technical system/configuration suitable for capability, deployment-context or assessment claims. A PRODUCT must not be silently substituted for a SYSTEM.",
+    "PATENT_PUBLICATION": "An exact patent publication identity. Publication is evidence that a patent document exists in the declared provider data, not that the invention works, is implemented, deployed, valid, enforceable or linked to a product.",
+    "SOURCE": "A provenance-bearing public or controlled evidence source. Source presence is not substantive truth.",
+    "OBSERVATION_ASSERTION": "A bounded observation or assertion carrying evidence, verification, review, scope, temporal and claim-boundary information.",
+    "POLICY_INSTRUMENT": "A law, regulation, standard, policy or governance instrument whose relevance must be scoped to jurisdiction, capability, context and mechanism."
+  },
+  "scope_boundary": {
+    "definition": "NeuroAI is operationalized for this programme as technologies in which neural or brain-related signals, stimulation or interfaces have a substantive computational role in inference, decoding, prediction, adaptation, control, communication, restoration, augmentation or state estimation. Borderline cases remain reviewable rather than automatically included.",
+    "tiers": [
+      {"tier": "A", "label": "DIRECT_NEUROAI", "rule": "Direct neural sensing, decoding, brain-computer or brain-machine interfacing, neuroprosthetic computation, or algorithmically adaptive neural stimulation/neuromodulation with a substantive computational role.", "automatic_canonical_inclusion": false, "human_review_required": true},
+      {"tier": "B", "label": "ENABLING_OR_ADJACENT_NEUROAI", "rule": "Technology materially enabling direct NeuroAI systems or implementing neural-data computation, but whose relevance or system boundary cannot be established from a single discovery record.", "automatic_canonical_inclusion": false, "human_review_required": true},
+      {"tier": "C", "label": "GRAY_AREA_CAPABILITY", "rule": "Nonclinical or policy-relevant uses of neural or brain-related data for attention, vigilance, affective/cognitive state, adaptive interfaces, enhancement/training, behavioral personalization, biometrics/identity or nontraditional sensing form factors where NeuroAI relevance requires capability-and-context review.", "automatic_canonical_inclusion": false, "human_review_required": true},
+      {"tier": "EXCLUDE", "label": "OUT_OF_SCOPE", "rule": "Records lacking a substantive neural/brain-related signal, stimulation or interface component, or lacking a substantive computational role, except when intentionally retained as a negative benchmark or boundary case.", "automatic_canonical_inclusion": false, "human_review_required": false}
+    ],
+    "explicit_exclusions": [
+      "Generic AI or biosensing with no substantive neural/brain-related component.",
+      "Neuroscience research records with no relevant computational technology or system signal when the research question is commercial/technology landscape discovery.",
+      "Pure marketing references with no identifiable product, system, organization or evidence object.",
+      "Participant-level personal data and protected clinical evidence.",
+      "Harmful-use recipes, operational misuse instructions or speculative abuse catalogues."
+    ],
+    "boundary_uncertainty_policy": "Ambiguous cases are DEFER or retained as labeled edge cases; uncertainty must not be resolved by widening canonical inclusion automatically."
+  },
+  "claim_evidence_matrix": [
+    {"claim_type": "ORGANIZATION_OR_PRODUCT_REPRESENTATION", "minimum_evidence": ["Official organization/product page or another source that directly represents the named entity/product."], "supports": ["Representation or web presence at the observed time."], "prohibited_inferences": ["Scientific validity", "clinical effectiveness", "safety", "regulatory authorization", "commercial availability", "deployment", "system conformance"]},
+    {"claim_type": "PATENT_PUBLICATION_EXISTS", "minimum_evidence": ["Exact patent-publication identity in declared patent provider data."], "supports": ["Existence of the patent publication and provider-exposed bibliographic metadata."], "prohibited_inferences": ["Implementation", "deployment", "product integration", "patent validity", "enforceability", "freedom to operate", "current ownership/control", "system capability"]},
+    {"claim_type": "SCIENTIFIC_STUDY_OR_TRIAL_EXISTS", "minimum_evidence": ["Exact publication/trial registry identity in a declared source."], "supports": ["Existence and represented registry/publication metadata."], "prohibited_inferences": ["Positive result", "clinical validity", "effectiveness", "regulatory authorization", "deployment"]},
+    {"claim_type": "REGULATORY_STATE", "minimum_evidence": ["Exact regulator or authoritative legal/administrative record scoped to product/system, jurisdiction and time."], "supports": ["Only the represented regulatory/legal state and scope."], "prohibited_inferences": ["Scientific truth outside the record", "deployment", "global authorization", "broad product-family status"]},
+    {"claim_type": "COMMERCIAL_AVAILABILITY_OR_DEPLOYMENT", "minimum_evidence": ["Direct evidence of availability or deployment with entity/system, place/time and scope resolved."], "supports": ["Only the stated availability/deployment proposition."], "prohibited_inferences": ["Effectiveness", "safety", "regulatory approval", "market share", "system conformance"]},
+    {"claim_type": "OWNERSHIP_OR_CONTROL", "minimum_evidence": ["Direct corporate, transaction, filing or other authoritative relationship evidence."], "supports": ["The exact ownership/control proposition and valid-time scope."], "prohibited_inferences": ["Ownership from financing alone", "control from partnership", "product-patent ownership from applicant-name similarity"]},
+    {"claim_type": "SYSTEM_CAPABILITY", "minimum_evidence": ["Evidence tied to an exact or bounded SYSTEM configuration and the claimed capability."], "supports": ["The scoped capability proposition supported by the evidence."], "prohibited_inferences": ["Capability from patent publication alone", "capability from organization/product category alone", "unbounded performance or safety"]},
+    {"claim_type": "GOVERNANCE_CONCERN", "minimum_evidence": ["Observed capability and deployment context plus a human-defined mechanism connecting them to a stated concern."], "supports": ["A bounded statement that the capability-context pattern could implicate the concern under specified conditions through the specified mechanism."], "prohibited_inferences": ["Prediction that a company will cause harm", "intent attribution", "generic ethics labeling", "misuse instructions"]}
+  ],
+  "open_world_contract": {
+    "global_complete_census_claim": false,
+    "market_size_claim_from_landscape_counts": false,
+    "market_share_claim_from_landscape_counts": false,
+    "absence_from_results_means_absence_in_world": false,
+    "protocol_bounded_saturation_allowed": true,
+    "required_discovery_log_fields": ["track_id", "source_or_seed_class", "query_or_seed_id", "language", "jurisdiction", "round", "retrieved_count", "new_unique_candidate_count", "duplicate_count", "excluded_count", "marginal_yield", "diversity_summary", "stopping_reason"],
+    "stopping_rule": "A track may report saturation only under an explicit protocol when additional predefined search rounds produce sufficiently low marginal yield across the declared source/seed/language strata and the stopping decision is recorded. Saturation under protocol X is not global completeness.",
+    "sensitivity_requirement": "Material conclusions must disclose source, language, query and sampling sensitivity when those choices plausibly alter the result."
+  },
+  "discovery_tracks": [
+    {"track_id": "PATENTS", "purpose": "Map patent-publication activity and inventive concentration under declared patent-source protocols.", "primary_instruments": ["PATSTAT_CONTROLLED_ANALYTICS", "EPO_OPS_PUBLIC_REPRODUCIBLE_DISCOVERY"], "candidate_first": true, "scale_before_evaluation_allowed": false},
+    {"track_id": "COMPANIES_PRODUCTS", "purpose": "Discover organization/product representations using multiple seed channels and reproducible snowball rounds.", "seed_classes": ["PATENT_DERIVED_ORGANIZATIONS", "CURRENT_OBSERVATORY", "LICENSE_PERMITTING_COMMERCIAL_DATABASES", "EXPERT_NOMINATIONS", "PUBLIC_WEB_AND_MEDIA", "GRAPH_SNOWBALL"], "candidate_first": true, "initial_pilot_candidate_range": [50, 100], "scale_before_evaluation_allowed": false},
+    {"track_id": "GRAY_APPLICATIONS", "purpose": "Recover nonclinical or terminology-mismatched applications through capability-first discovery and boundary validation.", "capability_families": ["ATTENTION_VIGILANCE", "COGNITIVE_AFFECTIVE_STATE", "ADAPTIVE_INTERFACES", "COGNITIVE_ENHANCEMENT_TRAINING", "BEHAVIORAL_PERSONALIZATION", "NEURAL_BIOMETRICS_IDENTITY", "NONTRADITIONAL_SENSING_FORM_FACTORS"], "candidate_first": true, "scale_before_evaluation_allowed": false},
+    {"track_id": "MULTILINGUAL_REGIONAL", "purpose": "Measure and reduce English/US retrieval bias through native-language search and matched sensitivity analysis.", "initial_ecosystem_count_range": [3, 5], "original_language_metadata_preserved": true, "translated_interpretation_separate": true, "english_only_comparator_required": true, "candidate_first": true, "scale_before_evaluation_allowed": false}
+  ],
+  "patent_product_linkage": {
+    "tiers": [
+      {"tier": "L1", "label": "DIRECT", "rule": "Explicit product-patent reference or other direct evidence supports the exact linkage.", "publish_as_established_relation_allowed": true, "human_review_required": true},
+      {"tier": "L2", "label": "QUALIFIED_INFERRED", "rule": "Resolved company ownership plus strong technical and temporal evidence supports a qualified inferred linkage.", "publish_as_established_relation_allowed": false, "human_review_required": true},
+      {"tier": "L3", "label": "EXPLORATORY_MULTI_SOURCE", "rule": "Multiple independent sources support an exploratory relation that remains qualitative unless separately validated.", "publish_as_established_relation_allowed": false, "human_review_required": true},
+      {"tier": "L4", "label": "SEMANTIC_DISCOVERY_ONLY", "rule": "Semantic similarity, embedding proximity or model suggestion only; usable for ranking/discovery, never as an established relation.", "publish_as_established_relation_allowed": false, "human_review_required": true}
+    ],
+    "automatic_link_promotion_allowed": false,
+    "patent_family_inference_without_family_evidence_allowed": false,
+    "applicant_name_similarity_establishes_organization_identity": false
+  },
+  "entity_resolution": {
+    "exact_identity_before_relation": true,
+    "fuzzy_merge_can_create_canonical_identity": false,
+    "name_similarity_can_establish_ownership": false,
+    "financing_can_establish_ownership_or_control": false,
+    "subsidiary_parent_relationship_requires_evidence": true,
+    "acquisition_relationship_requires_evidence": true,
+    "unresolved_identity_state_allowed": true,
+    "resolution_disposition_authority": "HUMAN_OR_SEPARATELY_AUTHORIZED_GOVERNED_PROCESS"
+  },
+  "evaluation_contract": {
+    "evaluation_before_scale": true,
+    "benchmark_sets_required": ["PATENT_RELEVANCE", "PRODUCT_BOUNDARY_EDGE_CASES"],
+    "benchmark_strata_required": ["POSITIVE", "NEGATIVE", "BORDERLINE", "MULTILINGUAL", "GRAY_AREA"],
+    "held_out_test_required": true,
+    "double_label_subset_required": true,
+    "adjudication_of_label_disagreement_required": true,
+    "minimum_metrics": ["PRECISION", "RECALL", "CALIBRATION", "FALSE_NEGATIVE_RATE_BY_STRATUM", "ABSTENTION_RATE", "INTER_MODEL_DISAGREEMENT", "HUMAN_INTER_RATER_AGREEMENT", "QUALITY_ADJUSTED_COST"],
+    "confidence_intervals_where_estimable": true,
+    "missing_data_sensitivity_required": true,
+    "patent_abstract_missingness_assumed_random": false,
+    "scale_gate": "G5_EVALUATE_PATENT_AND_DISCOVERY_MODELS"
+  },
+  "model_assistance": {
+    "permitted_roles": ["QUERY_EXPANSION", "EXTRACTION", "CLASSIFICATION", "ADJUDICATION_SUPPORT", "POLICY_MAPPING_SUPPORT", "DRAFTING_FROM_ACCEPTED_EVIDENCE"],
+    "prohibited_roles": ["DECLARE_COMPLETENESS", "REPLACE_PRIMARY_SOURCE", "CREATE_UNLABELED_GROUND_TRUTH", "FINAL_GOVERNED_ADJUDICATION_BY_MODEL_CONSENSUS", "ASSERT_FUTURE_HARM", "ADD_UNSUPPORTED_REPORT_CLAIMS", "AUTHORIZE_PUBLICATION", "MUTATE_ASSESSMENTS_AUTOMATICALLY"],
+    "default_cascade": ["CALIBRATED_CHEAP_CLASSIFIER", "UNCERTAIN_OOD_OR_HIGH_IMPACT_ESCALATION", "INDEPENDENT_MODEL_A", "DISAGREEMENT_OR_LOW_CONFIDENCE_MODEL_B_OR_STRONGER_MODEL", "HUMAN_EXPERT_FOR_UNRESOLVED_SAMPLED_OR_CONSEQUENTIAL_CASES"],
+    "model_consensus_equals_truth": false,
+    "human_authority_at_governed_boundaries": true,
+    "provider_model_version_and_prompt_or_request_identity_recorded_when_material": true
+  },
+  "human_expert_review": {
+    "required_before_methodology_freeze": true,
+    "review_targets": ["INCLUSION_BOUNDARY", "GRAY_AREA_RECALL", "ONTOLOGY", "PATENT_PRODUCT_DEFENSIBILITY", "POLICY_MAPPING", "COVERAGE_GAPS"],
+    "minimum_packet_components": ["RESEARCH_CONTRACT", "TAXONOMY", "CLEAR_POSITIVES", "CLEAR_NEGATIVES", "AMBIGUOUS_GRAY_CASES", "CLASSIFIER_ERRORS", "PRELIMINARY_MAP_OR_HEATMAP", "EXPLICIT_DECISIONS_REQUIRED"],
+    "expert_review_is_publication_authorization": false,
+    "expert_review_is_scientific_truth": false
+  },
+  "capability_context_policy_mapping": {
+    "required_chain": ["OBSERVED_SYSTEM_OR_PRODUCT", "CAPABILITY", "DEPLOYMENT_CONTEXT", "MECHANISM", "GOVERNANCE_CONCERN", "RELEVANT_POLICY_INSTRUMENT_OR_RECOMMENDATION"],
+    "permitted_concern_wording": "Could implicate concern X under conditions Y through mechanism Z.",
+    "company_will_cause_harm_claim_allowed": false,
+    "intent_attribution_without_evidence_allowed": false,
+    "detailed_harmful_use_instructions_allowed": false,
+    "aggregate_pattern_reporting_preferred": true,
+    "schema_promotion_rule": "Promote a recurring capability or concern into stable schema only after repeated demonstrated need; otherwise use controlled assertions or vocabularies."
+  },
+  "data_governance": {
+    "public_s2_allowed": ["AUTHORIZED_PUBLIC_ENTITIES", "AUTHORIZED_PUBLIC_SOURCES", "AUTHORIZED_PUBLIC_OBSERVATIONS", "AUTHORIZED_PUBLIC_ASSERTIONS", "AUTHORIZED_PUBLIC_EVENTS", "AUTHORIZED_PUBLIC_RELATIONSHIPS", "PERMITTED_CANDIDATE_AND_REOPENING_RECORDS", "PUBLIC_RELEASE_GOVERNANCE"],
+    "public_s2_prohibited": ["LICENSED_RAW_DATABASE_BYTES", "PROTECTED_EVIDENCE", "PARTICIPANT_LEVEL_DATA", "CREDENTIALS_OR_TOKENS", "PRIVATE_REGULATORY_MATERIAL", "UNAUTHORIZED_COMMERCIAL_DATABASE_EXPORTS"],
+    "licensed_data_analysis_allowed_in_controlled_workspace": true,
+    "licensed_bytes_may_be_republished_without_permission": false,
+    "data_minimization_required": true,
+    "participant_level_data_collection_for_landscape": false,
+    "raw_provider_payload_publication_default": false
+  },
+  "publication_and_assessment_boundary": {
+    "state_machine": ["DISCOVERY_CANDIDATE", "HUMAN_OR_GOVERNED_ADJUDICATION", "NONCANONICAL_RELEASE_CANDIDATE", "EXPLICIT_AUTHORIZATION", "PUBLICATION"],
+    "candidate_equals_authorization": false,
+    "authorization_equals_publication": false,
+    "schema_validation_confers_truth": false,
+    "successful_workflow_confers_truth": false,
+    "repository_presence_confers_publication": false,
+    "report_may_add_new_claims_not_in_authorized_state": false,
+    "assess_every_discovered_product": false,
+    "assessment_trigger_classes": ["MATERIAL_REGULATORY_OR_DEPLOYMENT_CHANGE", "HIGH_SENSITIVITY_CAPABILITY_CONTEXT", "DECISION_VALUE", "REPRESENTATIVE_ANCHOR", "DEPENDENCY_CHANGE"],
+    "assessment_framework": "v4.2_78_REQUIREMENTS_13_MODULES_UNCHANGED"
+  },
+  "change_control": {
+    "material_changes_requiring_new_contract_version_or_successor": ["NeuroAI scope-tier definitions", "Primary research questions or audiences", "Claim-evidence minimums or prohibited inferences", "Completeness or saturation semantics", "Patent-product linkage tier meanings", "Model authority or human-review boundaries", "Evaluation-before-scale requirements", "Public/private data boundary", "Publication or assessment authority boundary"],
+    "query_pack_changes_require_contract_version_change": false,
+    "source_provider_addition_requires_contract_version_change": false,
+    "provider_specific_programme_controls_required": true,
+    "silent_material_drift_allowed": false
+  },
+  "g1_acceptance_conditions": {
+    "requires_g0_pass": true,
+    "requires_exact_contract_identity": true,
+    "requires_human_governance_disposition": true,
+    "requires_validator_pass": true,
+    "requires_recorded_open_questions_disposition": true,
+    "approval_can_be_inferred_from_merge": false,
+    "approval_can_be_inferred_from_ci": false,
+    "current_acceptance_state": "NOT_ELIGIBLE_G0_BLOCKED"
+  },
+  "open_questions": [
+    {"question_id": "RQ-OPEN-001", "question": "Which 3-5 non-English ecosystems form the first multilingual comparison set?", "must_be_resolved_before": "G7_SCALE_ACQUISITION"},
+    {"question_id": "RQ-OPEN-002", "question": "Which licensed commercial databases may be used as seed instruments under their exact terms, and what derived fields may leave the controlled workspace?", "must_be_resolved_before": "G4_COMPANY_PRODUCT_PILOT_IF_USED"},
+    {"question_id": "RQ-OPEN-003", "question": "What quantitative marginal-yield threshold and minimum additional rounds define protocol-bounded saturation for each discovery track?", "must_be_resolved_before": "G7_SCALE_ACQUISITION"},
+    {"question_id": "RQ-OPEN-004", "question": "Which expert reviewers hold decision authority for scope-boundary, patent-product and policy-mapping disputes?", "must_be_resolved_before": "G6_EXPERT_BOUNDARY_REVIEW"}
+  ],
+  "boundary": "This is a PRE-G0 draft research contract and not an approved methodology, canonical Observatory record, scientific finding, completeness claim, research-scale authorization, assessment decision, publication authorization or G0/G1 pass. Validation can establish internal contract consistency only. G1 requires a later explicit human governance disposition over the exact contract identity after G0 is passed."
+}
