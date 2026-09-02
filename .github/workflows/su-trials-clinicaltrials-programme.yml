@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           repository: fraware/neuroai-workbench
-          ref: 4ca77e901a6790fac418aa6d5b013c84a664abfa
+          ref: 33414065e53c45221d29209ef4703b6d900781f7
           path: .workbench
           persist-credentials: false
       - name: Install exact Workbench tree
