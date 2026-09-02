@@ -1,0 +1,182 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-02_B02_PIN_SUCCESSOR",
+  "status": "PRE_G0_SUCCESSOR_STATE_NONCANONICAL",
+  "as_of": "2026-09-02",
+  "purpose": "Append-only successor control state after aligning repository-defined live workflow Workbench pins to the post-B03 Workbench main. This record does not close B02 because no hosted runner or controlled-live execution occurred and the operational due-cycle script still uses CollectionScheduler directly.",
+  "predecessor": {
+    "path": "curation/PROGRAMME_EXECUTION_STATE_2026-09-02_B03_SUCCESSOR.json",
+    "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-02_B03_SUCCESSOR",
+    "predecessor_is_modified_by_this_successor": false
+  },
+  "frozen_baseline": {
+    "path": "curation/PROGRAMME_EXECUTION_BASELINE_2026-09-01.json",
+    "baseline_id": "PROGRAMME_EXECUTION_BASELINE_2026-09-01",
+    "modified_by_this_successor": false
+  },
+  "g0": {
+    "decision": "BLOCKED_NOT_PASSED",
+    "passed": false,
+    "open_blocker_ids": ["G0-B01", "G0-B02", "G0-B04", "G0-B05"],
+    "reason": "Live workflow pins are now aligned to current Workbench main, but hosted runner allocation still fails before steps, no current Workbench checkout or live acquisition executed, the operational due-cycle script does not itself exercise the live-shadow authorization/content-safety facade, no graph-native Observatory-v2 publication operation has been performed, and PRE-G0 source-universe workflows remain hosted-unvalidated."
+  },
+  "repositories": {
+    "workbench": {
+      "repository": "fraware/neuroai-workbench",
+      "main_commit": "33414065e53c45221d29209ef4703b6d900781f7",
+      "package_line": "0.3.0.dev0"
+    },
+    "observatory_data": {
+      "repository": "fraware/neuroai-observatory-data",
+      "main_commit_observed_before_successor_branch": "249b043629ee1e45d46cc74bb5f2fc4387d3e682",
+      "pin_alignment_pr": 166,
+      "pin_alignment_issue": 165,
+      "note": "The commit that merges this successor will post-date the observed pre-successor S2 main and is not self-referentially embedded here."
+    }
+  },
+  "live_workflow_pin_state": {
+    "expected_workbench_commit": "33414065e53c45221d29209ef4703b6d900781f7",
+    "hardening_contract": "tests/test_production_monitoring_hardening.py",
+    "hardening_contract_pin_matches_workbench_main": true,
+    "workflows": [
+      {
+        "path": ".github/workflows/operational-live-cycle.yml",
+        "workbench_pin": "33414065e53c45221d29209ef4703b6d900781f7",
+        "matches_workbench_main": true
+      },
+      {
+        "path": ".github/workflows/successor-discovery.yml",
+        "workbench_pin": "33414065e53c45221d29209ef4703b6d900781f7",
+        "matches_workbench_main": true
+      },
+      {
+        "path": ".github/workflows/operational-interruption-resume-drill.yml",
+        "workbench_pin": "33414065e53c45221d29209ef4703b6d900781f7",
+        "matches_workbench_main": true
+      }
+    ],
+    "interpretation": "The prior stale 0a69a39d33334f29bf1629ec918c78b2a0759190 workflow pin mismatch is resolved. This is configuration alignment only and is not executed validation."
+  },
+  "b02_execution_boundary": {
+    "state": "PIN_ALIGNED_EXECUTION_DESIGN_AND_LIVE_EVIDENCE_PENDING",
+    "blocks_g0": true,
+    "operational_due_cycle_script": "scripts/run_operational_due_cycle.py",
+    "observed_collection_api": "CollectionScheduler",
+    "uses_run_live_cohort_collection": false,
+    "uses_evidence_collection_service": false,
+    "interpretation": "The operational due-cycle path performs DNS-pinned scheduler collection but does not, by current call graph, prove execution through the live-shadow digest-bound authorization/content-safety facade. B02 therefore requires an explicit execution-design decision plus a fresh controlled live run on a functioning runner."
+  },
+  "post_merge_runner_evidence": {
+    "s2_main_commit": "249b043629ee1e45d46cc74bb5f2fc4387d3e682",
+    "workflow_runs": [
+      {
+        "workflow": "Operational live due cycle",
+        "run_id": 33633131125,
+        "event": "push",
+        "conclusion": "failure",
+        "jobs": [
+          {
+            "job_id": 100257274331,
+            "name": "validate",
+            "conclusion": "failure",
+            "steps_present": false,
+            "logs_url_present": false
+          },
+          {
+            "job_id": 100257287983,
+            "name": "live",
+            "conclusion": "skipped",
+            "steps_present": false,
+            "logs_url_present": false
+          }
+        ]
+      },
+      {
+        "workflow": "Successor discovery",
+        "run_id": 33633131160,
+        "event": "push",
+        "conclusion": "failure",
+        "jobs": [
+          {
+            "job_id": 100257274754,
+            "name": "discover",
+            "conclusion": "failure",
+            "steps_present": false,
+            "logs_url_present": false
+          }
+        ]
+      },
+      {
+        "workflow": "Operational interruption resume drill",
+        "run_id": 33633131202,
+        "event": "push",
+        "conclusion": "failure",
+        "jobs": [
+          {
+            "job_id": 100257274850,
+            "name": "drill",
+            "conclusion": "failure",
+            "steps_present": false,
+            "logs_url_present": false
+          }
+        ]
+      },
+      {
+        "workflow": "Observatory v2 release contract",
+        "run_id": 33633131181,
+        "event": "push",
+        "conclusion": "failure",
+        "jobs": [
+          {
+            "job_id": 100257274874,
+            "name": "verify-contract",
+            "conclusion": "failure",
+            "steps_present": false,
+            "logs_url_present": false
+          }
+        ]
+      }
+    ],
+    "current_workbench_checkout_executed": false,
+    "collector_execution_reached": false,
+    "controlled_live_acquisition_executed": false,
+    "operational_health_reestablished": false,
+    "interpretation": "All fresh main-branch workflows again terminated before repository steps. The operational live job was skipped because its validation prerequisite failed before steps. These conclusions are infrastructure evidence only, not code, source-health, collector, or release-contract verdicts."
+  },
+  "blockers": [
+    {
+      "id": "G0-B01",
+      "state": "OPEN",
+      "description": "Hosted runner allocation remains unavailable on current evidence; fresh main-branch jobs still have no executed steps or logs."
+    },
+    {
+      "id": "G0-B02",
+      "state": "PIN_ALIGNED_EXECUTION_DESIGN_AND_LIVE_EVIDENCE_PENDING",
+      "description": "Workflow pin mismatch is resolved, but no controlled live execution occurred and the current operational due-cycle call graph does not by itself prove the live-shadow authorization/content-safety boundary."
+    },
+    {
+      "id": "G0-B03",
+      "state": "SOFTWARE_REMEDIATED_HOSTED_VALIDATION_PENDING",
+      "blocks_g0_independently": false,
+      "description": "Workbench B03 software remediation remains merged at 33414065e53c45221d29209ef4703b6d900781f7; hosted validation remains unavailable and is inherited by B01/B05."
+    },
+    {
+      "id": "G0-B04",
+      "state": "OPEN",
+      "description": "No graph-native Observatory-v2 S2 candidate-to-authorization-to-publication operation has been performed."
+    },
+    {
+      "id": "G0-B05",
+      "state": "OPEN",
+      "description": "PRE-G0 SU-TRIALS execution workflows remain at their frozen 4ca77e901a6790fac418aa6d5b013c84a664abfa pin and remain hosted-unvalidated."
+    }
+  ],
+  "next_control_actions": [
+    "Keep B01 on infrastructure escalation/diagnostic evidence; do not alter scientific or collector logic to compensate for zero-step runner failures.",
+    "Resolve the B02 execution-design boundary explicitly: use the existing controlled live facade for a bounded acquisition proof or deliberately harden the operational due-cycle path with equivalent authorization and durable scan semantics, with tests and no authority escalation.",
+    "When hosted runner execution returns, execute the selected B02 controlled-live proof against exact Workbench 33414065e53c45221d29209ef4703b6d900781f7 and retain step/log/artifact evidence.",
+    "Perform or separately re-gate the graph-native Observatory-v2 candidate-to-authorization-to-publication requirement for B04.",
+    "Execute the frozen PRE-G0 source-universe workflows on a functioning hosted runner before B05 closure."
+  ],
+  "boundary": "This successor records execution-control state only. It does not rewrite prior control records, establish hosted runner health, authorize live acquisition, claim source availability, claim a content CLEAN verdict, establish scientific truth or completeness, mutate assessments, authorize publication, or constitute a G0 pass."
+}
