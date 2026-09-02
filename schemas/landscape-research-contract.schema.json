@@ -1,0 +1,205 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "landscape-research-contract.schema.json",
+  "title": "NeuroAI Landscape Research Contract v0.1 PRE-G0 draft",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "contract_id", "status", "as_of", "governance", "purpose",
+    "research_questions", "units_of_analysis", "scope_boundary", "claim_evidence_matrix",
+    "open_world_contract", "discovery_tracks", "patent_product_linkage", "entity_resolution",
+    "evaluation_contract", "model_assistance", "human_expert_review",
+    "capability_context_policy_mapping", "data_governance",
+    "publication_and_assessment_boundary", "change_control", "g1_acceptance_conditions",
+    "open_questions", "boundary"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1.0-draft"},
+    "contract_id": {"const": "LANDSCAPE_RESEARCH_CONTRACT_v0.1"},
+    "status": {"const": "DRAFT_PRE_G0_NONAUTHORITATIVE"},
+    "as_of": {"type": "string", "format": "date"},
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["programme_gate", "g0_dependency", "g1_approved", "approval_authority", "automatic_approval_allowed", "validation_confers_approval", "repository_presence_confers_approval", "candidate_or_release_authority_conferred", "approval_record_required"],
+      "properties": {
+        "programme_gate": {"const": "G1_RESEARCH_CONTRACT"},
+        "g0_dependency": {"const": "BLOCKED_NOT_PASSED"},
+        "g1_approved": {"const": false},
+        "approval_authority": {"const": "EXPLICIT_HUMAN_PROGRAMME_GOVERNANCE"},
+        "automatic_approval_allowed": {"const": false},
+        "validation_confers_approval": {"const": false},
+        "repository_presence_confers_approval": {"const": false},
+        "candidate_or_release_authority_conferred": {"const": false},
+        "approval_record_required": {"const": true}
+      }
+    },
+    "purpose": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["research_objective", "primary_audiences", "secondary_audiences", "investor_analysis_is_separate", "decision_use"],
+      "properties": {
+        "research_objective": {"type": "string", "minLength": 1},
+        "primary_audiences": {"const": ["POLICYMAKERS", "GENERAL_PUBLIC"]},
+        "secondary_audiences": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "investor_analysis_is_separate": {"const": true},
+        "decision_use": {"type": "array", "minItems": 4, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "research_questions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary", "secondary", "prohibited_question_substitutions"],
+      "properties": {
+        "primary": {"type": "array", "minItems": 3, "items": {"type": "string", "minLength": 1}},
+        "secondary": {"type": "array", "minItems": 3, "items": {"type": "string", "minLength": 1}},
+        "prohibited_question_substitutions": {"type": "array", "minItems": 4, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "units_of_analysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ORGANIZATION", "PRODUCT", "SYSTEM", "PATENT_PUBLICATION", "SOURCE", "OBSERVATION_ASSERTION", "POLICY_INSTRUMENT"],
+      "properties": {
+        "ORGANIZATION": {"type": "string", "minLength": 1},
+        "PRODUCT": {"type": "string", "minLength": 1},
+        "SYSTEM": {"type": "string", "minLength": 1},
+        "PATENT_PUBLICATION": {"type": "string", "minLength": 1},
+        "SOURCE": {"type": "string", "minLength": 1},
+        "OBSERVATION_ASSERTION": {"type": "string", "minLength": 1},
+        "POLICY_INSTRUMENT": {"type": "string", "minLength": 1}
+      }
+    },
+    "scope_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["definition", "tiers", "explicit_exclusions", "boundary_uncertainty_policy"],
+      "properties": {
+        "definition": {"type": "string", "minLength": 1},
+        "tiers": {
+          "type": "array", "minItems": 4, "maxItems": 4,
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["tier", "label", "rule", "automatic_canonical_inclusion", "human_review_required"],
+            "properties": {
+              "tier": {"enum": ["A", "B", "C", "EXCLUDE"]},
+              "label": {"type": "string", "minLength": 1},
+              "rule": {"type": "string", "minLength": 1},
+              "automatic_canonical_inclusion": {"const": false},
+              "human_review_required": {"type": "boolean"}
+            }
+          }
+        },
+        "explicit_exclusions": {"type": "array", "minItems": 5, "items": {"type": "string", "minLength": 1}},
+        "boundary_uncertainty_policy": {"type": "string", "minLength": 1}
+      }
+    },
+    "claim_evidence_matrix": {
+      "type": "array", "minItems": 8, "maxItems": 8,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["claim_type", "minimum_evidence", "supports", "prohibited_inferences"],
+        "properties": {
+          "claim_type": {"type": "string", "minLength": 1},
+          "minimum_evidence": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "supports": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "prohibited_inferences": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+        }
+      }
+    },
+    "open_world_contract": {
+      "type": "object", "additionalProperties": false,
+      "required": ["global_complete_census_claim", "market_size_claim_from_landscape_counts", "market_share_claim_from_landscape_counts", "absence_from_results_means_absence_in_world", "protocol_bounded_saturation_allowed", "required_discovery_log_fields", "stopping_rule", "sensitivity_requirement"],
+      "properties": {
+        "global_complete_census_claim": {"const": false},
+        "market_size_claim_from_landscape_counts": {"const": false},
+        "market_share_claim_from_landscape_counts": {"const": false},
+        "absence_from_results_means_absence_in_world": {"const": false},
+        "protocol_bounded_saturation_allowed": {"const": true},
+        "required_discovery_log_fields": {"type": "array", "minItems": 12, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "stopping_rule": {"type": "string", "minLength": 1},
+        "sensitivity_requirement": {"type": "string", "minLength": 1}
+      }
+    },
+    "discovery_tracks": {
+      "type": "array", "minItems": 4, "maxItems": 4,
+      "items": {
+        "type": "object",
+        "required": ["track_id", "purpose", "candidate_first", "scale_before_evaluation_allowed"],
+        "properties": {
+          "track_id": {"enum": ["PATENTS", "COMPANIES_PRODUCTS", "GRAY_APPLICATIONS", "MULTILINGUAL_REGIONAL"]},
+          "purpose": {"type": "string", "minLength": 1},
+          "candidate_first": {"const": true},
+          "scale_before_evaluation_allowed": {"const": false},
+          "primary_instruments": {"type": "array", "items": {"type": "string"}},
+          "seed_classes": {"type": "array", "items": {"type": "string"}},
+          "initial_pilot_candidate_range": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "integer", "minimum": 1}},
+          "capability_families": {"type": "array", "items": {"type": "string"}},
+          "initial_ecosystem_count_range": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "integer", "minimum": 1}},
+          "original_language_metadata_preserved": {"type": "boolean"},
+          "translated_interpretation_separate": {"type": "boolean"},
+          "english_only_comparator_required": {"type": "boolean"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "patent_product_linkage": {
+      "type": "object", "additionalProperties": false,
+      "required": ["tiers", "automatic_link_promotion_allowed", "patent_family_inference_without_family_evidence_allowed", "applicant_name_similarity_establishes_organization_identity"],
+      "properties": {
+        "tiers": {
+          "type": "array", "minItems": 4, "maxItems": 4,
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["tier", "label", "rule", "publish_as_established_relation_allowed", "human_review_required"],
+            "properties": {
+              "tier": {"enum": ["L1", "L2", "L3", "L4"]},
+              "label": {"type": "string", "minLength": 1},
+              "rule": {"type": "string", "minLength": 1},
+              "publish_as_established_relation_allowed": {"type": "boolean"},
+              "human_review_required": {"const": true}
+            }
+          }
+        },
+        "automatic_link_promotion_allowed": {"const": false},
+        "patent_family_inference_without_family_evidence_allowed": {"const": false},
+        "applicant_name_similarity_establishes_organization_identity": {"const": false}
+      }
+    },
+    "entity_resolution": {"type": "object", "additionalProperties": true},
+    "evaluation_contract": {"type": "object", "additionalProperties": true, "required": ["evaluation_before_scale", "benchmark_sets_required", "benchmark_strata_required", "held_out_test_required", "double_label_subset_required", "adjudication_of_label_disagreement_required", "minimum_metrics", "confidence_intervals_where_estimable", "missing_data_sensitivity_required", "patent_abstract_missingness_assumed_random", "scale_gate"]},
+    "model_assistance": {"type": "object", "additionalProperties": true, "required": ["permitted_roles", "prohibited_roles", "default_cascade", "model_consensus_equals_truth", "human_authority_at_governed_boundaries", "provider_model_version_and_prompt_or_request_identity_recorded_when_material"]},
+    "human_expert_review": {"type": "object", "additionalProperties": true},
+    "capability_context_policy_mapping": {"type": "object", "additionalProperties": true},
+    "data_governance": {"type": "object", "additionalProperties": true},
+    "publication_and_assessment_boundary": {"type": "object", "additionalProperties": true},
+    "change_control": {"type": "object", "additionalProperties": true},
+    "g1_acceptance_conditions": {
+      "type": "object", "additionalProperties": false,
+      "required": ["requires_g0_pass", "requires_exact_contract_identity", "requires_human_governance_disposition", "requires_validator_pass", "requires_recorded_open_questions_disposition", "approval_can_be_inferred_from_merge", "approval_can_be_inferred_from_ci", "current_acceptance_state"],
+      "properties": {
+        "requires_g0_pass": {"const": true},
+        "requires_exact_contract_identity": {"const": true},
+        "requires_human_governance_disposition": {"const": true},
+        "requires_validator_pass": {"const": true},
+        "requires_recorded_open_questions_disposition": {"const": true},
+        "approval_can_be_inferred_from_merge": {"const": false},
+        "approval_can_be_inferred_from_ci": {"const": false},
+        "current_acceptance_state": {"const": "NOT_ELIGIBLE_G0_BLOCKED"}
+      }
+    },
+    "open_questions": {
+      "type": "array", "minItems": 4,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["question_id", "question", "must_be_resolved_before"],
+        "properties": {
+          "question_id": {"type": "string", "pattern": "^RQ-OPEN-[0-9]{3}$"},
+          "question": {"type": "string", "minLength": 1},
+          "must_be_resolved_before": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "boundary": {"type": "string", "minLength": 1}
+  }
+}
