@@ -1,0 +1,113 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "SOURCE_UNIVERSE_EXECUTION_STATE_2026-09-02_B05_PIN_SUCCESSOR",
+  "status": "PRE_G0_CURRENT_EXECUTION_STATE_NONCANONICAL",
+  "as_of": "2026-09-02",
+  "purpose": "Append-only source-universe execution-state successor after repinning the five executable SU-TRIALS PRE-G0 validation workflows to the current Workbench commit. Pin alignment is complete on the audited workflow surface, but hosted validation has not executed because all five PR jobs failed before repository steps.",
+  "predecessor": {
+    "path": "curation/source_universe_execution_state_2026-09-02.json",
+    "control_id": "SOURCE_UNIVERSE_EXECUTION_STATE_2026-09-02",
+    "predecessor_is_modified_by_this_successor": false
+  },
+  "repository_pins": {
+    "workbench_main": "33414065e53c45221d29209ef4703b6d900781f7",
+    "observatory_data_main_after_pin_alignment": "57e0460479e9f25c37f236010d31c7fafff11040"
+  },
+  "source_universes": {
+    "SU-TRIALS": {
+      "programme_id": "SU-TRIALS-CTGOV-v0.1",
+      "source_system": "CLINICALTRIALS_GOV",
+      "implementation_state": "CURRENT_REPLACEMENT_CHAIN_MERGED_PIN_ALIGNED_HOSTED_VALIDATION_PENDING",
+      "exact_workbench_pin_for_execution_workflows": "33414065e53c45221d29209ef4703b6d900781f7",
+      "pin_alignment_issue": 177,
+      "pin_alignment_pr": 178,
+      "audited_execution_workflows": [
+        ".github/workflows/su-trials-clinicaltrials-programme.yml",
+        ".github/workflows/su-trials-recorded-replay.yml",
+        ".github/workflows/su-trials-human-review-staging.yml",
+        ".github/workflows/su-trials-source-namespace-successor.yml",
+        ".github/workflows/discovery-source-materialization-monitor-proposals.yml"
+      ],
+      "audited_workflows_pin_current_workbench": true,
+      "historical_predecessor_pin": "4ca77e901a6790fac418aa6d5b013c84a664abfa",
+      "historical_predecessor_record_rewritten": false,
+      "merged_replacement_chain": [
+        {"pr": 157, "merge_commit": "c9b0c96264388d2487d327e2fc8344864206eea1", "role": "programme definition"},
+        {"pr": 158, "merge_commit": "acd08ea1adf7c0695680c51ba4e56921d06ef35d", "role": "deterministic recorded replay"},
+        {"pr": 159, "merge_commit": "e31625d777afe3917792a8ea0f0ba4806211cb32", "role": "human-review staging"},
+        {"pr": 160, "merge_commit": "71f62d601b230a3c79cb95fa004d708d7f7004ba", "role": "draft Source-namespace adjudication"},
+        {"pr": 161, "merge_commit": "394a4b61b97e8bc19f87bf0e1abc8406d2c70469", "role": "Source materialization and monitoring proposals"}
+      ],
+      "validation_attempts": [
+        {
+          "workflow": "SU-TRIALS ClinicalTrials.gov programme",
+          "run_id": 33642705674,
+          "job_id": 100289541923,
+          "conclusion": "failure",
+          "steps_present": false,
+          "logs_present": false
+        },
+        {
+          "workflow": "SU-TRIALS ClinicalTrials.gov recorded replay",
+          "run_id": 33642705314,
+          "job_id": 100289540581,
+          "conclusion": "failure",
+          "steps_present": false,
+          "logs_present": false
+        },
+        {
+          "workflow": "SU-TRIALS human-review staging",
+          "run_id": 33642708848,
+          "job_id": 100289553771,
+          "conclusion": "failure",
+          "steps_present": false,
+          "logs_present": false
+        },
+        {
+          "workflow": "SU-TRIALS Source-namespace successor",
+          "run_id": 33642705520,
+          "job_id": 100289541750,
+          "conclusion": "failure",
+          "steps_present": false,
+          "logs_present": false
+        },
+        {
+          "workflow": "Discovery Source materialization and monitoring proposals",
+          "run_id": 33642705565,
+          "job_id": 100289541427,
+          "conclusion": "failure",
+          "steps_present": false,
+          "logs_present": false
+        }
+      ],
+      "workflow_dispatch_available_in_repository": true,
+      "post_merge_push_execution_expected": false,
+      "connected_tool_manual_dispatch_available": false,
+      "live_execution_state": "NOT_DEMONSTRATED_ON_CURRENT_PIN",
+      "hosted_validation_state": "BLOCKED_BY_PRE_RUNNER_FAILURE_PATTERN",
+      "canonical_publication_state": "NOT_CONFERRED_BY_IMPLEMENTATION_OR_PIN_ALIGNMENT",
+      "automatic_monitor_creation_claim": false,
+      "automatic_assessment_mutation_claim": false,
+      "registry_completeness_claim": false,
+      "global_neuroai_trial_recall_claim": false
+    }
+  },
+  "operational_gate": {
+    "issue": 105,
+    "state": "OPEN_BLOCKER",
+    "required_before_b05_completion": [
+      "A hosted runner executes the five current-pin SU-TRIALS workflow contracts through repository steps.",
+      "Step-level and log evidence is retained and reviewed for actual validation outcomes.",
+      "Any executed failure is adjudicated as code/data/contract/infrastructure before B05 is reconsidered."
+    ]
+  },
+  "next_gate": {
+    "state": "PIN_ALIGNED_HOSTED_VALIDATION_PENDING",
+    "required_actions": [
+      "Restore hosted runner execution or use an equivalent governed runner capable of executing the exact repository workflows.",
+      "Execute the five audited SU-TRIALS workflows at Workbench 33414065e53c45221d29209ef4703b6d900781f7.",
+      "Inspect actual steps, logs, and outputs before changing B05 state."
+    ]
+  },
+  "boundary": "This successor records source-universe execution configuration and failed validation attempts only. It does not establish workflow execution, source availability, candidate acceptance, monitor creation, scientific truth, registry completeness, assessment effect, canonical publication, operational health, B05 completion, or a G0 pass."
+}
