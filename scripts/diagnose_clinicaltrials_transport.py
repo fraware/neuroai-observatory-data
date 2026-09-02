@@ -13,7 +13,9 @@ from typing import Any
 TARGET_URL = "https://clinicaltrials.gov/api/v2/studies/NCT04676854"
 TARGET_HOST = "clinicaltrials.gov"
 TARGET_PATH = "/api/v2/studies/NCT04676854"
-USER_AGENT = "NeuroAI-Collector/0.3.0-dev (+https://github.com/fraware/neuroai-workbench)"
+USER_AGENT = (
+    "NeuroAI-Collector/0.3.0-dev (+https://github.com/fraware/neuroai-workbench)"
+)
 BOUNDARY = (
     "This is a non-production transport diagnostic against one pre-registered public ClinicalTrials.gov API route. "
     "It records status/failure metadata only, retains no response body, mutates no Observatory source state, does not "
@@ -45,7 +47,9 @@ def _curl_probe(*, force_http11: bool) -> dict[str, Any]:
     if force_http11:
         command.append("--http1.1")
     command.append(TARGET_URL)
-    completed = subprocess.run(command, capture_output=True, text=True, check=False, timeout=35)
+    completed = subprocess.run(
+        command, capture_output=True, text=True, check=False, timeout=35
+    )
     raw_status = completed.stdout.strip()
     status = int(raw_status) if raw_status.isdigit() and len(raw_status) == 3 else None
     return {
@@ -103,9 +107,13 @@ def _workbench_pinned_probe() -> dict[str, Any]:
         max_attempts=1,
         requests_per_host_per_minute=1,
     )
-    client = HttpClient(config=config, transport=PinnedSocketHttpTransport(max_wire_bytes=2_000_000))
+    client = HttpClient(
+        config=config, transport=PinnedSocketHttpTransport(max_wire_bytes=2_000_000)
+    )
     try:
-        response = client.fetch(TARGET_URL, conditional_headers={"Accept": "application/json"})
+        response = client.fetch(
+            TARGET_URL, conditional_headers={"Accept": "application/json"}
+        )
         return {
             "outcome": "HTTP_RESPONSE",
             "http_status": int(response.status),
@@ -156,8 +164,13 @@ def main() -> int:
     args = parser.parse_args()
     report = execute()
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    print("SANITIZED_CLINICALTRIALS_TRANSPORT_DIAGNOSTIC=" + json.dumps(report, sort_keys=True))
+    args.output.write_text(
+        json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    print(
+        "SANITIZED_CLINICALTRIALS_TRANSPORT_DIAGNOSTIC="
+        + json.dumps(report, sort_keys=True)
+    )
     return 0
 
 
