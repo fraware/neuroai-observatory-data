@@ -56,7 +56,7 @@ jobs:
           import json, os
           from pathlib import Path
           report = json.loads((Path(os.environ["RUNNER_TEMP"]) / "neuroai-clinicaltrials-transport/report.json").read_text())
-          if report.get("schema_version") != "1":
+          if report.get("schema_version") != "2":
               raise SystemExit("unexpected diagnostic schema")
           if report.get("response_body_retained") is not False:
               raise SystemExit("diagnostic retained a response body")
@@ -66,10 +66,23 @@ jobs:
               "curl_default",
               "curl_http1_1",
               "python_requests_http1_1",
+              "python_stdlib_hostname_http1_1",
               "workbench_pinned_http1_1",
           }
           if set(report.get("probes", {})) != expected:
               raise SystemExit("diagnostic probe set drifted")
+          per_address = report.get("per_validated_address")
+          if not isinstance(per_address, list) or not per_address:
+              raise SystemExit("diagnostic did not test the DNS-validated address set")
+          if len(per_address) != report.get("dns_validated_address_count"):
+              raise SystemExit("per-address diagnostic coverage is incomplete")
+          for row in per_address:
+              if set(row) != {
+                  "address",
+                  "curl_resolve_http1_1",
+                  "workbench_single_address_http1_1",
+              }:
+                  raise SystemExit("per-address diagnostic row drifted")
           print("CLINICALTRIALS_TRANSPORT_DIAGNOSTIC_BOUNDARY=PASS")
           PY
       - name: Retain sanitized transport diagnostic
