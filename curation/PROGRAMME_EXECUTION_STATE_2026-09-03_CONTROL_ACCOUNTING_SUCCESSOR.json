@@ -1,0 +1,486 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-03_CONTROL_ACCOUNTING_SUCCESSOR",
+  "status": "PRE_G0_SUCCESSOR_STATE_NONCANONICAL",
+  "as_of": "2026-09-03",
+  "purpose": "Append-only programme execution-state successor that corrects current control accounting after independent re-verification that Workbench PR #267 is still unmerged. No Workbench pin is changed. No live G0 proof is claimed or re-executed. Predecessor records remain immutable.",
+  "predecessor": {
+    "path": "curation/PROGRAMME_EXECUTION_STATE_2026-09-02_B05_PIN_SUCCESSOR.json",
+    "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-02_B05_PIN_SUCCESSOR",
+    "predecessor_is_modified_by_this_successor": false,
+    "predecessor_immutability": "HISTORICAL_IMMUTABLE_EXECUTION_STATE_NOT_EDITED_IN_PLACE"
+  },
+  "frozen_baseline": {
+    "path": "curation/PROGRAMME_EXECUTION_BASELINE_2026-09-01.json",
+    "baseline_id": "PROGRAMME_EXECUTION_BASELINE_2026-09-01",
+    "modified_by_this_successor": false
+  },
+  "g0": {
+    "decision": "BLOCKED_NOT_PASSED",
+    "passed": false,
+    "open_blocker_ids": ["G0-B01", "G0-B02", "G0-B04", "G0-B05"],
+    "reason": "Workbench PR #267 remains OPEN with mergeCommit null, so no new merged Workbench pairing exists. B01 still lacks event=schedule evidence on the intended pin. B02, B04, B05, operational due-cycle, and interruption/resume proofs were not re-executed against a new merged Workbench pairing. G0 therefore remains BLOCKED_NOT_PASSED."
+  },
+  "g1": {
+    "approved": false,
+    "g1_approved": false,
+    "human_disposition_recorded": false
+  },
+  "g2": {
+    "frozen": false,
+    "freeze_claimed": false
+  },
+  "repositories": {
+    "workbench": {
+      "repository": "fraware/neuroai-workbench",
+      "authoritative_pin_commit": "33414065e53c45221d29209ef4703b6d900781f7",
+      "independently_verified_origin_main_commit": "33414065e53c45221d29209ef4703b6d900781f7",
+      "package_line": "0.3.0.dev0",
+      "pin_updated_by_this_successor": false,
+      "new_merged_sha_verified": false
+    },
+    "observatory_data": {
+      "repository": "fraware/neuroai-observatory-data",
+      "claimed_origin_main_sha": "d14994a578561b34d1dfcbb467faf761bf9a4c31",
+      "claimed_origin_main_sha_source": "gh api repos/fraware/neuroai-observatory-data/commits/main --jq .sha",
+      "local_head_sha_at_successor_authoring": "da67e72aa10ef69f6f25ec6b9b9e42cff7f496d3",
+      "local_branch_at_successor_authoring": "pr-192",
+      "local_head_equals_origin_main": false,
+      "local_vs_origin_main_note": "Local HEAD is the PR #193 tip commit da67e72aa10ef69f6f25ec6b9b9e42cff7f496d3 on branch pr-192. Origin main is the PR #193 merge commit d14994a578561b34d1dfcbb467faf761bf9a4c31. This successor claims origin main, not local HEAD, as the Observatory main SHA.",
+      "historical_b05_pin_alignment_main": "57e0460479e9f25c37f236010d31c7fafff11040",
+      "historical_lifecycle_aware_interruption_resume_main": "af1fea0b75ab74d25e3c54d9204a97c92aeb7d7f"
+    }
+  },
+  "workbench_pr_267_gate": {
+    "repository": "fraware/neuroai-workbench",
+    "pr": 267,
+    "url": "https://github.com/fraware/neuroai-workbench/pull/267",
+    "independently_verified_at": "2026-09-03T16:19:00Z",
+    "verification_command": "gh pr view 267 --repo fraware/neuroai-workbench --json number,state,mergedAt,mergeCommit,baseRefName,headRefName,url,statusCheckRollup",
+    "state": "OPEN",
+    "merged_at": null,
+    "merge_commit": null,
+    "base_ref": "main",
+    "head_ref": "fix/g0-pinned-urllib3-transport",
+    "pin_update_performed": false,
+    "live_g0_rerun_performed": false,
+    "status_check_rollup_at_verification": {
+      "quality": "FAILURE",
+      "tests-python-3.10": "FAILURE",
+      "tests-python-3.11": "FAILURE",
+      "tests-python-3.12": "FAILURE",
+      "tests-python-3.13": "FAILURE",
+      "tests-python-3.14": "FAILURE",
+      "codeql": "SUCCESS",
+      "dependency-review": "SUCCESS",
+      "package": "SUCCESS",
+      "release-verification": "SUCCESS",
+      "container": "SUCCESS",
+      "product-native": "SUCCESS",
+      "pip-audit": "SUCCESS"
+    },
+    "interpretation": "No merged Workbench SHA exists from PR #267. The authoritative Observatory Workbench pin remains 33414065e53c45221d29209ef4703b6d900781f7 / 0.3.0.dev0."
+  },
+  "b01": {
+    "state": "OPEN",
+    "blocks_g0": true,
+    "required_event": "schedule",
+    "workflow_dispatch_is_not_b01": true,
+    "current": {
+      "label": "current",
+      "event_schedule_evidence_on_intended_pin": false,
+      "intended_workbench_pin": "33414065e53c45221d29209ef4703b6d900781f7",
+      "run_id": null,
+      "event": null,
+      "evidence_replaced": false,
+      "interpretation": "B01 remains open because no current event=schedule evidence is recorded on the intended Workbench pin. This successor does not invent event=schedule and does not treat workflow_dispatch as B01."
+    },
+    "historical": {
+      "label": "historical",
+      "evidence_replaced": false,
+      "source_record": "curation/PROGRAMME_EXECUTION_STATE_2026-09-02_B05_PIN_SUCCESSOR.json",
+      "interpretation": "Predecessor B01 language about hosted jobs terminating before repository steps remains historical bookkeeping only. It is not rewritten and is not current scheduled-criterion evidence."
+    }
+  },
+  "b02": {
+    "state": "GOVERNED_PROOF_PATH_MERGED_LIVE_EVIDENCE_PENDING",
+    "blocks_g0": true,
+    "controlled_live_proof_executed": false,
+    "current": {
+      "label": "current",
+      "reexecuted_against_new_merged_workbench_pairing": false,
+      "new_merged_workbench_pairing_exists": false,
+      "live_proof_claimed": false,
+      "evidence_replaced": false,
+      "interpretation": "No new live B02 proof was executed. Workbench #267 is unmerged, so no new pairing exists to re-run against."
+    },
+    "historical": {
+      "label": "historical",
+      "evidence_replaced": false,
+      "proof_path_pr": 170,
+      "proof_path_issue": 169,
+      "source_record": "curation/PROGRAMME_EXECUTION_STATE_2026-09-02_B02_PROOF_PATH_SUCCESSOR.json",
+      "controlled_live_proof_executed_in_predecessor": false,
+      "interpretation": "The governed B02 proof path remains historically merged. Predecessor live-evidence-pending status is preserved and not treated as current live success."
+    }
+  },
+  "b04": {
+    "state": "NONPRODUCTION_PROOF_PATH_MERGED_EXECUTION_PENDING",
+    "blocks_g0": true,
+    "proof_executed": false,
+    "substantive_s2_release_authorized": false,
+    "substantive_s2_release_published": false,
+    "current": {
+      "label": "current",
+      "reexecuted_against_new_merged_workbench_pairing": false,
+      "proof_executed": false,
+      "green_synthetic_claimed": false,
+      "evidence_replaced": false,
+      "interpretation": "No current B04 execution is claimed. GREEN - SYNTHETIC is not asserted because the proof was not re-run."
+    },
+    "historical": {
+      "label": "historical",
+      "evidence_replaced": false,
+      "proof_path_pr": 174,
+      "proof_path_issue": 173,
+      "source_record": "curation/PROGRAMME_EXECUTION_STATE_2026-09-02_B04_PROOF_PATH_SUCCESSOR.json",
+      "proof_executed_in_predecessor": false,
+      "interpretation": "The non-production B04 proof path remains historically merged and unexecuted in predecessor records."
+    }
+  },
+  "b05": {
+    "state": "PIN_ALIGNED_HOSTED_VALIDATION_PENDING",
+    "blocks_g0": true,
+    "workbench_commit": "33414065e53c45221d29209ef4703b6d900781f7",
+    "audited_execution_workflows": [
+      ".github/workflows/su-trials-clinicaltrials-programme.yml",
+      ".github/workflows/su-trials-recorded-replay.yml",
+      ".github/workflows/su-trials-human-review-staging.yml",
+      ".github/workflows/su-trials-source-namespace-successor.yml",
+      ".github/workflows/discovery-source-materialization-monitor-proposals.yml"
+    ],
+    "current": {
+      "label": "current",
+      "reexecuted_against_new_merged_workbench_pairing": false,
+      "current_pin_workflow_execution_reached": false,
+      "source_retrieval_executed": false,
+      "candidate_acceptance_executed": false,
+      "canonical_mutation_executed": false,
+      "evidence_replaced": false,
+      "interpretation": "No new B05 five-workflow accounting was collected. Pin remains the already-authoritative 33414065e53c45221d29209ef4703b6d900781f7 pin."
+    },
+    "historical": {
+      "label": "historical",
+      "evidence_replaced": false,
+      "source_record": "curation/PROGRAMME_EXECUTION_STATE_2026-09-02_B05_PIN_SUCCESSOR.json",
+      "configuration_reconciliation_pr": 178,
+      "audited_workflows_pin_current_workbench_in_predecessor": true,
+      "current_pin_workflow_execution_reached_in_predecessor": false,
+      "runner_evidence_from_predecessor": [
+        {
+          "workflow": "SU-TRIALS ClinicalTrials.gov programme",
+          "run_id": 33642705674,
+          "job_id": 100289541923,
+          "conclusion": "failure",
+          "steps_present": false,
+          "logs_present": false
+        },
+        {
+          "workflow": "SU-TRIALS ClinicalTrials.gov recorded replay",
+          "run_id": 33642705314,
+          "job_id": 100289540581,
+          "conclusion": "failure",
+          "steps_present": false,
+          "logs_present": false
+        },
+        {
+          "workflow": "SU-TRIALS human-review staging",
+          "run_id": 33642708848,
+          "job_id": 100289553771,
+          "conclusion": "failure",
+          "steps_present": false,
+          "logs_present": false
+        },
+        {
+          "workflow": "SU-TRIALS Source-namespace successor",
+          "run_id": 33642705520,
+          "job_id": 100289541750,
+          "conclusion": "failure",
+          "steps_present": false,
+          "logs_present": false
+        },
+        {
+          "workflow": "Discovery Source materialization and monitoring proposals",
+          "run_id": 33642705565,
+          "job_id": 100289541427,
+          "conclusion": "failure",
+          "steps_present": false,
+          "logs_present": false
+        }
+      ],
+      "interpretation": "Predecessor B05 pin-alignment and pre-step failure rows are historical. They are copied here for accounting continuity and are not new live proofs."
+    }
+  },
+  "operational_due_cycle": {
+    "current": {
+      "label": "current",
+      "reexecuted_against_new_merged_workbench_pairing": false,
+      "proof_claimed": false,
+      "evidence_replaced": false
+    },
+    "historical": {
+      "label": "historical",
+      "evidence_replaced": false,
+      "source_record": "curation/PROGRAMME_EXECUTION_STATE_2026-09-02_B02_PIN_SUCCESSOR.json",
+      "note": "Historical operational-live push failures before repository steps are not current due-cycle proofs and are not event=schedule evidence."
+    }
+  },
+  "interruption_resume": {
+    "current": {
+      "label": "current",
+      "reexecuted_against_new_merged_workbench_pairing": false,
+      "proof_claimed": false,
+      "evidence_replaced": false
+    },
+    "historical": {
+      "label": "historical",
+      "evidence_replaced": false,
+      "implementation_pr": 189,
+      "implementation_merge_commit": "af1fea0b75ab74d25e3c54d9204a97c92aeb7d7f",
+      "implementation_on_origin_main": true,
+      "interpretation": "PR #189 lifecycle-aware interruption-resume is historically merged to origin main at af1fea0b75ab74d25e3c54d9204a97c92aeb7d7f. That merge is an implementation fact, not a current live interruption/resume proof against a new Workbench pairing."
+    }
+  },
+  "source_count_accounting": {
+    "current_effective_lifecycle_source_count_policy": 248,
+    "stale_249_vs_248_expected_source_count_bug": {
+      "active_implementation_blocker": false,
+      "status": "HISTORICAL_NOT_ACTIVE_UNLESS_FRESH_RUN_FAILS",
+      "fresh_run_failed_on_this_accounting_successor": false,
+      "interpretation": "The stale 249-versus-248 expected-source-count bug is not listed as an active implementation blocker. No fresh lifecycle-aware run was executed for this successor, so no new failure is recorded."
+    }
+  },
+  "d1_d2_identities_on_origin_main": {
+    "g1_approved": false,
+    "verified_on_origin_main_sha": "d14994a578561b34d1dfcbb467faf761bf9a4c31",
+    "d1": {
+      "artifact_id": "LANDSCAPE_RESEARCH_CONTRACT_v0.1",
+      "version": "0.1",
+      "issue": 181,
+      "paths_verified_on_origin_main": [
+        "curation/LANDSCAPE_RESEARCH_CONTRACT_v0.1.json",
+        "schemas/landscape-research-contract-v0.1.schema.json",
+        "scripts/validate_landscape_research_contract.py",
+        "tests/test_landscape_research_contract.py",
+        ".github/workflows/pre-g1-d1-landscape-research-contract.yml"
+      ],
+      "origin_main_blob_shas": {
+        "curation/LANDSCAPE_RESEARCH_CONTRACT_v0.1.json": "93feef31cfe3a34a3b488a2f9a7ac8ee472958d6",
+        "schemas/landscape-research-contract-v0.1.schema.json": "35be249065c0c009c8eb200da6f07bdad439ca62",
+        "scripts/validate_landscape_research_contract.py": "97459cc754a2425e6976b6ac1de3e02df4a633aa",
+        "tests/test_landscape_research_contract.py": "9aadc0aa73e0d57615421b9f63608d35d52bdb15",
+        ".github/workflows/pre-g1-d1-landscape-research-contract.yml": "9045651684bd75c3387764e9c93fbe8e4cd410f8"
+      },
+      "landed_via_merged_prs": [
+        {
+          "pr": 192,
+          "state": "MERGED",
+          "merge_commit": "2f126ae5d4c386e14b37894d88dadf006dc59226",
+          "title": "PRE-G1 D2: add controlled capability-context taxonomy v0.1"
+        },
+        {
+          "pr": 193,
+          "state": "MERGED",
+          "merge_commit": "d14994a578561b34d1dfcbb467faf761bf9a4c31",
+          "title": "Control: stabilize D1 schema identity binding"
+        }
+      ],
+      "interpretation": "D1 draft encode artifacts exist on origin main. This is technical PRE-G1 readiness only. It is not human G1 approval."
+    },
+    "d2": {
+      "artifact_id": "CAPABILITY_CONTEXT_TAXONOMY_v0.1",
+      "version": "0.1",
+      "issue": 191,
+      "merged_pr": 192,
+      "merge_commit": "2f126ae5d4c386e14b37894d88dadf006dc59226",
+      "paths_verified_on_origin_main": [
+        "curation/CAPABILITY_CONTEXT_TAXONOMY_v0.1.json",
+        "scripts/validate_capability_context_taxonomy.py",
+        "tests/test_capability_context_taxonomy.py",
+        ".github/workflows/pre-g1-d2-capability-context-taxonomy.yml"
+      ],
+      "origin_main_blob_shas": {
+        "curation/CAPABILITY_CONTEXT_TAXONOMY_v0.1.json": "4841db2b806ac946ba9ee177acab700cc83e8a69",
+        "scripts/validate_capability_context_taxonomy.py": "40ee8a9bd0355cac33fe27604ce598324b9d816f",
+        "tests/test_capability_context_taxonomy.py": "c2b08e8c1b7451de31f7c712b7132a461e0a2139",
+        ".github/workflows/pre-g1-d2-capability-context-taxonomy.yml": "a295b9dbb1ad7bf9ded11739a54e946990ef20c2"
+      },
+      "interpretation": "D2 taxonomy artifacts exist on origin main via PR #192, with D1 identity stabilization on PR #193. This is not G1 or G2."
+    }
+  },
+  "evidence_only_prs": {
+    "ledger_path": "curation/issue_disposition_ledger_observatory_recovery_2026-09-03_v0.1.json",
+    "prs": [
+      {
+        "pr": 182,
+        "url": "https://github.com/fraware/neuroai-observatory-data/pull/182",
+        "role": "EVIDENCE_ONLY_DIAGNOSTIC_NOT_TO_MERGE",
+        "state_at_successor_authoring": "CLOSED",
+        "merged": false,
+        "merged_at": null,
+        "closed_at": "2026-09-03T16:21:37Z",
+        "head_ref": "diagnostic/b05-current-main-runner-recovery",
+        "head_oid": "37c90facc81c9f1f8343dd6ff7bfa8ff72877bd3",
+        "evidence_replaced": false,
+        "current_vs_historical": "historical_diagnostic_evidence_preserved",
+        "captured_check_runs_from_ledger": [
+          {
+            "workflow_name": "SU-TRIALS Source-namespace successor",
+            "check_name": "adjudication-contract",
+            "conclusion": "FAILURE",
+            "run_id": 33651104361,
+            "job_id": 100318024182
+          },
+          {
+            "workflow_name": "Discovery Source materialization and monitoring proposals",
+            "check_name": "materialization-contract",
+            "conclusion": "SUCCESS",
+            "run_id": 33651104560,
+            "job_id": 100318025894
+          },
+          {
+            "workflow_name": "SU-TRIALS ClinicalTrials.gov programme",
+            "check_name": "validate-programme",
+            "conclusion": "SUCCESS",
+            "run_id": 33651104407,
+            "job_id": 100318025381
+          },
+          {
+            "workflow_name": "SU-TRIALS ClinicalTrials.gov recorded replay",
+            "check_name": "replay-contract",
+            "conclusion": "SUCCESS",
+            "run_id": 33651104413,
+            "job_id": 100318025373
+          },
+          {
+            "workflow_name": "SU-TRIALS human-review staging",
+            "check_name": "staging-contract",
+            "conclusion": "SUCCESS",
+            "run_id": 33651104497,
+            "job_id": 100318025897
+          }
+        ],
+        "limitation": "Preserved check-run conclusions and identifiers only. This successor does not download artifacts, inspect logs, or treat those conclusions as current-pin live G0 proofs."
+      },
+      {
+        "pr": 190,
+        "url": "https://github.com/fraware/neuroai-observatory-data/pull/190",
+        "role": "EVIDENCE_ONLY_DIAGNOSTIC_NOT_TO_MERGE",
+        "state_at_successor_authoring": "CLOSED",
+        "merged": false,
+        "merged_at": null,
+        "closed_at": "2026-09-03T16:21:37Z",
+        "head_ref": "diagnostic/g0-clinicaltrials-transport-ab",
+        "head_oid": "03f124a3398a3ea87feb52b81bfeb0bb1132f8ab",
+        "evidence_replaced": false,
+        "current_vs_historical": "historical_diagnostic_evidence_preserved",
+        "captured_check_runs_from_ledger": [
+          {
+            "workflow_name": "G0 ClinicalTrials transport diagnostic",
+            "check_name": "diagnose",
+            "conclusion": "SUCCESS",
+            "run_id": 33724679480,
+            "job_id": 100551024724
+          }
+        ],
+        "limitation": "Preserved diagnostic check-run conclusion and identifiers only. SUCCESS here is not B01, B02, transport-gate clearance, or a G0 pass."
+      }
+    ]
+  },
+  "blockers": [
+    {
+      "id": "G0-B01",
+      "state": "OPEN",
+      "description": "No current event=schedule evidence exists on the intended Workbench pin 33414065e53c45221d29209ef4703b6d900781f7. workflow_dispatch is not B01."
+    },
+    {
+      "id": "G0-B02",
+      "state": "GOVERNED_PROOF_PATH_MERGED_LIVE_EVIDENCE_PENDING",
+      "description": "B02 was not re-executed against a new merged Workbench pairing. Workbench #267 is not merged, so no new pairing exists."
+    },
+    {
+      "id": "G0-B03",
+      "state": "SOFTWARE_REMEDIATED_HOSTED_VALIDATION_PENDING",
+      "blocks_g0_independently": false,
+      "description": "Historical B03 software remediation remains associated with Workbench 33414065e53c45221d29209ef4703b6d900781f7. Hosted validation remains inherited by B01/B05."
+    },
+    {
+      "id": "G0-B04",
+      "state": "NONPRODUCTION_PROOF_PATH_MERGED_EXECUTION_PENDING",
+      "description": "B04 was not re-executed against a new merged Workbench pairing. No GREEN - SYNTHETIC current claim is made."
+    },
+    {
+      "id": "G0-B05",
+      "state": "PIN_ALIGNED_HOSTED_VALIDATION_PENDING",
+      "description": "B05 five-workflow proofs were not re-executed against a new merged Workbench pairing. Historical pin-alignment remains; current execution is not demonstrated."
+    },
+    {
+      "id": "WB-267-UNMERGED",
+      "state": "OPEN",
+      "blocks_new_pin_and_live_pairing": true,
+      "description": "Independently verified: fraware/neuroai-workbench PR #267 is OPEN, mergedAt null, mergeCommit null, with failing CI quality and Python test jobs. No pin update and no live G0 rerun are authorized."
+    }
+  ],
+  "resolved_or_historical_items": [
+    {
+      "id": "PR-189-LIFECYCLE-AWARE-INTERRUPTION-RESUME",
+      "status": "HISTORICAL_MERGED_IMPLEMENTATION",
+      "pr": 189,
+      "merge_commit": "af1fea0b75ab74d25e3c54d9204a97c92aeb7d7f",
+      "on_origin_main": true,
+      "active_implementation_blocker": false,
+      "live_proof_claimed": false
+    },
+    {
+      "id": "STALE-249-VS-248-EXPECTED-SOURCE-COUNT",
+      "status": "HISTORICAL_NOT_ACTIVE_IMPLEMENTATION_BLOCKER",
+      "active_implementation_blocker": false,
+      "fresh_run_reproduced_failure": false
+    },
+    {
+      "id": "PR-192-D2-ON-MAIN",
+      "status": "HISTORICAL_MERGED_IMPLEMENTATION",
+      "pr": 192,
+      "merge_commit": "2f126ae5d4c386e14b37894d88dadf006dc59226",
+      "g1_approved": false
+    },
+    {
+      "id": "PR-193-D1-IDENTITY-ON-MAIN",
+      "status": "HISTORICAL_MERGED_IMPLEMENTATION",
+      "pr": 193,
+      "merge_commit": "d14994a578561b34d1dfcbb467faf761bf9a4c31",
+      "g1_approved": false
+    }
+  ],
+  "next_control_actions": [
+    "Do not update any Workbench pin until PR #267 is merged and the resulting main SHA is independently verified.",
+    "Do not rerun live G0 workflows or claim G0 PASS while #267 remains unmerged.",
+    "Keep B01 waiting for true event=schedule evidence on the intended pin; do not treat workflow_dispatch as B01.",
+    "When a verified merged Workbench SHA exists, re-execute B02, B04, B05, operational due-cycle, and interruption/resume against that exact pairing before changing those blocker states."
+  ],
+  "non_claims": [
+    "This successor does not claim G0 PASS.",
+    "This successor does not claim G1 approval and does not set g1_approved=true.",
+    "This successor does not claim a G2 freeze.",
+    "This successor does not claim scientific truth.",
+    "This successor does not claim publication authority or that any S2 release was authorized or published.",
+    "This successor does not claim regulatory status.",
+    "This successor does not claim v4.2 findings.",
+    "This successor does not invent event=schedule evidence.",
+    "This successor does not treat workflow_dispatch as B01.",
+    "This successor does not pin Workbench to PR #267 or any unmerged SHA.",
+    "This successor does not place S3, licensed, or private material into S2.",
+    "This successor does not rewrite historical immutable execution-state predecessors in place."
+  ],
+  "boundary": "This successor is execution-control bookkeeping only. It does not establish hosted runner health, B01 scheduled evidence, B02/B04/B05 proof execution, source availability, candidate acceptance, substantive S2 publication, scientific truth, registry completeness, operational health, assessment authority, G1 approval, G2 freeze, or a G0 pass."
+}

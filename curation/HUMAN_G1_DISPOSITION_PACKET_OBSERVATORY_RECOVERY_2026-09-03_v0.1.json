@@ -1,0 +1,79 @@
+{
+  "schema_version": "0.1",
+  "packet_type": "HUMAN_G1_DISPOSITION_PACKET",
+  "packet_id": "HUMAN-G1-DISP-PACKET-2026-09-03-v0.1",
+  "recovery_context": {
+    "recovery_date": "2026-09-03",
+    "observatory_recovery_issue_number": 181,
+    "observatory_recovery_ledger_id": "ISSUE_DISPOSITION_LEDGER_OBSERVATORY_RECOVERY_2026-09-03_V0_1"
+  },
+  "authority_boundary": {
+    "g1_transition_is_fail_closed_until_human_recorded": true,
+    "packet_must_not_synthesize_approvals": true,
+    "packet_must_not_expose_private_or_protected_evidence": true,
+    "interpretation_rule": "Humans may use this packet to record an attributable governance disposition. No automated system can treat this packet as an approval; g1_approved remains false until a separately recorded human disposition binds the exact D1/D2 identities in this packet."
+  },
+  "g1_state": {
+    "g1_approved": false,
+    "canonical_authority": false,
+    "publication_authority": false,
+    "mutation_authority": false,
+    "assessment_effect": "NONE",
+    "requires_human_governance_disposition": true,
+    "governance_disposition_id": null,
+    "governance_disposition_path": null
+  },
+  "artifacts_introduced_in_recovery": {
+    "d1": {
+      "artifact_id": "LANDSCAPE_RESEARCH_CONTRACT_v0.1",
+      "version": "0.1",
+      "artifact_path": "curation/LANDSCAPE_RESEARCH_CONTRACT_v0.1.json",
+      "created_against_observatory_main_sha": "af1fea0b75ab74d25e3c54d9204a97c92aeb7d7f",
+      "landed_on_observatory_main_sha": "d14994a578561b34d1dfcbb467faf761bf9a4c31",
+      "schema_path": "schemas/landscape-research-contract-v0.1.schema.json",
+      "schema_sha256": "8dc3f15cc8c9857b9c0457b36810600a2789e9d3b34d0facbf45f0143de3ed25",
+      "validator_entrypoint": "scripts/validate_landscape_research_contract.py",
+      "d1_contract_issue": 181
+    },
+    "d2": {
+      "artifact_id": "CAPABILITY_CONTEXT_TAXONOMY_v0.1",
+      "version": "0.1",
+      "artifact_path": "curation/CAPABILITY_CONTEXT_TAXONOMY_v0.1.json",
+      "created_against_observatory_main_sha": "af1fea0b75ab74d25e3c54d9204a97c92aeb7d7f",
+      "landed_on_observatory_main_sha": "d14994a578561b34d1dfcbb467faf761bf9a4c31",
+      "d1_contract_binding": {
+        "artifact_id": "LANDSCAPE_RESEARCH_CONTRACT_v0.1",
+        "version": "0.1",
+        "created_against_observatory_main_sha": "af1fea0b75ab74d25e3c54d9204a97c92aeb7d7f",
+        "landed_on_observatory_main_sha": "d14994a578561b34d1dfcbb467faf761bf9a4c31",
+        "artifact_path": "curation/LANDSCAPE_RESEARCH_CONTRACT_v0.1.json",
+        "validator_entrypoint": "scripts/validate_landscape_research_contract.py",
+        "canonical_json_sha256": "fcd438c51d7af813ee10b31928090dc45f172630dccc5c9e704a5ce32086c09d",
+        "d2_question_bindings": [
+          "RQ-02",
+          "RQ-04",
+          "RQ-05",
+          "RQ-06"
+        ]
+      },
+      "d2_contract_issue": 191
+    }
+  },
+  "human_g1_approval_record": {
+    "g1_approved": false,
+    "decision_outcome": "UNKNOWN",
+    "recorded_by": "UNKNOWN",
+    "recorded_at": null,
+    "governance_disposition_id": null,
+    "governance_disposition_path": null,
+    "attribution_requirement": "Any system (including future tooling) must treat g1_approved=true as possible only when an attributable human governance record is separately committed and bound to the exact D1 and D2 identities/digests in artifacts_introduced_in_recovery."
+  },
+  "remaining_unresolved_conditions_blocking_g1_g2_transition": [
+    "No attributable human governance disposition has been recorded for the exact D1/D2 identity binding in this recovery (this packet therefore keeps g1_approved=false).",
+    "Any PRE-G2 lineage selection and S2 binding must remain UNKNOWN until an externally selected PRE-G2 workbench lineage is bound via its public provenance fields; this packet does not provide that lineage identity."
+  ],
+  "non_claims": [
+    "This packet does not authorize G1, G2, publication, canonical mutation, or any successor execution.",
+    "This packet does not include, reference, or infer protected/private evidence."
+  ]
+}
