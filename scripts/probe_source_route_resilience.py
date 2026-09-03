@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Probe pre-registered official routes and resolve source-level availability/lifecycle."""
 
 from __future__ import annotations
