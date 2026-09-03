@@ -250,6 +250,73 @@ class RouteAwareOperationalHealthTests(unittest.TestCase):
             {alert["code"] for alert in report["blocking_alerts"]},
         )
 
+    def test_degraded_route_report_without_collector_failures_keeps_resolution_degraded(
+        self,
+    ) -> None:
+        # Latent coupling bug: failed_count==0 previously left source_resolution_state
+        # HEALTHY even when the route report itself was DEGRADED.
+        routes = {
+            "source_resolution_state": "DEGRADED",
+            "active_source_availability_state": "DEGRADED",
+            "active_evidence_payload_availability_state": "DEGRADED",
+            "report_sha256": "a" * 64,
+            "counts": {
+                "AVAILABLE_PRIMARY": 0,
+                "AVAILABLE_FALLBACK": 0,
+                "UNRESOLVED": 1,
+                "RETIRED": 0,
+                "RESOLVED_LIFECYCLE_CHANGE": 0,
+                "PRIMARY_DEGRADED": 1,
+                "EVIDENCE_SUBSTITUTABLE_FALLBACK": 0,
+                "LIVENESS_ONLY_FALLBACK": 0,
+            },
+            "source_reports": [
+                {
+                    "source_id": "SRC-PR-002",
+                    "availability_state": "UNRESOLVED",
+                    "primary_route_state": "DEGRADED",
+                    "selected_route_id": None,
+                    "selected_route_class": None,
+                    "evidence_substitution_allowed": False,
+                }
+            ],
+        }
+        run = {
+            "run_id": "CRUN-route-healthy-collector",
+            "plan_id": "PLAN-route-healthy-collector",
+            "execution_status": "COMPLETE",
+            "counts": {
+                "succeeded": 1,
+                "failed": 0,
+                "skipped": 0,
+                "incomplete": 0,
+                "logical_sources": 1,
+                "collection_attempts": 1,
+                "retries": 0,
+                "retryable_failures_exhausted": 0,
+            },
+            "slo": {
+                "source_accountability_coverage": 1.0,
+                "target_execution_coverage": 1.0,
+            },
+            "outcomes": [{"source_id": "SRC-OTHER", "status": "RESULT"}],
+        }
+        report = evaluate_health(
+            accountability=self.accountability,
+            development_registry=self.registry,
+            run=run,
+            route_resilience=routes,
+        )
+        self.assertEqual(report["engineering_state"], ENGINEERING_READY)
+        self.assertEqual(report["state"], DEGRADED)
+        self.assertEqual(report["source_resolution_state"], DEGRADED)
+        self.assertEqual(report["active_source_availability_state"], DEGRADED)
+        self.assertEqual(report["active_evidence_payload_availability_state"], DEGRADED)
+        self.assertIn(
+            "ROUTE_RESILIENCE_REPORT_DEGRADED",
+            {warning["code"] for warning in report["warnings"]},
+        )
+
     def test_route_report_tampering_changes_health_verification(self) -> None:
         routes = active_route_report()
         report = evaluate_health(
