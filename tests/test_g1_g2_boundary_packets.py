@@ -21,6 +21,14 @@ PRE_G2_TEMPLATE_PATH = (
     / "curation"
     / "PUBLIC_PRE_G2_S2_BINDINGS_TEMPLATE_OBSERVATORY_RECOVERY_2026-09-03_v0.1.json"
 )
+PRE_G2_BOUND_PATH = (
+    ROOT
+    / "curation"
+    / "PUBLIC_PRE_G2_S2_BINDINGS_OBSERVATORY_RECOVERY_2026-09-03_BOUND_v0.1.json"
+)
+
+G0_TRANSPORT_PIN = "685f1597a2a63f2e2217f65f115a67ac3e35cc55"
+PRE_G2_SOFTWARE_BINDING_SHA = "336da167700a7ce2894c27826f8a1c999e1ee844"
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -59,6 +67,7 @@ class G1G2BoundaryPacketTests(unittest.TestCase):
         self.d2 = load_json(D2_PATH)
         self.g1_packet = load_json(G1_PACKET_PATH)
         self.pre_g2_template = load_json(PRE_G2_TEMPLATE_PATH)
+        self.pre_g2_bound = load_json(PRE_G2_BOUND_PATH)
 
     def test_g1_packet_is_fail_closed(self) -> None:
         g1_state = self.g1_packet.get("g1_state") or {}
@@ -118,6 +127,60 @@ class G1G2BoundaryPacketTests(unittest.TestCase):
         for value in workbench_placeholders.values():
             self.assertEqual(value, "UNKNOWN")
 
+    def test_pre_g2_bound_keeps_fail_closed_authority(self) -> None:
+        authority = self.pre_g2_bound.get("authority_boundary") or {}
+        self.assertIs(authority.get("g2_passed"), False)
+        self.assertIs(authority.get("canonical_s2_authority"), False)
+        self.assertIs(authority.get("publication_authority"), False)
+        self.assertEqual(authority.get("assessment_effect"), "NONE")
+
+        g1_dep = (self.pre_g2_bound.get("contract_context") or {}).get("g1_dependency") or {}
+        self.assertIs(g1_dep.get("g1_approved"), False)
+
+        g0_pin = self.pre_g2_bound.get("g0_transport_pin") or {}
+        self.assertEqual(g0_pin.get("workbench_sha"), G0_TRANSPORT_PIN)
+
+        software = self.pre_g2_bound.get("workbench_software_binding") or {}
+        self.assertEqual(
+            software.get("workbench_software_binding_sha"),
+            PRE_G2_SOFTWARE_BINDING_SHA,
+        )
+        self.assertIs(software.get("not_g0_transport_pin"), True)
+        self.assertIs(software.get("does_not_replace_g0_pin"), True)
+        self.assertNotEqual(
+            software.get("workbench_software_binding_sha"),
+            g0_pin.get("workbench_sha"),
+        )
+
+        public = self.pre_g2_bound.get("public_bindables") or {}
+        self.assertEqual(public.get("schema_version"), "0.1")
+        self.assertEqual(
+            public.get("commitment_scheme"),
+            "HMAC_SHA256_DOMAIN_CANONICAL_JSON_V1",
+        )
+        self.assertEqual(public.get("freeze_manifest_type"), "BENCHMARK_FREEZE")
+        self.assertEqual(public.get("run_manifest_type"), "HELD_OUT_EVALUATION_RUN")
+        self.assertEqual(public.get("export_policy"), "AGGREGATE_ONLY")
+
+        benchmarks = public.get("benchmarks") or []
+        self.assertEqual(len(benchmarks), 2)
+        ids = {b.get("benchmark_id") for b in benchmarks}
+        self.assertEqual(ids, {"PRE_G2_PATENT_V0_1", "PRE_G2_PRODUCT_V0_1"})
+        schema_ids = {b.get("schema_id") for b in benchmarks}
+        self.assertEqual(
+            schema_ids,
+            {
+                "urn:neuroai:benchmark:patent:public-contract:v0.1",
+                "urn:neuroai:benchmark:product:public-contract:v0.1",
+            },
+        )
+        for bench in benchmarks:
+            self.assertEqual(bench.get("state"), "DRAFT_UNFROZEN")
+            self.assertIs(bench.get("g2_passed"), False)
+            self.assertIs(bench.get("canonical_s2_authority"), False)
+            self.assertIs(bench.get("publication_authority"), False)
+            self.assertEqual(bench.get("assessment_effect"), "NONE")
+
     def test_no_evidence_keys_or_secret_payload_fields_are_present(self) -> None:
         # Boundary text may include "evidence" as part of an authority constraint
         # key name. This test prevents *evidence payload* objects from appearing.
@@ -126,13 +189,18 @@ class G1G2BoundaryPacketTests(unittest.TestCase):
         for v in evidence_values:
             self.assertFalse(isinstance(v, (dict, list)))
 
-        evidence_values = find_values_for_keys_containing(self.pre_g2_template, "evidence")
-        for v in evidence_values:
-            self.assertFalse(isinstance(v, (dict, list)))
+        for packet in (self.pre_g2_template, self.pre_g2_bound):
+            evidence_values = find_values_for_keys_containing(packet, "evidence")
+            for v in evidence_values:
+                self.assertFalse(isinstance(v, (dict, list)))
 
         # Public templates must not contain storage URIs or secret markers.
         joined_strings = json.dumps(
-            {"g1": self.g1_packet, "pre_g2": self.pre_g2_template},
+            {
+                "g1": self.g1_packet,
+                "pre_g2": self.pre_g2_template,
+                "pre_g2_bound": self.pre_g2_bound,
+            },
             ensure_ascii=False,
             sort_keys=True,
         )

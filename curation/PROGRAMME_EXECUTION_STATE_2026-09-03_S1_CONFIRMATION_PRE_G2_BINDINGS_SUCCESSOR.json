@@ -1,0 +1,845 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-03_S1_CONFIRMATION_PRE_G2_BINDINGS_SUCCESSOR",
+  "status": "PRE_G0_SUCCESSOR_STATE_NONCANONICAL",
+  "as_of": "2026-09-03",
+  "purpose": "Append-only programme execution-state successor that records Workbench S1 fail-closed confirmation of G0 transport pin 685f1597a2a63f2e2217f65f115a67ac3e35cc55, cites ClinicalTrials proof 33781523925/100736091926, records Dns/NXDOMAIN guidance for SRC-14-021 as Observatory-owned, and binds PRE-G2 public lineage software SHA 336da167700a7ce2894c27826f8a1c999e1ee844 without claiming G0/G1/G2 PASS. Predecessor due-cycle route-remediation successor remains immutable.",
+  "predecessor": {
+    "path": "curation/PROGRAMME_EXECUTION_STATE_2026-09-03_DUE_CYCLE_ROUTE_REMEDIATION_SUCCESSOR.json",
+    "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-03_DUE_CYCLE_ROUTE_REMEDIATION_SUCCESSOR",
+    "predecessor_is_modified_by_this_successor": false,
+    "predecessor_immutability": "HISTORICAL_IMMUTABLE_EXECUTION_STATE_NOT_EDITED_IN_PLACE"
+  },
+  "frozen_baseline": {
+    "path": "curation/PROGRAMME_EXECUTION_BASELINE_2026-09-01.json",
+    "baseline_id": "PROGRAMME_EXECUTION_BASELINE_2026-09-01",
+    "modified_by_this_successor": false
+  },
+  "exact_pairing": {
+    "observatory_main_sha": "9bb1e8de71711294eb89a32b55d556c3fa4ad86e",
+    "observatory_main_sha_source": "origin/main at authoring (merge of PR #199 due-cycle route-remediation control); verified by git rev-parse origin/main",
+    "workbench_pin_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+    "workbench_pr": 267,
+    "workbench_pr_state": "MERGED",
+    "workbench_merged_at": "2026-09-03T16:58:01Z",
+    "package_line": "0.3.0.dev0",
+    "pin_pr": 195,
+    "workbench_software_binding_sha": "336da167700a7ce2894c27826f8a1c999e1ee844",
+    "workbench_software_binding_is_not_g0_transport_pin": true,
+    "s1_confirmation_received": true,
+    "s1_confirmation_as_of": "2026-09-03",
+    "evidence_collected_at": "2026-09-03T21:15:00Z",
+    "note": "S1 confirmation: G0 transport pin remains 685f1597 (#267). Workbench main tip 336da167 is recorded only as PRE-G2 public software binding, not as G0 pin. G0 still blocked on B01 + SRC-14-021."
+  },
+  "g0": {
+    "decision": "BLOCKED_NOT_PASSED",
+    "passed": false,
+    "open_blocker_ids": [
+      "G0-B01",
+      "G0-OPERATIONAL-DUE-CYCLE"
+    ],
+    "reason": "Conjunctive G0 PASS is not met after S1 confirmation. B01 still lacks event=schedule evidence on Observatory 9bb1e8de71711294eb89a32b55d556c3fa4ad86e with Workbench pin 685f1597a2a63f2e2217f65f115a67ac3e35cc55. Operational due-cycle remains blocked solely by unresolved SRC-14-021 (DNS NXDOMAIN for sonaafrica.org). Workbench confirmed no DnsGuard/PinnedSocket false-negative for true NXDOMAIN; NXDOMAIN vs other gaierror still needs OS exception or external resolver evidence and remains Observatory-owned. PRE-G2 public bindings to software SHA 336da167 do not pass G0/G1/G2 and do not replace the G0 transport pin."
+  },
+  "g1": {
+    "approved": false,
+    "g1_approved": false,
+    "human_disposition_recorded": false
+  },
+  "g2": {
+    "frozen": false,
+    "freeze_claimed": false,
+    "g2_passed": false,
+    "public_pre_g2_bindings_recorded": true,
+    "public_pre_g2_bindings_path": "curation/PUBLIC_PRE_G2_S2_BINDINGS_OBSERVATORY_RECOVERY_2026-09-03_BOUND_v0.1.json",
+    "workbench_software_binding_sha": "336da167700a7ce2894c27826f8a1c999e1ee844",
+    "note": "PRE-G2 public lineage recorded; not a G2 pass."
+  },
+  "repositories": {
+    "workbench": {
+      "repository": "fraware/neuroai-workbench",
+      "authoritative_pin_commit": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "independently_verified_origin_main_commit": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "package_line": "0.3.0.dev0",
+      "pin_updated_by_this_successor": false,
+      "pin_updated_by_prior_o1_pr": 195,
+      "new_merged_sha_verified": true,
+      "workbench_pr_267": {
+        "state": "MERGED",
+        "merge_commit": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+        "merged_at": "2026-09-03T16:58:01Z",
+        "url": "https://github.com/fraware/neuroai-workbench/pull/267"
+      },
+      "pre_g2_software_binding_sha": "336da167700a7ce2894c27826f8a1c999e1ee844",
+      "pre_g2_software_binding_is_not_g0_pin": true,
+      "s1_confirmation": {
+        "received": true,
+        "transport_pin_confirmed": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+        "clinicaltrials_proof_run_id": 33781523925,
+        "clinicaltrials_proof_job_id": 100736091926,
+        "handoff_ref": "docs/operations/observatory-s1-pin-handoff.md"
+      }
+    },
+    "observatory_data": {
+      "repository": "fraware/neuroai-observatory-data",
+      "claimed_origin_main_sha": "9bb1e8de71711294eb89a32b55d556c3fa4ad86e",
+      "claimed_origin_main_sha_source": "git rev-parse origin/main at S1-confirmation successor authoring",
+      "local_head_equals_origin_main_at_authoring": true,
+      "o1_pin_merge_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+      "historical_control_accounting_main": "d14994a578561b34d1dfcbb467faf761bf9a4c31",
+      "due_cycle_route_remediation_main": "9380d043218fa0d7227603a3c228c697797f575f",
+      "s1_confirmation_pre_g2_bindings_authoring_main": "9bb1e8de71711294eb89a32b55d556c3fa4ad86e"
+    }
+  },
+  "o2_release_contract": {
+    "workflow": "Observatory v2 release contract",
+    "workflow_file": ".github/workflows/observatory-v2-release.yml",
+    "event": "push",
+    "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+    "run_id": 33782324720,
+    "job_id": 100738741017,
+    "conclusion": "success",
+    "url": "https://github.com/fraware/neuroai-observatory-data/actions/runs/33782324720",
+    "proves": "Release-contract and production-monitoring-hardening tests passed on the exact pin-merge SHA.",
+    "does_not_prove": "B01 schedule, live due-cycle health, B02 live retrieval, B04/B05, or G0 PASS. Older af1fea0 runs are not current."
+  },
+  "b01": {
+    "state": "OPEN",
+    "blocks_g0": true,
+    "required_event": "schedule",
+    "workflow_dispatch_is_not_b01": true,
+    "current": {
+      "label": "current",
+      "intended_observatory_sha": "9bb1e8de71711294eb89a32b55d556c3fa4ad86e",
+      "intended_workbench_pin": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "workflow": "operational-live-cycle.yml",
+      "run_id": null,
+      "event": null,
+      "search_note": "No fabricated schedule. gh run list --workflow operational-live-cycle.yml --event schedule still shows no schedule run on current pin pairing since O1 pin; cron remains Monday 05:17 UTC.",
+      "interpretation": "B01 remains OPEN. S1 confirmation explicitly did not request fabricated B01. workflow_dispatch and push are not B01."
+    },
+    "historical": {
+      "label": "historical",
+      "evidence_replaced": false,
+      "source_record": "curation/PROGRAMME_EXECUTION_STATE_2026-09-03_CONTROL_ACCOUNTING_SUCCESSOR.json"
+    }
+  },
+  "b02": {
+    "state": "CONTROLLED_LIVE_PROOF_EXECUTED_ON_EXACT_PAIRING",
+    "blocks_g0": false,
+    "controlled_live_proof_executed": true,
+    "current": {
+      "label": "current",
+      "reexecuted_against_new_merged_workbench_pairing": true,
+      "workflow": "PRE-G0 B02 controlled live proof",
+      "workflow_file": ".github/workflows/pre-g0-b02-controlled-live-proof.yml",
+      "event": "workflow_dispatch",
+      "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+      "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "run_id": 33782669430,
+      "job_id": 100739877725,
+      "conclusion": "success",
+      "url": "https://github.com/fraware/neuroai-observatory-data/actions/runs/33782669430",
+      "artifact": "pre-g0-b02-controlled-live-proof-33782669430-1",
+      "artifact_id": 9904198975,
+      "source_id": "SRC-0002",
+      "source_url": "https://neurosity.co/",
+      "transport": "PinnedSocketHttpTransport",
+      "canonical_mutation_performed": false,
+      "live_proof_claimed": true,
+      "evidence_replaced": true,
+      "proves": "One-source governed controlled-live retrieval on exact pairing succeeded with no canonical publication.",
+      "does_not_prove": "B01 schedule, operational due-cycle health across the full due set, B04/B05, or G0 PASS.",
+      "not_contract_workflow": true,
+      "contract_workflow_note": "Push run 33782324795 is the B02 contract workflow only and is not counted as B02 live evidence."
+    },
+    "historical": {
+      "label": "historical",
+      "evidence_replaced": true,
+      "source_record": "curation/PROGRAMME_EXECUTION_STATE_2026-09-03_CONTROL_ACCOUNTING_SUCCESSOR.json",
+      "interpretation": "Prior live-evidence-pending status is superseded by run 33782669430 on the exact pairing."
+    }
+  },
+  "b04": {
+    "state": "GREEN_SYNTHETIC_EXECUTED_ON_EXACT_MAIN",
+    "blocks_g0": false,
+    "proof_executed": true,
+    "green_synthetic_label": "GREEN-SYNTHETIC",
+    "substantive_s2_release_authorized": false,
+    "substantive_s2_release_published": false,
+    "current": {
+      "label": "current",
+      "reexecuted_against_new_merged_workbench_pairing": true,
+      "workflow": "PRE-G0 B04 publication authority proof",
+      "workflow_file": ".github/workflows/pre-g0-b04-publication-authority-proof.yml",
+      "event": "push",
+      "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+      "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "run_id": 33782324747,
+      "job_id": 100738740952,
+      "conclusion": "success",
+      "url": "https://github.com/fraware/neuroai-observatory-data/actions/runs/33782324747",
+      "proof_status": "PRE_G0_B04_NONPRODUCTION_PUBLICATION_AUTHORITY_PROOF",
+      "synthetic_only": true,
+      "green_synthetic_claimed": true,
+      "substantive_publication_performed": false,
+      "evidence_replaced": true,
+      "proves": "Ephemeral synthetic publication-authority lifecycle on exact main/Workbench pin (GREEN-SYNTHETIC).",
+      "does_not_prove": "Substantive S2 publication, G0 PASS, B01, or live due-cycle health."
+    },
+    "historical": {
+      "label": "historical",
+      "evidence_replaced": true,
+      "source_record": "curation/PROGRAMME_EXECUTION_STATE_2026-09-03_CONTROL_ACCOUNTING_SUCCESSOR.json"
+    }
+  },
+  "b05": {
+    "state": "FIVE_WORKFLOW_HOSTED_VALIDATION_EXECUTED_ON_EXACT_PAIRING",
+    "blocks_g0": false,
+    "workbench_commit": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+    "audited_execution_workflows": [
+      ".github/workflows/su-trials-clinicaltrials-programme.yml",
+      ".github/workflows/su-trials-recorded-replay.yml",
+      ".github/workflows/su-trials-human-review-staging.yml",
+      ".github/workflows/su-trials-source-namespace-successor.yml",
+      ".github/workflows/discovery-source-materialization-monitor-proposals.yml"
+    ],
+    "current": {
+      "label": "current",
+      "reexecuted_against_new_merged_workbench_pairing": true,
+      "current_pin_workflow_execution_reached": true,
+      "evidence_replaced": true,
+      "ledger_rows": [
+        {
+          "row": 1,
+          "workflow": "SU-TRIALS ClinicalTrials.gov programme",
+          "workflow_file": ".github/workflows/su-trials-clinicaltrials-programme.yml",
+          "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+          "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+          "event": "workflow_dispatch",
+          "run_id": 33782672235,
+          "job_id": 100739884059,
+          "conclusion": "success",
+          "url": "https://github.com/fraware/neuroai-observatory-data/actions/runs/33782672235",
+          "proves": "Programme/schema/projector contract validation on exact pairing.",
+          "does_not_prove": "B01 schedule, full live due-cycle health, or G0 PASS."
+        },
+        {
+          "row": 2,
+          "workflow": "SU-TRIALS ClinicalTrials.gov recorded replay",
+          "workflow_file": ".github/workflows/su-trials-recorded-replay.yml",
+          "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+          "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+          "event": "workflow_dispatch",
+          "run_id": 33782676127,
+          "job_id": 100739899662,
+          "conclusion": "success",
+          "url": "https://github.com/fraware/neuroai-observatory-data/actions/runs/33782676127",
+          "proves": "Recorded-replay contract on exact pairing.",
+          "does_not_prove": "Live network retrieval of ClinicalTrials.gov, B01, or G0 PASS."
+        },
+        {
+          "row": 3,
+          "workflow": "SU-TRIALS human-review staging",
+          "workflow_file": ".github/workflows/su-trials-human-review-staging.yml",
+          "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+          "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+          "event": "workflow_dispatch",
+          "run_id": 33782679817,
+          "job_id": 100739909580,
+          "conclusion": "success",
+          "url": "https://github.com/fraware/neuroai-observatory-data/actions/runs/33782679817",
+          "proves": "Human-review staging contract on exact pairing.",
+          "does_not_prove": "Human acceptance, canonical mutation, B01, or G0 PASS."
+        },
+        {
+          "row": 4,
+          "workflow": "SU-TRIALS Source-namespace successor",
+          "workflow_file": ".github/workflows/su-trials-source-namespace-successor.yml",
+          "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+          "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+          "event": "workflow_dispatch",
+          "run_id": 33782683080,
+          "job_id": 100739919153,
+          "conclusion": "success",
+          "url": "https://github.com/fraware/neuroai-observatory-data/actions/runs/33782683080",
+          "proves": "Source-namespace successor adjudication contract on exact pairing.",
+          "does_not_prove": "Automatic namespace publication, B01, or G0 PASS."
+        },
+        {
+          "row": 5,
+          "workflow": "Discovery Source materialization and monitoring proposals",
+          "workflow_file": ".github/workflows/discovery-source-materialization-monitor-proposals.yml",
+          "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+          "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+          "event": "workflow_dispatch",
+          "run_id": 33782686451,
+          "job_id": 100739929673,
+          "conclusion": "success",
+          "url": "https://github.com/fraware/neuroai-observatory-data/actions/runs/33782686451",
+          "proves": "Discovery materialization/monitor-proposal contract on exact pairing.",
+          "does_not_prove": "Automatic monitor creation, B01 schedule, or G0 PASS."
+        }
+      ],
+      "interpretation": "All five audited B05 workflows reached repository steps and concluded success on exact Observatory main 367ae8a + Workbench 685f1597 via workflow_dispatch."
+    },
+    "historical": {
+      "label": "historical",
+      "evidence_replaced": true,
+      "source_record": "curation/PROGRAMME_EXECUTION_STATE_2026-09-03_CONTROL_ACCOUNTING_SUCCESSOR.json",
+      "interpretation": "Predecessor pre-step failure rows and PR-only diagnostics remain historical and are not current exact-main evidence."
+    }
+  },
+  "operational_due_cycle": {
+    "current": {
+      "label": "current",
+      "reexecuted_against_new_merged_workbench_pairing": true,
+      "proof_claimed": false,
+      "evidence_replaced": true,
+      "effective_sources_observed": 248,
+      "source_count_policy_retained": 248,
+      "source_health_invariants_weakened": false,
+      "route_remediation_applied": true,
+      "route_resolved_failed_source_ids": [
+        "SRC-0064",
+        "SRC-14-019"
+      ],
+      "unresolved_failed_source_ids": [
+        "SRC-14-021"
+      ],
+      "typed_failure_root_causes": {
+        "SRC-0064": {
+          "publisher": "Brain-X / Wiley",
+          "registered_url": "https://onlinelibrary.wiley.com/doi/full/10.1002/brx2.70046",
+          "collector_failure_class": "HTTP_ERROR",
+          "http_status": 403,
+          "classification": "EXTERNAL_BARRIER_CLOUDFLARE_CHALLENGE",
+          "route_resolution": {
+            "state": "AVAILABLE_FALLBACK",
+            "selected_route_id": "SRC-0064:crossref-doi-metadata",
+            "official_basis": "Crossref DOI registration metadata for 10.1002/brx2.70046"
+          }
+        },
+        "SRC-14-019": {
+          "publisher": "Piramidal",
+          "registered_url": "https://www.piramidal.ai/",
+          "collector_failure_class": "NETWORK_ERROR",
+          "classification": "PRIMARY_HOST_TLS_OR_NETWORK_FAILURE",
+          "route_resolution": {
+            "state": "AVAILABLE_FALLBACK",
+            "selected_route_id": "SRC-14-019:apex",
+            "official_basis": "piramidal.ai apex IDENTITY_EQUIVALENT host"
+          }
+        },
+        "SRC-14-021": {
+          "publisher": "Society of Neuroscientists of Africa",
+          "registered_url": "https://sonaafrica.org/",
+          "collector_failure_class": "NETWORK_ERROR",
+          "classification": "EXTERNAL_BARRIER_DNS_NXDOMAIN",
+          "dns": "sonaafrica.org does not resolve",
+          "candidate_successor_host": {
+            "url": "https://sonafrica.org/",
+            "observed": "HTTP 200 parking page without Society of Neuroscientists of Africa identity text",
+            "identity_bearing": false
+          },
+          "route_resolution": {
+            "state": "UNRESOLVED",
+            "reason": "No legitimate IDENTITY_EQUIVALENT official route currently returns identity-bearing content; lifecycle archival not evidenced (DNS failure is not primary 404/410 with successful publisher listing)."
+          }
+        }
+      },
+      "runs": [
+        {
+          "role": "post_route_remediation_push_due_cycle",
+          "event": "push",
+          "is_b01": false,
+          "is_rehearsal": false,
+          "observatory_sha": "9380d043218fa0d7227603a3c228c697797f575f",
+          "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+          "run_id": 33805159350,
+          "validate_job_id": 100813768110,
+          "live_job_id": 100813809866,
+          "conclusion": "failure",
+          "url": "https://github.com/fraware/neuroai-observatory-data/actions/runs/33805159350",
+          "artifact": "operational-live-proof-33805159350-1",
+          "failure_step": "Enforce post-transition invariants",
+          "failure_summary": "source_resolution_state DEGRADED; unresolved typed failure SRC-14-021 only; SRC-0064 and SRC-14-019 resolved by registered routes; effective_sources=248."
+        },
+        {
+          "role": "workflow_dispatch_rehearsal_not_b01",
+          "event": "workflow_dispatch",
+          "is_b01": false,
+          "is_rehearsal": true,
+          "observatory_sha": "9380d043218fa0d7227603a3c228c697797f575f",
+          "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+          "run_id": 33805163180,
+          "validate_job_id": 100813972200,
+          "live_job_id": 100814041597,
+          "conclusion": "failure",
+          "url": "https://github.com/fraware/neuroai-observatory-data/actions/runs/33805163180",
+          "failure_step": "Enforce post-transition invariants",
+          "failure_summary": "Same remaining SRC-14-021 health gate; rehearsal only; not event=schedule."
+        }
+      ],
+      "proves": "Route remediation for SRC-0064/SRC-14-019 works on hosted runners; collector path retains effective_sources=248 without weakening source-health asserts.",
+      "does_not_prove": "Due-cycle GREEN health, B01 schedule criterion, or G0 PASS."
+    },
+    "historical": {
+      "label": "historical",
+      "evidence_replaced": true,
+      "source_record": "curation/PROGRAMME_EXECUTION_STATE_2026-09-03_EXACT_PAIRING_EVIDENCE_SUCCESSOR.json",
+      "prior_unresolved_on_367ae8a": [
+        "SRC-0064",
+        "SRC-14-019",
+        "SRC-14-021"
+      ],
+      "prior_runs": [
+        33782324835,
+        33782691902
+      ]
+    }
+  },
+  "interruption_resume": {
+    "current": {
+      "label": "current",
+      "reexecuted_against_new_merged_workbench_pairing": true,
+      "proof_claimed": true,
+      "evidence_replaced": true,
+      "workflow": "Operational interruption resume drill",
+      "workflow_file": ".github/workflows/operational-interruption-resume-drill.yml",
+      "event": "push",
+      "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+      "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "run_id": 33782324765,
+      "job_id": 100738741192,
+      "conclusion": "success",
+      "url": "https://github.com/fraware/neuroai-observatory-data/actions/runs/33782324765",
+      "artifact": "interruption-resume-proof-33782324765-1",
+      "acceptance": {
+        "terminal_checkpoints_bit_identical_after_resume": true,
+        "resume_slo_source_accountability_coverage": 1.0,
+        "resume_slo_target_execution_coverage": 1.0,
+        "transport_security": "DNS_PINNED_VALIDATED_ADDRESS_SET",
+        "resume_execution_status": "COMPLETE_WITH_SOURCE_FAILURES"
+      },
+      "proves": "Interruption/resume drill on exact pairing retained bit-identical pre-kill terminal checkpoints and accountability/target SLOs at 1.0.",
+      "does_not_prove": "Operational due-cycle GREEN health, B01 schedule, or G0 PASS."
+    },
+    "historical": {
+      "label": "historical",
+      "evidence_replaced": true,
+      "implementation_pr": 189,
+      "implementation_merge_commit": "af1fea0b75ab74d25e3c54d9204a97c92aeb7d7f"
+    }
+  },
+  "successor_discovery": {
+    "current": {
+      "label": "current",
+      "distinct_from_b01": true,
+      "distinct_from_monitor_accountability": true,
+      "workflow": "Successor discovery",
+      "workflow_file": ".github/workflows/successor-discovery.yml",
+      "event": "push",
+      "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+      "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "run_id": 33782324825,
+      "job_id": 100738742340,
+      "conclusion": "success",
+      "url": "https://github.com/fraware/neuroai-observatory-data/actions/runs/33782324825",
+      "proves": "Bounded official-surface successor discovery on exact pairing without repository mutation.",
+      "does_not_prove": "B01 schedule or G0 PASS."
+    }
+  },
+  "current_monitor_accountability": {
+    "current": {
+      "label": "current",
+      "distinct_from_b01": true,
+      "distinct_from_successor_discovery": true,
+      "workflow": "Current monitor accountability",
+      "workflow_file": ".github/workflows/current-monitor-accountability.yml",
+      "event": "workflow_dispatch",
+      "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+      "run_id": 33782689220,
+      "job_id": 100739940385,
+      "conclusion": "success",
+      "url": "https://github.com/fraware/neuroai-observatory-data/actions/runs/33782689220",
+      "proves": "Current monitor accountability build/tests on exact Observatory main.",
+      "does_not_prove": "B01 schedule (monitor schedule is not B01), operational due-cycle health, or G0 PASS.",
+      "note": "Prior schedule run 33736091847 was on af1fea0 and is not current-pairing evidence."
+    }
+  },
+  "source_count_accounting": {
+    "current_effective_lifecycle_source_count_policy": 248,
+    "fresh_runs_observed_effective_sources": 248,
+    "stale_249_vs_248_expected_source_count_bug": {
+      "active_implementation_blocker": false,
+      "status": "HISTORICAL_NOT_ACTIVE_UNLESS_FRESH_RUN_FAILS",
+      "fresh_run_failed_on_source_count": false,
+      "interpretation": "Fresh due-cycle runs asserted and observed effective_sources=248. Source-health invariants were not weakened; due-cycle failed on DEGRADED source_resolution_state instead."
+    }
+  },
+  "d1_d2_identities_on_origin_main": {
+    "g1_approved": false,
+    "verified_on_origin_main_sha": "d14994a578561b34d1dfcbb467faf761bf9a4c31",
+    "presented_against_observatory_main_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+    "d1": {
+      "artifact_id": "LANDSCAPE_RESEARCH_CONTRACT_v0.1",
+      "version": "0.1",
+      "issue": 181,
+      "landed_on_observatory_main_sha": "d14994a578561b34d1dfcbb467faf761bf9a4c31",
+      "interpretation": "D1 identities remain those landed via #192/#193. Presentation against current pin main does not approve G1."
+    },
+    "d2": {
+      "artifact_id": "CAPABILITY_CONTEXT_TAXONOMY_v0.1",
+      "version": "0.1",
+      "issue": 191,
+      "merged_pr": 192,
+      "landed_on_observatory_main_sha": "d14994a578561b34d1dfcbb467faf761bf9a4c31",
+      "interpretation": "D2 identities remain those landed via #192. Not G1 or G2."
+    }
+  },
+  "evidence_ledger": [
+    {
+      "criterion": "O2",
+      "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+      "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "event": "push",
+      "run_id": 33782324720,
+      "job_id": 100738741017,
+      "conclusion": "success",
+      "proves": "Release contract green on exact pairing.",
+      "does_not_prove": "G0 PASS."
+    },
+    {
+      "criterion": "B02_live",
+      "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+      "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "event": "workflow_dispatch",
+      "run_id": 33782669430,
+      "job_id": 100739877725,
+      "conclusion": "success",
+      "proves": "Controlled live one-source proof.",
+      "does_not_prove": "G0 PASS."
+    },
+    {
+      "criterion": "B04_GREEN_SYNTHETIC",
+      "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+      "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "event": "push",
+      "run_id": 33782324747,
+      "job_id": 100738740952,
+      "conclusion": "success",
+      "proves": "GREEN-SYNTHETIC publication-authority proof only.",
+      "does_not_prove": "Substantive publication or G0 PASS."
+    },
+    {
+      "criterion": "B05_row_1",
+      "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+      "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "event": "workflow_dispatch",
+      "run_id": 33782672235,
+      "job_id": 100739884059,
+      "conclusion": "success",
+      "proves": "ClinicalTrials programme contract.",
+      "does_not_prove": "G0 PASS."
+    },
+    {
+      "criterion": "B05_row_2",
+      "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+      "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "event": "workflow_dispatch",
+      "run_id": 33782676127,
+      "job_id": 100739899662,
+      "conclusion": "success",
+      "proves": "Recorded replay contract.",
+      "does_not_prove": "G0 PASS."
+    },
+    {
+      "criterion": "B05_row_3",
+      "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+      "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "event": "workflow_dispatch",
+      "run_id": 33782679817,
+      "job_id": 100739909580,
+      "conclusion": "success",
+      "proves": "Human-review staging contract.",
+      "does_not_prove": "G0 PASS."
+    },
+    {
+      "criterion": "B05_row_4",
+      "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+      "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "event": "workflow_dispatch",
+      "run_id": 33782683080,
+      "job_id": 100739919153,
+      "conclusion": "success",
+      "proves": "Source-namespace successor contract.",
+      "does_not_prove": "G0 PASS."
+    },
+    {
+      "criterion": "B05_row_5",
+      "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+      "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "event": "workflow_dispatch",
+      "run_id": 33782686451,
+      "job_id": 100739929673,
+      "conclusion": "success",
+      "proves": "Discovery materialization contract.",
+      "does_not_prove": "G0 PASS."
+    },
+    {
+      "criterion": "interruption_resume",
+      "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+      "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "event": "push",
+      "run_id": 33782324765,
+      "job_id": 100738741192,
+      "conclusion": "success",
+      "proves": "Interruption/resume drill on exact pairing.",
+      "does_not_prove": "Due-cycle GREEN or G0 PASS."
+    },
+    {
+      "criterion": "successor_discovery",
+      "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+      "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "event": "push",
+      "run_id": 33782324825,
+      "job_id": 100738742340,
+      "conclusion": "success",
+      "proves": "Successor discovery on exact pairing.",
+      "does_not_prove": "B01 or G0 PASS."
+    },
+    {
+      "criterion": "current_monitor_accountability",
+      "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+      "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "event": "workflow_dispatch",
+      "run_id": 33782689220,
+      "job_id": 100739940385,
+      "conclusion": "success",
+      "proves": "Monitor accountability on exact main.",
+      "does_not_prove": "B01 schedule or G0 PASS."
+    },
+    {
+      "criterion": "operational_due_cycle_push",
+      "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+      "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "event": "push",
+      "run_id": 33782324835,
+      "job_id": 100738796456,
+      "conclusion": "failure",
+      "proves": "Due-cycle executed; effective_sources=248 retained; health gate fail-closed.",
+      "does_not_prove": "Due-cycle GREEN, B01, or G0 PASS."
+    },
+    {
+      "criterion": "operational_due_cycle_rehearsal_not_b01",
+      "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+      "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "event": "workflow_dispatch",
+      "run_id": 33782691902,
+      "job_id": 100740026117,
+      "conclusion": "failure",
+      "proves": "Rehearsal only; same fail-closed health outcome.",
+      "does_not_prove": "B01 schedule or G0 PASS."
+    },
+    {
+      "criterion": "B01_schedule",
+      "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+      "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "event": null,
+      "run_id": null,
+      "job_id": null,
+      "conclusion": null,
+      "proves": null,
+      "does_not_prove": "No schedule evidence exists yet on this pairing; B01 remains OPEN."
+    },
+    {
+      "criterion": "route_remediation_pr",
+      "observatory_sha": "2bd0e64d11581acf693352c73eb47978d84583cb",
+      "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "event": "pull_request_merge",
+      "run_id": null,
+      "pr": 197,
+      "proves": "Official route failover for SRC-0064 and SRC-14-019 landed on main.",
+      "does_not_prove": "Due-cycle GREEN or G0 PASS."
+    },
+    {
+      "criterion": "operational_due_cycle_push_after_route_remediation",
+      "observatory_sha": "9380d043218fa0d7227603a3c228c697797f575f",
+      "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "event": "push",
+      "run_id": 33805159350,
+      "proves": "SRC-0064/SRC-14-019 route-resolved; SRC-14-021 remains unresolved; effective_sources=248.",
+      "does_not_prove": "Due-cycle GREEN, B01, or G0 PASS."
+    },
+    {
+      "criterion": "operational_due_cycle_dispatch_rehearsal_after_route_remediation",
+      "observatory_sha": "9380d043218fa0d7227603a3c228c697797f575f",
+      "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "event": "workflow_dispatch",
+      "run_id": 33805163180,
+      "proves": "Rehearsal reproduces remaining SRC-14-021 gate.",
+      "does_not_prove": "B01 schedule or G0 PASS."
+    },
+    {
+      "criterion": "s1_workbench_transport_pin_confirmation",
+      "observatory_sha": "9bb1e8de71711294eb89a32b55d556c3fa4ad86e",
+      "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "event": "external_confirmation",
+      "run_id": 33781523925,
+      "job_id": 100736091926,
+      "conclusion": "confirmed",
+      "proves": "Workbench confirms G0 transport pin 685f1597 and cites CT proof run/job.",
+      "does_not_prove": "Observatory G0 PASS, B01 schedule, or SRC-14-021 clearance."
+    },
+    {
+      "criterion": "pre_g2_public_bindings_recorded",
+      "observatory_sha": "9bb1e8de71711294eb89a32b55d556c3fa4ad86e",
+      "workbench_sha": "336da167700a7ce2894c27826f8a1c999e1ee844",
+      "event": "public_lineage_binding",
+      "run_id": null,
+      "job_id": null,
+      "conclusion": "recorded_draft_unfrozen",
+      "proves": "Public PRE-G2 bindables and software-binding SHA recorded on S2.",
+      "does_not_prove": "G2 PASS, publication authority, or G0 transport re-pin."
+    }
+  ],
+  "blockers": [
+    {
+      "id": "G0-B01",
+      "state": "OPEN",
+      "description": "No current event=schedule evidence exists on Observatory 9bb1e8de71711294eb89a32b55d556c3fa4ad86e with Workbench pin 685f1597a2a63f2e2217f65f115a67ac3e35cc55. workflow_dispatch and push are not B01. S1 confirmation did not invent schedule evidence."
+    },
+    {
+      "id": "G0-OPERATIONAL-DUE-CYCLE",
+      "state": "EXECUTED_FAILED_HEALTH_GATE",
+      "description": "Due-cycle remains blocked by unresolved SRC-14-021 (DNS NXDOMAIN for sonaafrica.org). Workbench confirmed no transport false-negative for true NXDOMAIN; health invariants are not softened. SRC-0064/SRC-14-019 remain route-resolved; effective_sources=248."
+    },
+    {
+      "id": "G0-B02",
+      "state": "CONTROLLED_LIVE_PROOF_EXECUTED_ON_EXACT_PAIRING",
+      "blocks_g0_independently": false,
+      "description": "Historical B02 live proof on 367ae8a pairing remains recorded; not re-litigated by S1 confirmation."
+    },
+    {
+      "id": "G0-B03",
+      "state": "SOFTWARE_REMEDIATED_SUPERSEDED_BY_MERGED_267",
+      "blocks_g0_independently": false,
+      "description": "Historical B03 remediation lineage superseded by Workbench #267 pin 685f1597a2a63f2e2217f65f115a67ac3e35cc55."
+    },
+    {
+      "id": "G0-B04",
+      "state": "GREEN_SYNTHETIC_EXECUTED_ON_EXACT_MAIN",
+      "blocks_g0_independently": false,
+      "description": "Historical B04 GREEN-SYNTHETIC on 367ae8a remains recorded."
+    },
+    {
+      "id": "G0-B05",
+      "state": "FIVE_WORKFLOW_HOSTED_VALIDATION_EXECUTED_ON_EXACT_PAIRING",
+      "blocks_g0_independently": false,
+      "description": "Historical B05 five-row success on 367ae8a pairing remains recorded."
+    }
+  ],
+  "resolved_or_historical_items": [
+    {
+      "id": "WB-267-MERGED",
+      "status": "RESOLVED_MERGED",
+      "pr": 267,
+      "merge_commit": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "observatory_pin_pr": 195,
+      "observatory_pin_merge": "367ae8abad57f5733dabee398509404a36ea3ec1"
+    },
+    {
+      "id": "PR-189-LIFECYCLE-AWARE-INTERRUPTION-RESUME",
+      "status": "HISTORICAL_MERGED_IMPLEMENTATION",
+      "pr": 189,
+      "merge_commit": "af1fea0b75ab74d25e3c54d9204a97c92aeb7d7f",
+      "live_proof_on_exact_pairing_run_id": 33782324765
+    },
+    {
+      "id": "STALE-249-VS-248-EXPECTED-SOURCE-COUNT",
+      "status": "HISTORICAL_NOT_ACTIVE_IMPLEMENTATION_BLOCKER",
+      "active_implementation_blocker": false,
+      "fresh_run_observed_effective_sources": 248
+    },
+    {
+      "id": "PR-192-D2-ON-MAIN",
+      "status": "HISTORICAL_MERGED_IMPLEMENTATION",
+      "pr": 192,
+      "g1_approved": false
+    },
+    {
+      "id": "PR-193-D1-IDENTITY-ON-MAIN",
+      "status": "HISTORICAL_MERGED_IMPLEMENTATION",
+      "pr": 193,
+      "g1_approved": false
+    },
+    {
+      "id": "S1-WORKBENCH-TRANSPORT-PIN-CONFIRMATION",
+      "status": "RECEIVED_CONFIRMED",
+      "workbench_g0_transport_pin": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "clinicaltrials_proof_run_id": 33781523925,
+      "clinicaltrials_proof_job_id": 100736091926,
+      "pre_g2_software_binding_sha": "336da167700a7ce2894c27826f8a1c999e1ee844",
+      "g0_pin_replaced_by_software_binding": false
+    }
+  ],
+  "next_control_actions": [
+    "Wait for true event=schedule on operational-live-cycle.yml against current Observatory main with Workbench pin 685f1597; do not treat workflow_dispatch as B01.",
+    "Remediate or lifecycle-resolve SRC-14-021 only with identity-bearing official-route or evidence-bound lifecycle resolution; do not weaken health gates; NXDOMAIN remains Observatory-owned absent independent false-negative evidence.",
+    "Keep g1_approved=false until an attributable human disposition binds exact D1/D2 identities.",
+    "Keep g2_passed=false / DRAFT_UNFROZEN on PRE-G2 public bindings; do not treat software-binding SHA 336da167 as G0 transport pin.",
+    "Do not claim G0 PASS until B01 schedule and due-cycle health criteria are both evidenced on the exact current pairing."
+  ],
+  "non_claims": [
+    "This successor does not claim G0 PASS.",
+    "This successor does not claim G1 approval and does not set g1_approved=true.",
+    "This successor does not claim a G2 freeze or set g2_passed=true.",
+    "This successor does not invent event=schedule evidence.",
+    "This successor does not treat workflow_dispatch as B01.",
+    "This successor does not soften SRC-14-021 health or change the 248 effective-source policy.",
+    "This successor does not re-pin G0 transport away from 685f1597 to 336da167.",
+    "This successor does not treat PRE-G2 public bindings as publication authority.",
+    "This successor does not place S3, licensed, held-out labels, or private material into S2.",
+    "This successor does not rewrite the due-cycle route-remediation successor in place."
+  ],
+  "boundary": "This successor records S1 confirmation and PRE-G2 public bindings. It does not establish B01 scheduled evidence, due-cycle GREEN health, substantive publication, scientific truth, G1 approval, G2 PASS, or a G0 pass.",
+  "s1_workbench_confirmation": {
+    "received": true,
+    "fail_closed": true,
+    "g0_transport_pin_confirmed": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+    "g0_transport_pin_unchanged": true,
+    "not_repinning_to_software_binding_sha": "336da167700a7ce2894c27826f8a1c999e1ee844",
+    "clinicaltrials_hosted_proof": {
+      "run_id": 33781523925,
+      "job_id": 100736091926,
+      "workbench_pr": 267,
+      "interpretation": "Workbench-hosted ClinicalTrials transport proof cited by S1 confirmation; does not by itself pass Observatory G0."
+    },
+    "dns_nxdomain_guidance": {
+      "src_14_021_owner": "OBSERVATORY",
+      "workbench_false_negative_evidence": false,
+      "dns_guard_misclassification_of_true_nxdomain": false,
+      "gaierror_includes_nxdomain_without_distinct_code": true,
+      "nxdomain_vs_other_gaierror_requires": [
+        "OS exception chain",
+        "external resolver evidence"
+      ],
+      "health_softening_requested": false,
+      "note": "SRC-14-021 / sonaafrica.org remains Observatory-owned due-cycle blocker. No Workbench evidence of DNS false negative."
+    },
+    "pre_g2_public_lineage": {
+      "bound": true,
+      "bindings_path": "curation/PUBLIC_PRE_G2_S2_BINDINGS_OBSERVATORY_RECOVERY_2026-09-03_BOUND_v0.1.json",
+      "workbench_software_binding_sha": "336da167700a7ce2894c27826f8a1c999e1ee844",
+      "lineage_prs": [
+        272,
+        275
+      ],
+      "adr_pr": 277,
+      "packaging_pr": 278,
+      "g2_passed": false,
+      "canonical_s2_authority": false,
+      "publication_authority": false
+    }
+  }
+}
