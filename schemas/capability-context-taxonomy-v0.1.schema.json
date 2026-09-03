@@ -1,0 +1,214 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/neuroai/schemas/capability-context-taxonomy-v0.1.schema.json",
+  "title": "NeuroAI Capability Context Taxonomy v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_id",
+    "version",
+    "status",
+    "created_against_observatory_main_sha",
+    "governance",
+    "scope",
+    "classification_policy",
+    "axes",
+    "gray_third",
+    "mapping_scaffold",
+    "multilingual_policy",
+    "change_control"
+  ],
+  "properties": {
+    "artifact_id": {"const": "CAPABILITY_CONTEXT_TAXONOMY_v0.1"},
+    "version": {"const": "0.1"},
+    "status": {"const": "PRE_G1_DRAFT"},
+    "created_against_observatory_main_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["g1_approved", "canonical_authority", "publication_authority", "assessment_effect", "requires_human_governance_disposition", "governance_disposition_id", "issue"],
+      "properties": {
+        "g1_approved": {"const": false},
+        "canonical_authority": {"const": false},
+        "publication_authority": {"const": false},
+        "assessment_effect": {"const": "NONE"},
+        "requires_human_governance_disposition": {"const": true},
+        "governance_disposition_id": {"type": ["string", "null"]},
+        "issue": {"const": 191}
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["purpose", "non_claims", "axis_independence_rule", "multi_label_axes"],
+      "properties": {
+        "purpose": {"type": "string", "minLength": 1},
+        "non_claims": {"type": "array", "minItems": 5, "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+        "axis_independence_rule": {"type": "string", "minLength": 1},
+        "multi_label_axes": {
+          "type": "array",
+          "const": ["sensing_modality", "inferred_state", "intervention_output_capability", "product_form_factor", "deployment_context", "regulatory_scientific_claim_state"]
+        }
+      }
+    },
+    "classification_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["abstention_required_when_evidence_insufficient", "unknown_states_must_be_available", "other_review_required_states_must_be_available", "taxonomy_classification_is_not_inclusion", "physiological_proxy_only_cannot_establish_neuroai", "proxy_only_rule", "evidence_rule", "model_role"],
+      "properties": {
+        "abstention_required_when_evidence_insufficient": {"const": true},
+        "unknown_states_must_be_available": {"const": true},
+        "other_review_required_states_must_be_available": {"const": true},
+        "taxonomy_classification_is_not_inclusion": {"const": true},
+        "physiological_proxy_only_cannot_establish_neuroai": {"const": true},
+        "proxy_only_rule": {"type": "string", "minLength": 1},
+        "evidence_rule": {"type": "string", "minLength": 1},
+        "model_role": {"type": "string", "minLength": 1}
+      }
+    },
+    "axes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sensing_modality", "inferred_state", "intervention_output_capability", "product_form_factor", "deployment_context", "regulatory_scientific_claim_state"],
+      "properties": {
+        "sensing_modality": {"type": "array", "minItems": 2, "items": {"$ref": "#/$defs/sensingTerm"}},
+        "inferred_state": {"type": "array", "minItems": 2, "items": {"$ref": "#/$defs/basicTerm"}},
+        "intervention_output_capability": {"type": "array", "minItems": 2, "items": {"$ref": "#/$defs/basicTerm"}},
+        "product_form_factor": {"type": "array", "minItems": 2, "items": {"$ref": "#/$defs/basicTerm"}},
+        "deployment_context": {"type": "array", "minItems": 2, "items": {"$ref": "#/$defs/basicTerm"}},
+        "regulatory_scientific_claim_state": {"type": "array", "minItems": 2, "items": {"$ref": "#/$defs/claimTerm"}}
+      }
+    },
+    "gray_third": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["retrieval_only", "canonical_population_class", "definition", "search_families"],
+      "properties": {
+        "retrieval_only": {"const": true},
+        "canonical_population_class": {"const": false},
+        "definition": {"type": "string", "minLength": 1},
+        "search_families": {"type": "array", "minItems": 6, "maxItems": 6, "items": {"$ref": "#/$defs/grayFamily"}}
+      }
+    },
+    "mapping_scaffold": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "unit", "chain", "mechanisms", "concerns", "bounded_language_template", "predicted_harm_allowed", "prohibited_assertion_templates", "review_required"],
+      "properties": {
+        "status": {"const": "PRE_D12_SCAFFOLD_ONLY"},
+        "unit": {"type": "string", "minLength": 1},
+        "chain": {"const": ["OBSERVED_PRODUCT_OR_SYSTEM", "CAPABILITY", "DEPLOYMENT_CONTEXT", "MECHANISM", "GOVERNANCE_CONCERN", "POLICY_INSTRUMENT_OR_RECOMMENDATION"]},
+        "mechanisms": {"type": "array", "minItems": 2, "items": {"$ref": "#/$defs/mappingTerm"}},
+        "concerns": {"type": "array", "minItems": 2, "items": {"$ref": "#/$defs/concernTerm"}},
+        "bounded_language_template": {"const": "could implicate concern {concern} under conditions {conditions} through mechanism {mechanism}"},
+        "predicted_harm_allowed": {"const": false},
+        "prohibited_assertion_templates": {"type": "array", "minItems": 3, "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+        "review_required": {"const": true}
+      }
+    },
+    "multilingual_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["controlled_ids_language_independent", "english_label_is_reference_label_not_identity", "translated_terms_are_aliases_only", "preserve_original_language_source_metadata", "translation_review_required_for_query_pack_promotion"],
+      "properties": {
+        "controlled_ids_language_independent": {"const": true},
+        "english_label_is_reference_label_not_identity": {"const": true},
+        "translated_terms_are_aliases_only": {"const": true},
+        "preserve_original_language_source_metadata": {"const": true},
+        "translation_review_required_for_query_pack_promotion": {"const": true}
+      }
+    },
+    "change_control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["term_addition_requires_recorded_rationale", "term_deletion_or_semantic_change_requires_version_bump", "expert_dispositions_may_propose_changes_but_do_not_apply_automatically", "g1_approval_requires_exact_d1_d2_identity_binding", "technical_validation_cannot_set_g1_approved", "future_d12_crosswalk_must_reference_exact_taxonomy_version"],
+      "properties": {
+        "term_addition_requires_recorded_rationale": {"const": true},
+        "term_deletion_or_semantic_change_requires_version_bump": {"const": true},
+        "expert_dispositions_may_propose_changes_but_do_not_apply_automatically": {"const": true},
+        "g1_approval_requires_exact_d1_d2_identity_binding": {"const": true},
+        "technical_validation_cannot_set_g1_approved": {"const": true},
+        "future_d12_crosswalk_must_reference_exact_taxonomy_version": {"const": true}
+      }
+    }
+  },
+  "$defs": {
+    "alias": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["language", "text"],
+      "properties": {
+        "language": {"type": "string", "pattern": "^[A-Za-z]{2,3}(-[A-Za-z0-9]+)*$"},
+        "text": {"type": "string", "minLength": 1}
+      }
+    },
+    "basicTerm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "definition", "group", "aliases"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "label": {"type": "string", "minLength": 1},
+        "definition": {"type": "string", "minLength": 1},
+        "group": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "aliases": {"type": "array", "items": {"$ref": "#/$defs/alias"}}
+      }
+    },
+    "sensingTerm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "definition", "group", "neural_directness", "proxy_only", "default_inclusion_evidence_role", "aliases"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^SENSE_[A-Z0-9_]+$"},
+        "label": {"type": "string", "minLength": 1},
+        "definition": {"type": "string", "minLength": 1},
+        "group": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+        "neural_directness": {"enum": ["DIRECT_NEURAL", "NEUROVASCULAR_PROXY", "PHYSIOLOGICAL_PROXY", "MIXED", "NONE", "UNKNOWN"]},
+        "proxy_only": {"type": "boolean"},
+        "default_inclusion_evidence_role": {"enum": ["PRIMARY_CAPABILITY_EVIDENCE", "SUPPORTING_ONLY", "BOUNDARY_REVIEW_REQUIRED"]},
+        "aliases": {"type": "array", "items": {"$ref": "#/$defs/alias"}}
+      }
+    },
+    "claimTerm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "definition", "kind", "aliases"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^CLAIM_[A-Z0-9_]+$"},
+        "label": {"type": "string", "minLength": 1},
+        "definition": {"type": "string", "minLength": 1},
+        "kind": {"enum": ["REGULATORY", "SCIENTIFIC", "REPRESENTATION", "UNKNOWN", "OTHER_REVIEW_REQUIRED"]},
+        "aliases": {"type": "array", "items": {"$ref": "#/$defs/alias"}}
+      }
+    },
+    "grayFamily": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "examples"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^GRAY_[A-Z0-9_]+$"},
+        "label": {"type": "string", "minLength": 1},
+        "examples": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "mappingTerm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "definition"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^MECH_[A-Z0-9_]+$"},
+        "label": {"type": "string", "minLength": 1},
+        "definition": {"type": "string", "minLength": 1}
+      }
+    },
+    "concernTerm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^CONCERN_[A-Z0-9_]+$"},
+        "label": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}
