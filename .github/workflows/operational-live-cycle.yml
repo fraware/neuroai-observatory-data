@@ -119,6 +119,7 @@ jobs:
             tests/test_source_route_resilience.py \
             tests/test_successor_discovery.py -v
       - name: Execute lifecycle-aware live due cycle and exact-resume proof
+        id: execute_due_cycle
         run: |
           rm -rf "$RUNNER_TEMP/neuroai-live"
           mkdir -p "$RUNNER_TEMP/neuroai-live"
@@ -131,6 +132,7 @@ jobs:
             --max-workers-per-host 2 \
             --performance-budget-seconds 300
       - name: Enforce post-transition invariants
+        id: enforce_invariants
         run: |
           python - <<'PY'
           import json, os
@@ -251,7 +253,7 @@ jobs:
           }, sort_keys=True))
           PY
       - name: Retain sanitized operational proof
-        if: success() || failure()
+        if: ${{ always() && (steps.execute_due_cycle.outcome == 'success' || steps.enforce_invariants.outcome == 'success' || steps.enforce_invariants.outcome == 'failure') }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: operational-live-proof-${{ github.run_id }}-${{ github.run_attempt }}

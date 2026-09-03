@@ -81,9 +81,7 @@ class SourceLifecycleOverlayTests(unittest.TestCase):
         transitions = self._verify()
         active = build_active_route_policy(self.route_policy, transitions)
         ids = {row["source_id"] for row in active["sources"]}
-        self.assertEqual(
-            ids, {"SRC-0064", "SRC-14-019", "SRC-PR-002"}
-        )
+        self.assertEqual(ids, {"SRC-0064", "SRC-14-019", "SRC-PR-002"})
         self.assertEqual(
             active["metadata"]["excluded_lifecycle_source_ids"], ["SRC-PR-015"]
         )
