@@ -1,0 +1,109 @@
+{
+  "schema_version": "0.1",
+  "artifact_type": "PUBLIC_PRE_G2_S2_BINDINGS",
+  "artifact_id": "PUBLIC-PRE-G2-S2-BINDINGS-2026-09-03-BOUND-v0.1",
+  "as_of": "2026-09-03",
+  "predecessor_template": {
+    "path": "curation/PUBLIC_PRE_G2_S2_BINDINGS_TEMPLATE_OBSERVATORY_RECOVERY_2026-09-03_v0.1.json",
+    "template_id": "PUBLIC-PRE-G2-S2-BINDINGS-TEMPLATE-2026-09-03-v0.1",
+    "predecessor_is_modified_by_this_artifact": false,
+    "predecessor_immutability": "HISTORICAL_IMMUTABLE_TEMPLATE_NOT_EDITED_IN_PLACE"
+  },
+  "authority_boundary": {
+    "g2_passed": false,
+    "canonical_s2_authority": false,
+    "publication_authority": false,
+    "assessment_effect": "NONE",
+    "artifact_is_not_operator_authorization": true,
+    "artifact_is_not_publication_authorization": true,
+    "artifact_must_not_synthesize_g1_or_g2_approvals": true,
+    "artifact_must_not_include_private_or_protected_evidence": true,
+    "interpretation_rule": "Public PRE-G2 bindables only. Recording this lineage does not pass G2, does not confer canonical S2 authority, and does not authorize publication. G0 transport pin remains separate from the software-binding SHA."
+  },
+  "contract_context": {
+    "d1_artifact_id": "LANDSCAPE_RESEARCH_CONTRACT_v0.1",
+    "d1_schema_sha256": "8dc3f15cc8c9857b9c0457b36810600a2789e9d3b34d0facbf45f0143de3ed25",
+    "d2_artifact_id": "CAPABILITY_CONTEXT_TAXONOMY_v0.1",
+    "d2_d1_contract_binding_canonical_json_sha256": "fcd438c51d7af813ee10b31928090dc45f172630dccc5c9e704a5ce32086c09d",
+    "g1_dependency": {
+      "g1_approved": false,
+      "requires_human_governance_disposition": true
+    }
+  },
+  "g0_transport_pin": {
+    "role": "G0_PRODUCTION_TRANSPORT_PIN",
+    "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+    "workbench_pr": 267,
+    "package_line": "0.3.0.dev0",
+    "not_software_binding_sha": true,
+    "note": "Authoritative G0 hosted-live-collection transport pin remains #267 merge 685f1597a2a63f2e2217f65f115a67ac3e35cc55. Do not replace with Workbench main tip / PRE-G2 software binding."
+  },
+  "workbench_software_binding": {
+    "role": "PRE_G2_PUBLIC_SOFTWARE_BINDING_NOT_G0_TRANSPORT",
+    "workbench_software_binding_sha": "336da167700a7ce2894c27826f8a1c999e1ee844",
+    "lineage": {
+      "pre_g2_prs": [
+        272,
+        275
+      ],
+      "adr_pr": 277,
+      "packaging_pr": 278,
+      "adr_id": "ADR 0019",
+      "selection_source": "Workbench fail-closed confirmation; public lineage #272->#275 + ADR #277 + packaging #278"
+    },
+    "not_g0_transport_pin": true,
+    "does_not_replace_g0_pin": true
+  },
+  "public_bindables": {
+    "schema_version": "0.1",
+    "commitment_scheme": "HMAC_SHA256_DOMAIN_CANONICAL_JSON_V1",
+    "benchmarks": [
+      {
+        "benchmark_id": "PRE_G2_PATENT_V0_1",
+        "state": "DRAFT_UNFROZEN",
+        "g2_passed": false,
+        "canonical_s2_authority": false,
+        "publication_authority": false,
+        "assessment_effect": "NONE",
+        "schema_id": "urn:neuroai:benchmark:patent:public-contract:v0.1"
+      },
+      {
+        "benchmark_id": "PRE_G2_PRODUCT_V0_1",
+        "state": "DRAFT_UNFROZEN",
+        "g2_passed": false,
+        "canonical_s2_authority": false,
+        "publication_authority": false,
+        "assessment_effect": "NONE",
+        "schema_id": "urn:neuroai:benchmark:product:public-contract:v0.1"
+      }
+    ],
+    "freeze_manifest_type": "BENCHMARK_FREEZE",
+    "run_manifest_type": "HELD_OUT_EVALUATION_RUN",
+    "export_policy": "AGGREGATE_ONLY",
+    "summary_scope": "AGGREGATE_ONLY"
+  },
+  "forbidden_public_payload_kinds": [
+    "held-out labels",
+    "secret membership indicators",
+    "cryptographic secrets",
+    "private adjudicator packets",
+    "licensed commercial material",
+    "proprietary raw capture artifacts",
+    "direct references to private/protected storage objects",
+    "S3 secrets or URIs"
+  ],
+  "remaining_unresolved_conditions_blocking_g2_transition": [
+    "g1_approved remains false; no attributable human G1 governance disposition is recorded for the exact D1/D2 binding.",
+    "Public PRE-G2 bindables are DRAFT_UNFROZEN with g2_passed=false; no G2 freeze or publication authority is conferred by this artifact.",
+    "G0 remains BLOCKED_NOT_PASSED on Observatory-owned B01 schedule and SRC-14-021 due-cycle health gates."
+  ],
+  "non_claims": [
+    "This artifact does not claim G2 PASS.",
+    "This artifact does not set g2_passed=true.",
+    "This artifact does not confer canonical_s2_authority or publication_authority.",
+    "This artifact does not replace the G0 transport pin 685f1597 with 336da167.",
+    "This artifact does not include held-out labels, membership sets, or S3 secrets.",
+    "This artifact does not approve G1."
+  ],
+  "boundary": "Public PRE-G2 S2 bindings recorded from Workbench confirmation. Not a G2 pass, not publication authority, not a G0 transport re-pin."
+}
