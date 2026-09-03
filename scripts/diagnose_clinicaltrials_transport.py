@@ -195,20 +195,26 @@ def _workbench_single_address_probe(address: str) -> dict[str, Any]:
         return {"outcome": "TRANSPORT_FAILURE", "exception_type": type(exc).__name__}
 
 
-def _urllib3_single_address_probe(address: str) -> dict[str, Any]:
+def _urllib3_single_address_probe(
+    address: str, *, stdlib_default_context: bool
+) -> dict[str, Any]:
+    """Hold urllib3 pool/request semantics fixed and vary only TLS context ownership."""
     import urllib3
     from urllib3.util import Timeout
 
-    pool = urllib3.HTTPSConnectionPool(
-        address,
-        port=443,
-        timeout=Timeout(connect=10.0, read=20.0),
-        maxsize=1,
-        block=True,
-        server_hostname=TARGET_HOST,
-        assert_hostname=TARGET_HOST,
-        cert_reqs=ssl.CERT_REQUIRED,
-    )
+    pool_kwargs: dict[str, Any] = {
+        "port": 443,
+        "timeout": Timeout(connect=10.0, read=20.0),
+        "maxsize": 1,
+        "block": True,
+        "server_hostname": TARGET_HOST,
+        "assert_hostname": TARGET_HOST,
+        "cert_reqs": ssl.CERT_REQUIRED,
+    }
+    if stdlib_default_context:
+        pool_kwargs["ssl_context"] = ssl.create_default_context()
+
+    pool = urllib3.HTTPSConnectionPool(address, **pool_kwargs)
     response = None
     try:
         response = pool.urlopen(
@@ -240,7 +246,12 @@ def execute() -> dict[str, Any]:
                 "curl_resolve_http1_1": _curl_probe(
                     force_http11=True, resolve_address=address
                 ),
-                "urllib3_pinned_http1_1": _urllib3_single_address_probe(address),
+                "urllib3_managed_context_pinned_http1_1": _urllib3_single_address_probe(
+                    address, stdlib_default_context=False
+                ),
+                "urllib3_stdlib_context_pinned_http1_1": _urllib3_single_address_probe(
+                    address, stdlib_default_context=True
+                ),
                 "workbench_single_address_http1_1": _workbench_single_address_probe(
                     address
                 ),
@@ -248,7 +259,7 @@ def execute() -> dict[str, Any]:
         )
 
     return {
-        "schema_version": "3",
+        "schema_version": "4",
         "boundary": BOUNDARY,
         "target": {
             "host": TARGET_HOST,
