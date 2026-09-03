@@ -1,9 +1,9 @@
 {
   "metadata": {
     "title": "Development source-route resilience policy",
-    "version": "0.2",
+    "version": "0.3",
     "status": "DEVELOPMENT_ROUTE_POLICY_NOT_CANONICAL",
-    "source_count": 2,
+    "source_count": 4,
     "boundary": "Official retrieval-route policy for operational availability and narrow lifecycle resolution only. Fallback or lifecycle resolution does not establish source truth beyond the observed route/listing state, assessment validity, regulatory or clinical status, governance authority, canonical release authority, or publication authority."
   },
   "sources": [
@@ -112,6 +112,76 @@
         "evidence_ref": "official-route:science.xyz/careers/open-positions/",
         "basis": "Resolve only when the registered deep page is confirmed HTTP 404/410 and the successfully retrieved current official Science open-positions index does not contain the exact historical role identity. This does not infer why the role disappeared."
       }
+    },
+    {
+      "source_id": "SRC-0064",
+      "publisher": "Brain-X / Wiley",
+      "url": "https://onlinelibrary.wiley.com/doi/full/10.1002/brx2.70046",
+      "retrieval_routes": [
+        {
+          "route_id": "SRC-0064:wiley-fulltext",
+          "url": "https://onlinelibrary.wiley.com/doi/full/10.1002/brx2.70046",
+          "priority": 0,
+          "role": "PRIMARY",
+          "route_class": "PRIMARY",
+          "official_host": "onlinelibrary.wiley.com",
+          "official_basis": "Registered Brain-X / Wiley full-text page for DOI 10.1002/brx2.70046.",
+          "accept": "text/html,application/xhtml+xml;q=0.9",
+          "identity_check": {
+            "kind": "TEXT_CONTAINS",
+            "expected": "foundation models for electroencephalography"
+          }
+        },
+        {
+          "route_id": "SRC-0064:crossref-doi-metadata",
+          "url": "https://api.crossref.org/works/10.1002/brx2.70046",
+          "priority": 1,
+          "role": "FALLBACK",
+          "route_class": "IDENTITY_EQUIVALENT",
+          "official_host": "api.crossref.org",
+          "official_basis": "Crossref is the DOI registration agency for 10.1002/brx2.70046; works metadata is the official DOI identity record when the Wiley HTML primary is Cloudflare-challenged.",
+          "accept": "application/json",
+          "identity_check": {
+            "kind": "TEXT_CONTAINS",
+            "expected": "brx2.70046"
+          }
+        }
+      ]
+    },
+    {
+      "source_id": "SRC-14-019",
+      "publisher": "Piramidal",
+      "url": "https://www.piramidal.ai/",
+      "retrieval_routes": [
+        {
+          "route_id": "SRC-14-019:www",
+          "url": "https://www.piramidal.ai/",
+          "priority": 0,
+          "role": "PRIMARY",
+          "route_class": "PRIMARY",
+          "official_host": "www.piramidal.ai",
+          "official_basis": "Registered Piramidal organization page URL.",
+          "accept": "text/html,application/xhtml+xml;q=0.9",
+          "identity_check": {
+            "kind": "TEXT_CONTAINS",
+            "expected": "Piramidal"
+          }
+        },
+        {
+          "route_id": "SRC-14-019:apex",
+          "url": "https://piramidal.ai/",
+          "priority": 1,
+          "role": "FALLBACK",
+          "route_class": "IDENTITY_EQUIVALENT",
+          "official_host": "piramidal.ai",
+          "official_basis": "Apex host for the same Piramidal organization identity; www and apex resolve to the same address set while public CT logs show apex-bearing certificates for piramidal.ai.",
+          "accept": "text/html,application/xhtml+xml;q=0.9",
+          "identity_check": {
+            "kind": "TEXT_CONTAINS",
+            "expected": "Piramidal"
+          }
+        }
+      ]
     }
   ]
 }
