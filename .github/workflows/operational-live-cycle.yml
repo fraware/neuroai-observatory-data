@@ -154,9 +154,38 @@ jobs:
           assert routes["excluded_lifecycle_source_ids"] == ["SRC-PR-015"]
           assert "SRC-PR-015" not in set(health["run"]["executed_source_ids"])
 
+          # Emit typed failure diagnostics before closed health asserts.
+          target_root = root / "workspace/quarantine/run-ledgers" / execution["run_id"] / "targets"
+          typed_failures = []
+          for path in sorted(target_root.glob("*.json")):
+              checkpoint = json.loads(path.read_text())
+              if checkpoint.get("state") != "FAILURE":
+                  continue
+              outcome = checkpoint.get("outcome") if isinstance(checkpoint.get("outcome"), dict) else {}
+              target = checkpoint.get("target") if isinstance(checkpoint.get("target"), dict) else {}
+              typed_failures.append(
+                  {
+                      "source_ids": target.get("source_ids"),
+                      "failure_class": outcome.get("failure_class"),
+                      "retryable": outcome.get("retryable"),
+                      "attempt_count": len(checkpoint.get("attempts") or []),
+                      "url": target.get("url"),
+                  }
+              )
+          print("TYPED_SOURCE_FAILURE_CHECKPOINTS=" + json.dumps(typed_failures, sort_keys=True))
+          print(
+              "ROUTE_RESILIENCE_UNRESOLVED="
+              + json.dumps(
+                  (health.get("route_resilience") or {}).get(
+                      "unresolved_failed_source_ids"
+                  ),
+                  sort_keys=True,
+              )
+          )
+
           route_sources = {item["source_id"]: item for item in routes["sources"]}
           assert "SRC-PR-015" not in route_sources
-          assert set(route_sources) == {"SRC-PR-002"}
+          assert set(route_sources) == {"SRC-0064", "SRC-14-019", "SRC-PR-002"}
           clinical = route_sources["SRC-PR-002"]
           assert clinical["availability_state"] == "AVAILABLE_PRIMARY"
           assert clinical["selected_route_id"] == "SRC-PR-002:api-v2-single"
@@ -168,6 +197,28 @@ jobs:
           assert primary_obs[0].get("http_status") == 200
           assert primary_obs[0].get("identity_match") is True
 
+          wiley = route_sources["SRC-0064"]
+          assert wiley["availability_state"] in {
+              "AVAILABLE_PRIMARY",
+              "AVAILABLE_FALLBACK",
+          }
+          assert wiley["evidence_substitution_allowed"] is True
+          assert wiley["selected_route_id"] in {
+              "SRC-0064:wiley-fulltext",
+              "SRC-0064:crossref-doi-metadata",
+          }
+
+          piramidal = route_sources["SRC-14-019"]
+          assert piramidal["availability_state"] in {
+              "AVAILABLE_PRIMARY",
+              "AVAILABLE_FALLBACK",
+          }
+          assert piramidal["evidence_substitution_allowed"] is True
+          assert piramidal["selected_route_id"] in {
+              "SRC-14-019:www",
+              "SRC-14-019:apex",
+          }
+
           assert health["engineering_state"] == "READY", health
           assert health["source_resolution_state"] == "HEALTHY", health
           assert health["active_source_availability_state"] == "HEALTHY", health
@@ -176,7 +227,6 @@ jobs:
           assert execution["slo"]["target_execution_coverage"] == 1.0
           assert report["resume_proof"]["additional_transport_sends"] == 0
 
-          target_root = root / "workspace/quarantine/run-ledgers" / execution["run_id"] / "targets"
           target_source_ids = set()
           for path in target_root.glob("*.json"):
               checkpoint = json.loads(path.read_text())
@@ -191,6 +241,8 @@ jobs:
               "route_source_ids": sorted(route_sources),
               "clinical_primary_status": primary_obs[0]["http_status"],
               "clinical_identity_match": primary_obs[0]["identity_match"],
+              "wiley_selected_route_id": wiley["selected_route_id"],
+              "piramidal_selected_route_id": piramidal["selected_route_id"],
               "source_accountability_coverage": execution["slo"]["source_accountability_coverage"],
               "target_execution_coverage": execution["slo"]["target_execution_coverage"],
               "resume_additional_sends": report["resume_proof"]["additional_transport_sends"],
@@ -199,6 +251,7 @@ jobs:
           }, sort_keys=True))
           PY
       - name: Retain sanitized operational proof
+        if: success() || failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: operational-live-proof-${{ github.run_id }}-${{ github.run_attempt }}
