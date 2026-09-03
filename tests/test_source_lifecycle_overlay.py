@@ -131,6 +131,28 @@ class SourceLifecycleOverlayTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "exact identity absence"):
             self._verify(overlay=overlay)
 
+    def test_nxdomain_style_primary_status_cannot_lifecycle_resolve(self) -> None:
+        # Disposition C: durable DNS non-existence is not lifecycle-overlay evidence.
+        # Overlay requires primary 404/410 + publisher listing; NXDOMAIN has neither.
+        overlay = copy.deepcopy(self.overlay)
+        overlay["transitions"][0]["live_evidence"]["primary_http_status"] = None
+        with self.assertRaisesRegex(ValueError, "requires primary 404/410 evidence"):
+            self._verify(overlay=overlay)
+
+    def test_route_policy_does_not_register_parking_host_for_src_14_021(self) -> None:
+        # Disposition C: sonafrica.org is a non-identity parking page and must not be
+        # registered as IDENTITY_EQUIVALENT / official failover.
+        serialized = (
+            ROOT / "curation" / "source_route_resilience_v0.1.json"
+        ).read_text(encoding="utf-8")
+        self.assertNotIn("sonafrica.org", serialized)
+        self.assertNotIn("SRC-14-021", serialized)
+        for source in self.route_policy["sources"]:
+            for route in source.get("retrieval_routes") or []:
+                host = str(route.get("official_host") or "").lower()
+                self.assertNotEqual(host, "sonafrica.org")
+                self.assertNotIn("sonafrica.org", str(route.get("url") or "").lower())
+
     def test_governing_monitor_cannot_be_suppressed(self) -> None:
         overlay = copy.deepcopy(self.overlay)
         transition = overlay["transitions"][0]

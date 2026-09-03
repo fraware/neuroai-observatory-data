@@ -92,6 +92,31 @@ class ProductionMonitoringHardeningTests(unittest.TestCase):
         )
         self.assertNotIn("registry = build_development_registry(inputs)\n", script)
 
+    def test_operational_live_cycle_ruff_gate_includes_probe_script(self) -> None:
+        text = _read(".github/workflows/operational-live-cycle.yml")
+        # Probe is on the due-cycle path filter and must be format/lint gated.
+        self.assertIn("scripts/probe_source_route_resilience.py", text)
+        gate = text.split(
+            "Run operational regression and issue-surface quality gates", 1
+        )[1].split("Execute lifecycle-aware live due cycle", 1)[0]
+        self.assertIn("scripts/probe_source_route_resilience.py", gate)
+        self.assertIn("python -m ruff format --check", gate)
+        self.assertIn("python -m ruff check", gate)
+
+    def test_live_workbench_installs_are_hash_locked_no_deps(self) -> None:
+        for path in LIVE_WORKFLOWS:
+            with self.subTest(path=path):
+                text = _read(path)
+                self.assertIn(
+                    "python -m pip install --require-hashes -r",
+                    text,
+                )
+                self.assertRegex(
+                    text,
+                    r"python -m pip install --no-deps \./(?:workbench|\.workbench)",
+                )
+                self.assertNotIn("pip install --disable-pip-version-check -e", text)
+
     def test_pre_g0_b02_proof_delegates_to_governed_live_facade(self) -> None:
         script = _read("scripts/run_pre_g0_b02_controlled_live_proof.py")
         workflow = _read(".github/workflows/pre-g0-b02-controlled-live-proof.yml")

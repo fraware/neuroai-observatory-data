@@ -22,7 +22,10 @@ BOUNDARY = (
 
 
 def canonical_bytes(value: Any) -> bytes:
-    return (json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False) + "\n").encode("utf-8")
+    return (
+        json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+        + "\n"
+    ).encode("utf-8")
 
 
 def sha256(value: Any) -> str:
@@ -35,7 +38,9 @@ def _extract_nct_ids(payload: Any) -> set[str]:
         protocol = payload.get("protocolSection")
         if isinstance(protocol, dict):
             identification = protocol.get("identificationModule")
-            if isinstance(identification, dict) and isinstance(identification.get("nctId"), str):
+            if isinstance(identification, dict) and isinstance(
+                identification.get("nctId"), str
+            ):
                 ids.add(identification["nctId"].upper())
         studies = payload.get("studies")
         if isinstance(studies, list):
@@ -63,16 +68,24 @@ def _check_body(body: bytes, check: dict[str, str]) -> bool:
 
 def _lifecycle_resolved(report: dict[str, Any]) -> bool:
     lifecycle = report.get("lifecycle")
-    return isinstance(lifecycle, dict) and lifecycle.get("resolution_state") == "RESOLVED_LIFECYCLE_CHANGE"
+    return (
+        isinstance(lifecycle, dict)
+        and lifecycle.get("resolution_state") == "RESOLVED_LIFECYCLE_CHANGE"
+    )
 
 
-def probe_policy(policy: dict[str, Any], *, observed_at: str | None = None) -> dict[str, Any]:
+def probe_policy(
+    policy: dict[str, Any], *, observed_at: str | None = None
+) -> dict[str, Any]:
     from neuroai_workbench.collector import PinnedSocketHttpTransport
     from neuroai_workbench.collector.config import CollectorConfig
     from neuroai_workbench.collector.errors import CollectionFailureError
     from neuroai_workbench.collector.http_client import HttpClient
     from neuroai_workbench.collector.source_lifecycle import evaluate_source_lifecycle
-    from neuroai_workbench.collector.source_routes import RouteSpec, run_registered_route_failover
+    from neuroai_workbench.collector.source_routes import (
+        RouteSpec,
+        run_registered_route_failover,
+    )
 
     sources = policy.get("sources")
     if not isinstance(sources, list) or not sources:
@@ -95,20 +108,26 @@ def probe_policy(policy: dict[str, Any], *, observed_at: str | None = None) -> d
 
     for raw_source in sources:
         if not isinstance(raw_source, dict):
-            raise ValueError("route policy source must be an object")
+            raise TypeError("route policy source must be an object")
         raw_routes = raw_source.get("retrieval_routes")
         if not isinstance(raw_routes, list):
-            raise ValueError("route policy source requires retrieval_routes")
+            raise TypeError("route policy source requires retrieval_routes")
         route_config = {
             str(item["route_id"]): item
             for item in raw_routes
             if isinstance(item, dict) and isinstance(item.get("route_id"), str)
         }
 
-        def probe(route: RouteSpec) -> dict[str, Any]:
-            raw = route_config[route.route_id]
+        def probe(
+            route: RouteSpec, *, _route_config: dict[str, Any] = route_config
+        ) -> dict[str, Any]:
+            raw = _route_config[route.route_id]
             accept = raw.get("accept")
-            headers = {"Accept": str(accept)} if isinstance(accept, str) and accept.strip() else None
+            headers = (
+                {"Accept": str(accept)}
+                if isinstance(accept, str) and accept.strip()
+                else None
+            )
             try:
                 response = client.fetch(route.url, conditional_headers=headers)
             except CollectionFailureError as exc:
@@ -123,11 +142,15 @@ def probe_policy(policy: dict[str, Any], *, observed_at: str | None = None) -> d
                 return observation
 
             final_host = (urlparse(response.url).hostname or "").lower()
-            allowed_redirect_hosts = raw.get("allowed_redirect_hosts", [route.official_host])
+            allowed_redirect_hosts = raw.get(
+                "allowed_redirect_hosts", [route.official_host]
+            )
             if not isinstance(allowed_redirect_hosts, list) or not all(
                 isinstance(item, str) and item for item in allowed_redirect_hosts
             ):
-                raise ValueError(f"{route.route_id}.allowed_redirect_hosts must be a string array")
+                raise ValueError(
+                    f"{route.route_id}.allowed_redirect_hosts must be a string array"
+                )
             allowed = {str(item).lower() for item in allowed_redirect_hosts}
             if final_host not in allowed:
                 return {
@@ -144,16 +167,23 @@ def probe_policy(policy: dict[str, Any], *, observed_at: str | None = None) -> d
                 "content_sha256": hashlib.sha256(response.body).hexdigest(),
             }
             if route.identity_check is not None:
-                observation["identity_match"] = _check_body(response.body, route.identity_check)
+                observation["identity_match"] = _check_body(
+                    response.body, route.identity_check
+                )
             if route.corroboration_check is not None:
-                observation["corroboration_match"] = _check_body(response.body, route.corroboration_check)
+                observation["corroboration_match"] = _check_body(
+                    response.body, route.corroboration_check
+                )
             return observation
 
         report = run_registered_route_failover(source_record=raw_source, probe=probe)
         lifecycle_policy = raw_source.get("lifecycle_resolution")
-        if report["availability_state"] == "UNRESOLVED" and lifecycle_policy is not None:
+        if (
+            report["availability_state"] == "UNRESOLVED"
+            and lifecycle_policy is not None
+        ):
             if not isinstance(lifecycle_policy, dict):
-                raise ValueError("lifecycle_resolution must be an object")
+                raise TypeError("lifecycle_resolution must be an object")
             assertion = {
                 **lifecycle_policy,
                 "source_id": str(raw_source["source_id"]),
@@ -170,25 +200,44 @@ def probe_policy(policy: dict[str, Any], *, observed_at: str | None = None) -> d
     available_states = {"AVAILABLE_PRIMARY", "AVAILABLE_FALLBACK"}
     active_reports = [item for item in reports if not _lifecycle_resolved(item)]
     counts = {
-        "AVAILABLE_PRIMARY": sum(1 for item in reports if item["availability_state"] == "AVAILABLE_PRIMARY"),
-        "AVAILABLE_FALLBACK": sum(1 for item in reports if item["availability_state"] == "AVAILABLE_FALLBACK"),
-        "UNRESOLVED": sum(1 for item in reports if item["availability_state"] == "UNRESOLVED"),
-        "RETIRED": sum(1 for item in reports if item["availability_state"] == "RETIRED"),
-        "RESOLVED_LIFECYCLE_CHANGE": sum(1 for item in reports if _lifecycle_resolved(item)),
-        "PRIMARY_DEGRADED": sum(1 for item in reports if item["primary_route_state"] == "DEGRADED"),
+        "AVAILABLE_PRIMARY": sum(
+            1 for item in reports if item["availability_state"] == "AVAILABLE_PRIMARY"
+        ),
+        "AVAILABLE_FALLBACK": sum(
+            1 for item in reports if item["availability_state"] == "AVAILABLE_FALLBACK"
+        ),
+        "UNRESOLVED": sum(
+            1 for item in reports if item["availability_state"] == "UNRESOLVED"
+        ),
+        "RETIRED": sum(
+            1 for item in reports if item["availability_state"] == "RETIRED"
+        ),
+        "RESOLVED_LIFECYCLE_CHANGE": sum(
+            1 for item in reports if _lifecycle_resolved(item)
+        ),
+        "PRIMARY_DEGRADED": sum(
+            1 for item in reports if item["primary_route_state"] == "DEGRADED"
+        ),
         "EVIDENCE_SUBSTITUTABLE_FALLBACK": sum(
             1
             for item in reports
-            if item["availability_state"] == "AVAILABLE_FALLBACK" and item["evidence_substitution_allowed"] is True
+            if item["availability_state"] == "AVAILABLE_FALLBACK"
+            and item["evidence_substitution_allowed"] is True
         ),
         "LIVENESS_ONLY_FALLBACK": sum(
             1
             for item in reports
-            if item["availability_state"] == "AVAILABLE_FALLBACK" and item["evidence_substitution_allowed"] is False
+            if item["availability_state"] == "AVAILABLE_FALLBACK"
+            and item["evidence_substitution_allowed"] is False
         ),
     }
-    resolution_healthy = all(item["availability_state"] in available_states or _lifecycle_resolved(item) for item in reports)
-    active_availability_healthy = all(item["availability_state"] in available_states for item in active_reports)
+    resolution_healthy = all(
+        item["availability_state"] in available_states or _lifecycle_resolved(item)
+        for item in reports
+    )
+    active_availability_healthy = all(
+        item["availability_state"] in available_states for item in active_reports
+    )
     active_evidence_healthy = active_availability_healthy and all(
         item["evidence_substitution_allowed"] is True for item in active_reports
     )
@@ -200,10 +249,18 @@ def probe_policy(policy: dict[str, Any], *, observed_at: str | None = None) -> d
         "source_count": len(reports),
         "active_source_count": len(active_reports),
         "source_resolution_state": "HEALTHY" if resolution_healthy else "DEGRADED",
-        "active_source_availability_state": "HEALTHY" if active_availability_healthy else "DEGRADED",
-        "active_evidence_payload_availability_state": "HEALTHY" if active_evidence_healthy else "DEGRADED",
-        "source_availability_state": "HEALTHY" if active_availability_healthy else "DEGRADED",
-        "evidence_payload_availability_state": "HEALTHY" if active_evidence_healthy else "DEGRADED",
+        "active_source_availability_state": "HEALTHY"
+        if active_availability_healthy
+        else "DEGRADED",
+        "active_evidence_payload_availability_state": "HEALTHY"
+        if active_evidence_healthy
+        else "DEGRADED",
+        "source_availability_state": "HEALTHY"
+        if active_availability_healthy
+        else "DEGRADED",
+        "evidence_payload_availability_state": "HEALTHY"
+        if active_evidence_healthy
+        else "DEGRADED",
         "lifecycle_transition_count": counts["RESOLVED_LIFECYCLE_CHANGE"],
         "counts": counts,
         "source_reports": sorted(reports, key=lambda item: str(item["source_id"])),
@@ -221,17 +278,21 @@ def main() -> int:
     args = parser.parse_args()
     policy = json.loads(args.policy.read_text(encoding="utf-8"))
     if not isinstance(policy, dict):
-        raise ValueError("route policy must be a JSON object")
+        raise TypeError("route policy must be a JSON object")
     report = probe_policy(policy)
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    args.output.write_text(
+        json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     print(
         "SANITIZED_ROUTE_RESILIENCE="
         + json.dumps(
             {
                 "transport_security": report["transport_security"],
                 "source_resolution_state": report["source_resolution_state"],
-                "active_source_availability_state": report["active_source_availability_state"],
+                "active_source_availability_state": report[
+                    "active_source_availability_state"
+                ],
                 "active_evidence_payload_availability_state": report[
                     "active_evidence_payload_availability_state"
                 ],
@@ -244,12 +305,18 @@ def main() -> int:
                         "primary_route_state": item["primary_route_state"],
                         "selected_route_id": item["selected_route_id"],
                         "selected_route_class": item["selected_route_class"],
-                        "evidence_substitution_allowed": item["evidence_substitution_allowed"],
+                        "evidence_substitution_allowed": item[
+                            "evidence_substitution_allowed"
+                        ],
                         "lifecycle_resolution_state": (
-                            item["lifecycle"].get("resolution_state") if isinstance(item.get("lifecycle"), dict) else None
+                            item["lifecycle"].get("resolution_state")
+                            if isinstance(item.get("lifecycle"), dict)
+                            else None
                         ),
                         "lifecycle_state": (
-                            item["lifecycle"].get("lifecycle_state") if isinstance(item.get("lifecycle"), dict) else None
+                            item["lifecycle"].get("lifecycle_state")
+                            if isinstance(item.get("lifecycle"), dict)
+                            else None
                         ),
                     }
                     for item in report["source_reports"]

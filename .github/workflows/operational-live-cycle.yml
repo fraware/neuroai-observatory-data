@@ -92,6 +92,7 @@ jobs:
             scripts/build_development_monitor_registry.py
             scripts/build_monitoring_eligibility.py
             scripts/evaluate_operational_health.py
+            scripts/probe_source_route_resilience.py
             scripts/run_operational_due_cycle.py
             scripts/run_successor_discovery.py
             scripts/source_lifecycle_overlay.py

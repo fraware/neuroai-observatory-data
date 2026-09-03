@@ -156,6 +156,13 @@ def _route_resolution_summary(
     for field, value in state_fields.items():
         if value not in {HEALTHY, DEGRADED}:
             blocking.append({"code": f"{field.upper()}_INVALID", "observed": value})
+    if state_fields["source_resolution_state"] == DEGRADED:
+        warnings.append(
+            {
+                "code": "ROUTE_RESILIENCE_REPORT_DEGRADED",
+                "observed": state_fields["source_resolution_state"],
+            }
+        )
 
     return {
         **state_fields,
@@ -403,25 +410,35 @@ def evaluate_health(
                 }
             )
 
-    state = UNHEALTHY if blocking else DEGRADED if warnings else HEALTHY
-    engineering_state = ENGINEERING_BLOCKED if blocking else ENGINEERING_READY
     source_resolution_state = HEALTHY if failed_count == 0 else DEGRADED
     active_source_availability_state = HEALTHY if failed_count == 0 else DEGRADED
     active_evidence_payload_availability_state = (
         HEALTHY if failed_count == 0 else DEGRADED
     )
     if route_summary is not None:
+        # Route report and unresolved collector failures both fail closed: HEALTHY
+        # only when every typed failure is route-resolved and the route report itself
+        # is HEALTHY. DNS NXDOMAIN / durable official-host non-existence remains
+        # DEGRADED unless lifecycle-overlay 404/410+listing evidence resolves it;
+        # there is no NETWORK/DNS exemption that marks sources HEALTHY.
         if (
             not route_summary["unresolved_failed_source_ids"]
             and route_summary["source_resolution_state"] == HEALTHY
         ):
             source_resolution_state = HEALTHY
+        else:
+            source_resolution_state = DEGRADED
         active_source_availability_state = str(
             route_summary["active_source_availability_state"]
         )
         active_evidence_payload_availability_state = str(
             route_summary["active_evidence_payload_availability_state"]
         )
+
+    state = UNHEALTHY if blocking else DEGRADED if warnings else HEALTHY
+    if state == HEALTHY and source_resolution_state != HEALTHY:
+        state = DEGRADED
+    engineering_state = ENGINEERING_BLOCKED if blocking else ENGINEERING_READY
 
     report: dict[str, Any] = {
         "schema_version": "4",
