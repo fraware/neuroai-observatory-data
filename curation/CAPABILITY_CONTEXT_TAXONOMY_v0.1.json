@@ -1,0 +1,371 @@
+{
+  "artifact_id": "CAPABILITY_CONTEXT_TAXONOMY_v0.1",
+  "version": "0.1",
+  "status": "PRE_G1_DRAFT",
+  "created_against_observatory_main_sha": "af1fea0b75ab74d25e3c54d9204a97c92aeb7d7f",
+  "d1_contract_binding": {
+    "artifact_id": "LANDSCAPE_RESEARCH_CONTRACT_v0.1",
+    "version": "0.1",
+    "created_against_observatory_main_sha": "af1fea0b75ab74d25e3c54d9204a97c92aeb7d7f",
+    "artifact_path": "curation/LANDSCAPE_RESEARCH_CONTRACT_v0.1.json",
+    "validator_entrypoint": "scripts/validate_landscape_research_contract.py",
+    "canonical_json_sha256": "0898d4468b2cc175ecfca025d44d697b8221e266299c93526e9988f99ac5d587",
+    "d2_question_bindings": [
+      "RQ-02",
+      "RQ-04",
+      "RQ-05",
+      "RQ-06"
+    ]
+  },
+  "governance": {
+    "g1_approved": false,
+    "canonical_authority": false,
+    "publication_authority": false,
+    "assessment_effect": "NONE",
+    "requires_human_governance_disposition": true,
+    "governance_disposition_id": null,
+    "issue": 191
+  },
+  "scope": {
+    "purpose": "Provide controlled, independently encoded vocabulary axes for NeuroAI landscape discovery, classification, evaluation, expert review, and later bounded capability-context governance mapping.",
+    "non_claims": [
+      "Taxonomy assignment does not establish NeuroAI inclusion.",
+      "Taxonomy assignment does not establish product effectiveness, regulatory authorization, commercialization, or patent-product linkage.",
+      "Taxonomy assignment does not authorize canonical S2 mutation, publication, or v4.2 assessment findings.",
+      "Gray-third tags do not define a complete or canonical population class.",
+      "Model agreement does not establish governed truth."
+    ],
+    "axis_independence_rule": "Sensing modality, inferred state, intervention/output capability, product form factor, deployment context, and regulatory/scientific claim state must be encoded independently. Absence or presence on one axis must not be silently inferred from another axis.",
+    "multi_label_axes": [
+      "sensing_modality",
+      "inferred_state",
+      "intervention_output_capability",
+      "product_form_factor",
+      "deployment_context",
+      "regulatory_scientific_claim_state"
+    ]
+  },
+  "classification_policy": {
+    "abstention_required_when_evidence_insufficient": true,
+    "unknown_states_must_be_available": true,
+    "other_review_required_states_must_be_available": true,
+    "taxonomy_classification_is_not_inclusion": true,
+    "physiological_proxy_only_cannot_establish_neuroai": true,
+    "proxy_only_rule": "A product or system observed only through non-neural physiological proxy signals cannot be classified as NeuroAI solely from that sensing evidence. Independent evidence must establish a neural, neurocognitive, or neural-interaction function within the research-contract boundary, and governed inclusion remains a separate disposition.",
+    "evidence_rule": "Assign a controlled term only when an attributable source observation supports the exact axis value. Preserve uncertainty and source/observation references outside this vocabulary artifact.",
+    "model_role": "Models may propose one or more controlled IDs with confidence and rationale for review. They may not approve G1, decide canonical inclusion, create substantive truth, or resolve expert disagreement by consensus."
+  },
+  "axes": {
+    "sensing_modality": [
+      {
+        "id": "SENSE_INTRACORTICAL_ELECTROPHYSIOLOGY",
+        "label": "Intracortical electrophysiology",
+        "definition": "Electrical neural activity recorded with electrodes placed within brain tissue.",
+        "group": "CENTRAL_NEURAL_ELECTRICAL",
+        "neural_directness": "DIRECT_NEURAL",
+        "proxy_only": false,
+        "default_inclusion_evidence_role": "PRIMARY_CAPABILITY_EVIDENCE",
+        "aliases": []
+      },
+      {
+        "id": "SENSE_ECOG",
+        "label": "Electrocorticography (ECoG)",
+        "definition": "Electrical neural activity recorded from electrodes placed on or near the cortical surface.",
+        "group": "CENTRAL_NEURAL_ELECTRICAL",
+        "neural_directness": "DIRECT_NEURAL",
+        "proxy_only": false,
+        "default_inclusion_evidence_role": "PRIMARY_CAPABILITY_EVIDENCE",
+        "aliases": []
+      },
+      {
+        "id": "SENSE_SCALP_EEG",
+        "label": "Scalp electroencephalography (EEG)",
+        "definition": "Electrical activity measured non-invasively from electrodes positioned on the scalp.",
+        "group": "CENTRAL_NEURAL_ELECTRICAL",
+        "neural_directness": "DIRECT_NEURAL",
+        "proxy_only": false,
+        "default_inclusion_evidence_role": "PRIMARY_CAPABILITY_EVIDENCE",
+        "aliases": []
+      },
+      {
+        "id": "SENSE_EAR_EEG",
+        "label": "Ear-EEG",
+        "definition": "EEG-like electrical neural signals measured using electrodes positioned in or around the ear.",
+        "group": "CENTRAL_NEURAL_ELECTRICAL",
+        "neural_directness": "DIRECT_NEURAL",
+        "proxy_only": false,
+        "default_inclusion_evidence_role": "PRIMARY_CAPABILITY_EVIDENCE",
+        "aliases": []
+      },
+      {
+        "id": "SENSE_MEG",
+        "label": "Magnetoencephalography (MEG)",
+        "definition": "Magnetic fields generated by neural electrical activity measured outside the head.",
+        "group": "CENTRAL_NEURAL_MAGNETIC",
+        "neural_directness": "DIRECT_NEURAL",
+        "proxy_only": false,
+        "default_inclusion_evidence_role": "PRIMARY_CAPABILITY_EVIDENCE",
+        "aliases": []
+      },
+      {
+        "id": "SENSE_FNIRS",
+        "label": "Functional near-infrared spectroscopy (fNIRS)",
+        "definition": "Optical measurement of cerebral hemodynamic changes used as an indirect signal of neural activity.",
+        "group": "CENTRAL_NEUROVASCULAR",
+        "neural_directness": "NEUROVASCULAR_PROXY",
+        "proxy_only": false,
+        "default_inclusion_evidence_role": "PRIMARY_CAPABILITY_EVIDENCE",
+        "aliases": []
+      },
+      {
+        "id": "SENSE_FMRI",
+        "label": "Functional magnetic resonance imaging (fMRI)",
+        "definition": "MRI-based measurement of hemodynamic changes used as an indirect signal of neural activity.",
+        "group": "CENTRAL_NEUROVASCULAR",
+        "neural_directness": "NEUROVASCULAR_PROXY",
+        "proxy_only": false,
+        "default_inclusion_evidence_role": "PRIMARY_CAPABILITY_EVIDENCE",
+        "aliases": []
+      },
+      {
+        "id": "SENSE_FUNCTIONAL_ULTRASOUND",
+        "label": "Functional ultrasound neuroimaging",
+        "definition": "Ultrasound-based measurement of cerebral blood-flow dynamics used as an indirect signal of neural activity.",
+        "group": "CENTRAL_NEUROVASCULAR",
+        "neural_directness": "NEUROVASCULAR_PROXY",
+        "proxy_only": false,
+        "default_inclusion_evidence_role": "PRIMARY_CAPABILITY_EVIDENCE",
+        "aliases": []
+      },
+      {
+        "id": "SENSE_PERIPHERAL_NERVE_ELECTROPHYSIOLOGY",
+        "label": "Peripheral nerve electrophysiology",
+        "definition": "Electrical activity recorded from peripheral nerves or nerve interfaces.",
+        "group": "PERIPHERAL_NEURAL",
+        "neural_directness": "DIRECT_NEURAL",
+        "proxy_only": false,
+        "default_inclusion_evidence_role": "BOUNDARY_REVIEW_REQUIRED",
+        "aliases": []
+      },
+      {
+        "id": "SENSE_EMG",
+        "label": "Electromyography (EMG)",
+        "definition": "Electrical activity measured from skeletal muscle and used as a physiological or motor proxy signal.",
+        "group": "PHYSIOLOGICAL_PROXY",
+        "neural_directness": "PHYSIOLOGICAL_PROXY",
+        "proxy_only": true,
+        "default_inclusion_evidence_role": "SUPPORTING_ONLY",
+        "aliases": []
+      },
+      {
+        "id": "SENSE_EOG",
+        "label": "Electrooculography (EOG)",
+        "definition": "Electrical potential associated with eye movement used as an ocular or physiological proxy signal.",
+        "group": "PHYSIOLOGICAL_PROXY",
+        "neural_directness": "PHYSIOLOGICAL_PROXY",
+        "proxy_only": true,
+        "default_inclusion_evidence_role": "SUPPORTING_ONLY",
+        "aliases": []
+      },
+      {
+        "id": "SENSE_CARDIOVASCULAR_PROXY",
+        "label": "Cardiovascular proxy sensing",
+        "definition": "Cardiovascular measurements such as ECG or photoplethysmography used as physiological proxy signals.",
+        "group": "PHYSIOLOGICAL_PROXY",
+        "neural_directness": "PHYSIOLOGICAL_PROXY",
+        "proxy_only": true,
+        "default_inclusion_evidence_role": "SUPPORTING_ONLY",
+        "aliases": []
+      },
+      {
+        "id": "SENSE_ELECTRODERMAL_PROXY",
+        "label": "Electrodermal proxy sensing",
+        "definition": "Electrodermal activity used as a physiological proxy signal for arousal-related processes.",
+        "group": "PHYSIOLOGICAL_PROXY",
+        "neural_directness": "PHYSIOLOGICAL_PROXY",
+        "proxy_only": true,
+        "default_inclusion_evidence_role": "SUPPORTING_ONLY",
+        "aliases": []
+      },
+      {
+        "id": "SENSE_MULTIMODAL_NEURAL_PHYSIOLOGICAL",
+        "label": "Multimodal neural and physiological sensing",
+        "definition": "A system that jointly uses at least one neural or neurovascular modality and one or more physiological proxy modalities.",
+        "group": "MULTIMODAL",
+        "neural_directness": "MIXED",
+        "proxy_only": false,
+        "default_inclusion_evidence_role": "PRIMARY_CAPABILITY_EVIDENCE",
+        "aliases": []
+      },
+      {
+        "id": "SENSE_NONE_OUTPUT_ONLY",
+        "label": "No sensing / output-only",
+        "definition": "The observed capability involves intervention or output without a sensing modality evidenced in the scoped observation.",
+        "group": "NONE",
+        "neural_directness": "NONE",
+        "proxy_only": false,
+        "default_inclusion_evidence_role": "BOUNDARY_REVIEW_REQUIRED",
+        "aliases": []
+      },
+      {
+        "id": "SENSE_UNKNOWN",
+        "label": "Unknown sensing modality",
+        "definition": "Available evidence is insufficient to identify the sensing modality.",
+        "group": "UNKNOWN",
+        "neural_directness": "UNKNOWN",
+        "proxy_only": false,
+        "default_inclusion_evidence_role": "BOUNDARY_REVIEW_REQUIRED",
+        "aliases": []
+      },
+      {
+        "id": "SENSE_OTHER_REVIEW_REQUIRED",
+        "label": "Other sensing modality — review required",
+        "definition": "Observed sensing does not fit the controlled vocabulary and requires review before a new term or mapping is introduced.",
+        "group": "OTHER_REVIEW_REQUIRED",
+        "neural_directness": "UNKNOWN",
+        "proxy_only": false,
+        "default_inclusion_evidence_role": "BOUNDARY_REVIEW_REQUIRED",
+        "aliases": []
+      }
+    ],
+    "inferred_state": [
+      {"id": "STATE_MOTOR_INTENT", "label": "Motor intent or movement state", "definition": "Inference of intended or ongoing movement-related neural or neurophysiological state.", "group": "ACTION", "aliases": []},
+      {"id": "STATE_SENSORY_PERCEPT", "label": "Sensory or perceptual state", "definition": "Inference of a sensory, perceptual, or stimulus-related state.", "group": "PERCEPTION", "aliases": []},
+      {"id": "STATE_SPEECH_LANGUAGE", "label": "Speech or language content/state", "definition": "Inference of speech-related, language-related, or communicative content or state.", "group": "COMMUNICATION", "aliases": []},
+      {"id": "STATE_ATTENTION_VIGILANCE", "label": "Attention or vigilance", "definition": "Inference of attention, vigilance, or engagement-related state.", "group": "COGNITIVE_STATE", "aliases": []},
+      {"id": "STATE_FATIGUE_DROWSINESS", "label": "Fatigue or drowsiness", "definition": "Inference of fatigue, drowsiness, or alertness-related state.", "group": "COGNITIVE_STATE", "aliases": []},
+      {"id": "STATE_COGNITIVE_LOAD", "label": "Cognitive load or workload", "definition": "Inference of cognitive load, mental workload, or task-demand-related state.", "group": "COGNITIVE_STATE", "aliases": []},
+      {"id": "STATE_AFFECT_EMOTION", "label": "Affect or emotion", "definition": "Inference of affective or emotion-related state.", "group": "AFFECTIVE_STATE", "aliases": []},
+      {"id": "STATE_STRESS_AROUSAL", "label": "Stress or arousal", "definition": "Inference of stress- or arousal-related state; proxy-only physiological evidence does not independently establish NeuroAI inclusion.", "group": "AFFECTIVE_STATE", "aliases": []},
+      {"id": "STATE_READINESS_PERFORMANCE", "label": "Readiness or performance state", "definition": "Inference of readiness, performance capacity, or related operational state.", "group": "PERFORMANCE", "aliases": []},
+      {"id": "STATE_SLEEP", "label": "Sleep state", "definition": "Inference or classification of sleep stage, sleep/wake state, or related sleep condition.", "group": "PHYSIOLOGICAL_NEURAL_STATE", "aliases": []},
+      {"id": "STATE_MEMORY_RECOGNITION", "label": "Memory or recognition-related state", "definition": "Inference of memory, recognition, or related cognitive state.", "group": "COGNITIVE_STATE", "aliases": []},
+      {"id": "STATE_CLINICAL_NEUROLOGICAL", "label": "Clinical neurological state", "definition": "Inference or classification of a neurological state used within a clinical or investigational context.", "group": "CLINICAL", "aliases": []},
+      {"id": "STATE_PAIN", "label": "Pain-related state", "definition": "Inference or classification of pain-related state.", "group": "CLINICAL_OR_AFFECTIVE", "aliases": []},
+      {"id": "STATE_NO_INFERENCE", "label": "No inferred state", "definition": "The scoped capability does not infer a user state; for example, it may directly relay signals or deliver intervention.", "group": "NONE", "aliases": []},
+      {"id": "STATE_UNKNOWN", "label": "Unknown inferred state", "definition": "Available evidence is insufficient to identify an inferred state.", "group": "UNKNOWN", "aliases": []},
+      {"id": "STATE_OTHER_REVIEW_REQUIRED", "label": "Other inferred state — review required", "definition": "Observed inference target does not fit the controlled vocabulary and requires review.", "group": "OTHER_REVIEW_REQUIRED", "aliases": []}
+    ],
+    "intervention_output_capability": [
+      {"id": "OUTPUT_OBSERVATION_ONLY", "label": "Observation or measurement only", "definition": "The scoped system measures or infers without an evidenced adaptive output or intervention.", "group": "OBSERVATION", "aliases": []},
+      {"id": "OUTPUT_NEUROFEEDBACK", "label": "Neurofeedback or state feedback", "definition": "Feedback is provided to the user based on neural, neurovascular, or adjudicated NeuroAI state information.", "group": "FEEDBACK", "aliases": []},
+      {"id": "OUTPUT_ADAPTIVE_INTERFACE", "label": "Adaptive interface or content", "definition": "Interface, content, or device behavior adapts using an evidenced neural or adjudicated NeuroAI state signal.", "group": "ADAPTATION", "aliases": []},
+      {"id": "OUTPUT_PERSONALIZATION_RECOMMENDATION", "label": "Personalization or recommendation", "definition": "Recommendation or personalization changes using an evidenced neural or adjudicated NeuroAI state signal.", "group": "ADAPTATION", "aliases": []},
+      {"id": "OUTPUT_COMMUNICATION", "label": "Communication output", "definition": "Neural or adjudicated NeuroAI signals are converted into communicative output such as text, speech, or symbol selection.", "group": "CONTROL_OR_COMMUNICATION", "aliases": []},
+      {"id": "OUTPUT_DEVICE_CONTROL", "label": "Device or environment control", "definition": "Neural or adjudicated NeuroAI signals control a device, cursor, environment, or software function.", "group": "CONTROL_OR_COMMUNICATION", "aliases": []},
+      {"id": "OUTPUT_ROBOTIC_PROSTHETIC_CONTROL", "label": "Robotic or prosthetic control", "definition": "Neural or adjudicated NeuroAI signals control a robotic, prosthetic, or assistive actuator.", "group": "CONTROL_OR_COMMUNICATION", "aliases": []},
+      {"id": "OUTPUT_SAFETY_ALERT", "label": "Safety or vigilance alert", "definition": "The system emits an alert or warning based on an inferred state such as drowsiness, fatigue, or vigilance.", "group": "DECISION_SUPPORT", "aliases": []},
+      {"id": "OUTPUT_CLINICAL_DECISION_SUPPORT", "label": "Clinical decision support", "definition": "The system produces information intended to support a clinical decision; this label does not establish clinical validity or authorization.", "group": "DECISION_SUPPORT", "aliases": []},
+      {"id": "OUTPUT_CENTRAL_ELECTRICAL_STIMULATION", "label": "Central electrical stimulation", "definition": "Electrical stimulation is delivered to the central nervous system or brain.", "group": "INTERVENTION", "aliases": []},
+      {"id": "OUTPUT_CENTRAL_MAGNETIC_STIMULATION", "label": "Central magnetic stimulation", "definition": "Magnetic stimulation is delivered to influence central neural activity.", "group": "INTERVENTION", "aliases": []},
+      {"id": "OUTPUT_CENTRAL_ULTRASOUND_STIMULATION", "label": "Central ultrasound stimulation", "definition": "Ultrasound is delivered with the intended function of influencing central neural activity.", "group": "INTERVENTION", "aliases": []},
+      {"id": "OUTPUT_PERIPHERAL_NERVE_STIMULATION", "label": "Peripheral nerve stimulation", "definition": "Stimulation is delivered to a peripheral nerve or peripheral neural interface.", "group": "INTERVENTION", "aliases": []},
+      {"id": "OUTPUT_UNKNOWN", "label": "Unknown intervention/output capability", "definition": "Available evidence is insufficient to identify an intervention or output capability.", "group": "UNKNOWN", "aliases": []},
+      {"id": "OUTPUT_OTHER_REVIEW_REQUIRED", "label": "Other intervention/output — review required", "definition": "Observed output or intervention does not fit the controlled vocabulary and requires review.", "group": "OTHER_REVIEW_REQUIRED", "aliases": []}
+    ],
+    "product_form_factor": [
+      {"id": "FORM_IMPLANTED_BRAIN_INTERFACE", "label": "Implanted brain interface", "definition": "Implanted system whose interface is located within or on the brain or cranial neural structures.", "group": "IMPLANTED", "aliases": []},
+      {"id": "FORM_IMPLANTED_PERIPHERAL_NEURAL_INTERFACE", "label": "Implanted peripheral neural interface", "definition": "Implanted system interfacing with peripheral nerves.", "group": "IMPLANTED", "aliases": []},
+      {"id": "FORM_HEADSET_CAP_HELMET", "label": "Headset, cap, or helmet", "definition": "Head-worn system using a headset, cap, helmet, or comparable cranial form factor.", "group": "HEAD_WORN", "aliases": []},
+      {"id": "FORM_HEADBAND", "label": "Headband", "definition": "Head-worn band form factor.", "group": "HEAD_WORN", "aliases": []},
+      {"id": "FORM_EARABLE_HEARABLE", "label": "Earable or hearable", "definition": "In-ear, around-ear, or ear-adjacent wearable form factor.", "group": "HEAD_WORN", "aliases": []},
+      {"id": "FORM_EYEWEAR", "label": "Eyewear", "definition": "Glasses, visor, or comparable eyewear form factor.", "group": "HEAD_WORN", "aliases": []},
+      {"id": "FORM_XR_HEADSET", "label": "XR headset", "definition": "Virtual-, augmented-, or mixed-reality headset containing or coupled to the observed NeuroAI capability.", "group": "HEAD_WORN", "aliases": []},
+      {"id": "FORM_SKIN_PATCH_ELECTRODE_ARRAY", "label": "Skin patch or electrode array", "definition": "Patch, adhesive, or externally placed electrode-array form factor.", "group": "BODY_WORN", "aliases": []},
+      {"id": "FORM_BODY_WEARABLE", "label": "Body wearable", "definition": "Wearable device positioned on the body outside the head/ear/eye categories.", "group": "BODY_WORN", "aliases": []},
+      {"id": "FORM_HANDHELD_DESKTOP", "label": "Handheld or desktop system", "definition": "Handheld, desktop, or stationary user-facing device.", "group": "EXTERNAL_SYSTEM", "aliases": []},
+      {"id": "FORM_CLINICAL_EQUIPMENT", "label": "Clinical equipment", "definition": "Clinical or diagnostic equipment whose physical form is primarily defined by clinical use rather than consumer wearability.", "group": "EXTERNAL_SYSTEM", "aliases": []},
+      {"id": "FORM_ROBOTIC_PROSTHETIC", "label": "Robotic or prosthetic system", "definition": "Robotic, prosthetic, or assistive physical system containing or controlled by the observed capability.", "group": "ACTUATED_SYSTEM", "aliases": []},
+      {"id": "FORM_SOFTWARE_ONLY", "label": "Software-only layer", "definition": "Software or model layer operating on externally supplied signals without a distinct hardware form factor in the scoped product identity.", "group": "SOFTWARE", "aliases": []},
+      {"id": "FORM_RESEARCH_PLATFORM_COMPONENT", "label": "Research platform or component", "definition": "Research-oriented platform, module, SDK, sensor component, or subsystem not necessarily sold as a complete end-user product.", "group": "PLATFORM_OR_COMPONENT", "aliases": []},
+      {"id": "FORM_UNKNOWN", "label": "Unknown form factor", "definition": "Available evidence is insufficient to identify product form factor.", "group": "UNKNOWN", "aliases": []},
+      {"id": "FORM_OTHER_REVIEW_REQUIRED", "label": "Other form factor — review required", "definition": "Observed form factor does not fit the controlled vocabulary and requires review.", "group": "OTHER_REVIEW_REQUIRED", "aliases": []}
+    ],
+    "deployment_context": [
+      {"id": "CONTEXT_CLINICAL_DIAGNOSIS_MONITORING", "label": "Clinical diagnosis or monitoring", "definition": "Use in clinical diagnosis, monitoring, or clinical assessment.", "group": "CLINICAL", "aliases": []},
+      {"id": "CONTEXT_CLINICAL_TREATMENT_REHABILITATION", "label": "Clinical treatment or rehabilitation", "definition": "Use for treatment, therapy, rehabilitation, or clinical intervention.", "group": "CLINICAL", "aliases": []},
+      {"id": "CONTEXT_ASSISTIVE_ACCESSIBILITY", "label": "Assistive or accessibility use", "definition": "Use to enable communication, control, access, or functional assistance for a user.", "group": "ASSISTIVE", "aliases": []},
+      {"id": "CONTEXT_RESEARCH_LAB", "label": "Research or laboratory use", "definition": "Use primarily in research, experimental, or laboratory settings.", "group": "RESEARCH", "aliases": []},
+      {"id": "CONTEXT_CONSUMER_WELLNESS", "label": "Consumer wellness", "definition": "Consumer-facing wellness, self-tracking, relaxation, or non-clinical personal use.", "group": "CONSUMER", "aliases": []},
+      {"id": "CONTEXT_SPORTS_PERFORMANCE", "label": "Sports or performance", "definition": "Use in sports, training, readiness, or performance optimization contexts.", "group": "PERFORMANCE", "aliases": []},
+      {"id": "CONTEXT_WORKPLACE_EMPLOYMENT", "label": "Workplace or employment", "definition": "Use in employment, workforce management, occupational performance, or worker monitoring contexts.", "group": "WORKPLACE", "aliases": []},
+      {"id": "CONTEXT_TRANSPORTATION_SAFETY", "label": "Transportation or operator safety", "definition": "Use in driving, aviation, transport, or safety-critical operator monitoring contexts.", "group": "SAFETY_CRITICAL", "aliases": []},
+      {"id": "CONTEXT_EDUCATION_TRAINING", "label": "Education or training", "definition": "Use in formal or informal education, learning, tutoring, or skill-training contexts.", "group": "EDUCATION", "aliases": []},
+      {"id": "CONTEXT_GAMING_XR_ENTERTAINMENT", "label": "Gaming, XR, or entertainment", "definition": "Use in gaming, immersive media, entertainment, or interactive experience contexts.", "group": "ENTERTAINMENT", "aliases": []},
+      {"id": "CONTEXT_DEFENSE_SECURITY", "label": "Defense or security", "definition": "Use in defense, military, intelligence, or security contexts; the tag records observed context and does not infer intent or misuse.", "group": "PUBLIC_OR_NATIONAL_SECURITY", "aliases": []},
+      {"id": "CONTEXT_INDUSTRIAL_OPERATION", "label": "Industrial or operational use", "definition": "Use in industrial operations, human-machine teaming, or operational control contexts outside transportation.", "group": "INDUSTRIAL", "aliases": []},
+      {"id": "CONTEXT_HOME_SMART_ENVIRONMENT", "label": "Home or smart environment", "definition": "Use in home automation, ambient computing, or domestic smart-environment contexts.", "group": "CONSUMER_OR_AMBIENT", "aliases": []},
+      {"id": "CONTEXT_UNKNOWN", "label": "Unknown deployment context", "definition": "Available evidence is insufficient to identify deployment context.", "group": "UNKNOWN", "aliases": []},
+      {"id": "CONTEXT_OTHER_REVIEW_REQUIRED", "label": "Other deployment context — review required", "definition": "Observed deployment context does not fit the controlled vocabulary and requires review.", "group": "OTHER_REVIEW_REQUIRED", "aliases": []}
+    ],
+    "regulatory_scientific_claim_state": [
+      {"id": "CLAIM_REGULATORY_AUTHORIZATION_EXPLICIT", "label": "Explicit regulatory authorization/clearance evidence", "definition": "An attributable regulatory source explicitly documents an authorization, clearance, approval, or equivalent status for an exact scoped product/use; jurisdiction and scope must be retained in the evidence record.", "kind": "REGULATORY", "aliases": []},
+      {"id": "CLAIM_REGULATORY_INVESTIGATIONAL", "label": "Investigational regulatory state", "definition": "Evidence explicitly indicates investigational, trial, experimental, or equivalent non-market authorization status in the relevant jurisdiction/context.", "kind": "REGULATORY", "aliases": []},
+      {"id": "CLAIM_REGULATORY_STATUS_UNRESOLVED", "label": "Regulatory status unresolved", "definition": "Observed evidence does not support a jurisdiction-specific regulatory-status conclusion.", "kind": "REGULATORY", "aliases": []},
+      {"id": "CLAIM_PEER_REVIEWED_EVIDENCE_REPORTED", "label": "Peer-reviewed evidence reported", "definition": "A peer-reviewed source reports evaluation relevant to the scoped capability; this tag does not by itself establish effectiveness, generalizability, or regulatory status.", "kind": "SCIENTIFIC", "aliases": []},
+      {"id": "CLAIM_PREPRINT_CONFERENCE_EVIDENCE_REPORTED", "label": "Preprint or conference evidence reported", "definition": "A preprint or conference source reports evaluation relevant to the scoped capability; evidence status remains distinct from peer review and regulatory authorization.", "kind": "SCIENTIFIC", "aliases": []},
+      {"id": "CLAIM_COMPANY_VALIDATION_REPORTED", "label": "Company-reported validation", "definition": "The company or product source reports validation or performance evidence; the claim remains source-attributed and is not independently established by this tag.", "kind": "REPRESENTATION", "aliases": []},
+      {"id": "CLAIM_MARKETING_FUNCTION_REPORTED", "label": "Marketing or product-function claim reported", "definition": "A company/product source represents a function or benefit without sufficient independent evidence in the scoped record to elevate the claim state.", "kind": "REPRESENTATION", "aliases": []},
+      {"id": "CLAIM_NO_EFFECTIVENESS_CLAIM_OBSERVED", "label": "No effectiveness claim observed", "definition": "The scoped observation contains no effectiveness claim; this does not establish absence across all sources or time.", "kind": "REPRESENTATION", "aliases": []},
+      {"id": "CLAIM_UNKNOWN", "label": "Unknown regulatory/scientific claim state", "definition": "Available evidence is insufficient to classify regulatory/scientific claim state.", "kind": "UNKNOWN", "aliases": []},
+      {"id": "CLAIM_OTHER_REVIEW_REQUIRED", "label": "Other claim state — review required", "definition": "Observed claim/evidence state does not fit the controlled vocabulary and requires review.", "kind": "OTHER_REVIEW_REQUIRED", "aliases": []}
+    ]
+  },
+  "gray_third": {
+    "retrieval_only": true,
+    "canonical_population_class": false,
+    "definition": "Gray-third tags are capability-first discovery and boundary-validation aids for applications that may be missed by conventional clinical/scientific neurotechnology terminology. They do not establish NeuroAI inclusion or a complete population.",
+    "search_families": [
+      {"id": "GRAY_ATTENTION_VIGILANCE", "label": "Attention / vigilance", "examples": ["attention estimation", "drowsiness or fatigue detection", "engagement measurement"]},
+      {"id": "GRAY_COGNITIVE_AFFECTIVE_STATE", "label": "Cognitive / affective state", "examples": ["stress", "workload", "emotion", "cognitive load", "readiness"]},
+      {"id": "GRAY_ADAPTIVE_INTERFACES", "label": "Adaptive interfaces", "examples": ["content or device adapts to neural or physiological state"]},
+      {"id": "GRAY_COGNITIVE_ENHANCEMENT_TRAINING", "label": "Cognitive enhancement / training", "examples": ["learning optimization", "memory or attention training", "neurofeedback"]},
+      {"id": "GRAY_BEHAVIORAL_PERSONALIZATION", "label": "Behavioral personalization", "examples": ["closed-loop recommendation or personalization using brain/body-state signals"]},
+      {"id": "GRAY_NONTRADITIONAL_FORM_FACTOR", "label": "Nontraditional sensing form factors", "examples": ["earbuds or hearables", "eyewear", "wearables with neural or near-neural sensing"]}
+    ]
+  },
+  "mapping_scaffold": {
+    "status": "PRE_D12_SCAFFOLD_ONLY",
+    "unit": "observed capability deployed in an evidenced context",
+    "chain": ["OBSERVED_PRODUCT_OR_SYSTEM", "CAPABILITY", "DEPLOYMENT_CONTEXT", "MECHANISM", "GOVERNANCE_CONCERN", "POLICY_INSTRUMENT_OR_RECOMMENDATION"],
+    "mechanisms": [
+      {"id": "MECH_CONTINUOUS_STATE_MONITORING", "label": "Continuous or repeated state monitoring", "definition": "A capability supports repeated or continuous inference/measurement of a person-related neural or neurocognitive state."},
+      {"id": "MECH_ADAPTIVE_DECISION_CONTENT", "label": "Adaptive decision, interface, or content", "definition": "An inferred state changes content, recommendations, interface behavior, access, or a system decision."},
+      {"id": "MECH_CLOSED_LOOP_INTERVENTION", "label": "Closed-loop intervention", "definition": "Observed sensing or inference informs an intervention delivered within a closed-loop process."},
+      {"id": "MECH_SENSITIVE_NEURAL_DATA_PROCESSING", "label": "Sensitive neural-data processing", "definition": "The capability processes neural or neurocognitive data whose collection, inference, retention, linkage, or reuse can be governance-relevant."},
+      {"id": "MECH_POWER_ASYMMETRY_DEPLOYMENT", "label": "Deployment under power asymmetry", "definition": "The observed context places the data subject or user in a materially asymmetric institutional relationship, such as employment or another controlled setting."},
+      {"id": "MECH_OTHER_REVIEW_REQUIRED", "label": "Other mechanism — review required", "definition": "A proposed mechanism is outside the controlled scaffold and requires review before use."}
+    ],
+    "concerns": [
+      {"id": "CONCERN_PRIVACY", "label": "Privacy"},
+      {"id": "CONCERN_CONSENT", "label": "Consent"},
+      {"id": "CONCERN_AUTONOMY", "label": "Autonomy"},
+      {"id": "CONCERN_DISCRIMINATION", "label": "Discrimination"},
+      {"id": "CONCERN_ACCOUNTABILITY", "label": "Accountability"},
+      {"id": "CONCERN_OTHER_REVIEW_REQUIRED", "label": "Other concern — review required"}
+    ],
+    "bounded_language_template": "could implicate concern {concern} under conditions {conditions} through mechanism {mechanism}",
+    "predicted_harm_allowed": false,
+    "prohibited_assertion_templates": [
+      "company or product will cause harm X",
+      "company intends misuse",
+      "deployment inevitably produces concern X"
+    ],
+    "review_required": true
+  },
+  "multilingual_policy": {
+    "controlled_ids_language_independent": true,
+    "english_label_is_reference_label_not_identity": true,
+    "translated_terms_are_aliases_only": true,
+    "preserve_original_language_source_metadata": true,
+    "translation_review_required_for_query_pack_promotion": true
+  },
+  "change_control": {
+    "term_addition_requires_recorded_rationale": true,
+    "term_deletion_or_semantic_change_requires_version_bump": true,
+    "expert_dispositions_may_propose_changes_but_do_not_apply_automatically": true,
+    "g1_approval_requires_exact_d1_d2_identity_binding": true,
+    "technical_validation_cannot_set_g1_approved": true,
+    "future_d12_crosswalk_must_reference_exact_taxonomy_version": true
+  }
+}

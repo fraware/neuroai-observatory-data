@@ -1,0 +1,52 @@
+name: PRE-G1 D1 landscape research contract
+
+on:
+  pull_request:
+    paths:
+      - "curation/LANDSCAPE_RESEARCH_CONTRACT_v0.1.json"
+      - "schemas/landscape-research-contract-v0.1.schema.json"
+      - "scripts/validate_landscape_research_contract.py"
+      - "tests/test_landscape_research_contract.py"
+      - "docs/landscape-research-contract.md"
+      - ".github/workflows/pre-g1-d1-landscape-research-contract.yml"
+  push:
+    branches: [main]
+    paths:
+      - "curation/LANDSCAPE_RESEARCH_CONTRACT_v0.1.json"
+      - "schemas/landscape-research-contract-v0.1.schema.json"
+      - "scripts/validate_landscape_research_contract.py"
+      - "tests/test_landscape_research_contract.py"
+      - "docs/landscape-research-contract.md"
+      - ".github/workflows/pre-g1-d1-landscape-research-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-d1-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Parse D1 schema
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          path = Path("schemas/landscape-research-contract-v0.1.schema.json")
+          json.loads(path.read_text(encoding="utf-8"))
+          print(path)
+          PY
+      - name: Validate D1 contract
+        run: python scripts/validate_landscape_research_contract.py
+      - name: Run D1 adversarial tests
+        run: python -m unittest tests.test_landscape_research_contract -v
+      - name: Authority boundary
+        run: |
+          echo "Technical validation only: this workflow cannot approve G1,"
+          echo "repin Workbench, authorize publication, claim G0 evidence,"
+          echo "or mutate canonical S2 records."
