@@ -67,8 +67,107 @@ def _load_json(path: Path) -> Any:
         return json.load(handle)
 
 
+def _resolve_ref(root_schema: dict[str, Any], ref: str) -> dict[str, Any]:
+    _require(ref.startswith("#/"), f"unsupported schema ref: {ref}")
+    node: Any = root_schema
+    for part in ref[2:].split("/"):
+        part = part.replace("~1", "/").replace("~0", "~")
+        _require(isinstance(node, dict) and part in node, f"unresolvable schema ref: {ref}")
+        node = node[part]
+    _require(isinstance(node, dict), f"schema ref must resolve to object: {ref}")
+    return node
+
+
+def _matches_json_type(value: Any, type_name: str) -> bool:
+    if type_name == "object":
+        return isinstance(value, dict)
+    if type_name == "array":
+        return isinstance(value, list)
+    if type_name == "string":
+        return isinstance(value, str)
+    if type_name == "boolean":
+        return isinstance(value, bool)
+    if type_name == "null":
+        return value is None
+    if type_name == "integer":
+        return isinstance(value, int) and not isinstance(value, bool)
+    if type_name == "number":
+        return isinstance(value, (int, float)) and not isinstance(value, bool)
+    raise ValidationError(f"unsupported schema type: {type_name}")
+
+
+def _validate_schema_subset(
+    value: Any,
+    schema: dict[str, Any],
+    root_schema: dict[str, Any],
+    path: str = "$",
+) -> None:
+    """Validate the exact JSON-Schema subset used by this D2 contract, offline.
+
+    Supported keywords are deliberately explicit. Any new unsupported keyword that
+    affects instance validation must be added here before the workflow can claim
+    the bundled schema is enforced.
+    """
+    if "$ref" in schema:
+        _validate_schema_subset(value, _resolve_ref(root_schema, schema["$ref"]), root_schema, path)
+        return
+
+    if "const" in schema:
+        _require(value == schema["const"], f"schema const violation at {path}")
+    if "enum" in schema:
+        _require(value in schema["enum"], f"schema enum violation at {path}: {value!r}")
+
+    if "type" in schema:
+        allowed = schema["type"] if isinstance(schema["type"], list) else [schema["type"]]
+        _require(
+            any(_matches_json_type(value, type_name) for type_name in allowed),
+            f"schema type violation at {path}: expected {allowed}",
+        )
+
+    if isinstance(value, str):
+        if "minLength" in schema:
+            _require(len(value) >= schema["minLength"], f"schema minLength violation at {path}")
+        if "pattern" in schema:
+            import re
+
+            _require(
+                re.search(schema["pattern"], value) is not None,
+                f"schema pattern violation at {path}: {value!r}",
+            )
+
+    if isinstance(value, list):
+        if "minItems" in schema:
+            _require(len(value) >= schema["minItems"], f"schema minItems violation at {path}")
+        if "maxItems" in schema:
+            _require(len(value) <= schema["maxItems"], f"schema maxItems violation at {path}")
+        if schema.get("uniqueItems") is True:
+            serialized = [json.dumps(item, sort_keys=True, separators=(",", ":")) for item in value]
+            _require(
+                len(serialized) == len(set(serialized)),
+                f"schema uniqueItems violation at {path}",
+            )
+        if "items" in schema:
+            for index, item in enumerate(value):
+                _validate_schema_subset(item, schema["items"], root_schema, f"{path}[{index}]")
+
+    if isinstance(value, dict):
+        required = schema.get("required", [])
+        for key in required:
+            _require(key in value, f"schema required property missing at {path}.{key}")
+        properties = schema.get("properties", {})
+        if schema.get("additionalProperties") is False:
+            extras = set(value) - set(properties)
+            _require(not extras, f"schema additional properties at {path}: {sorted(extras)}")
+        for key, child_schema in properties.items():
+            if key in value:
+                _validate_schema_subset(value[key], child_schema, root_schema, f"{path}.{key}")
+
+
 def validate_document(doc: dict[str, Any], schema: dict[str, Any] | None = None) -> None:
-    _require(doc.get("artifact_id") == "CAPABILITY_CONTEXT_TAXONOMY_v0.1", "unexpected artifact_id")
+    _require(
+        doc.get("artifact_id") == "CAPABILITY_CONTEXT_TAXONOMY_v0.1",
+        "unexpected artifact_id",
+    )
     _require(doc.get("version") == "0.1", "unexpected taxonomy version")
     _require(doc.get("status") == "PRE_G1_DRAFT", "D2 must remain PRE_G1_DRAFT")
 
@@ -77,7 +176,10 @@ def validate_document(doc: dict[str, Any], schema: dict[str, Any] | None = None)
     _require(gov.get("canonical_authority") is False, "D2 draft must not carry canonical authority")
     _require(gov.get("publication_authority") is False, "D2 draft must not carry publication authority")
     _require(gov.get("assessment_effect") == "NONE", "D2 draft must not alter assessment state")
-    _require(gov.get("requires_human_governance_disposition") is True, "human G1 disposition must remain required")
+    _require(
+        gov.get("requires_human_governance_disposition") is True,
+        "human G1 disposition must remain required",
+    )
 
     policy = doc.get("classification_policy", {})
     for key in (
@@ -91,7 +193,10 @@ def validate_document(doc: dict[str, Any], schema: dict[str, Any] | None = None)
 
     axes = doc.get("axes")
     _require(isinstance(axes, dict), "axes must be an object")
-    _require(tuple(axes.keys()) == EXPECTED_AXES, "axes must be present in the controlled order with no extras")
+    _require(
+        tuple(axes.keys()) == EXPECTED_AXES,
+        "axes must be present in the controlled order with no extras",
+    )
 
     all_ids: set[str] = set()
     for axis in EXPECTED_AXES:
@@ -106,33 +211,81 @@ def validate_document(doc: dict[str, Any], schema: dict[str, Any] | None = None)
             _require(term_id not in all_ids, f"duplicate term id across taxonomy: {term_id}")
             axis_ids.add(term_id)
             all_ids.add(term_id)
-            _require(isinstance(term.get("label"), str) and term["label"].strip(), f"{term_id} missing label")
-            _require(isinstance(term.get("definition"), str) and term["definition"].strip(), f"{term_id} missing definition")
+            _require(
+                isinstance(term.get("label"), str) and term["label"].strip(),
+                f"{term_id} missing label",
+            )
+            _require(
+                isinstance(term.get("definition"), str) and term["definition"].strip(),
+                f"{term_id} missing definition",
+            )
             _require(isinstance(term.get("aliases"), list), f"{term_id} aliases must be a list")
             for alias in term["aliases"]:
-                _require(set(alias) == {"language", "text"}, f"{term_id} alias must contain only language/text")
-                _require(isinstance(alias["language"], str) and alias["language"], f"{term_id} alias missing language")
-                _require(isinstance(alias["text"], str) and alias["text"].strip(), f"{term_id} alias missing text")
-        _require(REQUIRED_SENTINELS[axis].issubset(axis_ids), f"axis {axis} missing UNKNOWN/OTHER_REVIEW_REQUIRED sentinels")
+                _require(
+                    set(alias) == {"language", "text"},
+                    f"{term_id} alias must contain only language/text",
+                )
+                _require(
+                    isinstance(alias["language"], str) and alias["language"],
+                    f"{term_id} alias missing language",
+                )
+                _require(
+                    isinstance(alias["text"], str) and alias["text"].strip(),
+                    f"{term_id} alias missing text",
+                )
+        _require(
+            REQUIRED_SENTINELS[axis].issubset(axis_ids),
+            f"axis {axis} missing UNKNOWN/OTHER_REVIEW_REQUIRED sentinels",
+        )
 
     for term in axes["sensing_modality"]:
         if term.get("proxy_only") is True:
-            _require(term.get("neural_directness") == "PHYSIOLOGICAL_PROXY", f"proxy-only sensing term {term['id']} must be PHYSIOLOGICAL_PROXY")
-            _require(term.get("default_inclusion_evidence_role") == "SUPPORTING_ONLY", f"proxy-only sensing term {term['id']} cannot be primary inclusion evidence")
+            _require(
+                term.get("neural_directness") == "PHYSIOLOGICAL_PROXY",
+                f"proxy-only sensing term {term['id']} must be PHYSIOLOGICAL_PROXY",
+            )
+            _require(
+                term.get("default_inclusion_evidence_role") == "SUPPORTING_ONLY",
+                f"proxy-only sensing term {term['id']} cannot be primary inclusion evidence",
+            )
         if term.get("neural_directness") == "PHYSIOLOGICAL_PROXY":
-            _require(term.get("proxy_only") is True, f"physiological proxy {term['id']} must be marked proxy_only")
+            _require(
+                term.get("proxy_only") is True,
+                f"physiological proxy {term['id']} must be marked proxy_only",
+            )
 
     gray = doc.get("gray_third", {})
-    _require(gray.get("retrieval_only") is True, "gray-third must remain retrieval/boundary-testing only")
-    _require(gray.get("canonical_population_class") is False, "gray-third must not be declared a canonical population class")
+    _require(
+        gray.get("retrieval_only") is True,
+        "gray-third must remain retrieval/boundary-testing only",
+    )
+    _require(
+        gray.get("canonical_population_class") is False,
+        "gray-third must not be declared a canonical population class",
+    )
     gray_ids = {item.get("id") for item in gray.get("search_families", [])}
-    _require(gray_ids == EXPECTED_GRAY_FAMILIES, "gray-third search families must match the six blueprint families exactly")
+    _require(
+        gray_ids == EXPECTED_GRAY_FAMILIES,
+        "gray-third search families must match the six blueprint families exactly",
+    )
 
     mapping = doc.get("mapping_scaffold", {})
-    _require(mapping.get("status") == "PRE_D12_SCAFFOLD_ONLY", "mapping scaffold must not claim D12 completion")
-    _require(mapping.get("chain") == EXPECTED_CHAIN, "mapping chain must preserve capability/context/mechanism/concern separation")
-    _require(mapping.get("bounded_language_template") == EXPECTED_BOUNDED_LANGUAGE, "bounded policy language template changed")
-    _require(mapping.get("predicted_harm_allowed") is False, "predicted-harm assertions must remain prohibited")
+    _require(
+        mapping.get("status") == "PRE_D12_SCAFFOLD_ONLY",
+        "mapping scaffold must not claim D12 completion",
+    )
+    _require(
+        mapping.get("chain") == EXPECTED_CHAIN,
+        "mapping chain must preserve capability/context/mechanism/concern separation",
+    )
+    _require(
+        mapping.get("bounded_language_template") == EXPECTED_BOUNDED_LANGUAGE,
+        "bounded policy language template changed",
+    )
+    _require(
+        mapping.get("predicted_harm_allowed") is False,
+        "predicted-harm assertions must remain prohibited",
+    )
     _require(mapping.get("review_required") is True, "mapping review must remain required")
 
     multilingual = doc.get("multilingual_policy", {})
@@ -156,12 +309,24 @@ def validate_document(doc: dict[str, Any], schema: dict[str, Any] | None = None)
     ):
         _require(change.get(key) is True, f"change-control invariant {key} must be true")
 
+    # Validate the exact JSON-Schema subset used by this artifact without
+    # third-party dependencies or network access.
     if schema is not None:
-        _require(schema.get("$schema") == "https://json-schema.org/draft/2020-12/schema", "schema must use JSON Schema 2020-12")
+        _require(
+            schema.get("$schema") == "https://json-schema.org/draft/2020-12/schema",
+            "schema must use JSON Schema 2020-12",
+        )
         _require(schema.get("type") == "object", "schema root must be an object")
-        _require(schema.get("additionalProperties") is False, "schema root must fail closed on unknown properties")
+        _require(
+            schema.get("additionalProperties") is False,
+            "schema root must fail closed on unknown properties",
+        )
+        _validate_schema_subset(doc, schema, schema)
         required = set(schema.get("required", []))
-        _require(required == set(doc.keys()), "schema required top-level keys must exactly match artifact top-level keys")
+        _require(
+            required == set(doc.keys()),
+            "schema required top-level keys must exactly match artifact top-level keys",
+        )
 
 
 def main() -> int:
@@ -178,7 +343,10 @@ def main() -> int:
         print(f"FAIL: {exc}")
         return 1
 
-    print("PASS: CAPABILITY_CONTEXT_TAXONOMY_v0.1 is structurally coherent and remains PRE_G1_DRAFT")
+    print(
+        "PASS: CAPABILITY_CONTEXT_TAXONOMY_v0.1 is structurally coherent "
+        "and remains PRE_G1_DRAFT"
+    )
     return 0
 
 
