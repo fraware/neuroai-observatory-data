@@ -13,11 +13,11 @@ Interpretation rule: the packet keeps `g1_approved=false` until an attributable 
 
 This packet is *not* an approval record. It contains no private/protected evidence.
 
-## Public PRE-G2 S2 bindings (bound)
+## G0/G1 status after SRC-14-021 disposition C
 
-`curation/PUBLIC_PRE_G2_S2_BINDINGS_OBSERVATORY_RECOVERY_2026-09-03_BOUND_v0.1.json` records the Workbench-confirmed public PRE-G2 lineage bindables (software-binding SHA `336da167…`) while keeping `g2_passed=false`, `canonical_s2_authority=false`, and `publication_authority=false`. The G0 transport pin remains `685f1597…` and is recorded separately from the software binding.
+Observatory control successor `curation/PROGRAMME_EXECUTION_STATE_2026-09-03_SRC14021_DISPOSITION_C_SUCCESSOR.json` records disposition C for SRC-14-021 (leave DEGRADED; no invented host; no lifecycle resolution without overlay-qualifying evidence). `g1_approved` remains false. See `curation/HUMAN_G1_PACKET_STATUS_NOTE_2026-09-03_SRC14021_DISPOSITION_C.md`.
 
-The UNKNOWN template below remains historical and immutable.
+G0 remains `BLOCKED_NOT_PASSED` on B01 (no `event=schedule` since pin) and due-cycle health (SRC-14-021). Workbench G0 transport pin remains `685f1597a2a63f2e2217f65f115a67ac3e35cc55`.
 
 ## Public PRE-G2 S2 bindings (bound)
 

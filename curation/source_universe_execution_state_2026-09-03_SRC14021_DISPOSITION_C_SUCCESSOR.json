@@ -1,0 +1,244 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "source_universe_execution_state_2026-09-03_SRC14021_DISPOSITION_C_SUCCESSOR",
+  "status": "PRE_G0_CURRENT_EXECUTION_STATE_NONCANONICAL",
+  "as_of": "2026-09-03",
+  "purpose": "Append-only source-universe execution-state successor aligned to SRC-14-021 disposition C on Observatory 9e6def4196d938c0443a01243c8df2f4a6bca3cf; G0 transport pin remains 685f1597a2a63f2e2217f65f115a67ac3e35cc55.",
+  "predecessor": {
+    "path": "curation/source_universe_execution_state_2026-09-03_S1_CONFIRMATION_PRE_G2_BINDINGS_SUCCESSOR.json",
+    "control_id": "source_universe_execution_state_2026-09-03_S1_CONFIRMATION_PRE_G2_BINDINGS_SUCCESSOR"
+  },
+  "matching_programme_successor": "curation/PROGRAMME_EXECUTION_STATE_2026-09-03_SRC14021_DISPOSITION_C_SUCCESSOR.json",
+  "repository_pins": {
+    "observatory_main_sha": "9e6def4196d938c0443a01243c8df2f4a6bca3cf",
+    "workbench_pin_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+    "workbench_software_binding_sha": "336da167700a7ce2894c27826f8a1c999e1ee844",
+    "workbench_software_binding_is_not_g0_transport_pin": true
+  },
+  "g0": {
+    "decision": "BLOCKED_NOT_PASSED",
+    "passed": false,
+    "open_blocker_ids": [
+      "G0-B01",
+      "G0-OPERATIONAL-DUE-CYCLE"
+    ]
+  },
+  "g1": {
+    "g1_approved": false
+  },
+  "source_universes": {
+    "SU-TRIALS": {
+      "programme_id": "SU-TRIALS-CTGOV-v0.1",
+      "source_system": "CLINICALTRIALS_GOV",
+      "implementation_state": "CURRENT_REPLACEMENT_CHAIN_MERGED_EXACT_PAIRING_HOSTED_VALIDATION_EXECUTED",
+      "exact_workbench_pin_for_execution_workflows": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "pin_alignment_issue": 177,
+      "pin_alignment_pr": 178,
+      "o1_pin_pr": 195,
+      "audited_execution_workflows": [
+        ".github/workflows/su-trials-clinicaltrials-programme.yml",
+        ".github/workflows/su-trials-recorded-replay.yml",
+        ".github/workflows/su-trials-human-review-staging.yml",
+        ".github/workflows/su-trials-source-namespace-successor.yml",
+        ".github/workflows/discovery-source-materialization-monitor-proposals.yml"
+      ],
+      "audited_workflows_pin_current_workbench": true,
+      "current": {
+        "label": "current",
+        "reexecuted_against_new_merged_workbench_pairing": true,
+        "live_execution_state": "FIVE_WORKFLOW_HOSTED_VALIDATION_SUCCESS_ON_EXACT_PAIRING",
+        "hosted_validation_state": "EXECUTED_SUCCESS",
+        "evidence_replaced": true,
+        "ledger_rows": [
+          {
+            "workflow": "SU-TRIALS ClinicalTrials.gov programme",
+            "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+            "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+            "event": "workflow_dispatch",
+            "run_id": 33782672235,
+            "job_id": 100739884059,
+            "conclusion": "success",
+            "proves": "Programme contract validation on exact pairing.",
+            "does_not_prove": "B01, due-cycle GREEN, or G0 PASS."
+          },
+          {
+            "workflow": "SU-TRIALS ClinicalTrials.gov recorded replay",
+            "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+            "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+            "event": "workflow_dispatch",
+            "run_id": 33782676127,
+            "job_id": 100739899662,
+            "conclusion": "success",
+            "proves": "Recorded-replay contract on exact pairing.",
+            "does_not_prove": "Live CT.gov retrieval beyond recorded fixtures, B01, or G0 PASS."
+          },
+          {
+            "workflow": "SU-TRIALS human-review staging",
+            "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+            "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+            "event": "workflow_dispatch",
+            "run_id": 33782679817,
+            "job_id": 100739909580,
+            "conclusion": "success",
+            "proves": "Staging contract on exact pairing.",
+            "does_not_prove": "Human acceptance or G0 PASS."
+          },
+          {
+            "workflow": "SU-TRIALS Source-namespace successor",
+            "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+            "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+            "event": "workflow_dispatch",
+            "run_id": 33782683080,
+            "job_id": 100739919153,
+            "conclusion": "success",
+            "proves": "Namespace successor contract on exact pairing.",
+            "does_not_prove": "Automatic publication or G0 PASS."
+          },
+          {
+            "workflow": "Discovery Source materialization and monitoring proposals",
+            "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+            "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+            "event": "workflow_dispatch",
+            "run_id": 33782686451,
+            "job_id": 100739929673,
+            "conclusion": "success",
+            "proves": "Materialization/monitor-proposal contract on exact pairing.",
+            "does_not_prove": "Automatic monitor creation, B01, or G0 PASS."
+          }
+        ]
+      },
+      "historical": {
+        "label": "historical",
+        "evidence_replaced": true,
+        "source_record": "curation/source_universe_execution_state_2026-09-03_CONTROL_ACCOUNTING_SUCCESSOR.json"
+      },
+      "effective_lifecycle_source_count_policy": 248,
+      "stale_249_vs_248_expected_source_count_bug_is_active_implementation_blocker": false,
+      "workflow_dispatch_available_in_repository": true,
+      "workflow_dispatch_is_not_b01": true,
+      "canonical_publication_state": "NOT_CONFERRED_BY_B05_HOSTED_VALIDATION",
+      "automatic_monitor_creation_claim": false,
+      "automatic_assessment_mutation_claim": false,
+      "registry_completeness_claim": false,
+      "global_neuroai_trial_recall_claim": false
+    }
+  },
+  "b01": {
+    "state": "OPEN",
+    "schedule_evidence_on_current_pairing": false,
+    "newest_schedule_run_id": 33387613206,
+    "schedule_runs_since_g0_pin": []
+  },
+  "b02": {
+    "state": "CONTROLLED_LIVE_PROOF_EXECUTED_ON_EXACT_PAIRING",
+    "current": {
+      "label": "current",
+      "reexecuted_against_new_merged_workbench_pairing": true,
+      "run_id": 33782669430,
+      "job_id": 100739877725,
+      "conclusion": "success",
+      "evidence_replaced": true
+    },
+    "historical": {
+      "label": "historical",
+      "evidence_replaced": true
+    }
+  },
+  "b04": {
+    "state": "GREEN_SYNTHETIC_EXECUTED_ON_EXACT_MAIN",
+    "current": {
+      "label": "current",
+      "reexecuted_against_new_merged_workbench_pairing": true,
+      "run_id": 33782324747,
+      "job_id": 100738740952,
+      "conclusion": "success",
+      "green_synthetic_claimed": true,
+      "substantive_s2_release_published": false,
+      "evidence_replaced": true
+    },
+    "historical": {
+      "label": "historical",
+      "evidence_replaced": true
+    }
+  },
+  "b05": {
+    "state": "FIVE_WORKFLOW_HOSTED_VALIDATION_EXECUTED_ON_EXACT_PAIRING",
+    "current": {
+      "label": "current",
+      "reexecuted_against_new_merged_workbench_pairing": true,
+      "evidence_replaced": true
+    },
+    "historical": {
+      "label": "historical",
+      "evidence_replaced": true,
+      "source_record": "curation/source_universe_execution_state_2026-09-03_CONTROL_ACCOUNTING_SUCCESSOR.json"
+    }
+  },
+  "operational_due_cycle": {
+    "proof_claimed": false,
+    "effective_sources": 248,
+    "source_health_invariants_weakened": false,
+    "unresolved_failed_source_ids": [
+      "SRC-14-021"
+    ],
+    "route_resolved_failed_source_ids": [
+      "SRC-0064",
+      "SRC-14-019"
+    ],
+    "push_run_id": 33805159350,
+    "dispatch_run_id": 33805163180,
+    "failure_reason": "source_resolution_state DEGRADED from unresolved typed failure SRC-14-021; disposition C leave-degraded after exhaustive investigation",
+    "disposition": "C_LEAVE_DEGRADED"
+  },
+  "d1_d2_on_origin_main": {
+    "g1_approved": false,
+    "d1_artifact_id": "LANDSCAPE_RESEARCH_CONTRACT_v0.1",
+    "d2_artifact_id": "CAPABILITY_CONTEXT_TAXONOMY_v0.1",
+    "merged_prs": [
+      192,
+      193
+    ],
+    "landed_on_origin_main_sha": "d14994a578561b34d1dfcbb467faf761bf9a4c31",
+    "presented_against_observatory_main_sha": "367ae8abad57f5733dabee398509404a36ea3ec1"
+  },
+  "operational_gate": {
+    "state": "BLOCKED_NOT_PASSED",
+    "remaining": [
+      "G0-B01",
+      "G0-OPERATIONAL-DUE-CYCLE"
+    ]
+  },
+  "next_gate": [
+    "Obtain event=schedule B01 on current pin pairing (685f1597).",
+    "SRC-14-021 remains DEGRADED under disposition C until governed identity-bearing official-route or lifecycle-overlay-qualifying evidence appears; do not soften health."
+  ],
+  "non_claims": [
+    "No G0 PASS.",
+    "No g1_approved=true.",
+    "No g2_passed=true.",
+    "No schedule invented for B01.",
+    "No invented official host for SRC-14-021.",
+    "No lifecycle resolution of SRC-14-021 without overlay-qualifying evidence.",
+    "No weakening of healthy-source invariants.",
+    "No G0 re-pin to 336da167."
+  ],
+  "boundary": "This successor records SRC-14-021 disposition C for source-universe control accounting. It does not establish B01 scheduled evidence, due-cycle GREEN health, substantive publication, G1 approval, G2 PASS, or a G0 pass.",
+  "g2": {
+    "g2_passed": false,
+    "public_pre_g2_bindings_path": "curation/PUBLIC_PRE_G2_S2_BINDINGS_OBSERVATORY_RECOVERY_2026-09-03_BOUND_v0.1.json",
+    "workbench_software_binding_sha": "336da167700a7ce2894c27826f8a1c999e1ee844"
+  },
+  "s1_workbench_confirmation": {
+    "received": true,
+    "g0_transport_pin_confirmed": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+    "clinicaltrials_proof_run_id": 33781523925,
+    "clinicaltrials_proof_job_id": 100736091926,
+    "src_14_021_remains_observatory_owned": true,
+    "dns_false_negative_evidence_from_workbench": false
+  },
+  "src_14_021_disposition": {
+    "chosen": "C",
+    "label": "LEAVE_DEGRADED_DOCUMENT_WHY",
+    "programme_investigation_ref": "src_14_021_disposition_investigation"
+  }
+}
