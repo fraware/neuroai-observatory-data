@@ -1,0 +1,29 @@
+name: PRE-G1 D2 capability-context taxonomy
+
+on:
+  pull_request:
+    paths:
+      - "curation/CAPABILITY_CONTEXT_TAXONOMY_v0.1.json"
+      - "schemas/capability-context-taxonomy-v0.1.schema.json"
+      - "scripts/validate_capability_context_taxonomy.py"
+      - "tests/test_capability_context_taxonomy.py"
+      - ".github/workflows/pre-g1-d2-capability-context-taxonomy.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-d2-draft:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Validate D2 draft invariants
+        run: python scripts/validate_capability_context_taxonomy.py
+      - name: Run D2 regression tests
+        run: python -m unittest tests.test_capability_context_taxonomy -v
+      - name: Authority boundary
+        run: |
+          echo "Technical validation only: this workflow cannot approve G1, mutate canonical S2, authorize publication, or alter v4.2 assessment state."
