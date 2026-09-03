@@ -35,7 +35,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           repository: fraware/neuroai-workbench
-          ref: 33414065e53c45221d29209ef4703b6d900781f7
+          ref: 685f1597a2a63f2e2217f65f115a67ac3e35cc55
           path: workbench
           persist-credentials: false
 
@@ -64,7 +64,7 @@ jobs:
           python scripts/run_pre_g0_b04_publication_authority_proof.py \
             --workspace "$proof_root/workspace" \
             --output "$proof_root/proof.json" \
-            --workbench-commit "33414065e53c45221d29209ef4703b6d900781f7"
+            --workbench-commit "685f1597a2a63f2e2217f65f115a67ac3e35cc55"
           test ! -e "$proof_root/workspace"
 
       - name: Enforce sanitized B04 acceptance boundary
@@ -78,7 +78,7 @@ jobs:
               (Path(os.environ["RUNNER_TEMP"]) / "pre-g0-b04" / "proof.json").read_text(encoding="utf-8")
           )
           assert proof["status"] == "PRE_G0_B04_NONPRODUCTION_PUBLICATION_AUTHORITY_PROOF"
-          assert proof["workbench_commit"] == "33414065e53c45221d29209ef4703b6d900781f7"
+          assert proof["workbench_commit"] == "685f1597a2a63f2e2217f65f115a67ac3e35cc55"
           assert proof["candidate"]["synthetic_only"] is True
           assert proof["candidate"]["candidate_verification_valid"] is True
           assert proof["candidate"]["preview_canonical"] is False

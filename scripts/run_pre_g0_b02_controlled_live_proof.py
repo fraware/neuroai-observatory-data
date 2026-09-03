@@ -39,7 +39,7 @@ from source_lifecycle_overlay import (
     load_verified_lifecycle_overlay,
 )
 
-EXPECTED_WORKBENCH_COMMIT = "33414065e53c45221d29209ef4703b6d900781f7"
+EXPECTED_WORKBENCH_COMMIT = "685f1597a2a63f2e2217f65f115a67ac3e35cc55"
 PROOF_SOURCE_ID = "SRC-0002"
 PROOF_SOURCE_EXPECTED = {
     "source_id": PROOF_SOURCE_ID,

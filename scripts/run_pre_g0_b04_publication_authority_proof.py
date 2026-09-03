@@ -36,7 +36,7 @@ from neuroai_workbench.observatory_s2_release import (
 )
 from neuroai_workbench.util import canonical_json_bytes, sha256_bytes
 
-EXPECTED_WORKBENCH_COMMIT = "33414065e53c45221d29209ef4703b6d900781f7"
+EXPECTED_WORKBENCH_COMMIT = "685f1597a2a63f2e2217f65f115a67ac3e35cc55"
 STATUS = "PRE_G0_B04_NONPRODUCTION_PUBLICATION_AUTHORITY_PROOF"
 SYNTHETIC_ENTITY_ID = "ORG-PRE-G0-B04-SYNTHETIC"
 SYNTHETIC_RELEASE_TAG = "pre-g0-b04-synthetic"
