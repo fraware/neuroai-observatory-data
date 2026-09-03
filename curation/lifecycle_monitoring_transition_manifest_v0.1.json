@@ -13,12 +13,12 @@
     "active_recurring_monitor": false,
     "lifecycle_state": "NO_LONGER_LISTED",
     "monitoring_state": "LIFECYCLE_RESOLVED_ARCHIVAL",
-    "overlay_sha256": "235f5823be7086f21e79764f4357b2427a85eca606901b337c777a07f4367a3d",
+    "overlay_sha256": "d4c0e30b4fa34f0ba703be25d4bb2d705a80696357c3bda6d13f2296c563b7fb",
     "source_id": "SRC-PR-015",
     "successor_discovery_watch_id": "DISC-SCIENCE-CAREERS-001",
-    "transition_sha256": "83dae3c3f61d2a520f136d5213c0560b1681c700929c1f092f99f1cb5404e3c7"
+    "transition_sha256": "4ed49b8b82d217d35632dba818d2c6f05bb1958ebf201898e49a3f76ce261880"
   },
-  "manifest_sha256": "88f63d72e499dc93e5d1ba9615fdde671a2972e0804abfd6b528f420e21aac79",
+  "manifest_sha256": "5c042d2087019a12d453dda9d7b65eb7281c136cda59aa3177c91c78e37a6a4a",
   "metadata": {
     "automatic_assessment_mutation": false,
     "automatic_source_mutation": false,
@@ -37,7 +37,7 @@
     "lifecycle_report_sha256": "49b1746f0dc0feb3ec0676f8e85cbd05a3fbe84a5736b5fa840fd08320061a28",
     "observed_at": "2026-08-14T21:10:19.816945+00:00",
     "resume_additional_transport_sends": 0,
-    "route_policy_sha256": "4cd699c8bb647bc4253a8558035f51322afb31135452d28ff6a9dfe33fde5ca5",
+    "route_policy_sha256": "0a69d1ca18d19638cc8174c2d9540cc62561fa01b3e3101e306a5d3fef156ea0",
     "route_report_sha256": "2a1886976f23e59d113dd08005fa0841d8bea47c80da14f95f54ca5360e1a50e",
     "source_accountability_coverage": 1.0,
     "target_execution_coverage": 1.0,

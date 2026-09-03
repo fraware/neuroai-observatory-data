@@ -3,7 +3,7 @@
     "title": "Development source-route resilience policy",
     "version": "0.3",
     "status": "DEVELOPMENT_ROUTE_POLICY_NOT_CANONICAL",
-    "source_count": 4,
+    "source_count": 5,
     "boundary": "Official retrieval-route policy for operational availability and narrow lifecycle resolution only. Fallback or lifecycle resolution does not establish source truth beyond the observed route/listing state, assessment validity, regulatory or clinical status, governance authority, canonical release authority, or publication authority."
   },
   "sources": [
@@ -179,6 +179,41 @@
           "identity_check": {
             "kind": "TEXT_CONTAINS",
             "expected": "Piramidal"
+          }
+        }
+      ]
+    },
+    {
+      "source_id": "SRC-0067",
+      "publisher": "Nature",
+      "url": "https://www.nature.com/articles/s41586-025-08829-y",
+      "retrieval_routes": [
+        {
+          "route_id": "SRC-0067:nature-html",
+          "url": "https://www.nature.com/articles/s41586-025-08829-y",
+          "priority": 0,
+          "role": "PRIMARY",
+          "route_class": "PRIMARY",
+          "official_host": "www.nature.com",
+          "official_basis": "Registered Nature article page for DOI 10.1038/s41586-025-08829-y.",
+          "accept": "text/html,application/xhtml+xml;q=0.9",
+          "identity_check": {
+            "kind": "TEXT_CONTAINS",
+            "expected": "Foundation model of neural activity"
+          }
+        },
+        {
+          "route_id": "SRC-0067:crossref-doi-metadata",
+          "url": "https://api.crossref.org/works/10.1038/s41586-025-08829-y",
+          "priority": 1,
+          "role": "FALLBACK",
+          "route_class": "IDENTITY_EQUIVALENT",
+          "official_host": "api.crossref.org",
+          "official_basis": "Crossref is the DOI registration agency for 10.1038/s41586-025-08829-y; works metadata is the official DOI identity record when Nature HTML primary is DNS-rebinding-blocked or otherwise unavailable.",
+          "accept": "application/json",
+          "identity_check": {
+            "kind": "TEXT_CONTAINS",
+            "expected": "s41586-025-08829-y"
           }
         }
       ]

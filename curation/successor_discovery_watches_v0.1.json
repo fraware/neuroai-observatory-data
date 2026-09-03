@@ -3,7 +3,7 @@
     "automatic_assessment_mutation": false,
     "automatic_source_registration": false,
     "boundary": "Noncanonical successor discovery only. A discovered item is a review candidate and does not replace a historical source, enter the canonical source registry, change an assessment, or confer governance, release, or publication authority.",
-    "lifecycle_overlay_sha256": "235f5823be7086f21e79764f4357b2427a85eca606901b337c777a07f4367a3d",
+    "lifecycle_overlay_sha256": "d4c0e30b4fa34f0ba703be25d4bb2d705a80696357c3bda6d13f2296c563b7fb",
     "status": "DEVELOPMENT_SUCCESSOR_DISCOVERY_WATCHES_NOT_CANONICAL",
     "title": "NeuroAI successor discovery watches",
     "version": "0.1",
@@ -39,7 +39,7 @@
       },
       "trigger_lifecycle_state": "NO_LONGER_LISTED",
       "trigger_source_id": "SRC-PR-015",
-      "trigger_transition_sha256": "83dae3c3f61d2a520f136d5213c0560b1681c700929c1f092f99f1cb5404e3c7",
+      "trigger_transition_sha256": "4ed49b8b82d217d35632dba818d2c6f05bb1958ebf201898e49a3f76ce261880",
       "url": "https://science.xyz/careers/open-positions/",
       "watch_id": "DISC-SCIENCE-CAREERS-001"
     }
