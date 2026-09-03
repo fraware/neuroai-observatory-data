@@ -9,6 +9,7 @@
     "version",
     "status",
     "created_against_observatory_main_sha",
+    "d1_contract_binding",
     "governance",
     "scope",
     "classification_policy",
@@ -23,6 +24,34 @@
     "version": {"const": "0.1"},
     "status": {"const": "PRE_G1_DRAFT"},
     "created_against_observatory_main_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "d1_contract_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_id",
+        "version",
+        "created_against_observatory_main_sha",
+        "artifact_path",
+        "validator_entrypoint",
+        "canonical_json_sha256",
+        "d2_question_bindings"
+      ],
+      "properties": {
+        "artifact_id": {"const": "LANDSCAPE_RESEARCH_CONTRACT_v0.1"},
+        "version": {"const": "0.1"},
+        "created_against_observatory_main_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "artifact_path": {"const": "curation/LANDSCAPE_RESEARCH_CONTRACT_v0.1.json"},
+        "validator_entrypoint": {"const": "scripts/validate_landscape_research_contract.py"},
+        "canonical_json_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "d2_question_bindings": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^RQ-0[1-7]$"}
+        }
+      }
+    },
     "governance": {
       "type": "object",
       "additionalProperties": false,

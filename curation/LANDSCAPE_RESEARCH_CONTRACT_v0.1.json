@@ -1,0 +1,261 @@
+{
+  "artifact_id": "LANDSCAPE_RESEARCH_CONTRACT_v0.1",
+  "version": "0.1",
+  "status": "PRE_G1_DRAFT",
+  "created_against_observatory_main_sha": "af1fea0b75ab74d25e3c54d9204a97c92aeb7d7f",
+  "issue": 181,
+  "governance": {
+    "g1_approved": false,
+    "canonical_authority": false,
+    "publication_authority": false,
+    "mutation_authority": false,
+    "requires_human_governance_disposition": true,
+    "governance_disposition_id": null,
+    "governance_disposition_path": null,
+    "approval_outcomes_allowed": [
+      "APPROVE",
+      "WITHHOLD",
+      "DEFER"
+    ],
+    "exact_artifact_binding_required_for_g1": true
+  },
+  "scope": {
+    "research_purpose": "Provide a bounded, machine-readable PRE-G1 contract for NeuroAI landscape research so that discovery, extraction, review, and later governance artifacts stay technically coherent without claiming completeness, approval, or canonical truth.",
+    "primary_audience": [
+      "Observatory maintainers",
+      "Governance reviewers",
+      "Domain experts"
+    ],
+    "secondary_audience": [
+      "Validator and workflow maintainers",
+      "Downstream taxonomy authors"
+    ],
+    "non_goals": [
+      "Authorize G0 or G1",
+      "Authorize publication",
+      "Mutate canonical S2 records",
+      "Claim complete NeuroAI market coverage",
+      "Infer company intent or future harm",
+      "Expose protected S3 material"
+    ],
+    "open_world_completeness_claim": false,
+    "protocol_bounded_saturation_semantics": "Protocol-bounded saturation means only that declared source classes, search tracks, and review loops were executed as specified. It does not establish global completeness of the NeuroAI landscape."
+  },
+  "questions": [
+    {
+      "question_id": "RQ-01",
+      "tier": "PRIMARY",
+      "text": "Which organizations, products, systems, and patents have attributable evidence placing them inside or at the governed boundary of NeuroAI landscape scope?",
+      "rationale": "Supports bounded discovery and identity separation without collapsing heterogeneous evidence."
+    },
+    {
+      "question_id": "RQ-02",
+      "tier": "PRIMARY",
+      "text": "What exact sensing, inference, intervention, and deployment characteristics are evidenced for observed products or systems?",
+      "rationale": "Separates capability/context description from inclusion or impact claims."
+    },
+    {
+      "question_id": "RQ-03",
+      "tier": "PRIMARY",
+      "text": "What evidence supports or weakens product-patent, product-organization, and system-organization relationships?",
+      "rationale": "Requires separately evidenced relationships instead of implicit identity merge."
+    },
+    {
+      "question_id": "RQ-04",
+      "tier": "SECONDARY",
+      "text": "What claim classes are supported by the available evidence, and what is the maximum interpretation allowed for each claim class?",
+      "rationale": "Constrains over-interpretation and public-boundary drift."
+    },
+    {
+      "question_id": "RQ-05",
+      "tier": "SECONDARY",
+      "text": "Where should the contract require abstention, borderline review, or explicit exclusion because the evidence is incomplete, proxy-only, ambiguous, or out of scope?",
+      "rationale": "Makes uncertainty and fail-closed behavior first-class."
+    },
+    {
+      "question_id": "RQ-06",
+      "tier": "SECONDARY",
+      "text": "What evaluation evidence is required before scaling automated extraction or classification under this contract?",
+      "rationale": "Keeps performance, calibration, and subgroup safeguards in scope before scale-up."
+    },
+    {
+      "question_id": "RQ-07",
+      "tier": "SECONDARY",
+      "text": "What protected-data, publication, and approval boundaries must remain enforced while technical PRE-G1 work proceeds?",
+      "rationale": "Prevents D1 from being misconstrued as approval or publication authority."
+    }
+  ],
+  "deliverables": [
+    {
+      "deliverable_id": "D1",
+      "name": "LANDSCAPE_RESEARCH_CONTRACT_v0.1",
+      "question_bindings": [
+        "RQ-01",
+        "RQ-02",
+        "RQ-03",
+        "RQ-04",
+        "RQ-05",
+        "RQ-06",
+        "RQ-07"
+      ],
+      "description": "Machine-readable research contract governing bounded landscape discovery, extraction, and review semantics."
+    },
+    {
+      "deliverable_id": "D2",
+      "name": "CAPABILITY_CONTEXT_TAXONOMY_v0.1",
+      "question_bindings": [
+        "RQ-02",
+        "RQ-04",
+        "RQ-05",
+        "RQ-06"
+      ],
+      "description": "Companion controlled vocabulary that must remain aligned to the D1 contract and cannot independently approve inclusion or G1."
+    }
+  ],
+  "claim_classes": [
+    {
+      "claim_class_id": "CLAIM_ENTITY_EXISTENCE",
+      "allowed_evidence_rules": [
+        "ATTRIBUTABLE_PUBLIC_SOURCE",
+        "TRACEABLE_LICENSED_SOURCE"
+      ],
+      "maximum_interpretation": "An organization, product, system, or patent-related object is evidenced as observed in a bounded source context.",
+      "prohibited_inferences": [
+        "Global market presence",
+        "Clinical effectiveness",
+        "Regulatory authorization",
+        "Canonical inclusion"
+      ]
+    },
+    {
+      "claim_class_id": "CLAIM_NEUROAI_BOUNDARY_MEMBERSHIP",
+      "allowed_evidence_rules": [
+        "MULTI_SIGNAL_ATTRIBUTABLE_EVIDENCE",
+        "EXPERT_REVIEW_REQUIRED"
+      ],
+      "maximum_interpretation": "Evidence supports only a bounded inclusion, exclusion, borderline, or abstention disposition under this contract.",
+      "prohibited_inferences": [
+        "Future harm",
+        "Company intent",
+        "Complete population coverage",
+        "Automatic acceptance into canonical S2"
+      ]
+    },
+    {
+      "claim_class_id": "CLAIM_PRODUCT_PATENT_RELATION",
+      "allowed_evidence_rules": [
+        "EXACT_PRODUCT_REFERENCE_IN_PATENT",
+        "EXACT_PATENT_REFERENCE_IN_PRODUCT_MATERIAL",
+        "TRIANGULATED_ATTRIBUTABLE_RELATION"
+      ],
+      "maximum_interpretation": "Evidence supports only a bounded relation hypothesis with an explicit evidence tier.",
+      "prohibited_inferences": [
+        "Ownership certainty from shared names alone",
+        "Product identity equals patent identity",
+        "Commercialization status",
+        "Regulatory approval"
+      ]
+    },
+    {
+      "claim_class_id": "CLAIM_EVALUATION_READINESS",
+      "allowed_evidence_rules": [
+        "DOCUMENTED_EVALUATION_PROTOCOL"
+      ],
+      "maximum_interpretation": "A proposed evaluation design exists and meets required design dimensions for later review.",
+      "prohibited_inferences": [
+        "Model deployment approval",
+        "Acceptable real-world performance",
+        "Removal of expert review"
+      ]
+    }
+  ],
+  "evidence_rules": {
+    "ATTRIBUTABLE_PUBLIC_SOURCE": "Public source with attributable provenance and stable enough retrieval identity for review.",
+    "TRACEABLE_LICENSED_SOURCE": "Licensed or otherwise constrained source handled within allowed containment policy and not emitted into public S2.",
+    "MULTI_SIGNAL_ATTRIBUTABLE_EVIDENCE": "At least two attributable evidence elements jointly support the bounded claim, with disagreement preserved when present.",
+    "EXPERT_REVIEW_REQUIRED": "Human domain review is required before any bounded inclusion disposition is treated as governed.",
+    "EXACT_PRODUCT_REFERENCE_IN_PATENT": "Patent text or structured metadata explicitly references the product/system identity or a uniquely attributable synonym set.",
+    "EXACT_PATENT_REFERENCE_IN_PRODUCT_MATERIAL": "Product material explicitly references the patent identity.",
+    "TRIANGULATED_ATTRIBUTABLE_RELATION": "Three attributable evidence elements support the relation while preserving uncertainty and alternative explanations.",
+    "DOCUMENTED_EVALUATION_PROTOCOL": "A documented evaluation protocol exists with required metrics, abstention handling, and subgroup analysis."
+  },
+  "classification_semantics": {
+    "allowed_dispositions": [
+      "INCLUDE",
+      "EXCLUDE",
+      "BORDERLINE",
+      "ABSTAIN"
+    ],
+    "abstention_required_when_evidence_insufficient": true,
+    "borderline_requires_recorded_rationale": true,
+    "proxy_only_cannot_establish_inclusion": true,
+    "inclusion_requires_attributable_evidence": true,
+    "open_world_unknowns_must_remain_explicit": true
+  },
+  "source_classes": {
+    "bounded_structured": [
+      "PATENT_DATABASE",
+      "REGULATORY_DATABASE",
+      "CLINICAL_TRIAL_REGISTRY",
+      "PUBLICATION_INDEX",
+      "GRANT_DATABASE",
+      "COMPANY_PRODUCT_PAGE"
+    ],
+    "open_world_discovery": [
+      "NEWS",
+      "CONFERENCE_MATERIAL",
+      "THIRD_PARTY_MARKET_REPORT",
+      "MULTILINGUAL_WEB_DISCOVERY"
+    ],
+    "bounded_structured_required_for_canonical_claims": true,
+    "open_world_discovery_can_trigger_review_only": true
+  },
+  "unit_chain": [
+    "SOURCE",
+    "OBSERVATION",
+    "CANDIDATE_OR_EXTRACTION",
+    "ASSERTION_OR_RELATIONSHIP_OR_EVENT"
+  ],
+  "identity_contract": {
+    "organization_identity_distinct_from_product_identity": true,
+    "product_identity_distinct_from_patent_identity": true,
+    "product_patent_relation_requires_separate_evidence": true,
+    "name_similarity_is_never_sufficient_for_merge": true,
+    "multilingual_aliases_do_not_change_canonical_identity": true
+  },
+  "evaluation_requirements": {
+    "required_dimensions": [
+      "PRECISION",
+      "RECALL",
+      "CALIBRATION",
+      "UNCERTAINTY_OR_ABSTENTION",
+      "SUBGROUP_ANALYSIS",
+      "MULTILINGUAL_OR_GRAY_STRATA"
+    ],
+    "minimum_design_requirements": {
+      "precision_required": true,
+      "recall_required": true,
+      "calibration_required": true,
+      "uncertainty_or_abstention_required": true,
+      "subgroup_analysis_required": true,
+      "multilingual_or_gray_strata_required": true
+    },
+    "scale_up_without_documented_evaluation": false
+  },
+  "containment": {
+    "s3_private_labels_allowed_in_public_s2": false,
+    "held_out_membership_allowed_in_public_s2": false,
+    "licensed_or_protected_raw_capture_allowed_in_public_s2": false,
+    "private_review_packets_allowed_in_public_s2": false,
+    "candidate_authorization_publication_boundary": "candidate != authorization != publication"
+  },
+  "integrity": {
+    "schema_path": "schemas/landscape-research-contract-v0.1.schema.json",
+    "schema_sha256": "29eb7fd03ab786930ddc62683da414a9b6d8b8e1627d2668e7def437e4bbcc50",
+    "validator_entrypoint": "scripts/validate_landscape_research_contract.py",
+    "documentation_paths": [
+      "docs/landscape-research-contract.md"
+    ]
+  },
+  "authority_boundary": "This PRE-G1 contract defines technical structure and bounded interpretation rules only. It cannot approve G0 or G1, authorize publication, claim global completeness, mutate canonical S2 records, authorize assessments, or transform model output into governed truth."
+}

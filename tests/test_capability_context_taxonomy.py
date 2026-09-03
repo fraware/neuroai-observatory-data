@@ -76,6 +76,30 @@ class CapabilityContextTaxonomyTests(unittest.TestCase):
 
         self.assertInvalid(mutate)
 
+    def test_d1_binding_digest_mismatch_fails_closed(self):
+        self.assertInvalid(
+            lambda doc: doc["d1_contract_binding"].__setitem__(
+                "canonical_json_sha256", "0" * 64
+            )
+        )
+
+    def test_d1_binding_question_mismatch_fails_closed(self):
+        def mutate(doc):
+            doc["d1_contract_binding"]["d2_question_bindings"] = [
+                "RQ-02",
+                "RQ-04",
+                "RQ-05",
+            ]
+
+        self.assertInvalid(mutate)
+
+    def test_d1_binding_sha_mismatch_fails_closed(self):
+        self.assertInvalid(
+            lambda doc: doc["d1_contract_binding"].__setitem__(
+                "created_against_observatory_main_sha", "0" * 40
+            )
+        )
+
     def test_predicted_harm_must_remain_prohibited(self):
         self.assertInvalid(
             lambda doc: doc["mapping_scaffold"].__setitem__("predicted_harm_allowed", True)

@@ -3,6 +3,20 @@
   "version": "0.1",
   "status": "PRE_G1_DRAFT",
   "created_against_observatory_main_sha": "af1fea0b75ab74d25e3c54d9204a97c92aeb7d7f",
+  "d1_contract_binding": {
+    "artifact_id": "LANDSCAPE_RESEARCH_CONTRACT_v0.1",
+    "version": "0.1",
+    "created_against_observatory_main_sha": "af1fea0b75ab74d25e3c54d9204a97c92aeb7d7f",
+    "artifact_path": "curation/LANDSCAPE_RESEARCH_CONTRACT_v0.1.json",
+    "validator_entrypoint": "scripts/validate_landscape_research_contract.py",
+    "canonical_json_sha256": "0898d4468b2cc175ecfca025d44d697b8221e266299c93526e9988f99ac5d587",
+    "d2_question_bindings": [
+      "RQ-02",
+      "RQ-04",
+      "RQ-05",
+      "RQ-06"
+    ]
+  },
   "governance": {
     "g1_approved": false,
     "canonical_authority": false,

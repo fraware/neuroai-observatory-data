@@ -1,0 +1,603 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "landscape-research-contract-v0.1.schema.json",
+  "title": "LANDSCAPE_RESEARCH_CONTRACT_v0.1",
+  "description": "PRE-G1 bounded research contract for NeuroAI landscape discovery, extraction, review, and governance preparation. Structure validation only; no approval authority is implied.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_id",
+    "version",
+    "status",
+    "created_against_observatory_main_sha",
+    "issue",
+    "governance",
+    "scope",
+    "questions",
+    "deliverables",
+    "claim_classes",
+    "evidence_rules",
+    "classification_semantics",
+    "source_classes",
+    "unit_chain",
+    "identity_contract",
+    "evaluation_requirements",
+    "containment",
+    "integrity",
+    "authority_boundary"
+  ],
+  "properties": {
+    "artifact_id": {
+      "const": "LANDSCAPE_RESEARCH_CONTRACT_v0.1"
+    },
+    "version": {
+      "const": "0.1"
+    },
+    "status": {
+      "const": "PRE_G1_DRAFT"
+    },
+    "created_against_observatory_main_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "issue": {
+      "const": 181
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "g1_approved",
+        "canonical_authority",
+        "publication_authority",
+        "mutation_authority",
+        "requires_human_governance_disposition",
+        "governance_disposition_id",
+        "governance_disposition_path",
+        "approval_outcomes_allowed",
+        "exact_artifact_binding_required_for_g1"
+      ],
+      "properties": {
+        "g1_approved": {
+          "const": false
+        },
+        "canonical_authority": {
+          "const": false
+        },
+        "publication_authority": {
+          "const": false
+        },
+        "mutation_authority": {
+          "const": false
+        },
+        "requires_human_governance_disposition": {
+          "const": true
+        },
+        "governance_disposition_id": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "governance_disposition_path": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "approval_outcomes_allowed": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "APPROVE",
+              "WITHHOLD",
+              "DEFER"
+            ]
+          },
+          "minItems": 3,
+          "maxItems": 3,
+          "uniqueItems": true
+        },
+        "exact_artifact_binding_required_for_g1": {
+          "const": true
+        }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "research_purpose",
+        "primary_audience",
+        "secondary_audience",
+        "non_goals",
+        "open_world_completeness_claim",
+        "protocol_bounded_saturation_semantics"
+      ],
+      "properties": {
+        "research_purpose": {
+          "type": "string",
+          "minLength": 1
+        },
+        "primary_audience": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "secondary_audience": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "non_goals": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "open_world_completeness_claim": {
+          "const": false
+        },
+        "protocol_bounded_saturation_semantics": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "questions": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "question_id",
+          "tier",
+          "text",
+          "rationale"
+        ],
+        "properties": {
+          "question_id": {
+            "type": "string",
+            "pattern": "^RQ-0[1-7]$"
+          },
+          "tier": {
+            "type": "string",
+            "enum": [
+              "PRIMARY",
+              "SECONDARY"
+            ]
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rationale": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "deliverables": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "deliverable_id",
+          "name",
+          "question_bindings",
+          "description"
+        ],
+        "properties": {
+          "deliverable_id": {
+            "type": "string",
+            "enum": [
+              "D1",
+              "D2"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "question_bindings": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^RQ-0[1-7]$"
+            }
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "claim_classes": {
+      "type": "array",
+      "minItems": 4,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "claim_class_id",
+          "allowed_evidence_rules",
+          "maximum_interpretation",
+          "prohibited_inferences"
+        ],
+        "properties": {
+          "claim_class_id": {
+            "type": "string",
+            "enum": [
+              "CLAIM_ENTITY_EXISTENCE",
+              "CLAIM_NEUROAI_BOUNDARY_MEMBERSHIP",
+              "CLAIM_PRODUCT_PATENT_RELATION",
+              "CLAIM_EVALUATION_READINESS"
+            ]
+          },
+          "allowed_evidence_rules": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "ATTRIBUTABLE_PUBLIC_SOURCE",
+                "TRACEABLE_LICENSED_SOURCE",
+                "MULTI_SIGNAL_ATTRIBUTABLE_EVIDENCE",
+                "EXPERT_REVIEW_REQUIRED",
+                "EXACT_PRODUCT_REFERENCE_IN_PATENT",
+                "EXACT_PATENT_REFERENCE_IN_PRODUCT_MATERIAL",
+                "TRIANGULATED_ATTRIBUTABLE_RELATION",
+                "DOCUMENTED_EVALUATION_PROTOCOL"
+              ]
+            }
+          },
+          "maximum_interpretation": {
+            "type": "string",
+            "minLength": 1
+          },
+          "prohibited_inferences": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "evidence_rules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ATTRIBUTABLE_PUBLIC_SOURCE",
+        "TRACEABLE_LICENSED_SOURCE",
+        "MULTI_SIGNAL_ATTRIBUTABLE_EVIDENCE",
+        "EXPERT_REVIEW_REQUIRED",
+        "EXACT_PRODUCT_REFERENCE_IN_PATENT",
+        "EXACT_PATENT_REFERENCE_IN_PRODUCT_MATERIAL",
+        "TRIANGULATED_ATTRIBUTABLE_RELATION",
+        "DOCUMENTED_EVALUATION_PROTOCOL"
+      ],
+      "properties": {
+        "ATTRIBUTABLE_PUBLIC_SOURCE": {
+          "type": "string",
+          "minLength": 1
+        },
+        "TRACEABLE_LICENSED_SOURCE": {
+          "type": "string",
+          "minLength": 1
+        },
+        "MULTI_SIGNAL_ATTRIBUTABLE_EVIDENCE": {
+          "type": "string",
+          "minLength": 1
+        },
+        "EXPERT_REVIEW_REQUIRED": {
+          "type": "string",
+          "minLength": 1
+        },
+        "EXACT_PRODUCT_REFERENCE_IN_PATENT": {
+          "type": "string",
+          "minLength": 1
+        },
+        "EXACT_PATENT_REFERENCE_IN_PRODUCT_MATERIAL": {
+          "type": "string",
+          "minLength": 1
+        },
+        "TRIANGULATED_ATTRIBUTABLE_RELATION": {
+          "type": "string",
+          "minLength": 1
+        },
+        "DOCUMENTED_EVALUATION_PROTOCOL": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "classification_semantics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "allowed_dispositions",
+        "abstention_required_when_evidence_insufficient",
+        "borderline_requires_recorded_rationale",
+        "proxy_only_cannot_establish_inclusion",
+        "inclusion_requires_attributable_evidence",
+        "open_world_unknowns_must_remain_explicit"
+      ],
+      "properties": {
+        "allowed_dispositions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "INCLUDE",
+              "EXCLUDE",
+              "BORDERLINE",
+              "ABSTAIN"
+            ]
+          },
+          "minItems": 4,
+          "maxItems": 4,
+          "uniqueItems": true
+        },
+        "abstention_required_when_evidence_insufficient": {
+          "const": true
+        },
+        "borderline_requires_recorded_rationale": {
+          "const": true
+        },
+        "proxy_only_cannot_establish_inclusion": {
+          "const": true
+        },
+        "inclusion_requires_attributable_evidence": {
+          "const": true
+        },
+        "open_world_unknowns_must_remain_explicit": {
+          "const": true
+        }
+      }
+    },
+    "source_classes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "bounded_structured",
+        "open_world_discovery",
+        "bounded_structured_required_for_canonical_claims",
+        "open_world_discovery_can_trigger_review_only"
+      ],
+      "properties": {
+        "bounded_structured": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "PATENT_DATABASE",
+              "REGULATORY_DATABASE",
+              "CLINICAL_TRIAL_REGISTRY",
+              "PUBLICATION_INDEX",
+              "GRANT_DATABASE",
+              "COMPANY_PRODUCT_PAGE"
+            ]
+          }
+        },
+        "open_world_discovery": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "NEWS",
+              "CONFERENCE_MATERIAL",
+              "THIRD_PARTY_MARKET_REPORT",
+              "MULTILINGUAL_WEB_DISCOVERY"
+            ]
+          }
+        },
+        "bounded_structured_required_for_canonical_claims": {
+          "const": true
+        },
+        "open_world_discovery_can_trigger_review_only": {
+          "const": true
+        }
+      }
+    },
+    "unit_chain": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "SOURCE",
+          "OBSERVATION",
+          "CANDIDATE_OR_EXTRACTION",
+          "ASSERTION_OR_RELATIONSHIP_OR_EVENT"
+        ]
+      }
+    },
+    "identity_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "organization_identity_distinct_from_product_identity",
+        "product_identity_distinct_from_patent_identity",
+        "product_patent_relation_requires_separate_evidence",
+        "name_similarity_is_never_sufficient_for_merge",
+        "multilingual_aliases_do_not_change_canonical_identity"
+      ],
+      "properties": {
+        "organization_identity_distinct_from_product_identity": {
+          "const": true
+        },
+        "product_identity_distinct_from_patent_identity": {
+          "const": true
+        },
+        "product_patent_relation_requires_separate_evidence": {
+          "const": true
+        },
+        "name_similarity_is_never_sufficient_for_merge": {
+          "const": true
+        },
+        "multilingual_aliases_do_not_change_canonical_identity": {
+          "const": true
+        }
+      }
+    },
+    "evaluation_requirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required_dimensions",
+        "minimum_design_requirements",
+        "scale_up_without_documented_evaluation"
+      ],
+      "properties": {
+        "required_dimensions": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "PRECISION",
+              "RECALL",
+              "CALIBRATION",
+              "UNCERTAINTY_OR_ABSTENTION",
+              "SUBGROUP_ANALYSIS",
+              "MULTILINGUAL_OR_GRAY_STRATA"
+            ]
+          }
+        },
+        "minimum_design_requirements": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "precision_required",
+            "recall_required",
+            "calibration_required",
+            "uncertainty_or_abstention_required",
+            "subgroup_analysis_required",
+            "multilingual_or_gray_strata_required"
+          ],
+          "properties": {
+            "precision_required": {
+              "const": true
+            },
+            "recall_required": {
+              "const": true
+            },
+            "calibration_required": {
+              "const": true
+            },
+            "uncertainty_or_abstention_required": {
+              "const": true
+            },
+            "subgroup_analysis_required": {
+              "const": true
+            },
+            "multilingual_or_gray_strata_required": {
+              "const": true
+            }
+          }
+        },
+        "scale_up_without_documented_evaluation": {
+          "const": false
+        }
+      }
+    },
+    "containment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "s3_private_labels_allowed_in_public_s2",
+        "held_out_membership_allowed_in_public_s2",
+        "licensed_or_protected_raw_capture_allowed_in_public_s2",
+        "private_review_packets_allowed_in_public_s2",
+        "candidate_authorization_publication_boundary"
+      ],
+      "properties": {
+        "s3_private_labels_allowed_in_public_s2": {
+          "const": false
+        },
+        "held_out_membership_allowed_in_public_s2": {
+          "const": false
+        },
+        "licensed_or_protected_raw_capture_allowed_in_public_s2": {
+          "const": false
+        },
+        "private_review_packets_allowed_in_public_s2": {
+          "const": false
+        },
+        "candidate_authorization_publication_boundary": {
+          "const": "candidate != authorization != publication"
+        }
+      }
+    },
+    "integrity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_path",
+        "schema_sha256",
+        "validator_entrypoint",
+        "documentation_paths"
+      ],
+      "properties": {
+        "schema_path": {
+          "const": "schemas/landscape-research-contract-v0.1.schema.json"
+        },
+        "schema_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "validator_entrypoint": {
+          "const": "scripts/validate_landscape_research_contract.py"
+        },
+        "documentation_paths": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "authority_boundary": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

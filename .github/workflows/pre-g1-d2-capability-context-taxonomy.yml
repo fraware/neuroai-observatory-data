@@ -3,6 +3,10 @@ name: PRE-G1 D2 capability-context taxonomy
 on:
   pull_request:
     paths:
+      - "curation/LANDSCAPE_RESEARCH_CONTRACT_v0.1.json"
+      - "schemas/landscape-research-contract-v0.1.schema.json"
+      - "scripts/validate_landscape_research_contract.py"
+      - "tests/test_landscape_research_contract.py"
       - "curation/CAPABILITY_CONTEXT_TAXONOMY_v0.1.json"
       - "schemas/capability-context-taxonomy-v0.1.schema.json"
       - "scripts/validate_capability_context_taxonomy.py"

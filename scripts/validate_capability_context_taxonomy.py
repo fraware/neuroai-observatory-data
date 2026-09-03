@@ -8,6 +8,7 @@ invariants that are important enough to fail closed before human governance revi
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 from pathlib import Path
 from typing import Any
@@ -15,6 +16,9 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_ARTIFACT = ROOT / "curation" / "CAPABILITY_CONTEXT_TAXONOMY_v0.1.json"
 DEFAULT_SCHEMA = ROOT / "schemas" / "capability-context-taxonomy-v0.1.schema.json"
+DEFAULT_D1_ARTIFACT = ROOT / "curation" / "LANDSCAPE_RESEARCH_CONTRACT_v0.1.json"
+DEFAULT_D1_SCHEMA = ROOT / "schemas" / "landscape-research-contract-v0.1.schema.json"
+DEFAULT_D1_VALIDATOR = ROOT / "scripts" / "validate_landscape_research_contract.py"
 
 EXPECTED_AXES = (
     "sensing_modality",
@@ -65,6 +69,44 @@ def _require(condition: bool, message: str) -> None:
 def _load_json(path: Path) -> Any:
     with path.open("r", encoding="utf-8") as handle:
         return json.load(handle)
+
+
+def _load_python_module(path: Path, module_name: str) -> Any:
+    spec = importlib.util.spec_from_file_location(module_name, path)
+    _require(spec is not None and spec.loader is not None, f"unable to import module: {path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _load_d1_contract_identity() -> dict[str, Any]:
+    validator = _load_python_module(DEFAULT_D1_VALIDATOR, "d1_validator")
+    artifact = _load_json(DEFAULT_D1_ARTIFACT)
+    schema = _load_json(DEFAULT_D1_SCHEMA)
+    validator.validate_document(artifact, schema, ROOT)
+
+    deliverables = artifact.get("deliverables") or []
+    d2_row = next(
+        (
+            row for row in deliverables
+            if isinstance(row, dict) and row.get("deliverable_id") == "D2"
+        ),
+        None,
+    )
+    _require(d2_row is not None, "D1 must declare the D2 deliverable binding")
+    return {
+        "artifact_id": artifact.get("artifact_id"),
+        "version": artifact.get("version"),
+        "created_against_observatory_main_sha": artifact.get(
+            "created_against_observatory_main_sha"
+        ),
+        "artifact_path": "curation/LANDSCAPE_RESEARCH_CONTRACT_v0.1.json",
+        "validator_entrypoint": "scripts/validate_landscape_research_contract.py",
+        "canonical_json_sha256": validator.sha256_bytes(
+            validator.canonical_json_bytes(artifact)
+        ),
+        "d2_question_bindings": d2_row.get("question_bindings"),
+    }
 
 
 def _resolve_ref(root_schema: dict[str, Any], ref: str) -> dict[str, Any]:
@@ -170,6 +212,27 @@ def validate_document(doc: dict[str, Any], schema: dict[str, Any] | None = None)
     )
     _require(doc.get("version") == "0.1", "unexpected taxonomy version")
     _require(doc.get("status") == "PRE_G1_DRAFT", "D2 must remain PRE_G1_DRAFT")
+    d1_binding = doc.get("d1_contract_binding", {})
+    _require(isinstance(d1_binding, dict), "d1_contract_binding must be an object")
+    expected_d1 = _load_d1_contract_identity()
+    for key in (
+        "artifact_id",
+        "version",
+        "created_against_observatory_main_sha",
+        "artifact_path",
+        "validator_entrypoint",
+        "canonical_json_sha256",
+        "d2_question_bindings",
+    ):
+        _require(
+            d1_binding.get(key) == expected_d1.get(key),
+            f"D1 binding mismatch for {key}",
+        )
+    _require(
+        doc.get("created_against_observatory_main_sha")
+        == expected_d1["created_against_observatory_main_sha"],
+        "D2 must be created against the same observatory main SHA as D1",
+    )
 
     gov = doc.get("governance", {})
     _require(gov.get("g1_approved") is False, "technical D2 artifact must not approve G1")
