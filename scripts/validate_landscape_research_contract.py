@@ -495,7 +495,9 @@ def validate_document(
         "validator entrypoint binding mismatch",
     )
     _require(schema_path == DEFAULT_SCHEMA, "schema path binding mismatch")
-    observed_schema_sha = sha256_bytes(schema_path.read_bytes())
+    observed_schema_sha = sha256_bytes(
+        canonical_json_bytes(_load_json(schema_path))
+    )
     _require(
         integrity.get("schema_sha256") == observed_schema_sha,
         "schema_sha256 binding mismatch",
