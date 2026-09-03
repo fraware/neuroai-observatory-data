@@ -17,8 +17,16 @@ spec.loader.exec_module(validator)
 class CapabilityContextTaxonomyTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.doc = json.loads((ROOT / "curation" / "CAPABILITY_CONTEXT_TAXONOMY_v0.1.json").read_text(encoding="utf-8"))
-        cls.schema = json.loads((ROOT / "schemas" / "capability-context-taxonomy-v0.1.schema.json").read_text(encoding="utf-8"))
+        cls.doc = json.loads(
+            (ROOT / "curation" / "CAPABILITY_CONTEXT_TAXONOMY_v0.1.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        cls.schema = json.loads(
+            (ROOT / "schemas" / "capability-context-taxonomy-v0.1.schema.json").read_text(
+                encoding="utf-8"
+            )
+        )
 
     def assertInvalid(self, mutate):
         doc = copy.deepcopy(self.doc)
@@ -33,10 +41,14 @@ class CapabilityContextTaxonomyTests(unittest.TestCase):
         self.assertInvalid(lambda doc: doc["governance"].__setitem__("g1_approved", True))
 
     def test_draft_cannot_gain_publication_authority(self):
-        self.assertInvalid(lambda doc: doc["governance"].__setitem__("publication_authority", True))
+        self.assertInvalid(
+            lambda doc: doc["governance"].__setitem__("publication_authority", True)
+        )
 
     def test_gray_third_cannot_become_canonical_population(self):
-        self.assertInvalid(lambda doc: doc["gray_third"].__setitem__("canonical_population_class", True))
+        self.assertInvalid(
+            lambda doc: doc["gray_third"].__setitem__("canonical_population_class", True)
+        )
 
     def test_proxy_only_sensing_cannot_be_primary_inclusion_evidence(self):
         def mutate(doc):
@@ -45,26 +57,45 @@ class CapabilityContextTaxonomyTests(unittest.TestCase):
                     term["default_inclusion_evidence_role"] = "PRIMARY_CAPABILITY_EVIDENCE"
                     return
             raise AssertionError("SENSE_EMG missing from fixture")
+
         self.assertInvalid(mutate)
 
     def test_unknown_state_is_mandatory(self):
         def mutate(doc):
             doc["axes"]["deployment_context"] = [
-                term for term in doc["axes"]["deployment_context"] if term["id"] != "CONTEXT_UNKNOWN"
+                term
+                for term in doc["axes"]["deployment_context"]
+                if term["id"] != "CONTEXT_UNKNOWN"
             ]
+
         self.assertInvalid(mutate)
 
     def test_duplicate_ids_fail_closed(self):
         def mutate(doc):
             doc["axes"]["inferred_state"][1]["id"] = doc["axes"]["inferred_state"][0]["id"]
+
         self.assertInvalid(mutate)
 
     def test_predicted_harm_must_remain_prohibited(self):
-        self.assertInvalid(lambda doc: doc["mapping_scaffold"].__setitem__("predicted_harm_allowed", True))
+        self.assertInvalid(
+            lambda doc: doc["mapping_scaffold"].__setitem__("predicted_harm_allowed", True)
+        )
 
     def test_gray_family_set_is_exact(self):
         def mutate(doc):
             doc["gray_third"]["search_families"].pop()
+
+        self.assertInvalid(mutate)
+
+    def test_schema_rejects_unknown_property(self):
+        self.assertInvalid(lambda doc: doc.__setitem__("unauthorized_extra", True))
+
+    def test_schema_rejects_malformed_alias(self):
+        def mutate(doc):
+            doc["axes"]["inferred_state"][0]["aliases"] = [
+                {"language": "en", "text": "motor intent", "extra": "x"}
+            ]
+
         self.assertInvalid(mutate)
 
 
