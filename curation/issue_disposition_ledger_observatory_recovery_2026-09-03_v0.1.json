@@ -1,0 +1,369 @@
+{
+  "schema_version": "0.1.0",
+  "ledger_id": "ISSUE_DISPOSITION_LEDGER_OBSERVATORY_RECOVERY_2026-09-03_V0_1",
+  "ledger_type": "machine_readable_issue_disposition_ledger",
+  "as_of_local_git_head": "af1fea0b75ab74d25e3c54d9204a97c92aeb7d7f",
+  "as_of_local_git_head_note": "Historical local HEAD at first ledger draft. Do not treat as current origin/main.",
+  "as_of_observatory_origin_main_sha": "d14994a578561b34d1dfcbb467faf761bf9a4c31",
+  "landed_on_observatory_main_sha": null,
+  "landed_on_observatory_main_sha_note": "This ledger file is not itself on origin/main until the accounting PR merges. D1/D2 artifacts already exist on d14994a578561b34d1dfcbb467faf761bf9a4c31.",
+  "repository": {
+    "observatory_data_repo": "fraware/neuroai-observatory-data",
+    "source_of_truth_plan": "c:\\Users\\mateo\\.cursor\\plans\\observatory_recovery_plan_f8dd0f63.plan.md"
+  },
+  "boundary": "This ledger records evidence-backed issue/PR disposition status and captured runner/job check outcomes only. It does not fabricate proof execution, does not confer publication authority, and does not close issues or merge PRs. Any 'remaining_condition' describes unmet gating evidenced by repository control records or explicit issue text.",
+  "limitations": [
+    "For evidence-only PRs (#182, #190), only GitHub check-run conclusion metadata was captured in this ledger. No artifacts were downloaded and no log-level inference was performed beyond the check conclusion.",
+    "For merged implementation PRs (#170, #174, #178), issue closure is recorded as GitHub state only. Where repository control records still mark proof execution as pending, this ledger reflects the mismatch as a 'remaining_condition' rather than an acceptance claim.",
+    "No scanning was performed over untrusted or overlapping D1 contract artifacts during this ledger build beyond avoiding direct interaction with the specified D1 file set."
+  ],
+  "issue_dispositions": [
+    {
+      "entry_id": "ISSUE-105-DISP-2026-09-03",
+      "issue_number": 105,
+      "issue_url": "https://github.com/fraware/neuroai-observatory-data/issues/105",
+      "issue_state_at_capture": "OPEN",
+      "requirement_basis": {
+        "requirement_summary": "Restore hosted runner execution before expanding live source universes.",
+        "requirement_quote_source": "GitHub issue #105 title/body and repository control-state blockers for B01/hosted validation."
+      },
+      "implementation_pr": null,
+      "merged_commit_sha": null,
+      "exact_main_sha": null,
+      "acceptance_run": [],
+      "remaining_condition": [
+        "A fresh scheduled GitHub Actions run (not only workflow_dispatch) executes repository steps and retains job/log evidence.",
+        "Hosted runner allocation is restored so B01/B05 can progress to collector execution and proof-specific gating."
+      ],
+      "disposition": {
+        "type": "OPEN_BLOCKER_REMAINS",
+        "closure_reason": null
+      },
+      "historical_evidence_refs": [
+        {
+          "kind": "repository_control_record",
+          "path": "curation/PROGRAMME_EXECUTION_BASELINE_2026-09-01.json",
+          "note": "Contains G0-B01 OPEN and a 'hosted runner execution is not restored' blocker narrative."
+        }
+      ],
+      "non_claims": [
+        "This ledger does not claim proof execution, source availability, or any live contract success for issue #105."
+      ]
+    },
+    {
+      "entry_id": "ISSUE-169-DISP-2026-09-03",
+      "issue_number": 169,
+      "issue_url": "https://github.com/fraware/neuroai-observatory-data/issues/169",
+      "issue_state_at_capture": "CLOSED",
+      "requirement_basis": {
+        "requirement_summary": "Add a one-source governed controlled-live PRE-G0 proof for B02 at exact Workbench commit.",
+        "requirement_quote_source": "GitHub issue #169 title/body."
+      },
+      "implementation_pr": {
+        "pr_number": 170,
+        "pr_url": "https://github.com/fraware/neuroai-observatory-data/pull/170",
+        "pr_state_at_capture": "MERGED",
+        "head_ref_oid": "e8bf403a3bffacdf779c0899e90e6a1a7aff4df8",
+        "base_ref_oid_at_pr_snapshot": "c79e7fb29d9ea41717af6e2ed8028df9404c1ead"
+      },
+      "merged_commit_sha": "0ec1464c27e21cac526e65023fe2a54496db8516",
+      "exact_main_sha": "0ec1464c27e21cac526e65023fe2a54496db8516",
+      "acceptance_run": [
+        {
+          "workflow_or_check_name": "verify-contract (Observatory v2 release contract)",
+          "check_conclusion": "FAILURE",
+          "run_job_details_url": "https://github.com/fraware/neuroai-observatory-data/actions/runs/33637506177/job/100271953897"
+        },
+        {
+          "workflow_or_check_name": "verify-contract (PRE-G0 B02 controlled live contract)",
+          "check_conclusion": "FAILURE",
+          "run_job_details_url": "https://github.com/fraware/neuroai-observatory-data/actions/runs/33637506280/job/100271954151"
+        }
+      ],
+      "remaining_condition": [
+        "Repository control records still mark B02 controlled-live proof execution as pending (hosted proof path not yet executed with retained step/log evidence)."
+      ],
+      "disposition": {
+        "type": "CLOSED_BUT_PROOF_EXECUTION_NOT_DEMONSTRATED",
+        "closure_reason": "Issue closed on GitHub; PR merged; proof-specific check runs concluded FAILURE and repository control records continue to list B02 execution as pending."
+      },
+      "historical_evidence_refs": [
+        {
+          "kind": "repository_control_record",
+          "path": "curation/PROGRAMME_EXECUTION_STATE_2026-09-02_B05_PIN_SUCCESSOR.json",
+          "note": "B02 state is 'GOVERNED_PROOF_PATH_MERGED_LIVE_EVIDENCE_PENDING' and blocks G0."
+        }
+      ],
+      "non_claims": [
+        "This ledger does not claim any successful hosted B02 proof execution."
+      ]
+    },
+    {
+      "entry_id": "ISSUE-173-DISP-2026-09-03",
+      "issue_number": 173,
+      "issue_url": "https://github.com/fraware/neuroai-observatory-data/issues/173",
+      "issue_state_at_capture": "CLOSED",
+      "requirement_basis": {
+        "requirement_summary": "Add a non-production PRE-G0 graph publication authority proof for B04 at exact Workbench commit.",
+        "requirement_quote_source": "GitHub issue #173 title/body."
+      },
+      "implementation_pr": {
+        "pr_number": 174,
+        "pr_url": "https://github.com/fraware/neuroai-observatory-data/pull/174",
+        "pr_state_at_capture": "MERGED",
+        "head_ref_oid": "9605f2a59c1efb3dec719ce93c5f6da68a80e2e0",
+        "base_ref_oid_at_pr_snapshot": "ae5c5e90fd9481badd94aebef5199aecc8ad0ba8"
+      },
+      "merged_commit_sha": "4c5e3f64ee34e37aa7f0b0722b314a52819367c9",
+      "exact_main_sha": "4c5e3f64ee34e37aa7f0b0722b314a52819367c9",
+      "acceptance_run": [
+        {
+          "workflow_or_check_name": "prove-authority-boundary (PRE-G0 B04 publication authority proof)",
+          "check_conclusion": "FAILURE",
+          "run_job_details_url": "https://github.com/fraware/neuroai-observatory-data/actions/runs/33640376483/job/100319807140"
+        }
+      ],
+      "remaining_condition": [
+        "Repository control records still mark B04 offline proof execution as pending (proof_executed=false) and block G0."
+      ],
+      "disposition": {
+        "type": "CLOSED_BUT_PROOF_EXECUTION_NOT_DEMONSTRATED",
+        "closure_reason": "Issue closed on GitHub; PR merged; the named proof check concluded FAILURE and repository control records continue to list B04 execution as pending."
+      },
+      "historical_evidence_refs": [
+        {
+          "kind": "repository_control_record",
+          "path": "curation/PROGRAMME_EXECUTION_STATE_2026-09-02_B04_PROOF_PATH_SUCCESSOR.json",
+          "note": "B04 proof_executed=false and blocks G0."
+        }
+      ],
+      "non_claims": [
+        "This ledger does not claim any successful non-production B04 proof execution."
+      ]
+    },
+    {
+      "entry_id": "ISSUE-177-DISP-2026-09-03",
+      "issue_number": 177,
+      "issue_url": "https://github.com/fraware/neuroai-observatory-data/issues/177",
+      "issue_state_at_capture": "CLOSED",
+      "requirement_basis": {
+        "requirement_summary": "Reconcile the five executable SU-TRIALS PRE-G0 validation workflows to current Workbench commit.",
+        "requirement_quote_source": "GitHub issue #177 title/body."
+      },
+      "implementation_pr": {
+        "pr_number": 178,
+        "pr_url": "https://github.com/fraware/neuroai-observatory-data/pull/178",
+        "pr_state_at_capture": "MERGED",
+        "head_ref_oid": "aecad161c870dbf01bc8f99724051fc88a58e6ae",
+        "base_ref_oid_at_pr_snapshot": "fc94a35f1a08861a5ea363e0b58af4e70c850539"
+      },
+      "merged_commit_sha": "57e0460479e9f25c37f236010d31c7fafff11040",
+      "exact_main_sha": "57e0460479e9f25c37f236010d31c7fafff11040",
+      "acceptance_run": [
+        {
+          "workflow_or_check_name": "adjudication-contract (SU-TRIALS Source-namespace successor)",
+          "check_conclusion": "FAILURE",
+          "run_job_details_url": "https://github.com/fraware/neuroai-observatory-data/actions/runs/33642705520/job/100315934161"
+        },
+        {
+          "workflow_or_check_name": "materialization-contract (Discovery Source materialization and monitoring proposals)",
+          "check_conclusion": "SUCCESS",
+          "run_job_details_url": "https://github.com/fraware/neuroai-observatory-data/actions/runs/33642705565/job/100315822408"
+        },
+        {
+          "workflow_or_check_name": "validate-programme (SU-TRIALS ClinicalTrials.gov programme)",
+          "check_conclusion": "SUCCESS",
+          "run_job_details_url": "https://github.com/fraware/neuroai-observatory-data/actions/runs/33642705674/job/100316012729"
+        },
+        {
+          "workflow_or_check_name": "replay-contract (SU-TRIALS ClinicalTrials.gov recorded replay)",
+          "check_conclusion": "SUCCESS",
+          "run_job_details_url": "https://github.com/fraware/neuroai-observatory-data/actions/runs/33642705314/job/100315876237"
+        },
+        {
+          "workflow_or_check_name": "staging-contract (SU-TRIALS human-review staging)",
+          "check_conclusion": "SUCCESS",
+          "run_job_details_url": "https://github.com/fraware/neuroai-observatory-data/actions/runs/33642708848/job/100315743166"
+        }
+      ],
+      "remaining_condition": [
+        "Repository control records continue to report B05 as BLOCKED because none of the five current-pin SU-TRIALS workflow attempts reached repository execution with retained steps/logs."
+      ],
+      "disposition": {
+        "type": "CLOSED_BUT_B05_EXECUTION_NOT_DEMONSTRATED",
+        "closure_reason": "Issue closed on GitHub; PR merged; one adjudication-contract check concluded FAILURE. Repository control records still block G0-B05 with pre-step runner termination evidence (steps_present/logs_present=false)."
+      },
+      "historical_evidence_refs": [
+        {
+          "kind": "repository_control_record",
+          "path": "curation/PROGRAMME_EXECUTION_STATE_2026-09-02_B05_PIN_SUCCESSOR.json",
+          "note": "B05 state is 'PIN_ALIGNED_HOSTED_VALIDATION_PENDING' with b05_runner_evidence listing steps_present=false and logs_present=false for the audited five workflows."
+        }
+      ],
+      "non_claims": [
+        "This ledger does not claim that any SU-TRIALS workflow executed repository steps under the repinned current Workbench baseline."
+      ]
+    },
+    {
+      "entry_id": "ISSUE-181-DISP-2026-09-03",
+      "issue_number": 181,
+      "issue_url": "https://github.com/fraware/neuroai-observatory-data/issues/181",
+      "issue_state_at_capture": "OPEN",
+      "requirement_basis": {
+        "requirement_summary": "Implement D1 landscape research contract as a PRE-G0 draft with semantic validator, adversarial tests, and deterministic offline workflow; do not confer G0/G1 or publication authority automatically.",
+        "requirement_quote_source": "GitHub issue #181 title/body."
+      },
+      "implementation_pr": {
+        "pr_number": 193,
+        "pr_url": "https://github.com/fraware/neuroai-observatory-data/pull/193",
+        "pr_state_at_capture": "MERGED",
+        "related_merged_prs": [
+          {
+            "pr_number": 192,
+            "pr_url": "https://github.com/fraware/neuroai-observatory-data/pull/192",
+            "pr_state_at_capture": "MERGED",
+            "merge_commit": "2f126ae5d4c386e14b37894d88dadf006dc59226",
+            "role": "Landed D1/D2 draft artifacts including D1 validator, tests, and offline workflow files; D2 taxonomy."
+          },
+          {
+            "pr_number": 193,
+            "pr_url": "https://github.com/fraware/neuroai-observatory-data/pull/193",
+            "pr_state_at_capture": "MERGED",
+            "merge_commit": "d14994a578561b34d1dfcbb467faf761bf9a4c31",
+            "role": "Stabilized D1 schema identity binding on origin main."
+          }
+        ]
+      },
+      "merged_commit_sha": "d14994a578561b34d1dfcbb467faf761bf9a4c31",
+      "exact_main_sha": "d14994a578561b34d1dfcbb467faf761bf9a4c31",
+      "landed_on_observatory_main_sha": "d14994a578561b34d1dfcbb467faf761bf9a4c31",
+      "acceptance_run": [],
+      "remaining_condition": [
+        "Issue #181 remains OPEN until a human confirms the issue contract is satisfied. This ledger does not auto-close #181.",
+        "G1 approval is not required by issue #181 text and is not claimed. g1_approved remains false."
+      ],
+      "disposition": {
+        "type": "OPEN_D1_ARTIFACTS_LANDED_HUMAN_CLOSURE_PENDING",
+        "closure_reason": null
+      },
+      "historical_evidence_refs": [
+        {
+          "kind": "repository_plan_reference",
+          "path": "c:\\Users\\mateo\\.cursor\\plans\\observatory_recovery_plan_f8dd0f63.plan.md",
+          "note": "Issue #181 historically required semantic validator, adversarial tests, and offline workflow. Those artifacts now exist on origin main via merged PRs #192 and #193. G1 is not required by #181 text."
+        }
+      ],
+      "non_claims": [
+        "This ledger does not claim G1 approval, publication authority, or that a human has closed issue #181.",
+        "This ledger does not claim that green D1/D2 CI is G1."
+      ]
+    }
+  ],
+  "evidence_only_observatory_pr_preservation": [
+    {
+      "entry_id": "PR-182-EVIDENCE_ONLY-2026-09-03",
+      "pr_number": 182,
+      "pr_url": "https://github.com/fraware/neuroai-observatory-data/pull/182",
+      "pr_state_at_capture": "CLOSED",
+      "merged": false,
+      "merged_at": null,
+      "closed_at": "2026-09-03T16:21:37Z",
+      "evidence_purpose": "Evidence-only diagnostic PR (non-merging PRE-G0 diagnostic) intended to trigger current-main SU-TRIALS/B05 validation workflows after hosted-runner execution recovered. GitHub state is CLOSED unmerged; this is not a current live G0 proof.",
+      "head_ref": {
+        "ref_name": "diagnostic/b05-current-main-runner-recovery",
+        "oid": "37c90facc81c9f1f8343dd6ff7bfa8ff72877bd3"
+      },
+      "base_ref": {
+        "ref_name": "main",
+        "oid": "23ec1fcfa3ff2365464bee916affaeb2f5ad2c3"
+      },
+      "captured_check_runs": [
+        {
+          "workflow_name": "SU-TRIALS Source-namespace successor",
+          "check_name": "adjudication-contract",
+          "conclusion": "FAILURE",
+          "run_id": 33651104361,
+          "job_id": 100318024182,
+          "run_job_details_url": "https://github.com/fraware/neuroai-observatory-data/actions/runs/33651104361/job/100318024182"
+        },
+        {
+          "workflow_name": "Discovery Source materialization and monitoring proposals",
+          "check_name": "materialization-contract",
+          "conclusion": "SUCCESS",
+          "run_id": 33651104560,
+          "job_id": 100318025894,
+          "run_job_details_url": "https://github.com/fraware/neuroai-observatory-data/actions/runs/33651104560/job/100318025894"
+        },
+        {
+          "workflow_name": "SU-TRIALS ClinicalTrials.gov programme",
+          "check_name": "validate-programme",
+          "conclusion": "SUCCESS",
+          "run_id": 33651104407,
+          "job_id": 100318025381,
+          "run_job_details_url": "https://github.com/fraware/neuroai-observatory-data/actions/runs/33651104407/job/100318025381"
+        },
+        {
+          "workflow_name": "SU-TRIALS ClinicalTrials.gov recorded replay",
+          "check_name": "replay-contract",
+          "conclusion": "SUCCESS",
+          "run_id": 33651104413,
+          "job_id": 100318025373,
+          "run_job_details_url": "https://github.com/fraware/neuroai-observatory-data/actions/runs/33651104413/job/100318025373"
+        },
+        {
+          "workflow_name": "SU-TRIALS human-review staging",
+          "check_name": "staging-contract",
+          "conclusion": "SUCCESS",
+          "run_id": 33651104497,
+          "job_id": 100318025897,
+          "run_job_details_url": "https://github.com/fraware/neuroai-observatory-data/actions/runs/33651104497/job/100318025897"
+        }
+      ],
+      "limitations": [
+        "The PR body states it must not be merged; this ledger records only check-run conclusions and run/job identifiers.",
+        "This ledger does not download artifacts or inspect logs; it therefore cannot infer proof execution semantics beyond the GitHub check-run conclusion."
+      ],
+      "evidence_replaced_yet": {
+        "replaced_in_current_control_records": false,
+        "how_determined": "String scan for 'pull/182' and '182' in curation execution-control JSONs returned no matches."
+      }
+    },
+    {
+      "entry_id": "PR-190-EVIDENCE_ONLY-2026-09-03",
+      "pr_number": 190,
+      "pr_url": "https://github.com/fraware/neuroai-observatory-data/pull/190",
+      "pr_state_at_capture": "CLOSED",
+      "merged": false,
+      "merged_at": null,
+      "closed_at": "2026-09-03T16:21:37Z",
+      "evidence_purpose": "Evidence-only diagnostic for ClinicalTrials transport 403 on hosted runner; compares pinned production Workbench transport vs client fingerprints and records sanitized HTTP metadata only. GitHub state is CLOSED unmerged; SUCCESS on the diagnostic check is not B01, B02, or a G0 pass.",
+      "head_ref": {
+        "ref_name": "diagnostic/g0-clinicaltrials-transport-ab",
+        "oid": "03f124a3398a3ea87feb52b81bfeb0bb1132f8ab"
+      },
+      "base_ref": {
+        "ref_name": "main",
+        "oid": "0bfd826b8cc0445a02f7991916b2324d856b0268"
+      },
+      "captured_check_runs": [
+        {
+          "workflow_name": "G0 ClinicalTrials transport diagnostic",
+          "check_name": "diagnose",
+          "conclusion": "SUCCESS",
+          "run_id": 33724679480,
+          "job_id": 100551024724,
+          "run_job_details_url": "https://github.com/fraware/neuroai-observatory-data/actions/runs/33724679480/job/100551024724"
+        }
+      ],
+      "limitations": [
+        "PR body states it records HTTP status/failure metadata only (no response body retention) and mutates no source/canonical state.",
+        "This ledger does not validate the semantic correctness of the diagnostic beyond recording the SUCCESS check conclusion and its run/job identifiers."
+      ],
+      "evidence_replaced_yet": {
+        "replaced_in_current_control_records": false,
+        "how_determined": "String scan for 'pull/190' and '190' in curation execution-control JSONs returned no matches."
+      }
+    }
+  ]
+}
+

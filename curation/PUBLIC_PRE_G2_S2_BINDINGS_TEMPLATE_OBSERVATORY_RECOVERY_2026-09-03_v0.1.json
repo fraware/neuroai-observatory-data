@@ -1,0 +1,52 @@
+{
+  "schema_version": "0.1",
+  "template_type": "PUBLIC_PRE_G2_S2_BINDINGS_TEMPLATE",
+  "template_id": "PUBLIC-PRE-G2-S2-BINDINGS-TEMPLATE-2026-09-03-v0.1",
+  "authority_boundary": {
+    "template_is_not_operator_authorization": true,
+    "template_is_not_publication_authorization": true,
+    "template_must_not_synthesize_g1_or_g2_approvals": true,
+    "template_must_not_include_private_or_protected_evidence": true,
+    "interpretation_rule": "Use this file as a public schema/provenance checklist. Replace UNKNOWN placeholders only with externally verified public provenance and aggregate summaries. Do not add held-out labels, secret membership, private adjudicator packets, licensed commercial material, cryptographic secrets, or raw capture artifacts."
+  },
+  "unknown_state_marker": "UNKNOWN",
+  "contract_context": {
+    "d1_artifact_id": "LANDSCAPE_RESEARCH_CONTRACT_v0.1",
+    "d1_schema_sha256": "8dc3f15cc8c9857b9c0457b36810600a2789e9d3b34d0facbf45f0143de3ed25",
+    "d2_artifact_id": "CAPABILITY_CONTEXT_TAXONOMY_v0.1",
+    "d2_d1_contract_binding_canonical_json_sha256": "fcd438c51d7af813ee10b31928090dc45f172630dccc5c9e704a5ce32086c09d",
+    "g1_dependency": {
+      "g1_approved": false,
+      "requires_human_governance_disposition": true
+    }
+  },
+  "s2_public_schema_placeholders": {
+    "observatory_graph_schema_version": "UNKNOWN",
+    "s2_predecessor_release_tag": "UNKNOWN",
+    "s2_predecessor_commit": "UNKNOWN"
+  },
+  "workbench_public_provenance_placeholders": {
+    "workbench_compatibility_version": "UNKNOWN",
+    "producer_workbench_commit": "UNKNOWN",
+    "runtime_execution_pin": "UNKNOWN",
+    "workbench_run_id": "UNKNOWN"
+  },
+  "allowed_public_evaluation_summaries": {
+    "summary_scope": "AGGREGATE_ONLY",
+    "summary_value": "UNKNOWN",
+    "summary_boundary": "Do not include per-item held-out labels, membership indices, or any raw-provenance linkage."
+  },
+  "forbidden_public_payload_kinds": [
+    "held-out labels",
+    "secret membership indicators",
+    "cryptographic secrets",
+    "private adjudicator packets",
+    "licensed commercial material",
+    "proprietary raw capture artifacts",
+    "direct references to private/protected storage objects"
+  ],
+  "remaining_unresolved_conditions_blocking_g2_transition": [
+    "PRE-G2 workbench lineage selection is not bound yet; all workbench provenance fields must remain UNKNOWN until the externally selected lineage is recorded via public governance/provenance material.",
+    "No attributable human G1 governance disposition is recorded for this exact D1/D2 binding; therefore S2 binding remains in a public-template state only (no operator authorization, no publication authorization)."
+  ]
+}
