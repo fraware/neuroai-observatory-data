@@ -251,7 +251,7 @@
   },
   "integrity": {
     "schema_path": "schemas/landscape-research-contract-v0.1.schema.json",
-    "schema_sha256": "29eb7fd03ab786930ddc62683da414a9b6d8b8e1627d2668e7def437e4bbcc50",
+    "schema_sha256": "8dc3f15cc8c9857b9c0457b36810600a2789e9d3b34d0facbf45f0143de3ed25",
     "validator_entrypoint": "scripts/validate_landscape_research_contract.py",
     "documentation_paths": [
       "docs/landscape-research-contract.md"
