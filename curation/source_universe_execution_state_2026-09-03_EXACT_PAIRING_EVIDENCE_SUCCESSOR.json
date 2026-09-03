@@ -1,0 +1,238 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "SOURCE_UNIVERSE_EXECUTION_STATE_2026-09-03_EXACT_PAIRING_EVIDENCE_SUCCESSOR",
+  "status": "PRE_G0_CURRENT_EXECUTION_STATE_NONCANONICAL",
+  "as_of": "2026-09-03",
+  "purpose": "Append-only source-universe execution-state successor that records real hosted evidence on the exact Observatory main / Workbench pin pairing after O1. Predecessor 09-03 control-accounting successor remains immutable.",
+  "predecessor": {
+    "path": "curation/source_universe_execution_state_2026-09-03_CONTROL_ACCOUNTING_SUCCESSOR.json",
+    "control_id": "SOURCE_UNIVERSE_EXECUTION_STATE_2026-09-03_CONTROL_ACCOUNTING_SUCCESSOR",
+    "predecessor_is_modified_by_this_successor": false,
+    "predecessor_immutability": "HISTORICAL_IMMUTABLE_EXECUTION_STATE_NOT_EDITED_IN_PLACE"
+  },
+  "matching_programme_successor": {
+    "path": "curation/PROGRAMME_EXECUTION_STATE_2026-09-03_EXACT_PAIRING_EVIDENCE_SUCCESSOR.json",
+    "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-03_EXACT_PAIRING_EVIDENCE_SUCCESSOR"
+  },
+  "repository_pins": {
+    "workbench_main": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+    "workbench_package_line": "0.3.0.dev0",
+    "workbench_pin_updated_by_this_successor": false,
+    "workbench_pin_established_by_o1_pr": 195,
+    "new_merged_workbench_sha_verified": true,
+    "workbench_pr_267_state": "MERGED",
+    "workbench_pr_267_merge_commit": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+    "observatory_data_origin_main": "367ae8abad57f5733dabee398509404a36ea3ec1",
+    "observatory_data_origin_main_source": "gh api repos/fraware/neuroai-observatory-data/git/ref/heads/main --jq .object.sha",
+    "local_head_equals_origin_main_at_authoring": true,
+    "historical_observatory_data_control_accounting_main": "d14994a578561b34d1dfcbb467faf761bf9a4c31"
+  },
+  "g0": {
+    "decision": "BLOCKED_NOT_PASSED",
+    "passed": false,
+    "open_blocker_ids": ["G0-B01", "G0-OPERATIONAL-DUE-CYCLE"]
+  },
+  "g1": {
+    "g1_approved": false
+  },
+  "source_universes": {
+    "SU-TRIALS": {
+      "programme_id": "SU-TRIALS-CTGOV-v0.1",
+      "source_system": "CLINICALTRIALS_GOV",
+      "implementation_state": "CURRENT_REPLACEMENT_CHAIN_MERGED_EXACT_PAIRING_HOSTED_VALIDATION_EXECUTED",
+      "exact_workbench_pin_for_execution_workflows": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "pin_alignment_issue": 177,
+      "pin_alignment_pr": 178,
+      "o1_pin_pr": 195,
+      "audited_execution_workflows": [
+        ".github/workflows/su-trials-clinicaltrials-programme.yml",
+        ".github/workflows/su-trials-recorded-replay.yml",
+        ".github/workflows/su-trials-human-review-staging.yml",
+        ".github/workflows/su-trials-source-namespace-successor.yml",
+        ".github/workflows/discovery-source-materialization-monitor-proposals.yml"
+      ],
+      "audited_workflows_pin_current_workbench": true,
+      "current": {
+        "label": "current",
+        "reexecuted_against_new_merged_workbench_pairing": true,
+        "live_execution_state": "FIVE_WORKFLOW_HOSTED_VALIDATION_SUCCESS_ON_EXACT_PAIRING",
+        "hosted_validation_state": "EXECUTED_SUCCESS",
+        "evidence_replaced": true,
+        "ledger_rows": [
+          {
+            "workflow": "SU-TRIALS ClinicalTrials.gov programme",
+            "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+            "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+            "event": "workflow_dispatch",
+            "run_id": 33782672235,
+            "job_id": 100739884059,
+            "conclusion": "success",
+            "proves": "Programme contract validation on exact pairing.",
+            "does_not_prove": "B01, due-cycle GREEN, or G0 PASS."
+          },
+          {
+            "workflow": "SU-TRIALS ClinicalTrials.gov recorded replay",
+            "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+            "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+            "event": "workflow_dispatch",
+            "run_id": 33782676127,
+            "job_id": 100739899662,
+            "conclusion": "success",
+            "proves": "Recorded-replay contract on exact pairing.",
+            "does_not_prove": "Live CT.gov retrieval beyond recorded fixtures, B01, or G0 PASS."
+          },
+          {
+            "workflow": "SU-TRIALS human-review staging",
+            "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+            "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+            "event": "workflow_dispatch",
+            "run_id": 33782679817,
+            "job_id": 100739909580,
+            "conclusion": "success",
+            "proves": "Staging contract on exact pairing.",
+            "does_not_prove": "Human acceptance or G0 PASS."
+          },
+          {
+            "workflow": "SU-TRIALS Source-namespace successor",
+            "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+            "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+            "event": "workflow_dispatch",
+            "run_id": 33782683080,
+            "job_id": 100739919153,
+            "conclusion": "success",
+            "proves": "Namespace successor contract on exact pairing.",
+            "does_not_prove": "Automatic publication or G0 PASS."
+          },
+          {
+            "workflow": "Discovery Source materialization and monitoring proposals",
+            "observatory_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+            "workbench_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+            "event": "workflow_dispatch",
+            "run_id": 33782686451,
+            "job_id": 100739929673,
+            "conclusion": "success",
+            "proves": "Materialization/monitor-proposal contract on exact pairing.",
+            "does_not_prove": "Automatic monitor creation, B01, or G0 PASS."
+          }
+        ]
+      },
+      "historical": {
+        "label": "historical",
+        "evidence_replaced": true,
+        "source_record": "curation/source_universe_execution_state_2026-09-03_CONTROL_ACCOUNTING_SUCCESSOR.json"
+      },
+      "effective_lifecycle_source_count_policy": 248,
+      "stale_249_vs_248_expected_source_count_bug_is_active_implementation_blocker": false,
+      "workflow_dispatch_available_in_repository": true,
+      "workflow_dispatch_is_not_b01": true,
+      "canonical_publication_state": "NOT_CONFERRED_BY_B05_HOSTED_VALIDATION",
+      "automatic_monitor_creation_claim": false,
+      "automatic_assessment_mutation_claim": false,
+      "registry_completeness_claim": false,
+      "global_neuroai_trial_recall_claim": false
+    }
+  },
+  "b01": {
+    "state": "OPEN",
+    "required_event": "schedule",
+    "current": {
+      "label": "current",
+      "event_schedule_evidence_on_intended_pin": false,
+      "evidence_replaced": false,
+      "interpretation": "No event=schedule operational-live-cycle run exists on Observatory 367ae8a + Workbench 685f1597."
+    },
+    "historical": {
+      "label": "historical",
+      "evidence_replaced": false
+    }
+  },
+  "b02": {
+    "state": "CONTROLLED_LIVE_PROOF_EXECUTED_ON_EXACT_PAIRING",
+    "current": {
+      "label": "current",
+      "reexecuted_against_new_merged_workbench_pairing": true,
+      "run_id": 33782669430,
+      "job_id": 100739877725,
+      "conclusion": "success",
+      "evidence_replaced": true
+    },
+    "historical": {
+      "label": "historical",
+      "evidence_replaced": true
+    }
+  },
+  "b04": {
+    "state": "GREEN_SYNTHETIC_EXECUTED_ON_EXACT_MAIN",
+    "current": {
+      "label": "current",
+      "reexecuted_against_new_merged_workbench_pairing": true,
+      "run_id": 33782324747,
+      "job_id": 100738740952,
+      "conclusion": "success",
+      "green_synthetic_claimed": true,
+      "substantive_s2_release_published": false,
+      "evidence_replaced": true
+    },
+    "historical": {
+      "label": "historical",
+      "evidence_replaced": true
+    }
+  },
+  "b05": {
+    "state": "FIVE_WORKFLOW_HOSTED_VALIDATION_EXECUTED_ON_EXACT_PAIRING",
+    "current": {
+      "label": "current",
+      "reexecuted_against_new_merged_workbench_pairing": true,
+      "evidence_replaced": true
+    },
+    "historical": {
+      "label": "historical",
+      "evidence_replaced": true,
+      "source_record": "curation/source_universe_execution_state_2026-09-03_CONTROL_ACCOUNTING_SUCCESSOR.json"
+    }
+  },
+  "operational_due_cycle": {
+    "current": {
+      "label": "current",
+      "proof_claimed": false,
+      "effective_sources": 248,
+      "push_run_id": 33782324835,
+      "rehearsal_dispatch_run_id": 33782691902,
+      "both_conclusions": "failure",
+      "failure_reason": "source_resolution_state DEGRADED from unresolved typed failures SRC-0064, SRC-14-019, SRC-14-021",
+      "source_health_invariants_weakened": false
+    }
+  },
+  "d1_d2_on_origin_main": {
+    "g1_approved": false,
+    "d1_artifact_id": "LANDSCAPE_RESEARCH_CONTRACT_v0.1",
+    "d2_artifact_id": "CAPABILITY_CONTEXT_TAXONOMY_v0.1",
+    "merged_prs": [192, 193],
+    "landed_on_origin_main_sha": "d14994a578561b34d1dfcbb467faf761bf9a4c31",
+    "presented_against_observatory_main_sha": "367ae8abad57f5733dabee398509404a36ea3ec1"
+  },
+  "operational_gate": {
+    "issue": 105,
+    "state": "PARTIAL_HOSTED_VALIDATION_CLEARED_B01_AND_DUE_CYCLE_REMAIN",
+    "five_workflow_hosted_validation_on_exact_pairing": true,
+    "required_before_g0": [
+      "A true event=schedule run exists on the intended pin before B01 can be reconsidered.",
+      "Operational due-cycle must pass source_resolution_state=HEALTHY on exact pairing without weakening source-health invariants or changing the 248 effective-source policy."
+    ]
+  },
+  "next_gate": {
+    "state": "BLOCKED_WAITING_B01_SCHEDULE_AND_DUE_CYCLE_HEALTH",
+    "required_actions": [
+      "Wait for event=schedule on operational-live-cycle.yml for Observatory SHA >= 367ae8a with Workbench 685f1597.",
+      "Remediate unresolved typed source failures SRC-0064, SRC-14-019, SRC-14-021 without weakening health gates.",
+      "Keep g1_approved=false until attributable human disposition."
+    ]
+  },
+  "non_claims": [
+    "This successor does not claim G0 PASS, G1 approval, G2 freeze, scientific truth, publication, regulatory status, or v4.2 findings.",
+    "This successor does not invent event=schedule evidence or treat workflow_dispatch as B01.",
+    "This successor does not weaken the 248 effective-source policy or source-health invariants.",
+    "This successor does not place S3, licensed, or private material into S2."
+  ],
+  "boundary": "This successor records source-universe execution-control accounting with real run IDs. It does not establish B01 scheduled evidence, due-cycle GREEN health, substantive publication, scientific truth, G1 approval, or a G0 pass."
+}

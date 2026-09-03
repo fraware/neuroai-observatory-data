@@ -23,6 +23,12 @@
     "governance_disposition_id": null,
     "governance_disposition_path": null
   },
+  "presentation_context": {
+    "presented_against_observatory_main_sha": "367ae8abad57f5733dabee398509404a36ea3ec1",
+    "presented_against_workbench_pin_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+    "g1_approved": false,
+    "note": "Presentation bindings only. Does not invent human approval. D1/D2 landed_on SHAs remain the merge identities where those artifacts first existed on main."
+  },
   "artifacts_introduced_in_recovery": {
     "d1": {
       "artifact_id": "LANDSCAPE_RESEARCH_CONTRACT_v0.1",
