@@ -12,6 +12,18 @@ on:
       - "scripts/validate_capability_context_taxonomy.py"
       - "tests/test_capability_context_taxonomy.py"
       - ".github/workflows/pre-g1-d2-capability-context-taxonomy.yml"
+  push:
+    branches: [main]
+    paths:
+      - "curation/LANDSCAPE_RESEARCH_CONTRACT_v0.1.json"
+      - "schemas/landscape-research-contract-v0.1.schema.json"
+      - "scripts/validate_landscape_research_contract.py"
+      - "tests/test_landscape_research_contract.py"
+      - "curation/CAPABILITY_CONTEXT_TAXONOMY_v0.1.json"
+      - "schemas/capability-context-taxonomy-v0.1.schema.json"
+      - "scripts/validate_capability_context_taxonomy.py"
+      - "tests/test_capability_context_taxonomy.py"
+      - ".github/workflows/pre-g1-d2-capability-context-taxonomy.yml"
   workflow_dispatch:
 
 permissions:
@@ -23,7 +35,11 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
       - name: Validate D2 draft invariants
         run: python scripts/validate_capability_context_taxonomy.py
       - name: Run D2 regression tests
