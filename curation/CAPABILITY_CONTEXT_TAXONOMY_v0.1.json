@@ -2,19 +2,19 @@
   "artifact_id": "CAPABILITY_CONTEXT_TAXONOMY_v0.1",
   "version": "0.1",
   "status": "PRE_G1_DRAFT",
-  "created_against_observatory_main_sha": "af1fea0b75ab74d25e3c54d9204a97c92aeb7d7f",
+  "created_against_observatory_main_sha": "f14b0b34a30979b9c49c1db1a13e5eed0a48105e",
   "d1_contract_binding": {
     "artifact_id": "LANDSCAPE_RESEARCH_CONTRACT_v0.1",
     "version": "0.1",
-    "created_against_observatory_main_sha": "af1fea0b75ab74d25e3c54d9204a97c92aeb7d7f",
+    "created_against_observatory_main_sha": "f14b0b34a30979b9c49c1db1a13e5eed0a48105e",
     "artifact_path": "curation/LANDSCAPE_RESEARCH_CONTRACT_v0.1.json",
     "validator_entrypoint": "scripts/validate_landscape_research_contract.py",
-    "canonical_json_sha256": "fcd438c51d7af813ee10b31928090dc45f172630dccc5c9e704a5ce32086c09d",
+    "canonical_json_sha256": "7d270002094dcdecb703d5b70ef2268e4869005c284ffd98db3eb936641a78cb",
     "d2_question_bindings": [
-      "RQ-02",
+      "RQ-01",
       "RQ-04",
-      "RQ-05",
-      "RQ-06"
+      "RQ-06",
+      "RQ-07"
     ]
   },
   "governance": {
