@@ -12,9 +12,24 @@ Source: PATSTAT Global, Autumn 2025 edition. 104,742,722 families in total; 69,2
 of them carry an English-language abstract, and those are the ones any text-based method
 can see.
 
-The bibliographic data and the abstract text in `abstracts_sample.csv` originate with the
-EPO and remain subject to the PATSTAT licence terms. Anyone reusing this extract should
-check their own position under those terms; publication here does not relicense it.
+> **Rights status — review open.** Issue #210 is the governing rights/containment review
+> for this public extract. The exact licence/order terms applicable to the Autumn 2025
+> PATSTAT delivery have not yet been verified in-repository, so public presence must not
+> be treated as a finding that every row-level field is cleared for redistribution.
+> `abstracts_sample.csv` is specifically classified as rights-unresolved because it
+> contains title and abstract text originating from the EPO alongside derived labels and
+> scores. Other row-level files remain subject to the same file/field-level review.
+>
+> Under the EPO's currently published database-licensing terms, a licensee may create its
+> own product containing or based on EPO data, while the EPO database or data “as such”
+> may not be made public or distributed as such without express written authorisation.
+> The current terms also require the attribution below for products containing sourced
+> EPO data. This repository statement is a containment control, not a legal conclusion
+> about the exact contract applicable to this extract.
+>
+> **This product contains data sourced from EPO databases, © European Patent Organisation.**
+>
+> Current published terms: https://www.epo.org/en/service-support/ordering/raw-data-terms-and-conditions
 
 ---
 
