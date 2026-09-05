@@ -1,0 +1,45 @@
+name: PATSTAT Baseline A scientific status
+
+on:
+  pull_request:
+    paths:
+      - "curation/PATSTAT_BASELINE_A_SCIENTIFIC_STATUS_2026-09-05_v0.1.json"
+      - "patent-evidence-extract/README.md"
+      - "patent-evidence-extract/reproduce.py"
+      - "patent-evidence-extract/strata.csv"
+      - "patent-evidence-extract/gold_labels.csv"
+      - "patent-evidence-extract/clusters.csv"
+      - "tests/test_patstat_baseline_a_scientific_status.py"
+      - ".github/workflows/patstat-baseline-a-scientific-status.yml"
+  push:
+    branches: [main]
+    paths:
+      - "curation/PATSTAT_BASELINE_A_SCIENTIFIC_STATUS_2026-09-05_v0.1.json"
+      - "patent-evidence-extract/README.md"
+      - "patent-evidence-extract/reproduce.py"
+      - "patent-evidence-extract/strata.csv"
+      - "patent-evidence-extract/gold_labels.csv"
+      - "patent-evidence-extract/clusters.csv"
+      - "tests/test_patstat_baseline_a_scientific_status.py"
+      - ".github/workflows/patstat-baseline-a-scientific-status.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-baseline-a-status:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Validate PATSTAT Baseline A scientific boundary
+        run: python -m unittest tests.test_patstat_baseline_a_scientific_status -v
+      - name: Authority boundary
+        run: |
+          echo "This workflow validates Baseline A bookkeeping, reproducible point-estimate behavior, and fail-closed scientific status only."
+          echo "It cannot establish human label truth, estimator adequacy, uncertainty validity, G0/G2/G5 passage,"
+          echo "PATSTAT redistribution rights, global completeness, canonical S2 authority, publication authority, or assessment effects."
