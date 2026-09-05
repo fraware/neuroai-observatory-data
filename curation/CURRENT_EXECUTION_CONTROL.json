@@ -1,12 +1,12 @@
 {
   "schema_version": "0.1.0",
   "status": "CURRENT_CONTROL_POINTER_NONCANONICAL",
-  "as_of": "2026-09-03",
+  "as_of": "2026-09-05",
   "programme_execution_baseline": "curation/PROGRAMME_EXECUTION_BASELINE_2026-09-01.json",
-  "current_programme_execution_state": "curation/PROGRAMME_EXECUTION_STATE_2026-09-03_SRC14021_DISPOSITION_C_SUCCESSOR.json",
+  "current_programme_execution_state": "curation/PROGRAMME_EXECUTION_STATE_2026-09-05_D1_D2_CONSTRUCT_VALIDITY_SUCCESSOR.json",
   "source_universe_execution_state": "curation/source_universe_execution_state_2026-09-03_SRC14021_DISPOSITION_C_SUCCESSOR.json",
   "issue_disposition_ledger": "curation/issue_disposition_ledger_observatory_recovery_2026-09-03_v0.1.json",
   "historical_planning_control": "curation/source_universe_expansion_backlog_v0.1.json",
   "historical_planning_control_status": "SUPERSEDED_FOR_CURRENT_EXECUTION_INTERPRETATION",
-  "boundary": "This pointer identifies current execution-control records only. The frozen programme baseline and prior successor states remain immutable and separate from the current successor. This pointer does not confer canonical publication authority, operational health, scientific truth, completeness, assessment authority, or a G0/G1/G2 pass."
+  "boundary": "This pointer identifies current execution-control records only. The frozen programme baseline and prior successor states remain immutable and separate from the current successor. The 2026-09-05 successor records corrected PRE-G1 D1/D2 technical identities while inheriting prior gate and operational state without re-adjudication. This pointer does not confer canonical publication authority, operational health, scientific truth, completeness, assessment authority, PATSTAT redistribution rights, or a G0/G1/G2 pass."
 }
