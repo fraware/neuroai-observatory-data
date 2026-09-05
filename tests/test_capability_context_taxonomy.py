@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import importlib.util
 import json
 from pathlib import Path
+import tempfile
 import unittest
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "validate_capability_context_taxonomy.py"
@@ -82,6 +85,26 @@ class CapabilityContextTaxonomyTests(unittest.TestCase):
                 "canonical_json_sha256", "0" * 64
             )
         )
+
+    def test_d1_binding_canonical_digest_is_line_ending_invariant(self):
+        d1_path = ROOT / "curation" / "LANDSCAPE_RESEARCH_CONTRACT_v0.1.json"
+        d1 = json.loads(d1_path.read_text(encoding="utf-8"))
+        lf_text = json.dumps(d1, ensure_ascii=False, indent=2) + "\n"
+        crlf_text = lf_text.replace("\n", "\r\n")
+
+        self.assertNotEqual(
+            hashlib.sha256(lf_text.encode("utf-8")).hexdigest(),
+            hashlib.sha256(crlf_text.encode("utf-8")).hexdigest(),
+        )
+        expected_digest = self.doc["d1_contract_binding"]["canonical_json_sha256"]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            for name, text in (("d1-lf.json", lf_text), ("d1-crlf.json", crlf_text)):
+                candidate = Path(tmpdir) / name
+                candidate.write_bytes(text.encode("utf-8"))
+                with patch.object(validator, "DEFAULT_D1_ARTIFACT", candidate):
+                    identity = validator._load_d1_contract_identity()
+                self.assertEqual(identity["canonical_json_sha256"], expected_digest)
 
     def test_d1_binding_question_mismatch_fails_closed(self):
         def mutate(doc):
