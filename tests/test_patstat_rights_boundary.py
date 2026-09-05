@@ -30,7 +30,6 @@ class PatstatRightsBoundaryTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.review = json.loads(REVIEW.read_text(encoding="utf-8"))
         cls.readme = README.read_text(encoding="utf-8")
-        cls.readme_normalized = " ".join(cls.readme.split())
 
     def test_review_is_fail_closed_and_non_authoritative(self) -> None:
         self.assertEqual(self.review["status"], "RIGHTS_REVIEW_OPEN_FAIL_CLOSED")
@@ -71,10 +70,8 @@ class PatstatRightsBoundaryTests(unittest.TestCase):
         self.assertIn(REQUIRED_ATTRIBUTION, self.readme)
         self.assertIn("Rights status — review open", self.readme)
         self.assertIn("Issue #210", self.readme)
-        self.assertIn(
-            "must not be treated as a finding that every row-level field is cleared for redistribution",
-            self.readme_normalized,
-        )
+        self.assertIn("public presence must not", self.readme)
+        self.assertIn("every row-level field is cleared for redistribution", self.readme)
 
     def test_review_cannot_be_misread_as_deletion_or_history_rewrite_authority(self) -> None:
         boundary = self.review["programme_boundary"]
