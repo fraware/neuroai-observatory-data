@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "landscape-research-contract-v0.1.schema.json",
   "title": "LANDSCAPE_RESEARCH_CONTRACT_v0.1",
-  "description": "PRE-G1 bounded research contract for NeuroAI landscape discovery, extraction, review, and governance preparation. Structure validation only; no approval authority is implied.",
+  "description": "Fail-closed PRE-G1 research contract for the NeuroAI Landscape Observatory. Structural validity carries no G1, S2, publication or assessment authority.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -14,15 +14,24 @@
     "governance",
     "scope",
     "questions",
+    "secondary_questions",
     "deliverables",
     "claim_classes",
     "evidence_rules",
     "classification_semantics",
+    "discovery_tracks",
     "source_classes",
     "unit_chain",
+    "units_of_analysis",
     "identity_contract",
+    "patent_product_linkage",
+    "model_assistance",
+    "human_review",
+    "governance_mapping",
     "evaluation_requirements",
     "containment",
+    "stopping_change_control",
+    "assessment_trigger",
     "integrity",
     "authority_boundary"
   ],
@@ -87,15 +96,16 @@
         },
         "approval_outcomes_allowed": {
           "type": "array",
+          "minItems": 3,
           "items": {
             "type": "string",
+            "minLength": 1,
             "enum": [
               "APPROVE",
               "WITHHOLD",
               "DEFER"
             ]
           },
-          "minItems": 3,
           "maxItems": 3,
           "uniqueItems": true
         },
@@ -122,29 +132,29 @@
         },
         "primary_audience": {
           "type": "array",
+          "minItems": 1,
           "items": {
             "type": "string",
             "minLength": 1
           },
-          "minItems": 1,
           "uniqueItems": true
         },
         "secondary_audience": {
           "type": "array",
+          "minItems": 1,
           "items": {
             "type": "string",
             "minLength": 1
           },
-          "minItems": 1,
           "uniqueItems": true
         },
         "non_goals": {
           "type": "array",
+          "minItems": 1,
           "items": {
             "type": "string",
             "minLength": 1
           },
-          "minItems": 1,
           "uniqueItems": true
         },
         "open_world_completeness_claim": {
@@ -159,8 +169,6 @@
     "questions": {
       "type": "array",
       "minItems": 7,
-      "maxItems": 7,
-      "uniqueItems": true,
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -173,14 +181,19 @@
         "properties": {
           "question_id": {
             "type": "string",
-            "pattern": "^RQ-0[1-7]$"
+            "minLength": 1,
+            "enum": [
+              "RQ-01",
+              "RQ-02",
+              "RQ-03",
+              "RQ-04",
+              "RQ-05",
+              "RQ-06",
+              "RQ-07"
+            ]
           },
           "tier": {
-            "type": "string",
-            "enum": [
-              "PRIMARY",
-              "SECONDARY"
-            ]
+            "const": "PRIMARY"
           },
           "text": {
             "type": "string",
@@ -191,57 +204,138 @@
             "minLength": 1
           }
         }
-      }
+      },
+      "maxItems": 7,
+      "uniqueItems": true
+    },
+    "secondary_questions": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "question_id",
+          "tier",
+          "text",
+          "parent_question_id"
+        ],
+        "properties": {
+          "question_id": {
+            "type": "string",
+            "minLength": 1,
+            "enum": [
+              "SQ-01",
+              "SQ-02",
+              "SQ-03",
+              "SQ-04",
+              "SQ-05",
+              "SQ-06"
+            ]
+          },
+          "tier": {
+            "const": "SECONDARY"
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "parent_question_id": {
+            "type": "string",
+            "minLength": 1,
+            "enum": [
+              "RQ-01",
+              "RQ-02",
+              "RQ-03",
+              "RQ-04",
+              "RQ-05",
+              "RQ-06",
+              "RQ-07"
+            ]
+          }
+        }
+      },
+      "maxItems": 6,
+      "uniqueItems": true
     },
     "deliverables": {
       "type": "array",
-      "minItems": 2,
+      "minItems": 19,
       "items": {
         "type": "object",
         "additionalProperties": false,
         "required": [
           "deliverable_id",
           "name",
-          "question_bindings",
-          "description"
+          "gate",
+          "question_bindings"
         ],
         "properties": {
           "deliverable_id": {
             "type": "string",
+            "minLength": 1,
             "enum": [
+              "D0",
               "D1",
-              "D2"
+              "D2",
+              "D3",
+              "D4",
+              "D5",
+              "D6",
+              "D7",
+              "D8",
+              "D9",
+              "D10",
+              "D11",
+              "D12",
+              "D13",
+              "D14",
+              "D15",
+              "D16",
+              "D17",
+              "D18"
             ]
           },
           "name": {
             "type": "string",
             "minLength": 1
           },
+          "gate": {
+            "type": "string",
+            "minLength": 1
+          },
           "question_bindings": {
             "type": "array",
             "minItems": 1,
-            "uniqueItems": true,
             "items": {
               "type": "string",
-              "pattern": "^RQ-0[1-7]$"
-            }
-          },
-          "description": {
-            "type": "string",
-            "minLength": 1
+              "minLength": 1,
+              "enum": [
+                "RQ-01",
+                "RQ-02",
+                "RQ-03",
+                "RQ-04",
+                "RQ-05",
+                "RQ-06",
+                "RQ-07"
+              ]
+            },
+            "uniqueItems": true
           }
         }
-      }
+      },
+      "maxItems": 19,
+      "uniqueItems": true
     },
     "claim_classes": {
       "type": "array",
-      "minItems": 4,
-      "uniqueItems": true,
+      "minItems": 10,
       "items": {
         "type": "object",
         "additionalProperties": false,
         "required": [
           "claim_class_id",
+          "question_bindings",
           "allowed_evidence_rules",
           "maximum_interpretation",
           "prohibited_inferences"
@@ -249,30 +343,57 @@
         "properties": {
           "claim_class_id": {
             "type": "string",
+            "minLength": 1,
             "enum": [
               "CLAIM_ENTITY_EXISTENCE",
+              "CLAIM_CAPABILITY_OR_CONTEXT",
+              "CLAIM_ACTOR_ROLE",
+              "CLAIM_COMMERCIALIZATION_OR_DEPLOYMENT",
               "CLAIM_NEUROAI_BOUNDARY_MEMBERSHIP",
+              "CLAIM_CONCENTRATION",
               "CLAIM_PRODUCT_PATENT_RELATION",
+              "CLAIM_GOVERNANCE_RELEVANCE",
+              "CLAIM_ASSESSMENT_TRIGGER",
               "CLAIM_EVALUATION_READINESS"
             ]
+          },
+          "question_bindings": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "enum": [
+                "RQ-01",
+                "RQ-02",
+                "RQ-03",
+                "RQ-04",
+                "RQ-05",
+                "RQ-06",
+                "RQ-07"
+              ]
+            },
+            "uniqueItems": true
           },
           "allowed_evidence_rules": {
             "type": "array",
             "minItems": 1,
-            "uniqueItems": true,
             "items": {
               "type": "string",
+              "minLength": 1,
               "enum": [
                 "ATTRIBUTABLE_PUBLIC_SOURCE",
                 "TRACEABLE_LICENSED_SOURCE",
                 "MULTI_SIGNAL_ATTRIBUTABLE_EVIDENCE",
                 "EXPERT_REVIEW_REQUIRED",
-                "EXACT_PRODUCT_REFERENCE_IN_PATENT",
-                "EXACT_PATENT_REFERENCE_IN_PRODUCT_MATERIAL",
-                "TRIANGULATED_ATTRIBUTABLE_RELATION",
+                "VALIDATED_ANALYTICAL_DENOMINATOR",
+                "PATENT_PRODUCT_TIERED_EVIDENCE",
+                "MECHANISM_BOUNDED_GOVERNANCE_MAPPING",
+                "EXACT_SYSTEM_TRIGGER_EVIDENCE",
                 "DOCUMENTED_EVALUATION_PROTOCOL"
               ]
-            }
+            },
+            "uniqueItems": true
           },
           "maximum_interpretation": {
             "type": "string",
@@ -281,14 +402,16 @@
           "prohibited_inferences": {
             "type": "array",
             "minItems": 1,
-            "uniqueItems": true,
             "items": {
               "type": "string",
               "minLength": 1
-            }
+            },
+            "uniqueItems": true
           }
         }
-      }
+      },
+      "maxItems": 10,
+      "uniqueItems": true
     },
     "evidence_rules": {
       "type": "object",
@@ -298,9 +421,10 @@
         "TRACEABLE_LICENSED_SOURCE",
         "MULTI_SIGNAL_ATTRIBUTABLE_EVIDENCE",
         "EXPERT_REVIEW_REQUIRED",
-        "EXACT_PRODUCT_REFERENCE_IN_PATENT",
-        "EXACT_PATENT_REFERENCE_IN_PRODUCT_MATERIAL",
-        "TRIANGULATED_ATTRIBUTABLE_RELATION",
+        "VALIDATED_ANALYTICAL_DENOMINATOR",
+        "PATENT_PRODUCT_TIERED_EVIDENCE",
+        "MECHANISM_BOUNDED_GOVERNANCE_MAPPING",
+        "EXACT_SYSTEM_TRIGGER_EVIDENCE",
         "DOCUMENTED_EVALUATION_PROTOCOL"
       ],
       "properties": {
@@ -320,15 +444,19 @@
           "type": "string",
           "minLength": 1
         },
-        "EXACT_PRODUCT_REFERENCE_IN_PATENT": {
+        "VALIDATED_ANALYTICAL_DENOMINATOR": {
           "type": "string",
           "minLength": 1
         },
-        "EXACT_PATENT_REFERENCE_IN_PRODUCT_MATERIAL": {
+        "PATENT_PRODUCT_TIERED_EVIDENCE": {
           "type": "string",
           "minLength": 1
         },
-        "TRIANGULATED_ATTRIBUTABLE_RELATION": {
+        "MECHANISM_BOUNDED_GOVERNANCE_MAPPING": {
+          "type": "string",
+          "minLength": 1
+        },
+        "EXACT_SYSTEM_TRIGGER_EVIDENCE": {
           "type": "string",
           "minLength": 1
         },
@@ -347,13 +475,16 @@
         "borderline_requires_recorded_rationale",
         "proxy_only_cannot_establish_inclusion",
         "inclusion_requires_attributable_evidence",
-        "open_world_unknowns_must_remain_explicit"
+        "open_world_unknowns_must_remain_explicit",
+        "gray_third"
       ],
       "properties": {
         "allowed_dispositions": {
           "type": "array",
+          "minItems": 4,
           "items": {
             "type": "string",
+            "minLength": 1,
             "enum": [
               "INCLUDE",
               "EXCLUDE",
@@ -361,7 +492,6 @@
               "ABSTAIN"
             ]
           },
-          "minItems": 4,
           "maxItems": 4,
           "uniqueItems": true
         },
@@ -379,53 +509,215 @@
         },
         "open_world_unknowns_must_remain_explicit": {
           "const": true
+        },
+        "gray_third": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "retrieval_only",
+            "canonical_population_class",
+            "operational_rule",
+            "search_families"
+          ],
+          "properties": {
+            "retrieval_only": {
+              "const": true
+            },
+            "canonical_population_class": {
+              "const": false
+            },
+            "operational_rule": {
+              "type": "string",
+              "minLength": 1
+            },
+            "search_families": {
+              "type": "array",
+              "minItems": 6,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "id",
+                  "label"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "enum": [
+                      "GRAY_ATTENTION_VIGILANCE",
+                      "GRAY_COGNITIVE_AFFECTIVE_STATE",
+                      "GRAY_ADAPTIVE_INTERFACES",
+                      "GRAY_COGNITIVE_ENHANCEMENT_TRAINING",
+                      "GRAY_BEHAVIORAL_PERSONALIZATION",
+                      "GRAY_NONTRADITIONAL_FORM_FACTOR"
+                    ]
+                  },
+                  "label": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "maxItems": 6,
+              "uniqueItems": true
+            }
+          }
         }
       }
+    },
+    "discovery_tracks": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "track_id",
+          "universe_type",
+          "question_bindings",
+          "required_outputs"
+        ],
+        "properties": {
+          "track_id": {
+            "type": "string",
+            "minLength": 1,
+            "enum": [
+              "TRACK_PATENTS",
+              "TRACK_COMPANIES_PRODUCTS",
+              "TRACK_GRAY_THIRD",
+              "TRACK_MULTILINGUAL_REGIONAL"
+            ]
+          },
+          "universe_type": {
+            "type": "string",
+            "minLength": 1,
+            "enum": [
+              "STRUCTURED_DENOMINATED",
+              "OPEN_WORLD_PROTOCOL",
+              "MIXED"
+            ]
+          },
+          "question_bindings": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "enum": [
+                "RQ-01",
+                "RQ-02",
+                "RQ-03",
+                "RQ-04",
+                "RQ-05",
+                "RQ-06",
+                "RQ-07"
+              ]
+            },
+            "uniqueItems": true
+          },
+          "required_outputs": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true
+          }
+        }
+      },
+      "maxItems": 4,
+      "uniqueItems": true
     },
     "source_classes": {
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "bounded_structured",
-        "open_world_discovery",
-        "bounded_structured_required_for_canonical_claims",
-        "open_world_discovery_can_trigger_review_only"
+        "universe_types",
+        "structured_denominated",
+        "open_world_channels",
+        "access_classes",
+        "structured_denominator_must_be_explicit",
+        "open_world_protocol_must_report_stopping_and_marginal_yield",
+        "source_class_does_not_determine_claim_truth"
       ],
       "properties": {
-        "bounded_structured": {
+        "universe_types": {
           "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
+          "minItems": 3,
           "items": {
             "type": "string",
+            "minLength": 1,
+            "enum": [
+              "STRUCTURED_DENOMINATED",
+              "OPEN_WORLD_PROTOCOL",
+              "MIXED"
+            ]
+          },
+          "maxItems": 3,
+          "uniqueItems": true
+        },
+        "structured_denominated": {
+          "type": "array",
+          "minItems": 5,
+          "items": {
+            "type": "string",
+            "minLength": 1,
             "enum": [
               "PATENT_DATABASE",
-              "REGULATORY_DATABASE",
-              "CLINICAL_TRIAL_REGISTRY",
               "PUBLICATION_INDEX",
+              "CLINICAL_TRIAL_REGISTRY",
               "GRANT_DATABASE",
-              "COMPANY_PRODUCT_PAGE"
+              "REGULATORY_DATABASE"
             ]
-          }
+          },
+          "maxItems": 5,
+          "uniqueItems": true
         },
-        "open_world_discovery": {
+        "open_world_channels": {
           "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
+          "minItems": 8,
           "items": {
             "type": "string",
+            "minLength": 1,
             "enum": [
+              "COMPANY_PRODUCT_PAGE",
               "NEWS",
               "CONFERENCE_MATERIAL",
-              "THIRD_PARTY_MARKET_REPORT",
-              "MULTILINGUAL_WEB_DISCOVERY"
+              "COMMERCIAL_DISCOVERY_DATABASE",
+              "EXPERT_NOMINATION",
+              "PUBLIC_WEB_MEDIA",
+              "MULTILINGUAL_WEB_DISCOVERY",
+              "SNOWBALL_CO_MENTION"
             ]
-          }
+          },
+          "maxItems": 8,
+          "uniqueItems": true
         },
-        "bounded_structured_required_for_canonical_claims": {
+        "access_classes": {
+          "type": "array",
+          "minItems": 4,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "enum": [
+              "PUBLIC_REDISTRIBUTABLE",
+              "PUBLIC_RESTRICTED",
+              "LICENSED_CONTROLLED",
+              "PROTECTED_CONTROLLED"
+            ]
+          },
+          "maxItems": 4,
+          "uniqueItems": true
+        },
+        "structured_denominator_must_be_explicit": {
           "const": true
         },
-        "open_world_discovery_can_trigger_review_only": {
+        "open_world_protocol_must_report_stopping_and_marginal_yield": {
+          "const": true
+        },
+        "source_class_does_not_determine_claim_truth": {
           "const": true
         }
       }
@@ -433,42 +725,317 @@
     "unit_chain": {
       "type": "array",
       "minItems": 4,
-      "maxItems": 4,
-      "uniqueItems": true,
       "items": {
         "type": "string",
+        "minLength": 1,
         "enum": [
           "SOURCE",
           "OBSERVATION",
           "CANDIDATE_OR_EXTRACTION",
           "ASSERTION_OR_RELATIONSHIP_OR_EVENT"
         ]
+      },
+      "maxItems": 4,
+      "uniqueItems": true
+    },
+    "units_of_analysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entity_types",
+        "organization_product_distinct",
+        "organization_patent_distinct",
+        "product_patent_relation_is_separate"
+      ],
+      "properties": {
+        "entity_types": {
+          "type": "array",
+          "minItems": 4,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "enum": [
+              "ORGANIZATION",
+              "PRODUCT",
+              "SYSTEM",
+              "PATENT"
+            ]
+          },
+          "maxItems": 4,
+          "uniqueItems": true
+        },
+        "organization_product_distinct": {
+          "const": true
+        },
+        "organization_patent_distinct": {
+          "const": true
+        },
+        "product_patent_relation_is_separate": {
+          "const": true
+        }
       }
     },
     "identity_contract": {
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "organization_identity_distinct_from_product_identity",
-        "product_identity_distinct_from_patent_identity",
-        "product_patent_relation_requires_separate_evidence",
-        "name_similarity_is_never_sufficient_for_merge",
+        "exact_identifiers_preferred",
+        "unresolved_literals_preserved",
+        "fuzzy_name_match_cannot_merge",
+        "parent_subsidiary_distinct_unless_evidenced",
+        "acquisition_and_ownership_time_scoped",
+        "patent_publication_and_family_distinct",
+        "product_family_and_exact_product_distinct",
         "multilingual_aliases_do_not_change_canonical_identity"
       ],
       "properties": {
-        "organization_identity_distinct_from_product_identity": {
+        "exact_identifiers_preferred": {
           "const": true
         },
-        "product_identity_distinct_from_patent_identity": {
+        "unresolved_literals_preserved": {
           "const": true
         },
-        "product_patent_relation_requires_separate_evidence": {
+        "fuzzy_name_match_cannot_merge": {
           "const": true
         },
-        "name_similarity_is_never_sufficient_for_merge": {
+        "parent_subsidiary_distinct_unless_evidenced": {
+          "const": true
+        },
+        "acquisition_and_ownership_time_scoped": {
+          "const": true
+        },
+        "patent_publication_and_family_distinct": {
+          "const": true
+        },
+        "product_family_and_exact_product_distinct": {
           "const": true
         },
         "multilingual_aliases_do_not_change_canonical_identity": {
+          "const": true
+        }
+      }
+    },
+    "patent_product_linkage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tiers",
+        "l4_excluded_from_established_link_counts",
+        "l3_quantitative_use_requires_validated_error_study",
+        "l1_l2_report_claims_require_human_review",
+        "unresolved_links_remain_unresolved"
+      ],
+      "properties": {
+        "tiers": {
+          "type": "array",
+          "minItems": 4,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "tier",
+              "meaning",
+              "permitted_use",
+              "human_review"
+            ],
+            "properties": {
+              "tier": {
+                "type": "string",
+                "minLength": 1,
+                "enum": [
+                  "L1",
+                  "L2",
+                  "L3",
+                  "L4"
+                ]
+              },
+              "meaning": {
+                "type": "string",
+                "minLength": 1
+              },
+              "permitted_use": {
+                "type": "string",
+                "minLength": 1
+              },
+              "human_review": {
+                "type": "string",
+                "minLength": 1,
+                "enum": [
+                  "REQUIRED_FOR_REPORT_CLAIMS",
+                  "SAMPLED_AND_STRATEGIC",
+                  "AS_NEEDED_FOR_DISCOVERY"
+                ]
+              }
+            }
+          },
+          "maxItems": 4,
+          "uniqueItems": true
+        },
+        "l4_excluded_from_established_link_counts": {
+          "const": true
+        },
+        "l3_quantitative_use_requires_validated_error_study": {
+          "const": true
+        },
+        "l1_l2_report_claims_require_human_review": {
+          "const": true
+        },
+        "unresolved_links_remain_unresolved": {
+          "const": true
+        }
+      }
+    },
+    "model_assistance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model_consensus_is_truth",
+        "roles",
+        "provider_model_and_version_provenance_required",
+        "human_disposition_required_at_governed_boundaries"
+      ],
+      "properties": {
+        "model_consensus_is_truth": {
+          "const": false
+        },
+        "roles": {
+          "type": "array",
+          "minItems": 6,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "role",
+              "permitted",
+              "prohibited"
+            ],
+            "properties": {
+              "role": {
+                "type": "string",
+                "minLength": 1,
+                "enum": [
+                  "RETRIEVAL_QUERY_EXPANSION",
+                  "EXTRACTION",
+                  "CLASSIFICATION",
+                  "ADJUDICATION_SUPPORT",
+                  "POLICY_MAPPING_SUPPORT",
+                  "DRAFTING_REPORT_SUPPORT"
+                ]
+              },
+              "permitted": {
+                "type": "string",
+                "minLength": 1
+              },
+              "prohibited": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "maxItems": 6,
+          "uniqueItems": true
+        },
+        "provider_model_and_version_provenance_required": {
+          "const": true
+        },
+        "human_disposition_required_at_governed_boundaries": {
+          "const": true
+        }
+      }
+    },
+    "human_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "g1_requires_attributable_human_disposition_over_exact_d1_d2_identity",
+        "benchmark_labels_are_human_adjudicated",
+        "difficult_gray_and_ambiguous_cases_prioritized_for_expert_review",
+        "l1_l2_report_links_require_human_review",
+        "l3_links_require_statistically_informative_sample_review",
+        "genuine_disagreement_may_remain_unresolved",
+        "required_disposition_fields"
+      ],
+      "properties": {
+        "g1_requires_attributable_human_disposition_over_exact_d1_d2_identity": {
+          "const": true
+        },
+        "benchmark_labels_are_human_adjudicated": {
+          "const": true
+        },
+        "difficult_gray_and_ambiguous_cases_prioritized_for_expert_review": {
+          "const": true
+        },
+        "l1_l2_report_links_require_human_review": {
+          "const": true
+        },
+        "l3_links_require_statistically_informative_sample_review": {
+          "const": true
+        },
+        "genuine_disagreement_may_remain_unresolved": {
+          "const": true
+        },
+        "required_disposition_fields": {
+          "type": "array",
+          "minItems": 5,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "enum": [
+              "decision",
+              "rationale",
+              "adjudicator_role",
+              "timestamp",
+              "exact_object_binding"
+            ]
+          },
+          "maxItems": 5,
+          "uniqueItems": true
+        }
+      }
+    },
+    "governance_mapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "chain",
+        "concerns_and_mechanisms_human_defined_before_model_assistance",
+        "bounded_language_template",
+        "predicted_company_behavior_allowed",
+        "detailed_harmful_use_instructions_are_research_objective",
+        "expert_review_required"
+      ],
+      "properties": {
+        "chain": {
+          "type": "array",
+          "minItems": 6,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "enum": [
+              "OBSERVED_PRODUCT_OR_SYSTEM",
+              "CAPABILITY",
+              "DEPLOYMENT_CONTEXT",
+              "MECHANISM",
+              "GOVERNANCE_CONCERN",
+              "POLICY_INSTRUMENT_OR_RECOMMENDATION"
+            ]
+          },
+          "maxItems": 6,
+          "uniqueItems": true
+        },
+        "concerns_and_mechanisms_human_defined_before_model_assistance": {
+          "const": true
+        },
+        "bounded_language_template": {
+          "const": "could implicate concern {concern} under conditions {conditions} through mechanism {mechanism}"
+        },
+        "predicted_company_behavior_allowed": {
+          "const": false
+        },
+        "detailed_harmful_use_instructions_are_research_objective": {
+          "const": false
+        },
+        "expert_review_required": {
           "const": true
         }
       }
@@ -478,61 +1045,105 @@
       "additionalProperties": false,
       "required": [
         "required_dimensions",
-        "minimum_design_requirements",
-        "scale_up_without_documented_evaluation"
+        "quality_before_cost",
+        "production_filter_before_held_out_evaluation",
+        "thresholds_predeclared_from_research_requirements",
+        "gate_acceptance",
+        "held_out_controls"
       ],
       "properties": {
         "required_dimensions": {
           "type": "array",
-          "minItems": 6,
-          "maxItems": 6,
-          "uniqueItems": true,
+          "minItems": 10,
           "items": {
             "type": "string",
+            "minLength": 1,
             "enum": [
               "PRECISION",
               "RECALL",
               "CALIBRATION",
+              "THRESHOLD_SENSITIVITY",
               "UNCERTAINTY_OR_ABSTENTION",
+              "INTER_MODEL_DISAGREEMENT",
+              "FALSE_NEGATIVE_ANALYSIS",
               "SUBGROUP_ANALYSIS",
-              "MULTILINGUAL_OR_GRAY_STRATA"
+              "HUMAN_INTER_RATER_AGREEMENT",
+              "MARGINAL_YIELD_OR_COVERAGE"
             ]
-          }
+          },
+          "maxItems": 10,
+          "uniqueItems": true
         },
-        "minimum_design_requirements": {
+        "quality_before_cost": {
+          "const": true
+        },
+        "production_filter_before_held_out_evaluation": {
+          "const": false
+        },
+        "thresholds_predeclared_from_research_requirements": {
+          "const": true
+        },
+        "gate_acceptance": {
+          "type": "array",
+          "minItems": 4,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "gate",
+              "condition"
+            ],
+            "properties": {
+              "gate": {
+                "type": "string",
+                "minLength": 1,
+                "enum": [
+                  "G2",
+                  "G3",
+                  "G4",
+                  "G5"
+                ]
+              },
+              "condition": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "maxItems": 4,
+          "uniqueItems": true
+        },
+        "held_out_controls": {
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "precision_required",
-            "recall_required",
-            "calibration_required",
-            "uncertainty_or_abstention_required",
-            "subgroup_analysis_required",
-            "multilingual_or_gray_strata_required"
+            "human_labels_required",
+            "frozen_split_required",
+            "test_membership_accessible_to_tuning",
+            "hashes_recorded",
+            "benchmark_provenance_recorded",
+            "tuning_and_test_workflows_separated"
           ],
           "properties": {
-            "precision_required": {
+            "human_labels_required": {
               "const": true
             },
-            "recall_required": {
+            "frozen_split_required": {
               "const": true
             },
-            "calibration_required": {
+            "test_membership_accessible_to_tuning": {
+              "const": false
+            },
+            "hashes_recorded": {
               "const": true
             },
-            "uncertainty_or_abstention_required": {
+            "benchmark_provenance_recorded": {
               "const": true
             },
-            "subgroup_analysis_required": {
-              "const": true
-            },
-            "multilingual_or_gray_strata_required": {
+            "tuning_and_test_workflows_separated": {
               "const": true
             }
           }
-        },
-        "scale_up_without_documented_evaluation": {
-          "const": false
         }
       }
     },
@@ -544,6 +1155,10 @@
         "held_out_membership_allowed_in_public_s2",
         "licensed_or_protected_raw_capture_allowed_in_public_s2",
         "private_review_packets_allowed_in_public_s2",
+        "licensed_data_requires_purpose_limitation",
+        "data_minimization_required",
+        "redistribution_rights_checked_before_publication",
+        "public_claims_require_permitted_evidence_or_bounded_derived_assertion",
         "candidate_authorization_publication_boundary"
       ],
       "properties": {
@@ -559,8 +1174,89 @@
         "private_review_packets_allowed_in_public_s2": {
           "const": false
         },
+        "licensed_data_requires_purpose_limitation": {
+          "const": true
+        },
+        "data_minimization_required": {
+          "const": true
+        },
+        "redistribution_rights_checked_before_publication": {
+          "const": true
+        },
+        "public_claims_require_permitted_evidence_or_bounded_derived_assertion": {
+          "const": true
+        },
         "candidate_authorization_publication_boundary": {
           "const": "candidate != authorization != publication"
+        }
+      }
+    },
+    "stopping_change_control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "open_world_stopping_basis",
+        "global_completeness_from_saturation_allowed",
+        "term_or_boundary_change_requires_recorded_rationale",
+        "semantic_change_requires_versioned_successor",
+        "expert_disposition_does_not_apply_automatically",
+        "thresholds_may_not_be_reverse_engineered_to_current_model_performance",
+        "historical_control_artifacts_are_not_rewritten"
+      ],
+      "properties": {
+        "open_world_stopping_basis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "global_completeness_from_saturation_allowed": {
+          "const": false
+        },
+        "term_or_boundary_change_requires_recorded_rationale": {
+          "const": true
+        },
+        "semantic_change_requires_versioned_successor": {
+          "const": true
+        },
+        "expert_disposition_does_not_apply_automatically": {
+          "const": true
+        },
+        "thresholds_may_not_be_reverse_engineered_to_current_model_performance": {
+          "const": true
+        },
+        "historical_control_artifacts_are_not_rewritten": {
+          "const": true
+        }
+      }
+    },
+    "assessment_trigger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trigger_is_recommendation_only",
+        "exact_system_or_configuration_required",
+        "sufficient_evidence_required",
+        "trigger_has_assessment_effect",
+        "v4_2_requirement_meanings_unchanged",
+        "reopening_requires_separate_attributable_decision"
+      ],
+      "properties": {
+        "trigger_is_recommendation_only": {
+          "const": true
+        },
+        "exact_system_or_configuration_required": {
+          "const": true
+        },
+        "sufficient_evidence_required": {
+          "const": true
+        },
+        "trigger_has_assessment_effect": {
+          "const": false
+        },
+        "v4_2_requirement_meanings_unchanged": {
+          "const": true
+        },
+        "reopening_requires_separate_attributable_decision": {
+          "const": true
         }
       }
     },
@@ -587,11 +1283,11 @@
         "documentation_paths": {
           "type": "array",
           "minItems": 1,
-          "uniqueItems": true,
           "items": {
             "type": "string",
             "minLength": 1
-          }
+          },
+          "uniqueItems": true
         }
       }
     },

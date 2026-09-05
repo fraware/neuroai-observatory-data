@@ -10,26 +10,26 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_ARTIFACT = (
-    ROOT / "curation" / "LANDSCAPE_RESEARCH_CONTRACT_v0.1.json"
+DEFAULT_ARTIFACT = ROOT / "curation" / "LANDSCAPE_RESEARCH_CONTRACT_v0.1.json"
+DEFAULT_SCHEMA = ROOT / "schemas" / "landscape-research-contract-v0.1.schema.json"
+
+EXPECTED_PRIMARY_QUESTIONS = (
+    "RQ-01","RQ-02","RQ-03","RQ-04","RQ-05","RQ-06","RQ-07",
 )
-DEFAULT_SCHEMA = (
-    ROOT / "schemas" / "landscape-research-contract-v0.1.schema.json"
+EXPECTED_SECONDARY_QUESTIONS = (
+    "SQ-01","SQ-02","SQ-03","SQ-04","SQ-05","SQ-06",
 )
-EXPECTED_QUESTIONS = (
-    "RQ-01",
-    "RQ-02",
-    "RQ-03",
-    "RQ-04",
-    "RQ-05",
-    "RQ-06",
-    "RQ-07",
-)
-EXPECTED_DELIVERABLES = {"D1", "D2"}
+EXPECTED_DELIVERABLES = tuple(f"D{i}" for i in range(19))
 EXPECTED_CLAIMS = {
     "CLAIM_ENTITY_EXISTENCE",
+    "CLAIM_CAPABILITY_OR_CONTEXT",
+    "CLAIM_ACTOR_ROLE",
+    "CLAIM_COMMERCIALIZATION_OR_DEPLOYMENT",
     "CLAIM_NEUROAI_BOUNDARY_MEMBERSHIP",
+    "CLAIM_CONCENTRATION",
     "CLAIM_PRODUCT_PATENT_RELATION",
+    "CLAIM_GOVERNANCE_RELEVANCE",
+    "CLAIM_ASSESSMENT_TRIGGER",
     "CLAIM_EVALUATION_READINESS",
 }
 EXPECTED_EVIDENCE_RULES = {
@@ -37,44 +37,48 @@ EXPECTED_EVIDENCE_RULES = {
     "TRACEABLE_LICENSED_SOURCE",
     "MULTI_SIGNAL_ATTRIBUTABLE_EVIDENCE",
     "EXPERT_REVIEW_REQUIRED",
-    "EXACT_PRODUCT_REFERENCE_IN_PATENT",
-    "EXACT_PATENT_REFERENCE_IN_PRODUCT_MATERIAL",
-    "TRIANGULATED_ATTRIBUTABLE_RELATION",
+    "VALIDATED_ANALYTICAL_DENOMINATOR",
+    "PATENT_PRODUCT_TIERED_EVIDENCE",
+    "MECHANISM_BOUNDED_GOVERNANCE_MAPPING",
+    "EXACT_SYSTEM_TRIGGER_EVIDENCE",
     "DOCUMENTED_EVALUATION_PROTOCOL",
 }
-EXPECTED_DISPOSITIONS = ("INCLUDE", "EXCLUDE", "BORDERLINE", "ABSTAIN")
-EXPECTED_BOUNDED_STRUCTURED = (
-    "PATENT_DATABASE",
-    "REGULATORY_DATABASE",
-    "CLINICAL_TRIAL_REGISTRY",
-    "PUBLICATION_INDEX",
-    "GRANT_DATABASE",
-    "COMPANY_PRODUCT_PAGE",
-)
-EXPECTED_OPEN_WORLD = (
-    "NEWS",
-    "CONFERENCE_MATERIAL",
-    "THIRD_PARTY_MARKET_REPORT",
-    "MULTILINGUAL_WEB_DISCOVERY",
-)
-EXPECTED_UNIT_CHAIN = (
-    "SOURCE",
-    "OBSERVATION",
-    "CANDIDATE_OR_EXTRACTION",
+EXPECTED_DISPOSITIONS = ["INCLUDE","EXCLUDE","BORDERLINE","ABSTAIN"]
+EXPECTED_UNIT_CHAIN = [
+    "SOURCE","OBSERVATION","CANDIDATE_OR_EXTRACTION",
     "ASSERTION_OR_RELATIONSHIP_OR_EVENT",
-)
-EXPECTED_EVALUATION_DIMENSIONS = (
-    "PRECISION",
-    "RECALL",
-    "CALIBRATION",
-    "UNCERTAINTY_OR_ABSTENTION",
-    "SUBGROUP_ANALYSIS",
-    "MULTILINGUAL_OR_GRAY_STRATA",
-)
+]
+EXPECTED_STRUCTURED = [
+    "PATENT_DATABASE","PUBLICATION_INDEX","CLINICAL_TRIAL_REGISTRY",
+    "GRANT_DATABASE","REGULATORY_DATABASE",
+]
+EXPECTED_OPEN_WORLD = [
+    "COMPANY_PRODUCT_PAGE","NEWS","CONFERENCE_MATERIAL",
+    "COMMERCIAL_DISCOVERY_DATABASE","EXPERT_NOMINATION","PUBLIC_WEB_MEDIA",
+    "MULTILINGUAL_WEB_DISCOVERY","SNOWBALL_CO_MENTION",
+]
+EXPECTED_GRAY = {
+    "GRAY_ATTENTION_VIGILANCE",
+    "GRAY_COGNITIVE_AFFECTIVE_STATE",
+    "GRAY_ADAPTIVE_INTERFACES",
+    "GRAY_COGNITIVE_ENHANCEMENT_TRAINING",
+    "GRAY_BEHAVIORAL_PERSONALIZATION",
+    "GRAY_NONTRADITIONAL_FORM_FACTOR",
+}
+EXPECTED_TRACKS = [
+    "TRACK_PATENTS","TRACK_COMPANIES_PRODUCTS","TRACK_GRAY_THIRD",
+    "TRACK_MULTILINGUAL_REGIONAL",
+]
+EXPECTED_LINK_TIERS = ["L1","L2","L3","L4"]
+EXPECTED_GOVERNANCE_CHAIN = [
+    "OBSERVED_PRODUCT_OR_SYSTEM","CAPABILITY","DEPLOYMENT_CONTEXT",
+    "MECHANISM","GOVERNANCE_CONCERN","POLICY_INSTRUMENT_OR_RECOMMENDATION",
+]
+EXPECTED_GATES = ["G2","G3","G4","G5"]
 
 
 class ValidationError(ValueError):
-    """Raised when the contract violates a fail-closed invariant."""
+    """Raised when the research contract violates a fail-closed invariant."""
 
 
 def _require(condition: bool, message: str) -> None:
@@ -89,10 +93,7 @@ def _load_json(path: Path) -> Any:
 
 def canonical_json_bytes(value: Any) -> bytes:
     return json.dumps(
-        value,
-        ensure_ascii=False,
-        sort_keys=True,
-        separators=(",", ":"),
+        value, ensure_ascii=False, sort_keys=True, separators=(",", ":")
     ).encode("utf-8")
 
 
@@ -102,18 +103,9 @@ def sha256_bytes(payload: bytes) -> str:
 
 def safe_repo_path(root: Path, raw_path: str) -> Path:
     logical = PurePosixPath(raw_path)
-    _require(
-        not logical.is_absolute(),
-        f"unsafe repository-relative path: {raw_path}",
-    )
-    _require(
-        logical.parts and ".." not in logical.parts,
-        f"unsafe repository-relative path: {raw_path}",
-    )
-    _require(
-        logical.as_posix() == raw_path,
-        f"non-canonical repository-relative path: {raw_path}",
-    )
+    _require(not logical.is_absolute(), f"unsafe repository-relative path: {raw_path}")
+    _require(logical.parts and ".." not in logical.parts, f"unsafe repository-relative path: {raw_path}")
+    _require(logical.as_posix() == raw_path, f"non-canonical repository-relative path: {raw_path}")
     target = root.joinpath(*logical.parts)
     _require(
         target.resolve(strict=False).is_relative_to(root.resolve()),
@@ -127,10 +119,7 @@ def _resolve_ref(root_schema: dict[str, Any], ref: str) -> dict[str, Any]:
     node: Any = root_schema
     for part in ref[2:].split("/"):
         part = part.replace("~1", "/").replace("~0", "~")
-        _require(
-            isinstance(node, dict) and part in node,
-            f"unresolvable schema ref: {ref}",
-        )
+        _require(isinstance(node, dict) and part in node, f"unresolvable schema ref: {ref}")
         node = node[part]
     _require(isinstance(node, dict), f"schema ref must resolve to object: {ref}")
     return node
@@ -169,74 +158,44 @@ def _validate_schema_subset(
         _require(value in schema["enum"], f"schema enum violation at {path}: {value!r}")
     if "type" in schema:
         allowed = schema["type"] if isinstance(schema["type"], list) else [schema["type"]]
-        _require(
-            any(_matches_json_type(value, kind) for kind in allowed),
-            f"schema type violation at {path}",
-        )
+        _require(any(_matches_json_type(value, kind) for kind in allowed), f"schema type violation at {path}")
 
     if isinstance(value, str):
         if "minLength" in schema:
-            _require(
-                len(value) >= schema["minLength"],
-                f"schema minLength violation at {path}",
-            )
+            _require(len(value) >= schema["minLength"], f"schema minLength violation at {path}")
         if "pattern" in schema:
-            _require(
-                re.search(schema["pattern"], value) is not None,
-                f"schema pattern violation at {path}: {value!r}",
-            )
+            _require(re.search(schema["pattern"], value) is not None, f"schema pattern violation at {path}: {value!r}")
 
     if isinstance(value, list):
         if "minItems" in schema:
-            _require(
-                len(value) >= schema["minItems"],
-                f"schema minItems violation at {path}",
-            )
+            _require(len(value) >= schema["minItems"], f"schema minItems violation at {path}")
         if "maxItems" in schema:
-            _require(
-                len(value) <= schema["maxItems"],
-                f"schema maxItems violation at {path}",
-            )
+            _require(len(value) <= schema["maxItems"], f"schema maxItems violation at {path}")
         if schema.get("uniqueItems") is True:
-            serialized = [
-                json.dumps(item, sort_keys=True, separators=(",", ":"))
-                for item in value
-            ]
-            _require(
-                len(serialized) == len(set(serialized)),
-                f"schema uniqueItems violation at {path}",
-            )
+            serialized = [json.dumps(item, sort_keys=True, separators=(",", ":")) for item in value]
+            _require(len(serialized) == len(set(serialized)), f"schema uniqueItems violation at {path}")
         if "items" in schema:
             for index, item in enumerate(value):
-                _validate_schema_subset(
-                    item,
-                    schema["items"],
-                    root_schema,
-                    f"{path}[{index}]",
-                )
+                _validate_schema_subset(item, schema["items"], root_schema, f"{path}[{index}]")
 
     if isinstance(value, dict):
-        required = schema.get("required", [])
-        for key in required:
-            _require(
-                key in value,
-                f"schema required property missing at {path}.{key}",
-            )
+        for key in schema.get("required", []):
+            _require(key in value, f"schema required property missing at {path}.{key}")
         properties = schema.get("properties", {})
         if schema.get("additionalProperties") is False:
             extras = set(value) - set(properties)
-            _require(
-                not extras,
-                f"schema additional properties at {path}: {sorted(extras)}",
-            )
+            _require(not extras, f"schema additional properties at {path}: {sorted(extras)}")
         for key, child_schema in properties.items():
             if key in value:
-                _validate_schema_subset(
-                    value[key],
-                    child_schema,
-                    root_schema,
-                    f"{path}.{key}",
-                )
+                _validate_schema_subset(value[key], child_schema, root_schema, f"{path}.{key}")
+
+
+def _ids(rows: Any, key: str, label: str) -> list[str]:
+    _require(isinstance(rows, list), f"{label} must be a list")
+    values = [row.get(key) if isinstance(row, dict) else None for row in rows]
+    _require(all(isinstance(v, str) and v for v in values), f"{label} contains a missing {key}")
+    _require(len(values) == len(set(values)), f"{label} {key} values must be unique")
+    return values
 
 
 def validate_document(
@@ -244,280 +203,196 @@ def validate_document(
     schema: dict[str, Any] | None = None,
     root: Path = ROOT,
 ) -> None:
-    _require(
-        doc.get("artifact_id") == "LANDSCAPE_RESEARCH_CONTRACT_v0.1",
-        "unexpected artifact_id",
-    )
+    _require(doc.get("artifact_id") == "LANDSCAPE_RESEARCH_CONTRACT_v0.1", "unexpected artifact_id")
     _require(doc.get("version") == "0.1", "unexpected version")
     _require(doc.get("status") == "PRE_G1_DRAFT", "D1 must remain PRE_G1_DRAFT")
     _require(doc.get("issue") == 181, "D1 must remain bound to issue 181")
-
-    governance = doc.get("governance", {})
-    for key in (
-        "g1_approved",
-        "canonical_authority",
-        "publication_authority",
-        "mutation_authority",
-    ):
-        _require(
-            governance.get(key) is False,
-            f"governance field {key} must remain false",
-        )
     _require(
-        governance.get("requires_human_governance_disposition") is True,
-        "requires_human_governance_disposition must remain true",
-    )
-    _require(
-        governance.get("approval_outcomes_allowed")
-        == ["APPROVE", "WITHHOLD", "DEFER"],
-        "human disposition outcomes must remain APPROVE/WITHHOLD/DEFER",
-    )
-    _require(
-        governance.get("exact_artifact_binding_required_for_g1") is True,
-        "G1 must require exact artifact binding",
-    )
-    if governance.get("g1_approved") is False:
-        _require(
-            governance.get("governance_disposition_id") is None,
-            "g1_approved=false must not name a disposition id",
-        )
-        _require(
-            governance.get("governance_disposition_path") is None,
-            "g1_approved=false must not name a disposition path",
-        )
-
-    scope = doc.get("scope", {})
-    _require(
-        scope.get("open_world_completeness_claim") is False,
-        "D1 cannot claim open-world completeness",
-    )
-    non_goals = scope.get("non_goals") or []
-    _require(
-        "Authorize G0 or G1" in non_goals,
-        "non-goals must explicitly prohibit G0/G1 authorization",
-    )
-    _require(
-        "Expose protected S3 material" in non_goals,
-        "non-goals must explicitly prohibit S3 exposure",
+        isinstance(doc.get("created_against_observatory_main_sha"), str)
+        and re.fullmatch(r"[0-9a-f]{40}", doc["created_against_observatory_main_sha"]) is not None,
+        "created_against_observatory_main_sha must be a lowercase 40-hex SHA",
     )
 
-    questions = doc.get("questions")
-    _require(isinstance(questions, list), "questions must be a list")
-    question_ids = [row.get("question_id") for row in questions]
-    _require(
-        tuple(question_ids) == EXPECTED_QUESTIONS,
-        "questions must contain the seven controlled IDs in order",
-    )
-    _require(len(set(question_ids)) == len(question_ids), "question IDs must be unique")
-    tiers = {
-        row["question_id"]: row.get("tier")
-        for row in questions
-        if isinstance(row, dict) and "question_id" in row
+    governance = doc.get("governance") or {}
+    for key in ("g1_approved","canonical_authority","publication_authority","mutation_authority"):
+        _require(governance.get(key) is False, f"governance field {key} must remain false")
+    _require(governance.get("requires_human_governance_disposition") is True, "human G1 disposition must remain required")
+    _require(governance.get("approval_outcomes_allowed") == ["APPROVE","WITHHOLD","DEFER"], "approval outcomes drifted")
+    _require(governance.get("exact_artifact_binding_required_for_g1") is True, "G1 exact-artifact binding must remain required")
+    _require(governance.get("governance_disposition_id") is None, "unapproved D1 must not name a governance disposition id")
+    _require(governance.get("governance_disposition_path") is None, "unapproved D1 must not name a governance disposition path")
+
+    scope = doc.get("scope") or {}
+    _require(scope.get("open_world_completeness_claim") is False, "D1 cannot claim open-world completeness")
+    required_non_goals = {
+        "Authorize G0 or G1","Authorize publication","Mutate canonical S2 records",
+        "Use model consensus as ground truth","Change v4.2 requirement meanings",
+        "Expose protected S3 material",
     }
-    _require(
-        sum(tier == "PRIMARY" for tier in tiers.values()) == 3,
-        "exactly three questions must be PRIMARY",
-    )
-    _require(
-        sum(tier == "SECONDARY" for tier in tiers.values()) == 4,
-        "exactly four questions must be SECONDARY",
-    )
+    _require(required_non_goals.issubset(set(scope.get("non_goals") or [])), "required non-goals missing")
+    saturation = str(scope.get("protocol_bounded_saturation_semantics") or "")
+    _require("never establishes global completeness" in saturation, "saturation semantics must prohibit global completeness")
+
+    qids = _ids(doc.get("questions"), "question_id", "questions")
+    _require(tuple(qids) == EXPECTED_PRIMARY_QUESTIONS, "primary questions must contain the seven controlling IDs in order")
+    for row in doc["questions"]:
+        _require(row.get("tier") == "PRIMARY", f"{row.get('question_id')}: controlling question must remain PRIMARY")
+    sqids = _ids(doc.get("secondary_questions"), "question_id", "secondary_questions")
+    _require(tuple(sqids) == EXPECTED_SECONDARY_QUESTIONS, "secondary questions must contain the six controlled IDs in order")
+    for row in doc["secondary_questions"]:
+        _require(row.get("tier") == "SECONDARY", f"{row.get('question_id')}: tier must remain SECONDARY")
+        _require(row.get("parent_question_id") in EXPECTED_PRIMARY_QUESTIONS, f"{row.get('question_id')}: unknown parent question")
 
     deliverables = doc.get("deliverables")
-    _require(
-        isinstance(deliverables, list) and deliverables,
-        "deliverables must be a non-empty list",
-    )
-    deliverable_ids = [row.get("deliverable_id") for row in deliverables]
-    _require(
-        set(deliverable_ids) == EXPECTED_DELIVERABLES,
-        "deliverables must contain exactly D1 and D2",
-    )
+    dids = _ids(deliverables, "deliverable_id", "deliverables")
+    _require(tuple(dids) == EXPECTED_DELIVERABLES, "deliverables must map D0 through D18 in order")
     for row in deliverables:
-        bindings = row.get("question_bindings")
-        _require(
-            isinstance(bindings, list) and bindings,
-            f"{row.get('deliverable_id')}: question_bindings required",
-        )
-        _require(
-            set(bindings).issubset(set(EXPECTED_QUESTIONS)),
-            f"{row.get('deliverable_id')}: unknown question binding",
-        )
-    d1 = next(row for row in deliverables if row.get("deliverable_id") == "D1")
-    _require(
-        set(d1["question_bindings"]) == set(EXPECTED_QUESTIONS),
-        "D1 must bind all seven research questions",
-    )
-    d2 = next(row for row in deliverables if row.get("deliverable_id") == "D2")
-    _require(
-        "RQ-02" in d2["question_bindings"]
-        and "RQ-04" in d2["question_bindings"],
-        "D2 binding drift detected",
-    )
+        bindings = row.get("question_bindings") or []
+        _require(bindings and set(bindings).issubset(set(EXPECTED_PRIMARY_QUESTIONS)), f"{row.get('deliverable_id')}: invalid question binding")
+    d1 = next(row for row in deliverables if row["deliverable_id"] == "D1")
+    _require(set(d1["question_bindings"]) == set(EXPECTED_PRIMARY_QUESTIONS), "D1 must bind all seven controlling questions")
+    d2 = next(row for row in deliverables if row["deliverable_id"] == "D2")
+    _require(d2["question_bindings"] == ["RQ-01","RQ-04","RQ-06","RQ-07"], "D2 substantive question binding drifted")
+    d18 = next(row for row in deliverables if row["deliverable_id"] == "D18")
+    _require(d18["question_bindings"] == ["RQ-07"], "D18 must bind the exact-system assessment-trigger question")
 
-    evidence_rules = doc.get("evidence_rules")
-    _require(
-        isinstance(evidence_rules, dict),
-        "evidence_rules must be an object",
-    )
-    _require(
-        set(evidence_rules) == EXPECTED_EVIDENCE_RULES,
-        "evidence_rules field set mismatch",
-    )
-
-    claim_classes = doc.get("claim_classes")
-    _require(
-        isinstance(claim_classes, list) and claim_classes,
-        "claim_classes must be a non-empty list",
-    )
-    claim_ids = [row.get("claim_class_id") for row in claim_classes]
+    evidence_rules = doc.get("evidence_rules") or {}
+    _require(set(evidence_rules) == EXPECTED_EVIDENCE_RULES, "evidence rule set mismatch")
+    claims = doc.get("claim_classes")
+    claim_ids = _ids(claims, "claim_class_id", "claim_classes")
     _require(set(claim_ids) == EXPECTED_CLAIMS, "claim class set mismatch")
-    for row in claim_classes:
-        allowed = row.get("allowed_evidence_rules") or []
-        _require(
-            set(allowed).issubset(EXPECTED_EVIDENCE_RULES),
-            f"{row.get('claim_class_id')}: unknown evidence rule",
-        )
-        _require(
-            isinstance(row.get("maximum_interpretation"), str)
-            and row["maximum_interpretation"].strip(),
-            "maximum_interpretation required",
-        )
-        prohibited = row.get("prohibited_inferences") or []
-        _require(
-            isinstance(prohibited, list) and prohibited,
-            f"{row.get('claim_class_id')}: prohibited_inferences required",
-        )
-        if row.get("claim_class_id") == "CLAIM_PRODUCT_PATENT_RELATION":
-            _require(
-                "Ownership certainty from shared names alone" in prohibited,
-                "product-patent relation must prohibit name-only ownership inference",
-            )
+    for row in claims:
+        _require(set(row.get("question_bindings") or []).issubset(set(EXPECTED_PRIMARY_QUESTIONS)), f"{row.get('claim_class_id')}: unknown question binding")
+        _require(set(row.get("allowed_evidence_rules") or []).issubset(EXPECTED_EVIDENCE_RULES), f"{row.get('claim_class_id')}: unknown evidence rule")
+        _require(row.get("prohibited_inferences"), f"{row.get('claim_class_id')}: prohibited inferences required")
+    product_patent = next(row for row in claims if row["claim_class_id"] == "CLAIM_PRODUCT_PATENT_RELATION")
+    _require("Ownership certainty from shared names alone" in product_patent["prohibited_inferences"], "name-only product-patent inference must remain prohibited")
 
-    semantics = doc.get("classification_semantics", {})
-    _require(
-        semantics.get("allowed_dispositions") == list(EXPECTED_DISPOSITIONS),
-        "classification disposition set changed",
-    )
+    semantics = doc.get("classification_semantics") or {}
+    _require(semantics.get("allowed_dispositions") == EXPECTED_DISPOSITIONS, "classification dispositions drifted")
     for key in (
-        "abstention_required_when_evidence_insufficient",
-        "borderline_requires_recorded_rationale",
-        "proxy_only_cannot_establish_inclusion",
-        "inclusion_requires_attributable_evidence",
+        "abstention_required_when_evidence_insufficient","borderline_requires_recorded_rationale",
+        "proxy_only_cannot_establish_inclusion","inclusion_requires_attributable_evidence",
         "open_world_unknowns_must_remain_explicit",
     ):
-        _require(semantics.get(key) is True, f"classification invariant {key} must be true")
+        _require(semantics.get(key) is True, f"classification invariant {key} must remain true")
+    gray = semantics.get("gray_third") or {}
+    _require(gray.get("retrieval_only") is True, "gray third must remain retrieval-only")
+    _require(gray.get("canonical_population_class") is False, "gray third must not become a canonical population class")
+    gray_ids = {row.get("id") for row in gray.get("search_families") or []}
+    _require(gray_ids == EXPECTED_GRAY, "gray-third family set drifted")
 
-    source_classes = doc.get("source_classes", {})
-    _require(
-        source_classes.get("bounded_structured")
-        == list(EXPECTED_BOUNDED_STRUCTURED),
-        "bounded structured source classes drifted",
-    )
-    _require(
-        source_classes.get("open_world_discovery")
-        == list(EXPECTED_OPEN_WORLD),
-        "open-world discovery source classes drifted",
-    )
-    _require(
-        source_classes.get("bounded_structured_required_for_canonical_claims") is True,
-        "bounded structured source classes must be required for canonical claims",
-    )
-    _require(
-        source_classes.get("open_world_discovery_can_trigger_review_only") is True,
-        "open-world discovery must remain review-only",
-    )
+    tracks = doc.get("discovery_tracks")
+    track_ids = _ids(tracks, "track_id", "discovery_tracks")
+    _require(track_ids == EXPECTED_TRACKS, "discovery track set/order drifted")
+    track_types = {row["track_id"]: row.get("universe_type") for row in tracks}
+    _require(track_types["TRACK_PATENTS"] == "STRUCTURED_DENOMINATED", "patent track must remain structured denominated")
+    _require(track_types["TRACK_COMPANIES_PRODUCTS"] == "OPEN_WORLD_PROTOCOL", "company/product track must remain open-world protocol")
+    _require(track_types["TRACK_GRAY_THIRD"] == "OPEN_WORLD_PROTOCOL", "gray-third track must remain open-world protocol")
 
-    _require(
-        doc.get("unit_chain") == list(EXPECTED_UNIT_CHAIN),
-        "unit_chain must remain source->observation->candidate/"
-        "extraction->assertion/relationship/event",
-    )
+    sources = doc.get("source_classes") or {}
+    _require(sources.get("structured_denominated") == EXPECTED_STRUCTURED, "structured denominated source set drifted")
+    _require(sources.get("open_world_channels") == EXPECTED_OPEN_WORLD, "open-world channel set drifted")
+    _require("COMPANY_PRODUCT_PAGE" not in sources.get("structured_denominated", []), "company/product pages cannot be treated as a structured denominator")
+    _require(sources.get("structured_denominator_must_be_explicit") is True, "structured denominator must remain explicit")
+    _require(sources.get("open_world_protocol_must_report_stopping_and_marginal_yield") is True, "open-world stopping/yield reporting must remain required")
+    _require(sources.get("source_class_does_not_determine_claim_truth") is True, "source class cannot become truth authority")
 
-    identity = doc.get("identity_contract", {})
+    _require(doc.get("unit_chain") == EXPECTED_UNIT_CHAIN, "unit chain drifted")
+    units = doc.get("units_of_analysis") or {}
+    _require(units.get("entity_types") == ["ORGANIZATION","PRODUCT","SYSTEM","PATENT"], "unit/entity type set drifted")
+    for key in ("organization_product_distinct","organization_patent_distinct","product_patent_relation_is_separate"):
+        _require(units.get(key) is True, f"unit invariant {key} must remain true")
+
+    identity = doc.get("identity_contract") or {}
     for key in (
-        "organization_identity_distinct_from_product_identity",
-        "product_identity_distinct_from_patent_identity",
-        "product_patent_relation_requires_separate_evidence",
-        "name_similarity_is_never_sufficient_for_merge",
+        "exact_identifiers_preferred","unresolved_literals_preserved","fuzzy_name_match_cannot_merge",
+        "parent_subsidiary_distinct_unless_evidenced","acquisition_and_ownership_time_scoped",
+        "patent_publication_and_family_distinct","product_family_and_exact_product_distinct",
         "multilingual_aliases_do_not_change_canonical_identity",
     ):
-        _require(identity.get(key) is True, f"identity invariant {key} must be true")
+        _require(identity.get(key) is True, f"identity invariant {key} must remain true")
 
-    evaluation = doc.get("evaluation_requirements", {})
-    _require(
-        evaluation.get("required_dimensions") == list(EXPECTED_EVALUATION_DIMENSIONS),
-        "evaluation required dimensions changed",
-    )
-    minimums = evaluation.get("minimum_design_requirements", {})
-    for key in (
-        "precision_required",
-        "recall_required",
-        "calibration_required",
-        "uncertainty_or_abstention_required",
-        "subgroup_analysis_required",
-        "multilingual_or_gray_strata_required",
-    ):
-        _require(minimums.get(key) is True, f"evaluation invariant {key} must be true")
-    _require(
-        evaluation.get("scale_up_without_documented_evaluation") is False,
-        "scale-up without documented evaluation must remain false",
-    )
+    linkage = doc.get("patent_product_linkage") or {}
+    tiers = linkage.get("tiers") or []
+    _require([row.get("tier") for row in tiers] == EXPECTED_LINK_TIERS, "L1-L4 tier set/order drifted")
+    l4 = next(row for row in tiers if row.get("tier") == "L4")
+    _require("never an established" in l4.get("permitted_use",""), "L4 must remain candidate/discovery only")
+    for key in ("l4_excluded_from_established_link_counts","l3_quantitative_use_requires_validated_error_study","l1_l2_report_claims_require_human_review","unresolved_links_remain_unresolved"):
+        _require(linkage.get(key) is True, f"patent-product invariant {key} must remain true")
 
-    containment = doc.get("containment", {})
+    models = doc.get("model_assistance") or {}
+    _require(models.get("model_consensus_is_truth") is False, "model consensus cannot become truth")
+    _require(models.get("provider_model_and_version_provenance_required") is True, "model provenance must remain required")
+    _require(models.get("human_disposition_required_at_governed_boundaries") is True, "human disposition must remain required")
+    role_ids = _ids(models.get("roles"), "role", "model roles")
+    _require(len(role_ids) == 6, "six model-assistance roles are required")
+
+    review = doc.get("human_review") or {}
     for key in (
-        "s3_private_labels_allowed_in_public_s2",
-        "held_out_membership_allowed_in_public_s2",
-        "licensed_or_protected_raw_capture_allowed_in_public_s2",
-        "private_review_packets_allowed_in_public_s2",
+        "g1_requires_attributable_human_disposition_over_exact_d1_d2_identity",
+        "benchmark_labels_are_human_adjudicated",
+        "difficult_gray_and_ambiguous_cases_prioritized_for_expert_review",
+        "l1_l2_report_links_require_human_review",
+        "l3_links_require_statistically_informative_sample_review",
+        "genuine_disagreement_may_remain_unresolved",
     ):
+        _require(review.get(key) is True, f"human-review invariant {key} must remain true")
+    _require(review.get("required_disposition_fields") == ["decision","rationale","adjudicator_role","timestamp","exact_object_binding"], "human disposition fields drifted")
+
+    mapping = doc.get("governance_mapping") or {}
+    _require(mapping.get("chain") == EXPECTED_GOVERNANCE_CHAIN, "governance mapping chain drifted")
+    _require(mapping.get("concerns_and_mechanisms_human_defined_before_model_assistance") is True, "governance concerns/mechanisms must remain human-defined before model assistance")
+    _require(mapping.get("predicted_company_behavior_allowed") is False, "predicted company behavior must remain prohibited")
+    _require(mapping.get("detailed_harmful_use_instructions_are_research_objective") is False, "detailed harmful-use instructions must not become a research objective")
+    _require(mapping.get("expert_review_required") is True, "governance mapping review must remain required")
+
+    evaluation = doc.get("evaluation_requirements") or {}
+    _require(evaluation.get("quality_before_cost") is True, "quality must remain prior to cost optimization")
+    _require(evaluation.get("production_filter_before_held_out_evaluation") is False, "production filtering before held-out evaluation must remain false")
+    _require(evaluation.get("thresholds_predeclared_from_research_requirements") is True, "threshold predeclaration must remain required")
+    gates = evaluation.get("gate_acceptance") or []
+    _require([row.get("gate") for row in gates] == EXPECTED_GATES, "G2-G5 acceptance logic drifted")
+    held = evaluation.get("held_out_controls") or {}
+    for key in ("human_labels_required","frozen_split_required","hashes_recorded","benchmark_provenance_recorded","tuning_and_test_workflows_separated"):
+        _require(held.get(key) is True, f"held-out control {key} must remain true")
+    _require(held.get("test_membership_accessible_to_tuning") is False, "held-out test membership must remain inaccessible to tuning")
+
+    containment = doc.get("containment") or {}
+    for key in ("s3_private_labels_allowed_in_public_s2","held_out_membership_allowed_in_public_s2","licensed_or_protected_raw_capture_allowed_in_public_s2","private_review_packets_allowed_in_public_s2"):
         _require(containment.get(key) is False, f"containment field {key} must remain false")
-    _require(
-        containment.get("candidate_authorization_publication_boundary") == "candidate != authorization != publication",
-        "candidate/authorization/publication boundary changed",
-    )
+    for key in ("licensed_data_requires_purpose_limitation","data_minimization_required","redistribution_rights_checked_before_publication","public_claims_require_permitted_evidence_or_bounded_derived_assertion"):
+        _require(containment.get(key) is True, f"containment control {key} must remain true")
+    _require(containment.get("candidate_authorization_publication_boundary") == "candidate != authorization != publication", "candidate/authorization/publication boundary drifted")
 
-    integrity = doc.get("integrity", {})
+    change = doc.get("stopping_change_control") or {}
+    _require(change.get("global_completeness_from_saturation_allowed") is False, "saturation cannot imply global completeness")
+    for key in ("term_or_boundary_change_requires_recorded_rationale","semantic_change_requires_versioned_successor","expert_disposition_does_not_apply_automatically","thresholds_may_not_be_reverse_engineered_to_current_model_performance","historical_control_artifacts_are_not_rewritten"):
+        _require(change.get(key) is True, f"change-control invariant {key} must remain true")
+
+    trigger = doc.get("assessment_trigger") or {}
+    for key in ("trigger_is_recommendation_only","exact_system_or_configuration_required","sufficient_evidence_required","v4_2_requirement_meanings_unchanged","reopening_requires_separate_attributable_decision"):
+        _require(trigger.get(key) is True, f"assessment-trigger invariant {key} must remain true")
+    _require(trigger.get("trigger_has_assessment_effect") is False, "landscape trigger must have no assessment effect")
+
+    integrity = doc.get("integrity") or {}
     schema_path = safe_repo_path(root, str(integrity.get("schema_path") or ""))
     validator_path = safe_repo_path(root, str(integrity.get("validator_entrypoint") or ""))
     doc_paths = integrity.get("documentation_paths")
-    _require(
-        isinstance(doc_paths, list) and doc_paths,
-        "documentation_paths must be a non-empty list",
-    )
-    for raw_path in doc_paths:
-        safe_repo_path(root, raw_path)
-    _require(
-        validator_path
-        == DEFAULT_ARTIFACT.parents[1]
-        / "scripts"
-        / "validate_landscape_research_contract.py",
-        "validator entrypoint binding mismatch",
-    )
-    _require(schema_path == DEFAULT_SCHEMA, "schema path binding mismatch")
-    observed_schema_sha = sha256_bytes(
-        canonical_json_bytes(_load_json(schema_path))
-    )
-    _require(
-        integrity.get("schema_sha256") == observed_schema_sha,
-        "schema_sha256 binding mismatch",
-    )
+    _require(isinstance(doc_paths, list) and doc_paths, "documentation_paths must be non-empty")
+    for raw in doc_paths:
+        safe_repo_path(root, raw)
+    _require(schema_path == root / "schemas" / "landscape-research-contract-v0.1.schema.json", "schema path binding mismatch")
+    _require(validator_path == root / "scripts" / "validate_landscape_research_contract.py", "validator path binding mismatch")
+    observed_schema_sha = sha256_bytes(canonical_json_bytes(_load_json(schema_path)))
+    _require(integrity.get("schema_sha256") == observed_schema_sha, "schema_sha256 binding mismatch")
 
     if schema is not None:
-        _require(
-            schema.get("$schema") == "https://json-schema.org/draft/2020-12/schema",
-            "schema must use JSON Schema 2020-12",
-        )
+        _require(schema.get("$schema") == "https://json-schema.org/draft/2020-12/schema", "schema must use JSON Schema 2020-12")
         _require(schema.get("type") == "object", "schema root must be object")
-        _require(
-            schema.get("additionalProperties") is False,
-            "schema root must fail closed",
-        )
+        _require(schema.get("additionalProperties") is False, "schema root must fail closed")
         _validate_schema_subset(doc, schema, schema)
-        _require(
-            set(schema.get("required", [])) == set(doc.keys()),
-            "schema required top-level keys must exactly match document keys",
-        )
+        _require(set(schema.get("required", [])) == set(doc.keys()), "schema required top-level keys must exactly match document keys")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -532,10 +407,7 @@ def main(argv: list[str] | None = None) -> int:
     except (OSError, json.JSONDecodeError, ValidationError) as exc:
         print(f"FAIL: {exc}")
         return 1
-    print(
-        "PASS: LANDSCAPE_RESEARCH_CONTRACT_v0.1 remains a fail-closed "
-        "PRE_G1_DRAFT"
-    )
+    print("PASS: LANDSCAPE_RESEARCH_CONTRACT_v0.1 is a fail-closed PRE_G1_DRAFT")
     return 0
 
 
