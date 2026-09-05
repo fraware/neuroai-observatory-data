@@ -1,0 +1,37 @@
+name: PATSTAT rights boundary
+
+on:
+  pull_request:
+    paths:
+      - "patent-evidence-extract/**"
+      - "curation/PATSTAT_PUBLIC_EXTRACT_RIGHTS_REVIEW_2026-09-05_v0.1.json"
+      - "tests/test_patstat_rights_boundary.py"
+      - ".github/workflows/patstat-rights-boundary.yml"
+  push:
+    branches: [main]
+    paths:
+      - "patent-evidence-extract/**"
+      - "curation/PATSTAT_PUBLIC_EXTRACT_RIGHTS_REVIEW_2026-09-05_v0.1.json"
+      - "tests/test_patstat_rights_boundary.py"
+      - ".github/workflows/patstat-rights-boundary.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-rights-boundary:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Validate fail-closed PATSTAT rights boundary
+        run: python -m unittest tests.test_patstat_rights_boundary -v
+      - name: Authority boundary
+        run: |
+          echo "This workflow validates bookkeeping and fail-closed rights-review invariants only."
+          echo "It cannot establish redistribution rights, legal compliance, G0/G1/G2 passage,"
+          echo "canonical S2 authority, publication authority, or assessment effects."
