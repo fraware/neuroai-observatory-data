@@ -1,0 +1,134 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "PATSTAT_BASELINE_A_SCIENTIFIC_STATUS_2026-09-05_v0.1",
+  "status": "PRE_G2_PRELIMINARY_MODEL_ANCHORED_BASELINE",
+  "as_of": "2026-09-05",
+  "repository": "fraware/neuroai-observatory-data",
+  "created_against_main_sha": "e12b0fdffcaa2c73c723574f8718241b9cd0cd89",
+  "governing_issue": 220,
+  "rights_issue": 210,
+  "source": {
+    "name": "PATSTAT Baseline A",
+    "source_commit": "2a09c02f7ec313a1da929c94a2b4ed6e0e88beb8",
+    "source_author": "Roman Jurowetzki",
+    "patstat_edition": "Autumn 2025",
+    "unit_of_observation": "DOCDB_SIMPLE_PATENT_FAMILY",
+    "source_artifact_git_blobs": {
+      "patent-evidence-extract/README.md": "ac419e48483914174ec7b5435003f2c6399c8974",
+      "patent-evidence-extract/abstracts_sample.csv": "f2e05ac1697de0b7cae9cdf4eabda503bbea267d",
+      "patent-evidence-extract/clusters.csv": "929265475ad76aa4739c579446faab82e87defa0",
+      "patent-evidence-extract/gold_labels.csv": "bc4e1c7cd1b32080d144f1b94828f58b67ac5492",
+      "patent-evidence-extract/judged_sample.csv": "e10a5af342cf472dac2a8a3e19e16099bc85708d",
+      "patent-evidence-extract/pool_frame.csv": "6691dcbf2c77437abf72d0d83494e3154f077b62",
+      "patent-evidence-extract/reproduce.py": "702d130e0c3cc553ddde03a590dd1a6b34d897dd",
+      "patent-evidence-extract/strata.csv": "b5eff1e15d7ccf17a8a1c51388a03ae5a3dc8a00"
+    }
+  },
+  "sampling_frame": {
+    "patstat_family_count": 104742722,
+    "english_abstract_family_count": 69273903,
+    "outside_english_abstract_frame_count": 35468819,
+    "score_strata_count": 9,
+    "first_stage_judged_family_count": 235738,
+    "second_stage_model_reread_family_count": 333,
+    "query_pool_family_count": 118629,
+    "top_three_strata_exhaustively_judged": true
+  },
+  "reference_standard": {
+    "first_stage": "26B model applying historical written rubric",
+    "second_stage": "stronger model re-read of a probability subsample under the historical rubric",
+    "human_gold_present": false,
+    "second_stage_is_independent_human_reference_standard": false,
+    "may_be_used_as_d3_human_gold": false
+  },
+  "historical_boundary_semantics": {
+    "labels": {
+      "0": "not relevant",
+      "1": "borderline",
+      "2": "relevant"
+    },
+    "headline_binary_estimand": "historical label 2 only",
+    "borderline_treatment_in_reproduce_py": "mapped to 0 in the headline binary estimand",
+    "approved_d1_equivalence_established": false,
+    "approved_d1_allowed_dispositions": [
+      "INCLUDE",
+      "EXCLUDE",
+      "BORDERLINE",
+      "ABSTAIN"
+    ],
+    "required_action": "Version and justify any mapping from the historical 0/1/2 rubric to approved D1 semantics; do not silently import historical model labels as D3 gold labels."
+  },
+  "reported_point_estimates": {
+    "english_abstract_frame_relevant_families": 49671,
+    "query_pool_relevant_families": 33277,
+    "query_pool_recall_percent": 67.0,
+    "estimated_relevant_families_outside_query_pool": 16394,
+    "cheap_model_only_relevant_families": 99720,
+    "status": "PRELIMINARY_MODEL_ANCHORED_POINT_ESTIMATES_NOT_CANONICAL"
+  },
+  "uncertainty_audit": {
+    "readme_reported_95_percent_interval": [
+      40256,
+      57854
+    ],
+    "public_reproduce_py_reproduces_point_estimates": true,
+    "public_reproduce_py_prints_or_reconstructs_reported_interval": false,
+    "visible_variance_term_in_public_extract_includes_first_stage_stratified_component": true,
+    "second_stage_correction_variance_independently_certified_from_public_extract": false,
+    "query_pool_recall_ratio_uncertainty_independently_certified_from_public_extract": false,
+    "full_estimator_code_present_in_public_extract": false,
+    "required_next_evidence": [
+      "Exact second-stage probability sampling design and inclusion probabilities",
+      "Sampling frame, selection procedure and reproducible selection identity for the 333-case reread",
+      "Full pilot/ppi.py or equivalent estimator and interval implementation",
+      "Independent audit of first-stage, second-stage, covariance, finite-population and ratio-estimator uncertainty terms"
+    ]
+  },
+  "data_integrity_questions": [
+    {
+      "id": "POOL_FRAME_CLUSTER_FIELD",
+      "status": "OPEN",
+      "observation": "Public pool_frame rows inspected on current main show cluster values equal to the corresponding docdb_family_id, while clusters.csv defines descriptive cluster identifiers 0 through 20.",
+      "interpretation": "Possible export/misalignment defect, mislabeled field, or different intended identifier; no conclusion is made without source-pipeline evidence.",
+      "estimator_effect": "reproduce.py uses pool family membership and does not consume the cluster field, so this observation alone does not invalidate the 49,671 or 67.0% point calculations.",
+      "required_action": "Recover the source export logic and disposition the field before using row-level cluster provenance analytically."
+    }
+  ],
+  "programme_integration": {
+    "role": "PRE_G2_STATISTICAL_BASELINE_AND_SAMPLING_ASSET",
+    "d3_patent_benchmark_status": "NOT_D3",
+    "d5_classifier_evaluation_status": "NOT_G5_VALIDATED",
+    "may_inform_d3_candidate_selection_and_stratification": true,
+    "may_replace_human_adjudication": false,
+    "requires_human_d3_before_g5": true,
+    "requires_language_and_missing_abstract_censoring_study_before_global_census_claim": true,
+    "epo_ops_role": "SEPARATE_REPRODUCIBLE_PUBLIC_DISCOVERY_AND_BIBLIOGRAPHIC_PROVENANCE_LAYER",
+    "patstat_role": "CONTROLLED_BULK_ANALYTICAL_AND_POPULATION_ESTIMATION_LAYER"
+  },
+  "rights_boundary": {
+    "governing_control": "PATSTAT_PUBLIC_EXTRACT_RIGHTS_REVIEW_2026-09-05_v0.1",
+    "rights_clearance_established": false,
+    "scientific_validation_implies_redistribution_rights": false,
+    "redistribution_rights_imply_scientific_validity": false
+  },
+  "required_next_steps": [
+    "Recover and bind the historical rubric, first-stage sampling identity, second-stage probability design and full estimator implementation.",
+    "Independently reproduce the point estimate and complete uncertainty calculation, including recall-ratio uncertainty and sensitivity to borderline treatment.",
+    "Construct D3 in controlled S3 with genuine human INCLUDE, EXCLUDE and BORDERLINE coverage, attributable rationale, double-label subset, adjudication records, provenance and held-out tuning isolation.",
+    "Evaluate Baseline A against frozen D3 before any G5 disposition or canonical population/retrieval-recall claim.",
+    "Measure language and missing-abstract censoring before any global patent-census wording.",
+    "Resolve issue #210 independently before treating any row-level PATSTAT material as rights-cleared public evidence."
+  ],
+  "authority": {
+    "g0_passed": false,
+    "g2_passed": false,
+    "g5_passed": false,
+    "canonical_scientific_finding": false,
+    "global_completeness_claim": false,
+    "rights_clearance": false,
+    "canonical_s2_authority": false,
+    "publication_authority": false,
+    "assessment_effect": "NONE"
+  },
+  "boundary": "This record preserves Roman Jurowetzki's exact PATSTAT extract as a scientifically useful pre-G2 statistical baseline and records the limits visible from the public evidence. It does not re-adjudicate historical model labels, certify the reported interval, establish a human reference standard, freeze D3, pass G2/G5, establish a global census, resolve PATSTAT rights, authorize S2/publication, or alter v4.2 assessment state."
+}
