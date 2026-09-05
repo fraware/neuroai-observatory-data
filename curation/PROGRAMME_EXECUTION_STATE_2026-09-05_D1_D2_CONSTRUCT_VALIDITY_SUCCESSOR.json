@@ -1,0 +1,114 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-05_D1_D2_CONSTRUCT_VALIDITY_SUCCESSOR",
+  "status": "PRE_G1_SUCCESSOR_STATE_NONCANONICAL",
+  "as_of": "2026-09-05",
+  "purpose": "Append-only execution-control successor recording the corrected PRE-G1 D1/D2 construct-validity identities merged in PR #214 while inheriting prior operational and gate state without re-adjudication.",
+  "predecessor": {
+    "path": "curation/PROGRAMME_EXECUTION_STATE_2026-09-03_SRC14021_DISPOSITION_C_SUCCESSOR.json",
+    "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-03_SRC14021_DISPOSITION_C_SUCCESSOR",
+    "predecessor_is_modified_by_this_successor": false,
+    "predecessor_immutability": "HISTORICAL_IMMUTABLE_EXECUTION_STATE_NOT_EDITED_IN_PLACE"
+  },
+  "frozen_baseline": {
+    "path": "curation/PROGRAMME_EXECUTION_BASELINE_2026-09-01.json",
+    "baseline_id": "PROGRAMME_EXECUTION_BASELINE_2026-09-01",
+    "modified_by_this_successor": false
+  },
+  "observatory_authoring_context": {
+    "repository": "fraware/neuroai-observatory-data",
+    "main_sha_after_d1_d2_remediation_merge": "021096b724bb66198e4470c5c5f77840cc856858",
+    "remediation_pr": 214,
+    "remediation_pr_head_sha": "350c8ec759eae9da7cbf9977a5b5d5d5f2d12ba3",
+    "post_merge_d1_workflow": {
+      "run_id": 33960778043,
+      "workflow": "PRE-G1 D1 landscape research contract",
+      "event": "push",
+      "head_sha": "021096b724bb66198e4470c5c5f77840cc856858",
+      "conclusion": "success",
+      "proves": "Technical D1 schema, semantic, adversarial and authority-boundary validation on the exact merged main SHA.",
+      "does_not_prove": "G0/G1/G2 passage, substantive scientific truth, S2 mutation authority, publication authority, or v4.2 assessment conclusions."
+    },
+    "post_merge_d2_workflow": {
+      "run_id": 33960777944,
+      "workflow": "PRE-G1 D2 capability-context taxonomy",
+      "event": "push",
+      "head_sha": "021096b724bb66198e4470c5c5f77840cc856858",
+      "conclusion": "success",
+      "proves": "Technical D2 invariants, D1 binding, regression and historical/successor-boundary validation on the exact merged main SHA.",
+      "does_not_prove": "G0/G1/G2 passage, substantive taxonomy truth, S2 mutation authority, publication authority, or v4.2 assessment conclusions."
+    }
+  },
+  "d1_d2_construct_validity": {
+    "technical_remediation_complete": true,
+    "governance_disposition_recorded": false,
+    "review_binding_path": "curation/PRE_G1_D1_D2_REVIEW_BINDING_D1_CONSTRUCT_VALIDITY_2026-09-05_v0.1.json",
+    "d1": {
+      "artifact_id": "LANDSCAPE_RESEARCH_CONTRACT_v0.1",
+      "path": "curation/LANDSCAPE_RESEARCH_CONTRACT_v0.1.json",
+      "canonical_json_sha256": "7d270002094dcdecb703d5b70ef2268e4869005c284ffd98db3eb936641a78cb",
+      "git_blob_sha": "6aacb9d9bfba570121484b1e214b02ac824d645e",
+      "status": "PRE_G1_DRAFT",
+      "g1_approved": false
+    },
+    "d2": {
+      "artifact_id": "CAPABILITY_CONTEXT_TAXONOMY_v0.1",
+      "path": "curation/CAPABILITY_CONTEXT_TAXONOMY_v0.1.json",
+      "canonical_json_sha256": "bd9451a5084485ef7a36251b0bc39d486fe0c2174636171a29ec03d7010cbf1d",
+      "git_blob_sha": "f8d4943da5c0659ba775b3f6227e8a21a7bcb03a",
+      "status": "PRE_G1_DRAFT",
+      "g1_approved": false,
+      "d1_question_bindings": ["RQ-01", "RQ-04", "RQ-06", "RQ-07"]
+    }
+  },
+  "inherited_execution_state": {
+    "re_adjudicated_by_this_successor": false,
+    "new_operational_proof_claimed": false,
+    "g0": {
+      "decision": "BLOCKED_NOT_PASSED",
+      "passed": false,
+      "source": "PREDECESSOR_INHERITANCE_ONLY"
+    },
+    "g1": {
+      "approved": false,
+      "g1_approved": false,
+      "human_disposition_recorded": false,
+      "source": "PREDECESSOR_PLUS_CURRENT_FAIL_CLOSED_D1_D2_BINDING"
+    },
+    "g2": {
+      "g2_passed": false,
+      "source": "PREDECESSOR_INHERITANCE_ONLY"
+    },
+    "workbench_g0_transport_pin": {
+      "sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "reverified_by_this_successor": false,
+      "updated_by_this_successor": false,
+      "source": "PREDECESSOR_INHERITANCE_ONLY"
+    }
+  },
+  "historical_record_boundary": {
+    "historical_g1_packet_path": "curation/HUMAN_G1_DISPOSITION_PACKET_OBSERVATORY_RECOVERY_2026-09-03_v0.1.json",
+    "historical_g1_packet_modified_by_this_successor": false,
+    "historical_pre_g2_bound_path": "curation/PUBLIC_PRE_G2_S2_BINDINGS_OBSERVATORY_RECOVERY_2026-09-03_BOUND_v0.1.json",
+    "historical_pre_g2_bound_modified_by_this_successor": false
+  },
+  "separate_unresolved_matters": {
+    "patstat_public_extract_rights_review": {
+      "issue": 210,
+      "state_at_authoring": "OPEN",
+      "disposed_by_this_successor": false,
+      "rights_finding_made_by_this_successor": false,
+      "note": "The later PATSTAT extract is outside this D1/D2 execution-control bookkeeping change and remains subject to its separate rights/containment review."
+    }
+  },
+  "authority": {
+    "canonical_s2_authority": false,
+    "publication_authority": false,
+    "mutation_authority": false,
+    "assessment_effect": "NONE",
+    "g0_passed": false,
+    "g1_approved": false,
+    "g2_passed": false
+  },
+  "boundary": "This successor records exact corrected D1/D2 technical identities and advances execution-control bookkeeping only. It inherits prior gate and operational state without re-adjudication. It does not confer scientific truth, completeness, G0/G1/G2 passage, S2 mutation authority, publication authority, PATSTAT redistribution rights, or v4.2 assessment authority."
+}

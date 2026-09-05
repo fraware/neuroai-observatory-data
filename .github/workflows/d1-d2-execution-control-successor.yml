@@ -1,0 +1,41 @@
+name: D1/D2 execution-control successor
+
+on:
+  pull_request:
+    paths:
+      - "curation/CURRENT_EXECUTION_CONTROL.json"
+      - "curation/PROGRAMME_EXECUTION_STATE_2026-09-05_D1_D2_CONSTRUCT_VALIDITY_SUCCESSOR.json"
+      - "tests/test_d1_d2_execution_successor.py"
+      - ".github/workflows/d1-d2-execution-control-successor.yml"
+  push:
+    branches: [main]
+    paths:
+      - "curation/CURRENT_EXECUTION_CONTROL.json"
+      - "curation/PROGRAMME_EXECUTION_STATE_2026-09-05_D1_D2_CONSTRUCT_VALIDITY_SUCCESSOR.json"
+      - "tests/test_d1_d2_execution_successor.py"
+      - ".github/workflows/d1-d2-execution-control-successor.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-execution-successor:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Revalidate exact D1 and D2 technical contracts
+        run: |
+          python scripts/validate_landscape_research_contract.py
+          python scripts/validate_capability_context_taxonomy.py
+      - name: Validate append-only execution successor and pointer
+        run: python -m unittest tests.test_d1_d2_execution_successor -v
+      - name: Authority boundary
+        run: |
+          echo "Execution-control bookkeeping only."
+          echo "This workflow cannot pass G0/G1/G2, adjudicate PATSTAT rights,"
+          echo "authorize canonical S2 mutation or publication, or alter v4.2 assessments."
