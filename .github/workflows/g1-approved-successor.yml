@@ -1,0 +1,50 @@
+name: G1 approved execution successor
+
+on:
+  pull_request:
+    paths:
+      - "curation/HUMAN_G1_DISPOSITION_2026-09-05_D1_D2_v0.1.json"
+      - "curation/PROGRAMME_EXECUTION_STATE_2026-09-05_G1_APPROVED_SUCCESSOR.json"
+      - "curation/CURRENT_EXECUTION_CONTROL.json"
+      - "tests/test_g1_approved_successor.py"
+      - "tests/test_d1_d2_execution_successor.py"
+      - ".github/workflows/g1-approved-successor.yml"
+  push:
+    branches: [main]
+    paths:
+      - "curation/HUMAN_G1_DISPOSITION_2026-09-05_D1_D2_v0.1.json"
+      - "curation/PROGRAMME_EXECUTION_STATE_2026-09-05_G1_APPROVED_SUCCESSOR.json"
+      - "curation/CURRENT_EXECUTION_CONTROL.json"
+      - "tests/test_g1_approved_successor.py"
+      - "tests/test_d1_d2_execution_successor.py"
+      - ".github/workflows/g1-approved-successor.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-g1-successor:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Revalidate exact D1 and D2 technical contracts
+        run: |
+          python scripts/validate_landscape_research_contract.py
+          python scripts/validate_capability_context_taxonomy.py
+      - name: Validate G1 disposition and append-only execution transition
+        run: |
+          python -m unittest tests.test_g1_approved_successor -v
+          python -m unittest tests.test_d1_d2_execution_successor -v
+      - name: Revalidate independent PATSTAT fail-closed rights boundary
+        run: python -m unittest tests.test_patstat_rights_boundary -v
+      - name: Authority boundary
+        run: |
+          echo "This workflow validates the exact attributable G1 bookkeeping transition only."
+          echo "G1 approval is bound to the recorded human GitHub disposition and exact D1/D2 identities."
+          echo "It cannot pass G0 or G2, establish scientific truth or rights clearance,"
+          echo "authorize canonical S2 mutation/publication, authorize Phase 4, or alter v4.2 assessments."
