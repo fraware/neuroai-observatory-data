@@ -61,7 +61,7 @@ jobs:
                   raise SystemExit(f'git blob mismatch for {rel}: {got} != {want}')
               print(f'OK {rel} {got}')
           PY
-      - name: Materialize exactly nine intended files
+      - name: Materialize non-workflow remediation files
         shell: bash
         run: |
           set -euo pipefail
@@ -71,7 +71,6 @@ jobs:
 
           src = Path('/tmp/d1_materialized')
           mapping = {
-              'pre-g1-d2-capability-context-taxonomy.yml': '.github/workflows/pre-g1-d2-capability-context-taxonomy.yml',
               'CAPABILITY_CONTEXT_TAXONOMY_v0.1.json': 'curation/CAPABILITY_CONTEXT_TAXONOMY_v0.1.json',
               'LANDSCAPE_RESEARCH_CONTRACT_v0.1.json': 'curation/LANDSCAPE_RESEARCH_CONTRACT_v0.1.json',
               'PRE_G1_D1_D2_REVIEW_BINDING_D1_CONSTRUCT_VALIDITY_2026-09-05_v0.1.json': 'curation/PRE_G1_D1_D2_REVIEW_BINDING_D1_CONSTRUCT_VALIDITY_2026-09-05_v0.1.json',
@@ -113,18 +112,19 @@ jobs:
           python scripts/validate_capability_context_taxonomy.py
           python -m unittest tests.test_capability_context_taxonomy -v
           python -m unittest tests.test_g1_g2_boundary_packets -v
-      - name: Remove transfer machinery and prove final diff boundary
+      - name: Remove non-workflow transfer chunks and prove push boundary
         shell: bash
         run: |
           set -euo pipefail
           rm -rf .bootstrap
-          rm -f .github/workflows/d1-remediation-bootstrap.yml
           git add -A
           git diff --cached --check
           python - <<'PY'
           import subprocess
-          expected = sorted([
-              '.github/workflows/pre-g1-d2-capability-context-taxonomy.yml',
+          paths = subprocess.check_output(['git', 'diff', '--cached', '--name-only'], text=True).splitlines()
+          if any(path.startswith('.github/workflows/') for path in paths):
+              raise SystemExit(f'bootstrap push must not modify workflow files: {paths!r}')
+          required = {
               'curation/CAPABILITY_CONTEXT_TAXONOMY_v0.1.json',
               'curation/LANDSCAPE_RESEARCH_CONTRACT_v0.1.json',
               'curation/PRE_G1_D1_D2_REVIEW_BINDING_D1_CONSTRUCT_VALIDITY_2026-09-05_v0.1.json',
@@ -133,17 +133,16 @@ jobs:
               'scripts/validate_landscape_research_contract.py',
               'tests/test_g1_g2_boundary_packets.py',
               'tests/test_landscape_research_contract.py',
-          ])
-          actual = sorted(subprocess.check_output(['git', 'diff', '--cached', '--name-only', 'f14b0b34a30979b9c49c1db1a13e5eed0a48105e'], text=True).splitlines())
-          if actual != expected:
-              raise SystemExit(f'final diff file set mismatch: {actual!r}')
-          print('PASS: final diff from audited base contains exactly nine intended files')
+          }
+          if not required.issubset(paths):
+              raise SystemExit(f'missing intended remediation files from staged push: {paths!r}')
+          print('PASS: non-workflow materialization staged; workflow cleanup deferred to connector')
           PY
-      - name: Commit clean materialized remediation
+      - name: Commit materialized non-workflow remediation
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "PRE-G1: remediate D1 construct validity and rebind D2" -m "Materialize the reviewed nine-file D1 construct-validity remediation, preserve historical G1/PRE-G2 records, and mechanically rebind D2 to the corrected D1 identity. Technical PRE-G1 only: no G1/G2, S2, publication, or v4.2 authority is created."
+          git commit -m "PRE-G1: materialize reviewed D1 remediation payload" -m "Materialize the eight non-workflow remediation files and remove transfer chunks after exact bundle and technical validation. The bootstrap workflow remains temporarily so the GitHub connector can perform workflow-authorized cleanup and install the reviewed D2 workflow in a final clean commit. No authority transition."
           git push origin HEAD:research/pre-g1-d1-construct-validity-remediation
