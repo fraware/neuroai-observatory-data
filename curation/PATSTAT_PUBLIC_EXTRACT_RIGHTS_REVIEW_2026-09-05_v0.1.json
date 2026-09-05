@@ -1,0 +1,103 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "PATSTAT_PUBLIC_EXTRACT_RIGHTS_REVIEW_2026-09-05_v0.1",
+  "status": "RIGHTS_REVIEW_OPEN_FAIL_CLOSED",
+  "as_of": "2026-09-05",
+  "repository": "fraware/neuroai-observatory-data",
+  "created_against_main_sha": "c1785901ffc84bdc83545c943c373377bfdae6c7",
+  "governing_issue": 210,
+  "scope": "patent-evidence-extract/",
+  "rights_evidence": {
+    "exact_license_order_terms_verified_in_repository": false,
+    "exact_written_redistribution_authorization_verified": false,
+    "published_epo_terms_url": "https://www.epo.org/en/service-support/ordering/raw-data-terms-and-conditions",
+    "published_terms_findings": [
+      "Article 5.2 permits a licensee to create its own machine-readable database, publication, service or other product containing or made on the basis of EPO database data, while excluding a copy of the database or data as such from that product definition.",
+      "Article 5.4 prohibits making the EPO database, a copy, or the data as such public or distributing the data as such unless expressly authorized by the EPO in writing.",
+      "Article 10.2 requires the specified EPO attribution statement in products, websites and interfaces through which products containing sourced EPO data can be accessed."
+    ],
+    "legal_conclusion_made": false,
+    "note": "Published generic terms establish relevant control requirements but do not establish whether the exact Autumn 2025 order, acceptance, amendment history, or separate written permission grants additional rights."
+  },
+  "required_attribution": "This product contains data sourced from EPO databases, © European Patent Organisation",
+  "file_dispositions": [
+    {
+      "path": "patent-evidence-extract/README.md",
+      "provisional_classification": "DERIVED_PUBLICATION_WITH_EPO_SOURCED_INPUTS",
+      "rights_state": "RIGHTS_UNRESOLVED_PENDING_EXACT_CONTRACT",
+      "direct_epo_text_present": false,
+      "publication_clearance_claimed": false
+    },
+    {
+      "path": "patent-evidence-extract/abstracts_sample.csv",
+      "provisional_classification": "MIXED_DIRECT_EPO_TEXT_AND_DERIVED_ANNOTATION",
+      "rights_state": "HIGH_PRIORITY_RIGHTS_UNRESOLVED",
+      "direct_epo_text_present": true,
+      "publication_clearance_claimed": false
+    },
+    {
+      "path": "patent-evidence-extract/judged_sample.csv",
+      "provisional_classification": "DERIVED_ROW_LEVEL_ANNOTATION_WITH_EPO_SOURCE_IDENTIFIERS",
+      "rights_state": "RIGHTS_UNRESOLVED_PENDING_FILE_FIELD_REVIEW",
+      "direct_epo_text_present": false,
+      "publication_clearance_claimed": false
+    },
+    {
+      "path": "patent-evidence-extract/gold_labels.csv",
+      "provisional_classification": "DERIVED_ROW_LEVEL_ANNOTATION_WITH_EPO_SOURCE_IDENTIFIERS",
+      "rights_state": "RIGHTS_UNRESOLVED_PENDING_FILE_FIELD_REVIEW",
+      "direct_epo_text_present": false,
+      "publication_clearance_claimed": false
+    },
+    {
+      "path": "patent-evidence-extract/pool_frame.csv",
+      "provisional_classification": "MIXED_EPO_BIBLIOGRAPHIC_FIELDS_AND_DERIVED_FEATURES",
+      "rights_state": "RIGHTS_UNRESOLVED_PENDING_FILE_FIELD_REVIEW",
+      "direct_epo_text_present": false,
+      "publication_clearance_claimed": false
+    },
+    {
+      "path": "patent-evidence-extract/strata.csv",
+      "provisional_classification": "DERIVED_AGGREGATE_OUTPUT",
+      "rights_state": "RIGHTS_UNRESOLVED_PENDING_EXACT_CONTRACT",
+      "direct_epo_text_present": false,
+      "publication_clearance_claimed": false
+    },
+    {
+      "path": "patent-evidence-extract/clusters.csv",
+      "provisional_classification": "DERIVED_AGGREGATE_OR_MODEL_OUTPUT",
+      "rights_state": "RIGHTS_UNRESOLVED_PENDING_EXACT_CONTRACT",
+      "direct_epo_text_present": false,
+      "publication_clearance_claimed": false
+    },
+    {
+      "path": "patent-evidence-extract/reproduce.py",
+      "provisional_classification": "CODE_ONLY",
+      "rights_state": "NO_EPO_ROW_DATA_IDENTIFIED_IN_FILE_DESCRIPTION",
+      "direct_epo_text_present": false,
+      "publication_clearance_claimed": false
+    }
+  ],
+  "programme_boundary": {
+    "may_be_cited_as_rights_cleared_public_programme_evidence": false,
+    "may_establish_g0_g1_g2": false,
+    "may_authorize_s2_publication": false,
+    "may_authorize_assessment_mutation": false,
+    "history_rewrite_authorized": false,
+    "deletion_authorized": false,
+    "required_next_evidence": [
+      "Exact PATSTAT Autumn 2025 order/acceptance terms applicable to the licensee, including any amendments in force for that delivery.",
+      "Any separate written EPO authorization relevant to public redistribution.",
+      "File-and-field-level determination of whether retained row-level material is an allowed licensee product or prohibited data as such.",
+      "A corrective public/S3 containment disposition for any material lacking a verified redistribution basis."
+    ]
+  },
+  "authority": {
+    "rights_clearance": false,
+    "canonical_authority": false,
+    "publication_authority": false,
+    "mutation_authority": false,
+    "assessment_effect": "NONE"
+  },
+  "boundary": "This control records a fail-closed rights-review state and provisional file classifications only. It does not conclude that the repository violates the PATSTAT licence, does not clear any file for redistribution, and does not authorize deletion, history rewriting, scientific claims, gate passage, canonical S2 mutation, publication, or assessment effects."
+}
