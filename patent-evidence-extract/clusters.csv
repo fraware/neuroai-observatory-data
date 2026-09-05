@@ -1,0 +1,22 @@
+cluster,n_families,top_terms
+0,4003,rehabilitation; limb; muscle; electromyographic; rehabilitation training; motion; hand; myoelectricity; stimulator; lower limb
+1,3279,hearing; audio; sound; cochlear; hearing aid; aid; acoustic; cochlea; implant; speech
+2,1940,visual; eye; vision; light; image; display; retina; eyes; retinal; lens
+3,1571,sleep; staging; sleep stage; sleep state; stage; sleep staging; sleeping; sleep quality; sleep monitoring; quality
+4,1021,seizure; epilepsy; epileptic; epileptic seizure; seizures; prediction; seizure detection; epilepsy detection; epilepsy electroencephalogram; feature
+5,631,dry; dry electrode; acquisition; cap; eeg; electroencephalogram; signal acquisition; brain wave; amplifier; scalp
+6,615,transcranial; transcranial magnetic; magnetic stimulation; transcranial electrical; current stimulation; transcranial direct; direct current; tms; coil; alternating current
+7,577,vagus; vagus nerve; cardiac; nerve stimulation; autonomic; heart; vagal; sympathetic; autonomic nervous; therapy
+8,552,fatigue; driver; drowsiness; vehicle; driving; operator; fatigue state; drivers; fatigue detection; warning
+9,482,pain; chronic; chronic pain; spinal; pain relief; relief; pain treatment; spinal cord; cord; treatment pain
+10,419,attention; brain wave; concentration; attention training; brainwave; visual; neurofeedback; learning; wave signal; brain training
+11,403,blood; oxygen; nearinfrared; intracranial pressure; blood oxygen; brain function; intracranial; imaging; blood flow; cerebral blood
+12,300,parkinsons; parkinsons disease; disease; dopaminergic; gait; parkinson; parkinson disease; treating parkinsons; treatment parkinsons; disease patient
+13,277,ear; auricular; ear vagus; vagus; vagus nerve; auricle; conchae; auricular conchae; nerve stimulation; auricle electrode
+14,275,electroencephalogram signal; electroencephalogram; electroencephalogram signals; motor imagery; feature; imagery; classification; artifact; imagery electroencephalogram; extraction
+15,243,anesthesia; depth; anesthesia depth; depth monitoring; anesthetic; depth anesthesia; monitoring anesthesia; sedation; anesthesia state; index
+16,223,ultrasound; ultrasonic; focused; transducer; ultrasonic transducer; focused ultrasound; neuromodulation; focusing; ultrasonic waves; ultrasound stimulation
+17,205,tinnitus; tinnitus treatment; treating tinnitus; treatment tinnitus; sound; ear; audio; treating; tinnitus frequency; tinnitus therapy
+18,167,music; audio; sound; binaural; binaural beat; beat; brain wave; binaural beats; beats; musical
+19,159,spinal; spinal cord; cord; dorsal; root; dorsal root; root ganglia; nerve root; cord stimulation; epidural
+20,121,neuropathic; neuropathic pain; pain; treating neuropathic; compounds; chronic; compositions; chronic pain; treating; composition
