@@ -1,0 +1,62 @@
+{
+  "schema_version": "0.1.0",
+  "record_type": "HUMAN_G1_DISPOSITION",
+  "record_id": "HUMAN_G1_DISPOSITION_2026-09-05_D1_D2_v0.1",
+  "status": "RECORDED_HUMAN_DISPOSITION",
+  "decision": "APPROVE",
+  "recorded_at": "2026-09-05T13:24:50Z",
+  "governing_issue": 218,
+  "review_binding": {
+    "path": "curation/PRE_G1_D1_D2_REVIEW_BINDING_D1_CONSTRUCT_VALIDITY_2026-09-05_v0.1.json",
+    "git_blob_sha": "28e69f53f9b475a2ee474e9fa886d9660db7f7b0"
+  },
+  "d1": {
+    "artifact_id": "LANDSCAPE_RESEARCH_CONTRACT_v0.1",
+    "path": "curation/LANDSCAPE_RESEARCH_CONTRACT_v0.1.json",
+    "canonical_json_sha256": "7d270002094dcdecb703d5b70ef2268e4869005c284ffd98db3eb936641a78cb",
+    "git_blob_sha": "6aacb9d9bfba570121484b1e214b02ac824d645e"
+  },
+  "d2": {
+    "artifact_id": "CAPABILITY_CONTEXT_TAXONOMY_v0.1",
+    "path": "curation/CAPABILITY_CONTEXT_TAXONOMY_v0.1.json",
+    "canonical_json_sha256": "bd9451a5084485ef7a36251b0bc39d486fe0c2174636171a29ec03d7010cbf1d",
+    "git_blob_sha": "f8d4943da5c0659ba775b3f6227e8a21a7bcb03a"
+  },
+  "attribution": {
+    "source": "GITHUB_ISSUE_COMMENT",
+    "repository": "fraware/neuroai-observatory-data",
+    "issue_number": 218,
+    "comment_id": 5552118979,
+    "comment_url": "https://github.com/fraware/neuroai-observatory-data/issues/218#issuecomment-5552118979",
+    "comment_body_sha256_utf8": "b332349811dcdf48accc1c2e596cc1deaa34aeb3957421d7e18a3dca9f8c2554",
+    "github_login": "fraware",
+    "github_user_id": 113530345,
+    "author_association": "OWNER",
+    "comment_created_at": "2026-09-05T13:24:50Z",
+    "comment_updated_at_at_recording": "2026-09-05T13:24:50Z"
+  },
+  "scope": {
+    "g1_approved": true,
+    "accepted_as_controlled_v0_1_research_contract_and_taxonomy": true,
+    "substantive_change_requires_new_human_disposition": true,
+    "rationale": "The attributable human record explicitly approves the exact corrected D1/D2 binding. No additional human rationale is asserted beyond the approval, scope, and interpretation recorded in that comment."
+  },
+  "non_claims": [
+    "This G1 disposition does not establish empirical or scientific truth.",
+    "This G1 disposition does not establish benchmark validity, source completeness, or held-out evaluation performance.",
+    "This G1 disposition does not establish PATSTAT redistribution rights or any other legal authority.",
+    "This G1 disposition does not pass G0 or G2.",
+    "This G1 disposition does not authorize canonical S2 mutation or publication.",
+    "This G1 disposition does not create or alter any v4.2 assessment finding."
+  ],
+  "authority": {
+    "g1_approved": true,
+    "g0_passed": false,
+    "g2_passed": false,
+    "canonical_s2_authority": false,
+    "publication_authority": false,
+    "mutation_authority": false,
+    "assessment_effect": "NONE"
+  },
+  "boundary": "This record memorializes an attributable human APPROVE disposition for the exact D1/D2 identities named above. Its authority is limited to G1 approval of those identities and does not imply any other gate, evidence, legal, publication, canonical-mutation, or assessment authority."
+}
