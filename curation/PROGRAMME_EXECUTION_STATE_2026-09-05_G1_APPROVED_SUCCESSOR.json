@@ -1,0 +1,122 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-05_G1_APPROVED_SUCCESSOR",
+  "status": "G1_APPROVED_SUCCESSOR_STATE_NONCANONICAL",
+  "as_of": "2026-09-05",
+  "purpose": "Append-only execution-control successor recording the attributable human G1 APPROVE disposition for the exact corrected D1/D2 identities while preserving all independent G0, G2, rights, publication, and assessment boundaries.",
+  "predecessor": {
+    "path": "curation/PROGRAMME_EXECUTION_STATE_2026-09-05_D1_D2_CONSTRUCT_VALIDITY_SUCCESSOR.json",
+    "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-05_D1_D2_CONSTRUCT_VALIDITY_SUCCESSOR",
+    "git_blob_sha": "bcce43681e0419836cc22249322dcfb712d1e729",
+    "predecessor_is_modified_by_this_successor": false,
+    "predecessor_immutability": "HISTORICAL_IMMUTABLE_EXECUTION_STATE_NOT_EDITED_IN_PLACE"
+  },
+  "frozen_baseline": {
+    "path": "curation/PROGRAMME_EXECUTION_BASELINE_2026-09-01.json",
+    "baseline_id": "PROGRAMME_EXECUTION_BASELINE_2026-09-01",
+    "modified_by_this_successor": false
+  },
+  "g1_disposition": {
+    "decision": "APPROVE",
+    "g1_approved": true,
+    "human_disposition_recorded": true,
+    "record_path": "curation/HUMAN_G1_DISPOSITION_2026-09-05_D1_D2_v0.1.json",
+    "record_id": "HUMAN_G1_DISPOSITION_2026-09-05_D1_D2_v0.1",
+    "governing_issue": 218,
+    "attributable_comment": {
+      "comment_id": 5552118979,
+      "comment_url": "https://github.com/fraware/neuroai-observatory-data/issues/218#issuecomment-5552118979",
+      "comment_body_sha256_utf8": "b332349811dcdf48accc1c2e596cc1deaa34aeb3957421d7e18a3dca9f8c2554",
+      "github_login": "fraware",
+      "github_user_id": 113530345,
+      "author_association": "OWNER",
+      "recorded_at": "2026-09-05T13:24:50Z"
+    },
+    "review_binding_path": "curation/PRE_G1_D1_D2_REVIEW_BINDING_D1_CONSTRUCT_VALIDITY_2026-09-05_v0.1.json",
+    "d1": {
+      "artifact_id": "LANDSCAPE_RESEARCH_CONTRACT_v0.1",
+      "path": "curation/LANDSCAPE_RESEARCH_CONTRACT_v0.1.json",
+      "canonical_json_sha256": "7d270002094dcdecb703d5b70ef2268e4869005c284ffd98db3eb936641a78cb",
+      "git_blob_sha": "6aacb9d9bfba570121484b1e214b02ac824d645e"
+    },
+    "d2": {
+      "artifact_id": "CAPABILITY_CONTEXT_TAXONOMY_v0.1",
+      "path": "curation/CAPABILITY_CONTEXT_TAXONOMY_v0.1.json",
+      "canonical_json_sha256": "bd9451a5084485ef7a36251b0bc39d486fe0c2174636171a29ec03d7010cbf1d",
+      "git_blob_sha": "f8d4943da5c0659ba775b3f6227e8a21a7bcb03a"
+    },
+    "scope": "Approval of the exact D1/D2 identities as the controlled v0.1 research contract and capability/context taxonomy. Any substantive D1/D2 change requires a new attributable human disposition."
+  },
+  "gate_state": {
+    "g0": {
+      "decision": "BLOCKED_NOT_PASSED",
+      "passed": false,
+      "source": "PREDECESSOR_INHERITANCE_ONLY",
+      "re_adjudicated_by_this_successor": false
+    },
+    "g1": {
+      "decision": "APPROVE",
+      "approved": true,
+      "g1_approved": true,
+      "human_disposition_recorded": true,
+      "source": "ATTRIBUTABLE_HUMAN_DISPOSITION_ISSUE_218_COMMENT_5552118979"
+    },
+    "g2": {
+      "g2_passed": false,
+      "source": "PREDECESSOR_INHERITANCE_ONLY",
+      "re_adjudicated_by_this_successor": false
+    }
+  },
+  "pre_g2_execution_boundary": {
+    "construction_against_approved_d1_d2_may_proceed": true,
+    "technical_scaffold_presence_does_not_pass_g2": true,
+    "actual_heldout_membership_labels_and_adjudication_remain_s3_controlled": true,
+    "g2_freeze_or_passage_recorded_by_this_successor": false,
+    "publication_or_s2_authority_created_by_this_successor": false
+  },
+  "inherited_operational_state": {
+    "new_operational_proof_claimed": false,
+    "workbench_g0_transport_pin": {
+      "sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "reverified_by_this_successor": false,
+      "updated_by_this_successor": false,
+      "source": "PREDECESSOR_INHERITANCE_ONLY"
+    }
+  },
+  "independent_unresolved_matters": {
+    "patstat_public_extract_rights_review": {
+      "issue": 210,
+      "state": "OPEN",
+      "rights_clearance": false,
+      "disposed_by_this_successor": false,
+      "note": "PR #217 records a fail-closed rights boundary only; exact applicable PATSTAT licence/permission evidence remains required."
+    },
+    "online_first_phase3_external_proof": {
+      "workbench_issue": 287,
+      "state": "INCOMPLETE_EXTERNAL_PROOF_NOT_EXECUTED",
+      "workbench_harness_main_sha": "b9e4e1f6101887ab378f6408bd07421ba1d8ae48",
+      "phase4_default_transition_authorized": false,
+      "disposed_by_this_successor": false
+    }
+  },
+  "historical_record_boundary": {
+    "predecessor_execution_state_modified": false,
+    "historical_g1_packet_path": "curation/HUMAN_G1_DISPOSITION_PACKET_OBSERVATORY_RECOVERY_2026-09-03_v0.1.json",
+    "historical_g1_packet_modified_by_this_successor": false,
+    "review_binding_modified_by_this_successor": false,
+    "d1_artifact_modified_by_this_successor": false,
+    "d2_artifact_modified_by_this_successor": false
+  },
+  "authority": {
+    "g0_passed": false,
+    "g1_approved": true,
+    "g2_passed": false,
+    "canonical_s2_authority": false,
+    "publication_authority": false,
+    "mutation_authority": false,
+    "assessment_effect": "NONE",
+    "patstat_rights_clearance": false,
+    "phase4_online_first_default_authorized": false
+  },
+  "boundary": "This successor records the attributable human G1 approval for the exact D1/D2 identities only. G0 remains blocked, G2 remains unpassed, PATSTAT rights remain unresolved, the Phase 3 external live/replay proof remains incomplete, and no canonical S2 mutation, publication, legal, scientific-truth, completeness, or v4.2 assessment authority is created."
+}

@@ -3,10 +3,11 @@
   "status": "CURRENT_CONTROL_POINTER_NONCANONICAL",
   "as_of": "2026-09-05",
   "programme_execution_baseline": "curation/PROGRAMME_EXECUTION_BASELINE_2026-09-01.json",
-  "current_programme_execution_state": "curation/PROGRAMME_EXECUTION_STATE_2026-09-05_D1_D2_CONSTRUCT_VALIDITY_SUCCESSOR.json",
+  "current_programme_execution_state": "curation/PROGRAMME_EXECUTION_STATE_2026-09-05_G1_APPROVED_SUCCESSOR.json",
+  "current_g1_disposition": "curation/HUMAN_G1_DISPOSITION_2026-09-05_D1_D2_v0.1.json",
   "source_universe_execution_state": "curation/source_universe_execution_state_2026-09-03_SRC14021_DISPOSITION_C_SUCCESSOR.json",
   "issue_disposition_ledger": "curation/issue_disposition_ledger_observatory_recovery_2026-09-03_v0.1.json",
   "historical_planning_control": "curation/source_universe_expansion_backlog_v0.1.json",
   "historical_planning_control_status": "SUPERSEDED_FOR_CURRENT_EXECUTION_INTERPRETATION",
-  "boundary": "This pointer identifies current execution-control records only. The frozen programme baseline and prior successor states remain immutable and separate from the current successor. The 2026-09-05 successor records corrected PRE-G1 D1/D2 technical identities while inheriting prior gate and operational state without re-adjudication. This pointer does not confer canonical publication authority, operational health, scientific truth, completeness, assessment authority, PATSTAT redistribution rights, or a G0/G1/G2 pass."
+  "boundary": "This pointer identifies current execution-control records only. The frozen programme baseline and predecessor successors remain immutable. The current programme successor records an attributable human G1 APPROVE disposition for the exact corrected D1/D2 identities. G0 remains blocked, G2 remains unpassed, PATSTAT rights remain unresolved, and the online-first Phase 3 external proof remains incomplete. This pointer does not confer canonical publication authority, operational health, scientific truth, completeness, legal authority, assessment authority, PATSTAT redistribution rights, Phase 4 online-first default authorization, or any G0/G2 pass."
 }
