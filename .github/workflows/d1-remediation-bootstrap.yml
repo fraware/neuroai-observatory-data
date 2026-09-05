@@ -1,0 +1,142 @@
+name: D1 remediation bootstrap
+
+on:
+  push:
+    branches:
+      - research/pre-g1-d1-construct-validity-remediation
+    paths:
+      - ".bootstrap/**"
+      - ".github/workflows/d1-remediation-bootstrap.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  materialize-reviewed-bundle:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Reconstruct and verify reviewed transfer bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .bootstrap/part-*.b64 > /tmp/d1_bundle.b64
+          base64 --decode /tmp/d1_bundle.b64 > /tmp/d1_bundle.tar.gz
+          echo "9493a65fa9d61fb167e7c3c73d815574845929a8dd01bc5d3f069e1b9c734330  /tmp/d1_bundle.tar.gz" | sha256sum -c -
+          rm -rf /tmp/d1_materialized
+          mkdir -p /tmp/d1_materialized
+          tar -xzf /tmp/d1_bundle.tar.gz -C /tmp/d1_materialized
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib
+
+          root = Path('/tmp/d1_materialized')
+          expected = {
+              '.github/workflows/pre-g1-d2-capability-context-taxonomy.yml': 'bdb012feeec7f667d1b1e5073ea577513d66746b',
+              'curation/CAPABILITY_CONTEXT_TAXONOMY_v0.1.json': 'f8d4943da5c0659ba775b3f6227e8a21a7bcb03a',
+              'curation/LANDSCAPE_RESEARCH_CONTRACT_v0.1.json': '6aacb9d9bfba570121484b1e214b02ac824d645e',
+              'curation/PRE_G1_D1_D2_REVIEW_BINDING_D1_CONSTRUCT_VALIDITY_2026-09-05_v0.1.json': '28e69f53f9b475a2ee474e9fa886d9660db7f7b0',
+              'docs/landscape-research-contract.md': 'c000349d1279e8a90ba287c514c685542f102e72',
+              'schemas/landscape-research-contract-v0.1.schema.json': '306393b3c0df56a5ee76a9246c7fff4947fbfaae',
+              'scripts/validate_landscape_research_contract.py': '034c3b0bfae4c4bfa9366a80deb3ae01c388d809',
+              'tests/test_g1_g2_boundary_packets.py': 'f104313558a872287078ee9661d5cd5e87e42f3d',
+              'tests/test_landscape_research_contract.py': 'abefe44ea1768c711059a3a0562bfee234e6582d',
+          }
+          actual = sorted(str(p.relative_to(root)) for p in root.rglob('*') if p.is_file())
+          if actual != sorted(expected):
+              raise SystemExit(f'unexpected extracted file set: {actual!r}')
+          for rel, want in expected.items():
+              data = (root / rel).read_bytes()
+              payload = b'blob ' + str(len(data)).encode('ascii') + b'\0' + data
+              got = hashlib.sha1(payload).hexdigest()
+              if got != want:
+                  raise SystemExit(f'git blob mismatch for {rel}: {got} != {want}')
+              print(f'OK {rel} {got}')
+          PY
+      - name: Materialize exactly nine intended files
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r rel; do
+            mkdir -p "$(dirname "$rel")"
+            cp "/tmp/d1_materialized/$rel" "$rel"
+          done <<'EOF'
+          .github/workflows/pre-g1-d2-capability-context-taxonomy.yml
+          curation/CAPABILITY_CONTEXT_TAXONOMY_v0.1.json
+          curation/LANDSCAPE_RESEARCH_CONTRACT_v0.1.json
+          curation/PRE_G1_D1_D2_REVIEW_BINDING_D1_CONSTRUCT_VALIDITY_2026-09-05_v0.1.json
+          docs/landscape-research-contract.md
+          schemas/landscape-research-contract-v0.1.schema.json
+          scripts/validate_landscape_research_contract.py
+          tests/test_g1_g2_boundary_packets.py
+          tests/test_landscape_research_contract.py
+          EOF
+      - name: Prove D2 change is binding-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+
+          path = 'curation/CAPABILITY_CONTEXT_TAXONOMY_v0.1.json'
+          old = json.loads(subprocess.check_output(['git', 'show', f'HEAD:{path}'], text=True))
+          new = json.loads(Path(path).read_text(encoding='utf-8'))
+          for obj in (old, new):
+              obj.pop('created_against_observatory_main_sha', None)
+              obj.pop('d1_contract_binding', None)
+          if old != new:
+              raise SystemExit('D2 substantive taxonomy changed; expected binding-only change')
+          print('PASS: D2 substantive taxonomy unchanged')
+          PY
+      - name: Run D1 and D2 technical validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/validate_landscape_research_contract.py
+          python -m unittest tests.test_landscape_research_contract -v
+          python scripts/validate_capability_context_taxonomy.py
+          python -m unittest tests.test_capability_context_taxonomy -v
+          python -m unittest tests.test_g1_g2_boundary_packets -v
+      - name: Remove transfer machinery and prove final diff boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .bootstrap
+          rm -f .github/workflows/d1-remediation-bootstrap.yml
+          git add -A
+          git diff --cached --check
+          python - <<'PY'
+          import subprocess
+          expected = sorted([
+              '.github/workflows/pre-g1-d2-capability-context-taxonomy.yml',
+              'curation/CAPABILITY_CONTEXT_TAXONOMY_v0.1.json',
+              'curation/LANDSCAPE_RESEARCH_CONTRACT_v0.1.json',
+              'curation/PRE_G1_D1_D2_REVIEW_BINDING_D1_CONSTRUCT_VALIDITY_2026-09-05_v0.1.json',
+              'docs/landscape-research-contract.md',
+              'schemas/landscape-research-contract-v0.1.schema.json',
+              'scripts/validate_landscape_research_contract.py',
+              'tests/test_g1_g2_boundary_packets.py',
+              'tests/test_landscape_research_contract.py',
+          ])
+          actual = sorted(subprocess.check_output(['git', 'diff', '--cached', '--name-only'], text=True).splitlines())
+          if actual != expected:
+              raise SystemExit(f'final staged file set mismatch: {actual!r}')
+          print('PASS: final staged diff contains exactly nine intended files')
+          PY
+      - name: Commit clean materialized remediation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "PRE-G1: remediate D1 construct validity and rebind D2" -m "Materialize the reviewed nine-file D1 construct-validity remediation, preserve historical G1/PRE-G2 records, and mechanically rebind D2 to the corrected D1 identity. Technical PRE-G1 only: no G1/G2, S2, publication, or v4.2 authority is created."
+          git push origin HEAD:research/pre-g1-d1-construct-validity-remediation
