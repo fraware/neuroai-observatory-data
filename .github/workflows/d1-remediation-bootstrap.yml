@@ -40,15 +40,15 @@ jobs:
 
           root = Path('/tmp/d1_materialized')
           expected = {
-              '.github/workflows/pre-g1-d2-capability-context-taxonomy.yml': 'bdb012feeec7f667d1b1e5073ea577513d66746b',
-              'curation/CAPABILITY_CONTEXT_TAXONOMY_v0.1.json': 'f8d4943da5c0659ba775b3f6227e8a21a7bcb03a',
-              'curation/LANDSCAPE_RESEARCH_CONTRACT_v0.1.json': '6aacb9d9bfba570121484b1e214b02ac824d645e',
-              'curation/PRE_G1_D1_D2_REVIEW_BINDING_D1_CONSTRUCT_VALIDITY_2026-09-05_v0.1.json': '28e69f53f9b475a2ee474e9fa886d9660db7f7b0',
-              'docs/landscape-research-contract.md': 'c000349d1279e8a90ba287c514c685542f102e72',
-              'schemas/landscape-research-contract-v0.1.schema.json': '306393b3c0df56a5ee76a9246c7fff4947fbfaae',
-              'scripts/validate_landscape_research_contract.py': '034c3b0bfae4c4bfa9366a80deb3ae01c388d809',
-              'tests/test_g1_g2_boundary_packets.py': 'f104313558a872287078ee9661d5cd5e87e42f3d',
-              'tests/test_landscape_research_contract.py': 'abefe44ea1768c711059a3a0562bfee234e6582d',
+              'pre-g1-d2-capability-context-taxonomy.yml': 'bdb012feeec7f667d1b1e5073ea577513d66746b',
+              'CAPABILITY_CONTEXT_TAXONOMY_v0.1.json': 'f8d4943da5c0659ba775b3f6227e8a21a7bcb03a',
+              'LANDSCAPE_RESEARCH_CONTRACT_v0.1.json': '6aacb9d9bfba570121484b1e214b02ac824d645e',
+              'PRE_G1_D1_D2_REVIEW_BINDING_D1_CONSTRUCT_VALIDITY_2026-09-05_v0.1.json': '28e69f53f9b475a2ee474e9fa886d9660db7f7b0',
+              'landscape-research-contract.md': 'c000349d1279e8a90ba287c514c685542f102e72',
+              'landscape-research-contract-v0.1.schema.json': '306393b3c0df56a5ee76a9246c7fff4947fbfaae',
+              'validate_landscape_research_contract.py': '034c3b0bfae4c4bfa9366a80deb3ae01c388d809',
+              'test_g1_g2_boundary_packets.py': 'f104313558a872287078ee9661d5cd5e87e42f3d',
+              'test_landscape_research_contract.py': 'abefe44ea1768c711059a3a0562bfee234e6582d',
           }
           actual = sorted(str(p.relative_to(root)) for p in root.rglob('*') if p.is_file())
           if actual != sorted(expected):
@@ -65,20 +65,27 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          while IFS= read -r rel; do
-            mkdir -p "$(dirname "$rel")"
-            cp "/tmp/d1_materialized/$rel" "$rel"
-          done <<'EOF'
-          .github/workflows/pre-g1-d2-capability-context-taxonomy.yml
-          curation/CAPABILITY_CONTEXT_TAXONOMY_v0.1.json
-          curation/LANDSCAPE_RESEARCH_CONTRACT_v0.1.json
-          curation/PRE_G1_D1_D2_REVIEW_BINDING_D1_CONSTRUCT_VALIDITY_2026-09-05_v0.1.json
-          docs/landscape-research-contract.md
-          schemas/landscape-research-contract-v0.1.schema.json
-          scripts/validate_landscape_research_contract.py
-          tests/test_g1_g2_boundary_packets.py
-          tests/test_landscape_research_contract.py
-          EOF
+          python - <<'PY'
+          from pathlib import Path
+          import shutil
+
+          src = Path('/tmp/d1_materialized')
+          mapping = {
+              'pre-g1-d2-capability-context-taxonomy.yml': '.github/workflows/pre-g1-d2-capability-context-taxonomy.yml',
+              'CAPABILITY_CONTEXT_TAXONOMY_v0.1.json': 'curation/CAPABILITY_CONTEXT_TAXONOMY_v0.1.json',
+              'LANDSCAPE_RESEARCH_CONTRACT_v0.1.json': 'curation/LANDSCAPE_RESEARCH_CONTRACT_v0.1.json',
+              'PRE_G1_D1_D2_REVIEW_BINDING_D1_CONSTRUCT_VALIDITY_2026-09-05_v0.1.json': 'curation/PRE_G1_D1_D2_REVIEW_BINDING_D1_CONSTRUCT_VALIDITY_2026-09-05_v0.1.json',
+              'landscape-research-contract.md': 'docs/landscape-research-contract.md',
+              'landscape-research-contract-v0.1.schema.json': 'schemas/landscape-research-contract-v0.1.schema.json',
+              'validate_landscape_research_contract.py': 'scripts/validate_landscape_research_contract.py',
+              'test_g1_g2_boundary_packets.py': 'tests/test_g1_g2_boundary_packets.py',
+              'test_landscape_research_contract.py': 'tests/test_landscape_research_contract.py',
+          }
+          for source, destination in mapping.items():
+              dst = Path(destination)
+              dst.parent.mkdir(parents=True, exist_ok=True)
+              shutil.copyfile(src / source, dst)
+          PY
       - name: Prove D2 change is binding-only
         shell: bash
         run: |
@@ -127,10 +134,10 @@ jobs:
               'tests/test_g1_g2_boundary_packets.py',
               'tests/test_landscape_research_contract.py',
           ])
-          actual = sorted(subprocess.check_output(['git', 'diff', '--cached', '--name-only'], text=True).splitlines())
+          actual = sorted(subprocess.check_output(['git', 'diff', '--cached', '--name-only', 'f14b0b34a30979b9c49c1db1a13e5eed0a48105e'], text=True).splitlines())
           if actual != expected:
-              raise SystemExit(f'final staged file set mismatch: {actual!r}')
-          print('PASS: final staged diff contains exactly nine intended files')
+              raise SystemExit(f'final diff file set mismatch: {actual!r}')
+          print('PASS: final diff from audited base contains exactly nine intended files')
           PY
       - name: Commit clean materialized remediation
         shell: bash
