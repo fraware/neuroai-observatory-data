@@ -8,6 +8,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 SUCCESSOR = ROOT / "curation" / "PROGRAMME_EXECUTION_STATE_2026-09-05_D1_D2_CONSTRUCT_VALIDITY_SUCCESSOR.json"
+CURRENT_SUCCESSOR = ROOT / "curation" / "PROGRAMME_EXECUTION_STATE_2026-09-05_G1_APPROVED_SUCCESSOR.json"
 POINTER = ROOT / "curation" / "CURRENT_EXECUTION_CONTROL.json"
 D1 = ROOT / "curation" / "LANDSCAPE_RESEARCH_CONTRACT_v0.1.json"
 D2 = ROOT / "curation" / "CAPABILITY_CONTEXT_TAXONOMY_v0.1.json"
@@ -26,6 +27,7 @@ EXPECTED_HISTORICAL_G1_GIT_BLOB = "9b61daa3f0f3c43fa4a1451c07b675a0dbbebbaa"
 EXPECTED_HISTORICAL_PRE_G2_GIT_BLOB = "e4796fb88900a2d31e6a75569c39778606be63cf"
 EXPECTED_OBSERVATORY_MERGE_SHA = "021096b724bb66198e4470c5c5f77840cc856858"
 EXPECTED_SUCCESSOR_PATH = "curation/PROGRAMME_EXECUTION_STATE_2026-09-05_D1_D2_CONSTRUCT_VALIDITY_SUCCESSOR.json"
+CURRENT_SUCCESSOR_PATH = "curation/PROGRAMME_EXECUTION_STATE_2026-09-05_G1_APPROVED_SUCCESSOR.json"
 
 
 def load_json(path: Path) -> dict:
@@ -52,16 +54,19 @@ class D1D2ExecutionSuccessorTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.successor = load_json(SUCCESSOR)
+        cls.current_successor = load_json(CURRENT_SUCCESSOR)
         cls.pointer = load_json(POINTER)
         cls.d1 = load_json(D1)
         cls.d2 = load_json(D2)
         cls.review_binding = load_json(REVIEW_BINDING)
         cls.d1_validator = load_d1_validator()
 
-    def test_pointer_targets_exact_new_successor(self) -> None:
+    def test_pointer_advanced_through_append_only_g1_successor(self) -> None:
         self.assertEqual(self.pointer["status"], "CURRENT_CONTROL_POINTER_NONCANONICAL")
         self.assertEqual(self.pointer["as_of"], "2026-09-05")
-        self.assertEqual(self.pointer["current_programme_execution_state"], EXPECTED_SUCCESSOR_PATH)
+        self.assertEqual(self.pointer["current_programme_execution_state"], CURRENT_SUCCESSOR_PATH)
+        self.assertEqual(self.current_successor["predecessor"]["path"], EXPECTED_SUCCESSOR_PATH)
+        self.assertFalse(self.current_successor["predecessor"]["predecessor_is_modified_by_this_successor"])
 
     def test_predecessor_and_historical_records_are_byte_immutable(self) -> None:
         self.assertEqual(git_blob_sha(PREDECESSOR), EXPECTED_PREDECESSOR_GIT_BLOB)
@@ -104,7 +109,7 @@ class D1D2ExecutionSuccessorTests(unittest.TestCase):
         self.assertIn("does_not_prove", context["post_merge_d1_workflow"])
         self.assertIn("does_not_prove", context["post_merge_d2_workflow"])
 
-    def test_gate_state_is_inherited_fail_closed_without_re_adjudication(self) -> None:
+    def test_historical_successor_gate_state_remains_unchanged(self) -> None:
         inherited = self.successor["inherited_execution_state"]
         self.assertFalse(inherited["re_adjudicated_by_this_successor"])
         self.assertFalse(inherited["new_operational_proof_claimed"])
@@ -116,7 +121,7 @@ class D1D2ExecutionSuccessorTests(unittest.TestCase):
         self.assertFalse(inherited["workbench_g0_transport_pin"]["reverified_by_this_successor"])
         self.assertFalse(inherited["workbench_g0_transport_pin"]["updated_by_this_successor"])
 
-    def test_all_authority_flags_remain_false(self) -> None:
+    def test_historical_successor_authority_flags_remain_false(self) -> None:
         authority = self.successor["authority"]
         self.assertFalse(authority["canonical_s2_authority"])
         self.assertFalse(authority["publication_authority"])
