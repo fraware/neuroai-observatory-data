@@ -30,9 +30,16 @@
   },
   "review_packet_schema": {
     "path": "schemas/pre-g2-d4-product-review-packet-v0.1.schema.json",
-    "git_blob_sha_at_protocol_creation": "8075680992fa54d0584fc724236f488a099c4ecd",
+    "git_blob_sha": "385762f930fa4e0251a7f5c2c2045c01ca8a0b1f",
     "custody_of_real_packets": "S3_CONTROLLED",
     "public_repository_may_contain_real_packets": false
+  },
+  "semantic_validator": {
+    "path": "scripts/validate_pre_g2_d4_review_packet_semantics.py",
+    "git_blob_sha": "7384b35cbce89faa5abc0e3af127b1674e2ddded",
+    "purpose": "Fail-closed cross-field validation for exact-object identity, evidence cutoff, reviewer-role uniqueness, independent double labeling, adjudication consistency, exposure eligibility, and S3 rights containment.",
+    "structural_json_schema_validation_is_separate": true,
+    "validator_establishes_source_truth_or_reviewer_competence": false
   },
   "statistical_evidence_role": {
     "role": "CHALLENGE_CONSTRUCT_COVERAGE",
@@ -143,6 +150,7 @@
     "unknown_version_must_remain_explicit": true,
     "ambiguous_identity_must_remain_explicit": true,
     "model_inference_may_not_repair_identity_ambiguity": true,
+    "ambiguous_object_identity_held_out_eligible": false,
     "company_level_statement_may_not_silently_bind_different_product_or_release": true,
     "observation_time_required": true
   },
@@ -169,6 +177,7 @@
     "human_reference_standard_required": true,
     "model_consensus_may_be_reference_standard": false,
     "reviewers_blinded_to_model_predictions_scores_and_machine_labels_where_practical": true,
+    "blinding_exception_requires_recorded_rationale": true,
     "required_review_field_names": [
       "adjudicator_role",
       "decision",
@@ -177,9 +186,13 @@
       "timestamp"
     ],
     "double_label_subset_required": true,
+    "double_label_all_final_held_out_candidates": true,
     "double_label_subset_count": null,
-    "double_label_count_policy": "EXACT COUNT OR FRACTION MUST BE PREDECLARED BEFORE FINAL FREEZE; THIS PROTOCOL DOES NOT INVENT A COUNT",
+    "double_label_count_policy": "EVERY FINAL HELD-OUT D4 CANDIDATE MUST HAVE PRIMARY AND SECONDARY HUMAN REVIEW; THE EXACT COUNT IS DERIVED FROM THE PREDECLARED FINAL SAMPLE SIZE AND IS NOT INVENTED HERE",
     "adjudication_protocol_required": true,
+    "agreement_requires_matching_primary_secondary_dispositions": true,
+    "adjudication_requires_real_primary_secondary_disagreement_and_final_adjudicator": true,
+    "unresolved_disagreement_cannot_be_held_out_eligible": true,
     "reviewer_training_and_calibration_record_required": true,
     "pilot_disagreements_separate_from_final_held_out_labels": true,
     "reviewer_identity_and_competence_evidence_location": "S3_CONTROLLED"
@@ -192,6 +205,8 @@
     "source_evidence_packets_location": "S3_CONTROLLED_OR_RIGHTS_APPROVED_CONTROLLED_STORE",
     "model_prompt_threshold_development_access_to_final_membership_or_labels": false,
     "exposure_register_required": true,
+    "held_out_eligibility_requires_no_known_exposure_reviewed": true,
+    "unknown_exposure_status_held_out_eligible": false,
     "known_exposure_handling": "FAIL_CLOSED_EXCLUDE_OR_EXPLICITLY_MARK_UNDER_FROZEN_CONTAMINATION_PROTOCOL",
     "public_git_allowed_material": [
       "OPAQUE_COMMITMENTS_AND_DIGESTS",
