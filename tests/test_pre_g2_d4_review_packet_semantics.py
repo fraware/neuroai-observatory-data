@@ -26,6 +26,7 @@ def _object_binding() -> dict[str, object]:
 
 def _review(role: str, decision: str, *, timestamp: str = "2026-09-08T01:00:00Z") -> dict[str, object]:
     return {
+        "reviewer_ref": f"REVIEWER-{role}",
         "decision": decision,
         "rationale": f"Synthetic rationale for {role}",
         "adjudicator_role": role,
@@ -102,6 +103,11 @@ class PreG2D4ReviewPacketSemanticTests(unittest.TestCase):
         packet["reviewer_records"][1]["adjudicator_role"] = "PRIMARY_REVIEWER"
         self.assert_invalid(packet, "duplicate reviewer role")
 
+    def test_reviewer_refs_are_distinct_across_roles(self) -> None:
+        packet = _valid_agree_packet()
+        packet["reviewer_records"][1]["reviewer_ref"] = packet["reviewer_records"][0]["reviewer_ref"]
+        self.assert_invalid(packet, "reviewer_ref values must be distinct")
+
     def test_held_out_candidate_cannot_disable_double_label(self) -> None:
         packet = _valid_agree_packet()
         packet["review_design"]["double_label_required"] = False
@@ -153,6 +159,19 @@ class PreG2D4ReviewPacketSemanticTests(unittest.TestCase):
         }
         self.assert_invalid(packet, "FINAL_ADJUDICATOR decision must equal")
 
+    def test_adjudicator_must_follow_primary_and_secondary_review(self) -> None:
+        packet = _valid_agree_packet()
+        packet["reviewer_records"][1]["decision"] = "EXCLUDE"
+        packet["reviewer_records"].append(
+            _review("FINAL_ADJUDICATOR", "BORDERLINE", timestamp="2026-09-08T01:05:00Z")
+        )
+        packet["adjudication"] = {
+            "state": "ADJUDICATED",
+            "final_disposition": "BORDERLINE",
+            "final_rationale": "Synthetic adjudication rationale",
+        }
+        self.assert_invalid(packet, "timestamp cannot precede primary/secondary")
+
     def test_valid_adjudicated_disagreement(self) -> None:
         packet = _valid_agree_packet()
         packet["reviewer_records"][1]["decision"] = "EXCLUDE"
@@ -200,6 +219,18 @@ class PreG2D4ReviewPacketSemanticTests(unittest.TestCase):
         for record in packet["reviewer_records"]:
             record["exact_object_binding"]["identity_resolution_state"] = "AMBIGUOUS"
         self.assert_invalid(packet, "ambiguous object identity cannot be held-out eligible")
+
+    def test_identity_basis_refs_must_resolve_inside_exact_evidence_packet(self) -> None:
+        packet = _valid_agree_packet()
+        packet["exact_object_binding"]["identity_basis_refs"] = ["MISSING-EVIDENCE"]
+        for record in packet["reviewer_records"]:
+            record["exact_object_binding"]["identity_basis_refs"] = ["MISSING-EVIDENCE"]
+        self.assert_invalid(packet, "identity_basis_refs must resolve")
+
+    def test_identity_basis_must_explicitly_support_existence_identity(self) -> None:
+        packet = _valid_agree_packet()
+        packet["evidence_packet"]["evidence_refs"][0]["claim_scopes"] = ["CAPABILITY_DESCRIPTION"]
+        self.assert_invalid(packet, "must explicitly support EXISTENCE_IDENTITY")
 
     def test_pilot_material_cannot_be_held_out_eligible(self) -> None:
         packet = _valid_agree_packet()
