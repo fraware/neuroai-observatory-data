@@ -21,582 +21,151 @@
     "rights_containment"
   ],
   "properties": {
-    "schema_version": {
-      "const": "0.1"
-    },
-    "benchmark_id": {
-      "const": "PRE_G2_PRODUCT_V0_1"
-    },
-    "benchmark_kind": {
-      "const": "PRODUCT"
-    },
-    "item_id": {
-      "type": "string",
-      "minLength": 1
-    },
-    "candidate_role": {
-      "enum": [
-        "PILOT_DEVELOPMENT",
-        "HELD_OUT_CANDIDATE"
-      ]
-    },
-    "exact_object_binding": {
-      "$ref": "#/$defs/exact_object_binding"
-    },
+    "schema_version": {"const": "0.1"},
+    "benchmark_id": {"const": "PRE_G2_PRODUCT_V0_1"},
+    "benchmark_kind": {"const": "PRODUCT"},
+    "item_id": {"type": "string", "minLength": 1},
+    "candidate_role": {"enum": ["PILOT_DEVELOPMENT", "HELD_OUT_CANDIDATE"]},
+    "exact_object_binding": {"$ref": "#/$defs/exact_object_binding"},
     "evidence_packet": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "evidence_refs",
-        "observation_cutoff",
-        "identity_evidence_present",
-        "stronger_claims_require_independent_support"
-      ],
+      "required": ["evidence_refs", "observation_cutoff", "identity_evidence_present", "stronger_claims_require_independent_support"],
       "properties": {
-        "evidence_refs": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/evidence_ref"
-          }
-        },
-        "observation_cutoff": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "identity_evidence_present": {
-          "type": "boolean"
-        },
-        "stronger_claims_require_independent_support": {
-          "const": true
-        }
+        "evidence_refs": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/evidence_ref"}},
+        "observation_cutoff": {"type": "string", "format": "date-time"},
+        "identity_evidence_present": {"type": "boolean"},
+        "stronger_claims_require_independent_support": {"const": true}
       }
     },
     "construct_strata": {
       "type": "array",
       "minItems": 1,
       "uniqueItems": true,
-      "items": {
-        "enum": [
-          "AMBIGUOUS_BIOSIGNAL",
-          "CLINICAL",
-          "CONSUMER",
-          "ENTERTAINMENT_XR",
-          "MULTI_JURISDICTION",
-          "MULTILINGUAL",
-          "NONTRADITIONAL_FORM_FACTOR",
-          "RESEARCH",
-          "WELLNESS",
-          "WORKPLACE"
-        ]
-      }
+      "items": {"enum": ["AMBIGUOUS_BIOSIGNAL", "CLINICAL", "CONSUMER", "ENTERTAINMENT_XR", "MULTI_JURISDICTION", "MULTILINGUAL", "NONTRADITIONAL_FORM_FACTOR", "RESEARCH", "WELLNESS", "WORKPLACE"]}
     },
-    "review_design": {
-      "$ref": "#/$defs/review_design"
-    },
-    "reviewer_records": {
-      "type": "array",
-      "minItems": 1,
-      "maxItems": 3,
-      "uniqueItems": true,
-      "items": {
-        "$ref": "#/$defs/reviewer_record"
-      }
-    },
-    "adjudication": {
-      "$ref": "#/$defs/adjudication"
-    },
+    "review_design": {"$ref": "#/$defs/review_design"},
+    "reviewer_records": {"type": "array", "minItems": 1, "maxItems": 3, "uniqueItems": true, "items": {"$ref": "#/$defs/reviewer_record"}},
+    "adjudication": {"$ref": "#/$defs/adjudication"},
     "exposure_control": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "exposure_status",
-        "exposure_register_ref",
-        "held_out_eligible"
-      ],
+      "required": ["exposure_status", "exposure_register_ref", "held_out_eligible"],
       "properties": {
-        "exposure_status": {
-          "enum": [
-            "NO_KNOWN_EXPOSURE_REVIEWED",
-            "EXPOSED_EXCLUDE_FROM_HELD_OUT",
-            "UNKNOWN_REVIEW_REQUIRED"
-          ]
-        },
-        "exposure_register_ref": {
-          "type": "string",
-          "minLength": 1
-        },
-        "held_out_eligible": {
-          "type": "boolean"
-        }
+        "exposure_status": {"enum": ["NO_KNOWN_EXPOSURE_REVIEWED", "EXPOSED_EXCLUDE_FROM_HELD_OUT", "UNKNOWN_REVIEW_REQUIRED"]},
+        "exposure_register_ref": {"type": "string", "minLength": 1},
+        "held_out_eligible": {"type": "boolean"}
       }
     },
     "rights_containment": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "custody",
-        "redistribution_authority_claimed"
-      ],
+      "required": ["custody", "redistribution_authority_claimed"],
       "properties": {
-        "custody": {
-          "const": "S3_CONTROLLED"
-        },
-        "redistribution_authority_claimed": {
-          "const": false
-        }
+        "custody": {"const": "S3_CONTROLLED"},
+        "redistribution_authority_claimed": {"const": false}
       }
     }
   },
   "allOf": [
     {
-      "if": {
-        "properties": {
-          "candidate_role": {
-            "const": "PILOT_DEVELOPMENT"
-          }
-        },
-        "required": [
-          "candidate_role"
-        ]
-      },
-      "then": {
-        "properties": {
-          "exposure_control": {
-            "properties": {
-              "held_out_eligible": {
-                "const": false
-              }
-            }
-          }
-        }
-      }
+      "if": {"properties": {"candidate_role": {"const": "PILOT_DEVELOPMENT"}}, "required": ["candidate_role"]},
+      "then": {"properties": {"exposure_control": {"properties": {"held_out_eligible": {"const": false}}}}}
     },
     {
-      "if": {
-        "properties": {
-          "candidate_role": {
-            "const": "HELD_OUT_CANDIDATE"
-          }
-        },
-        "required": [
-          "candidate_role"
-        ]
-      },
-      "then": {
-        "properties": {
-          "review_design": {
-            "properties": {
-              "double_label_required": {
-                "const": true
-              }
-            }
-          }
-        }
-      }
+      "if": {"properties": {"candidate_role": {"const": "HELD_OUT_CANDIDATE"}}, "required": ["candidate_role"]},
+      "then": {"properties": {"review_design": {"properties": {"double_label_required": {"const": true}}}}}
     },
     {
-      "if": {
-        "properties": {
-          "exposure_control": {
-            "properties": {
-              "exposure_status": {
-                "enum": [
-                  "EXPOSED_EXCLUDE_FROM_HELD_OUT",
-                  "UNKNOWN_REVIEW_REQUIRED"
-                ]
-              }
-            },
-            "required": [
-              "exposure_status"
-            ]
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "exposure_control": {
-            "properties": {
-              "held_out_eligible": {
-                "const": false
-              }
-            }
-          }
-        }
-      }
+      "if": {"properties": {"exposure_control": {"properties": {"exposure_status": {"enum": ["EXPOSED_EXCLUDE_FROM_HELD_OUT", "UNKNOWN_REVIEW_REQUIRED"]}}, "required": ["exposure_status"]}}},
+      "then": {"properties": {"exposure_control": {"properties": {"held_out_eligible": {"const": false}}}}}
     },
     {
-      "if": {
-        "properties": {
-          "exact_object_binding": {
-            "properties": {
-              "identity_resolution_state": {
-                "const": "AMBIGUOUS"
-              }
-            },
-            "required": [
-              "identity_resolution_state"
-            ]
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "exposure_control": {
-            "properties": {
-              "held_out_eligible": {
-                "const": false
-              }
-            }
-          }
-        }
-      }
+      "if": {"properties": {"exact_object_binding": {"properties": {"identity_resolution_state": {"const": "AMBIGUOUS"}}, "required": ["identity_resolution_state"]}}},
+      "then": {"properties": {"exposure_control": {"properties": {"held_out_eligible": {"const": false}}}}}
     }
   ],
   "$defs": {
-    "sha256": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{64}$"
-    },
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "exact_object_binding": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "object_name",
-        "organization_identity",
-        "object_type",
-        "version_status",
-        "version_or_release",
-        "observed_at",
-        "jurisdiction_context",
-        "language_context",
-        "identity_resolution_state",
-        "identity_basis_refs"
-      ],
+      "required": ["object_name", "organization_identity", "object_type", "version_status", "version_or_release", "observed_at", "jurisdiction_context", "language_context", "identity_resolution_state", "identity_basis_refs"],
       "properties": {
-        "object_name": {
-          "type": "string",
-          "minLength": 1
-        },
-        "organization_identity": {
-          "type": "string",
-          "minLength": 1
-        },
-        "object_type": {
-          "enum": [
-            "PRODUCT",
-            "SYSTEM",
-            "SERVICE",
-            "PLATFORM",
-            "SOFTWARE",
-            "DEVICE",
-            "NONTRADITIONAL_FORM_FACTOR"
-          ]
-        },
-        "version_status": {
-          "enum": [
-            "KNOWN",
-            "NOT_STATED"
-          ]
-        },
-        "version_or_release": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "observed_at": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "jurisdiction_context": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "language_context": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "minLength": 2
-          }
-        },
-        "identity_resolution_state": {
-          "enum": [
-            "RESOLVED",
-            "AMBIGUOUS"
-          ]
-        },
-        "identity_basis_refs": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
-        }
+        "object_name": {"type": "string", "minLength": 1},
+        "organization_identity": {"type": "string", "minLength": 1},
+        "object_type": {"enum": ["PRODUCT", "SYSTEM", "SERVICE", "PLATFORM", "SOFTWARE", "DEVICE", "NONTRADITIONAL_FORM_FACTOR"]},
+        "version_status": {"enum": ["KNOWN", "NOT_STATED"]},
+        "version_or_release": {"type": ["string", "null"]},
+        "observed_at": {"type": "string", "format": "date-time"},
+        "jurisdiction_context": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "language_context": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 2}},
+        "identity_resolution_state": {"enum": ["RESOLVED", "AMBIGUOUS"]},
+        "identity_basis_refs": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
       },
       "allOf": [
-        {
-          "if": {
-            "properties": {
-              "version_status": {
-                "const": "KNOWN"
-              }
-            }
-          },
-          "then": {
-            "properties": {
-              "version_or_release": {
-                "type": "string",
-                "minLength": 1
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "version_status": {
-                "const": "NOT_STATED"
-              }
-            }
-          },
-          "then": {
-            "properties": {
-              "version_or_release": {
-                "type": "null"
-              }
-            }
-          }
-        }
+        {"if": {"properties": {"version_status": {"const": "KNOWN"}}}, "then": {"properties": {"version_or_release": {"type": "string", "minLength": 1}}}},
+        {"if": {"properties": {"version_status": {"const": "NOT_STATED"}}}, "then": {"properties": {"version_or_release": {"type": "null"}}}}
       ]
     },
     "evidence_ref": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "evidence_id",
-        "source_class",
-        "observed_at",
-        "content_sha256",
-        "claim_scopes",
-        "source_identity_ref"
-      ],
+      "required": ["evidence_id", "source_class", "observed_at", "content_sha256", "claim_scopes", "source_identity_ref"],
       "properties": {
-        "evidence_id": {
-          "type": "string",
-          "minLength": 1
-        },
-        "source_class": {
-          "enum": [
-            "FIRST_PARTY",
-            "REGULATOR",
-            "SCIENTIFIC_PUBLICATION",
-            "INSTITUTIONAL_PARTNER",
-            "DISTRIBUTOR_OR_RETAILER",
-            "MEDIA_OR_ANALYST",
-            "OTHER"
-          ]
-        },
-        "observed_at": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "content_sha256": {
-          "$ref": "#/$defs/sha256"
-        },
-        "claim_scopes": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "items": {
-            "enum": [
-              "EXISTENCE_IDENTITY",
-              "CAPABILITY_DESCRIPTION",
-              "CONTEXT_OF_USE",
-              "REGULATORY_STATUS",
-              "EFFECTIVENESS",
-              "DEPLOYMENT",
-              "COMMERCIALIZATION"
-            ]
-          }
-        },
-        "source_identity_ref": {
-          "type": "string",
-          "minLength": 1
-        }
+        "evidence_id": {"type": "string", "minLength": 1},
+        "source_class": {"enum": ["FIRST_PARTY", "REGULATOR", "SCIENTIFIC_PUBLICATION", "INSTITUTIONAL_PARTNER", "DISTRIBUTOR_OR_RETAILER", "MEDIA_OR_ANALYST", "OTHER"]},
+        "observed_at": {"type": "string", "format": "date-time"},
+        "content_sha256": {"$ref": "#/$defs/sha256"},
+        "claim_scopes": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["EXISTENCE_IDENTITY", "CAPABILITY_DESCRIPTION", "CONTEXT_OF_USE", "REGULATORY_STATUS", "EFFECTIVENESS", "DEPLOYMENT", "COMMERCIALIZATION"]}},
+        "source_identity_ref": {"type": "string", "minLength": 1}
       }
     },
     "review_design": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "double_label_required",
-        "model_output_blinding_state",
-        "blinding_exception_rationale"
-      ],
+      "required": ["double_label_required", "model_output_blinding_state", "blinding_exception_rationale"],
       "properties": {
-        "double_label_required": {
-          "type": "boolean"
-        },
-        "model_output_blinding_state": {
-          "enum": [
-            "BLINDED_TO_MODEL_OUTPUT",
-            "BLINDING_NOT_PRACTICABLE_RECORDED"
-          ]
-        },
-        "blinding_exception_rationale": {
-          "type": [
-            "string",
-            "null"
-          ]
-        }
+        "double_label_required": {"type": "boolean"},
+        "model_output_blinding_state": {"enum": ["BLINDED_TO_MODEL_OUTPUT", "BLINDING_NOT_PRACTICABLE_RECORDED"]},
+        "blinding_exception_rationale": {"type": ["string", "null"]}
       },
       "allOf": [
         {
-          "if": {
-            "properties": {
-              "model_output_blinding_state": {
-                "const": "BLINDED_TO_MODEL_OUTPUT"
-              }
-            }
-          },
-          "then": {
-            "properties": {
-              "blinding_exception_rationale": {
-                "type": "null"
-              }
-            }
-          },
-          "else": {
-            "properties": {
-              "blinding_exception_rationale": {
-                "type": "string",
-                "minLength": 1
-              }
-            }
-          }
+          "if": {"properties": {"model_output_blinding_state": {"const": "BLINDED_TO_MODEL_OUTPUT"}}},
+          "then": {"properties": {"blinding_exception_rationale": {"type": "null"}}},
+          "else": {"properties": {"blinding_exception_rationale": {"type": "string", "minLength": 1}}}
         }
       ]
     },
     "reviewer_record": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "reviewer_ref",
-        "decision",
-        "rationale",
-        "adjudicator_role",
-        "timestamp",
-        "exact_object_binding"
-      ],
+      "required": ["reviewer_ref", "evidence_packet_sha256", "decision", "rationale", "adjudicator_role", "timestamp", "exact_object_binding"],
       "properties": {
-        "reviewer_ref": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Controlled pseudonymous reference into the S3 reviewer registry; not a public reviewer identity."
-        },
-        "decision": {
-          "enum": [
-            "ABSTAIN",
-            "BORDERLINE",
-            "EXCLUDE",
-            "INCLUDE"
-          ]
-        },
-        "rationale": {
-          "type": "string",
-          "minLength": 1
-        },
-        "adjudicator_role": {
-          "enum": [
-            "PRIMARY_REVIEWER",
-            "SECONDARY_REVIEWER",
-            "FINAL_ADJUDICATOR"
-          ]
-        },
-        "timestamp": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "exact_object_binding": {
-          "$ref": "#/$defs/exact_object_binding"
-        }
+        "reviewer_ref": {"type": "string", "minLength": 1, "description": "Controlled pseudonymous reference into the S3 reviewer registry; not a public reviewer identity."},
+        "evidence_packet_sha256": {"$ref": "#/$defs/sha256", "description": "SHA-256 of canonical JSON for the exact evidence_packet viewed for this decision."},
+        "decision": {"enum": ["ABSTAIN", "BORDERLINE", "EXCLUDE", "INCLUDE"]},
+        "rationale": {"type": "string", "minLength": 1},
+        "adjudicator_role": {"enum": ["PRIMARY_REVIEWER", "SECONDARY_REVIEWER", "FINAL_ADJUDICATOR"]},
+        "timestamp": {"type": "string", "format": "date-time"},
+        "exact_object_binding": {"$ref": "#/$defs/exact_object_binding"}
       }
     },
     "adjudication": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "state",
-        "final_disposition",
-        "final_rationale"
-      ],
+      "required": ["state", "final_disposition", "final_rationale"],
       "properties": {
-        "state": {
-          "enum": [
-            "ADJUDICATED",
-            "AGREE",
-            "DISAGREE_UNADJUDICATED"
-          ]
-        },
-        "final_disposition": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "final_rationale": {
-          "type": [
-            "string",
-            "null"
-          ]
-        }
+        "state": {"enum": ["ADJUDICATED", "AGREE", "DISAGREE_UNADJUDICATED"]},
+        "final_disposition": {"type": ["string", "null"]},
+        "final_rationale": {"type": ["string", "null"]}
       },
       "allOf": [
         {
-          "if": {
-            "properties": {
-              "state": {
-                "const": "DISAGREE_UNADJUDICATED"
-              }
-            }
-          },
-          "then": {
-            "properties": {
-              "final_disposition": {
-                "type": "null"
-              },
-              "final_rationale": {
-                "type": "null"
-              }
-            }
-          },
-          "else": {
-            "properties": {
-              "final_disposition": {
-                "enum": [
-                  "ABSTAIN",
-                  "BORDERLINE",
-                  "EXCLUDE",
-                  "INCLUDE"
-                ]
-              },
-              "final_rationale": {
-                "type": "string",
-                "minLength": 1
-              }
-            }
-          }
+          "if": {"properties": {"state": {"const": "DISAGREE_UNADJUDICATED"}}},
+          "then": {"properties": {"final_disposition": {"type": "null"}, "final_rationale": {"type": "null"}}},
+          "else": {"properties": {"final_disposition": {"enum": ["ABSTAIN", "BORDERLINE", "EXCLUDE", "INCLUDE"]}, "final_rationale": {"type": "string", "minLength": 1}}}
         }
       ]
     }
