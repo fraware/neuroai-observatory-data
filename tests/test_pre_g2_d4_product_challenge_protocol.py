@@ -8,6 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL_PATH = ROOT / "curation" / "PRE_G2_D4_PRODUCT_CHALLENGE_PROTOCOL_2026-09-08_v0.1.json"
 SCHEMA_PATH = ROOT / "schemas" / "pre-g2-d4-product-review-packet-v0.1.schema.json"
+VALIDATOR_PATH = ROOT / "scripts" / "validate_pre_g2_d4_review_packet_semantics.py"
 
 D1_SHA = "7d270002094dcdecb703d5b70ef2268e4869005c284ffd98db3eb936641a78cb"
 D2_SHA = "bd9451a5084485ef7a36251b0bc39d486fe0c2174636171a29ec03d7010cbf1d"
@@ -16,7 +17,8 @@ G1_SHA = "ed6489fe1085b5aec1b594970dd1c574b57bd6bbd25a659643e9bd1b7b72d8ef"
 WORKBENCH_SHA = "854cc9d1c8e24a9e8ae8b21d871329bc3c24c118"
 WORKBENCH_PRODUCT_CONTRACT_BLOB = "2d01f0bbc72eaa4f4e9aac55ad01bbe3185cfe1d"
 WORKBENCH_EVIDENCE_ROLE_BLOB = "a79c92dd3c3419ef97b38c62fea8b850b6f02c23"
-REVIEW_SCHEMA_BLOB = "8075680992fa54d0584fc724236f488a099c4ecd"
+REVIEW_SCHEMA_BLOB = "385762f930fa4e0251a7f5c2c2045c01ca8a0b1f"
+SEMANTIC_VALIDATOR_BLOB = "7384b35cbce89faa5abc0e3af127b1674e2ddded"
 
 REQUIRED_STRATA = {
     "AMBIGUOUS_BIOSIGNAL",
@@ -145,6 +147,7 @@ class PreG2D4ProductChallengeProtocolTests(unittest.TestCase):
         self.assertTrue(identity["unknown_version_must_remain_explicit"])
         self.assertTrue(identity["ambiguous_identity_must_remain_explicit"])
         self.assertTrue(identity["model_inference_may_not_repair_identity_ambiguity"])
+        self.assertFalse(identity["ambiguous_object_identity_held_out_eligible"])
         self.assertTrue(identity["company_level_statement_may_not_silently_bind_different_product_or_release"])
         self.assertTrue(identity["observation_time_required"])
 
@@ -166,13 +169,19 @@ class PreG2D4ProductChallengeProtocolTests(unittest.TestCase):
         self.assertTrue(review["human_reference_standard_required"])
         self.assertFalse(review["model_consensus_may_be_reference_standard"])
         self.assertTrue(review["reviewers_blinded_to_model_predictions_scores_and_machine_labels_where_practical"])
+        self.assertTrue(review["blinding_exception_requires_recorded_rationale"])
         self.assertEqual(
             set(review["required_review_field_names"]),
             {"decision", "rationale", "adjudicator_role", "timestamp", "exact_object_binding"},
         )
         self.assertTrue(review["double_label_subset_required"])
+        self.assertTrue(review["double_label_all_final_held_out_candidates"])
         self.assertIsNone(review["double_label_subset_count"])
+        self.assertIn("EVERY FINAL HELD-OUT D4 CANDIDATE", review["double_label_count_policy"])
         self.assertTrue(review["adjudication_protocol_required"])
+        self.assertTrue(review["agreement_requires_matching_primary_secondary_dispositions"])
+        self.assertTrue(review["adjudication_requires_real_primary_secondary_disagreement_and_final_adjudicator"])
+        self.assertTrue(review["unresolved_disagreement_cannot_be_held_out_eligible"])
         self.assertTrue(review["reviewer_training_and_calibration_record_required"])
 
         leakage = self.protocol["leakage_and_contamination_protocol"]
@@ -185,17 +194,26 @@ class PreG2D4ProductChallengeProtocolTests(unittest.TestCase):
             self.assertEqual(leakage[field], "S3_CONTROLLED")
         self.assertFalse(leakage["model_prompt_threshold_development_access_to_final_membership_or_labels"])
         self.assertTrue(leakage["exposure_register_required"])
+        self.assertTrue(leakage["held_out_eligibility_requires_no_known_exposure_reviewed"])
+        self.assertFalse(leakage["unknown_exposure_status_held_out_eligible"])
         self.assertFalse(leakage["public_git_may_contain_real_held_out_membership_or_labels"])
 
-    def test_review_packet_schema_is_exactly_blob_bound_and_preserves_controlled_domains(self) -> None:
+    def test_review_packet_schema_and_semantic_validator_are_exactly_blob_bound(self) -> None:
         binding = self.protocol["review_packet_schema"]
-        self.assertEqual(binding["git_blob_sha_at_protocol_creation"], REVIEW_SCHEMA_BLOB)
+        self.assertEqual(binding["git_blob_sha"], REVIEW_SCHEMA_BLOB)
         self.assertEqual(git_blob_sha1(SCHEMA_PATH), REVIEW_SCHEMA_BLOB)
         self.assertEqual(binding["custody_of_real_packets"], "S3_CONTROLLED")
         self.assertFalse(binding["public_repository_may_contain_real_packets"])
 
+        semantic = self.protocol["semantic_validator"]
+        self.assertEqual(semantic["git_blob_sha"], SEMANTIC_VALIDATOR_BLOB)
+        self.assertEqual(git_blob_sha1(VALIDATOR_PATH), SEMANTIC_VALIDATOR_BLOB)
+        self.assertTrue(semantic["structural_json_schema_validation_is_separate"])
+        self.assertFalse(semantic["validator_establishes_source_truth_or_reviewer_competence"])
+
         self.assertEqual(self.schema["$id"], "urn:neuroai:observatory:d4-product-review-packet:0.1")
         self.assertFalse(self.schema["additionalProperties"])
+        self.assertIn("review_design", self.schema["required"])
         strata_enum = set(self.schema["properties"]["construct_strata"]["items"]["enum"])
         self.assertEqual(strata_enum, REQUIRED_STRATA)
         reviewer_decisions = set(self.schema["$defs"]["reviewer_record"]["properties"]["decision"]["enum"])
