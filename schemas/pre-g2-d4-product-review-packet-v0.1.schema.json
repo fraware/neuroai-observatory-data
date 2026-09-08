@@ -14,6 +14,7 @@
     "exact_object_binding",
     "evidence_packet",
     "construct_strata",
+    "review_design",
     "reviewer_records",
     "adjudication",
     "exposure_control",
@@ -55,6 +56,7 @@
         "evidence_refs": {
           "type": "array",
           "minItems": 1,
+          "uniqueItems": true,
           "items": {
             "$ref": "#/$defs/evidence_ref"
           }
@@ -90,9 +92,14 @@
         ]
       }
     },
+    "review_design": {
+      "$ref": "#/$defs/review_design"
+    },
     "reviewer_records": {
       "type": "array",
       "minItems": 1,
+      "maxItems": 3,
+      "uniqueItems": true,
       "items": {
         "$ref": "#/$defs/reviewer_record"
       }
@@ -169,14 +176,67 @@
     {
       "if": {
         "properties": {
+          "candidate_role": {
+            "const": "HELD_OUT_CANDIDATE"
+          }
+        },
+        "required": [
+          "candidate_role"
+        ]
+      },
+      "then": {
+        "properties": {
+          "review_design": {
+            "properties": {
+              "double_label_required": {
+                "const": true
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
           "exposure_control": {
             "properties": {
               "exposure_status": {
-                "const": "EXPOSED_EXCLUDE_FROM_HELD_OUT"
+                "enum": [
+                  "EXPOSED_EXCLUDE_FROM_HELD_OUT",
+                  "UNKNOWN_REVIEW_REQUIRED"
+                ]
               }
             },
             "required": [
               "exposure_status"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "exposure_control": {
+            "properties": {
+              "held_out_eligible": {
+                "const": false
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "exact_object_binding": {
+            "properties": {
+              "identity_resolution_state": {
+                "const": "AMBIGUOUS"
+              }
+            },
+            "required": [
+              "identity_resolution_state"
             ]
           }
         }
@@ -375,6 +435,58 @@
           "minLength": 1
         }
       }
+    },
+    "review_design": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "double_label_required",
+        "model_output_blinding_state",
+        "blinding_exception_rationale"
+      ],
+      "properties": {
+        "double_label_required": {
+          "type": "boolean"
+        },
+        "model_output_blinding_state": {
+          "enum": [
+            "BLINDED_TO_MODEL_OUTPUT",
+            "BLINDING_NOT_PRACTICABLE_RECORDED"
+          ]
+        },
+        "blinding_exception_rationale": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "model_output_blinding_state": {
+                "const": "BLINDED_TO_MODEL_OUTPUT"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "blinding_exception_rationale": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "blinding_exception_rationale": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
     },
     "reviewer_record": {
       "type": "object",
