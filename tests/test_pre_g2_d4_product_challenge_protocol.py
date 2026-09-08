@@ -136,7 +136,8 @@ class PreG2D4ProductChallengeProtocolTests(unittest.TestCase):
         self.assertTrue(selection["deliberate_enrichment_must_be_recorded"])
         self.assertIsNone(selection["minimum_final_sample_size"])
         self.assertIsNone(selection["minimum_per_stratum_counts"])
-        self.assertIn("MUST BE PREDECLARED", selection["count_policy"])
+        self.assertIn("COUNTS_MUST_BE_PREDECLARED", selection["count_policy"])
+        self.assertIn("DOES NOT INVENT", selection["count_policy"])
         self.assertEqual(selection["real_candidate_membership_location"], "S3_CONTROLLED")
 
     def test_identity_and_evidence_scope_are_fail_closed(self) -> None:
