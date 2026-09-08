@@ -1,0 +1,486 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:neuroai:observatory:d4-product-review-packet:0.1",
+  "title": "PRE-G2 D4 controlled product review packet",
+  "description": "Schema for S3-controlled D4 product review packets. This public schema contains no real benchmark membership, labels, source evidence, reviewer identities, or adjudication outcomes.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "benchmark_id",
+    "benchmark_kind",
+    "item_id",
+    "candidate_role",
+    "exact_object_binding",
+    "evidence_packet",
+    "construct_strata",
+    "reviewer_records",
+    "adjudication",
+    "exposure_control",
+    "rights_containment"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1"
+    },
+    "benchmark_id": {
+      "const": "PRE_G2_PRODUCT_V0_1"
+    },
+    "benchmark_kind": {
+      "const": "PRODUCT"
+    },
+    "item_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "candidate_role": {
+      "enum": [
+        "PILOT_DEVELOPMENT",
+        "HELD_OUT_CANDIDATE"
+      ]
+    },
+    "exact_object_binding": {
+      "$ref": "#/$defs/exact_object_binding"
+    },
+    "evidence_packet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_refs",
+        "observation_cutoff",
+        "identity_evidence_present",
+        "stronger_claims_require_independent_support"
+      ],
+      "properties": {
+        "evidence_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/evidence_ref"
+          }
+        },
+        "observation_cutoff": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "identity_evidence_present": {
+          "type": "boolean"
+        },
+        "stronger_claims_require_independent_support": {
+          "const": true
+        }
+      }
+    },
+    "construct_strata": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "AMBIGUOUS_BIOSIGNAL",
+          "CLINICAL",
+          "CONSUMER",
+          "ENTERTAINMENT_XR",
+          "MULTI_JURISDICTION",
+          "MULTILINGUAL",
+          "NONTRADITIONAL_FORM_FACTOR",
+          "RESEARCH",
+          "WELLNESS",
+          "WORKPLACE"
+        ]
+      }
+    },
+    "reviewer_records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/reviewer_record"
+      }
+    },
+    "adjudication": {
+      "$ref": "#/$defs/adjudication"
+    },
+    "exposure_control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "exposure_status",
+        "exposure_register_ref",
+        "held_out_eligible"
+      ],
+      "properties": {
+        "exposure_status": {
+          "enum": [
+            "NO_KNOWN_EXPOSURE_REVIEWED",
+            "EXPOSED_EXCLUDE_FROM_HELD_OUT",
+            "UNKNOWN_REVIEW_REQUIRED"
+          ]
+        },
+        "exposure_register_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "held_out_eligible": {
+          "type": "boolean"
+        }
+      }
+    },
+    "rights_containment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "custody",
+        "redistribution_authority_claimed"
+      ],
+      "properties": {
+        "custody": {
+          "const": "S3_CONTROLLED"
+        },
+        "redistribution_authority_claimed": {
+          "const": false
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "candidate_role": {
+            "const": "PILOT_DEVELOPMENT"
+          }
+        },
+        "required": [
+          "candidate_role"
+        ]
+      },
+      "then": {
+        "properties": {
+          "exposure_control": {
+            "properties": {
+              "held_out_eligible": {
+                "const": false
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "exposure_control": {
+            "properties": {
+              "exposure_status": {
+                "const": "EXPOSED_EXCLUDE_FROM_HELD_OUT"
+              }
+            },
+            "required": [
+              "exposure_status"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "exposure_control": {
+            "properties": {
+              "held_out_eligible": {
+                "const": false
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "exact_object_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "object_name",
+        "organization_identity",
+        "object_type",
+        "version_status",
+        "version_or_release",
+        "observed_at",
+        "jurisdiction_context",
+        "language_context",
+        "identity_resolution_state",
+        "identity_basis_refs"
+      ],
+      "properties": {
+        "object_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "organization_identity": {
+          "type": "string",
+          "minLength": 1
+        },
+        "object_type": {
+          "enum": [
+            "PRODUCT",
+            "SYSTEM",
+            "SERVICE",
+            "PLATFORM",
+            "SOFTWARE",
+            "DEVICE",
+            "NONTRADITIONAL_FORM_FACTOR"
+          ]
+        },
+        "version_status": {
+          "enum": [
+            "KNOWN",
+            "NOT_STATED"
+          ]
+        },
+        "version_or_release": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "jurisdiction_context": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "language_context": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 2
+          }
+        },
+        "identity_resolution_state": {
+          "enum": [
+            "RESOLVED",
+            "AMBIGUOUS"
+          ]
+        },
+        "identity_basis_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "version_status": {
+                "const": "KNOWN"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "version_or_release": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "version_status": {
+                "const": "NOT_STATED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "version_or_release": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "evidence_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_id",
+        "source_class",
+        "observed_at",
+        "content_sha256",
+        "claim_scopes",
+        "source_identity_ref"
+      ],
+      "properties": {
+        "evidence_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_class": {
+          "enum": [
+            "FIRST_PARTY",
+            "REGULATOR",
+            "SCIENTIFIC_PUBLICATION",
+            "INSTITUTIONAL_PARTNER",
+            "DISTRIBUTOR_OR_RETAILER",
+            "MEDIA_OR_ANALYST",
+            "OTHER"
+          ]
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "content_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "claim_scopes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "EXISTENCE_IDENTITY",
+              "CAPABILITY_DESCRIPTION",
+              "CONTEXT_OF_USE",
+              "REGULATORY_STATUS",
+              "EFFECTIVENESS",
+              "DEPLOYMENT",
+              "COMMERCIALIZATION"
+            ]
+          }
+        },
+        "source_identity_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "reviewer_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision",
+        "rationale",
+        "adjudicator_role",
+        "timestamp",
+        "exact_object_binding"
+      ],
+      "properties": {
+        "decision": {
+          "enum": [
+            "ABSTAIN",
+            "BORDERLINE",
+            "EXCLUDE",
+            "INCLUDE"
+          ]
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        },
+        "adjudicator_role": {
+          "enum": [
+            "PRIMARY_REVIEWER",
+            "SECONDARY_REVIEWER",
+            "FINAL_ADJUDICATOR"
+          ]
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "exact_object_binding": {
+          "$ref": "#/$defs/exact_object_binding"
+        }
+      }
+    },
+    "adjudication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "final_disposition",
+        "final_rationale"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "ADJUDICATED",
+            "AGREE",
+            "DISAGREE_UNADJUDICATED"
+          ]
+        },
+        "final_disposition": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "final_rationale": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "DISAGREE_UNADJUDICATED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "final_disposition": {
+                "type": "null"
+              },
+              "final_rationale": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "final_disposition": {
+                "enum": [
+                  "ABSTAIN",
+                  "BORDERLINE",
+                  "EXCLUDE",
+                  "INCLUDE"
+                ]
+              },
+              "final_rationale": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
