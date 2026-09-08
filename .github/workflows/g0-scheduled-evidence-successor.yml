@@ -1,0 +1,55 @@
+name: Scheduled G0 evidence execution successor
+
+on:
+  pull_request:
+    paths:
+      - "curation/PROGRAMME_EXECUTION_STATE_2026-09-08_SCHEDULED_G0_EVIDENCE_SUCCESSOR.json"
+      - "curation/CURRENT_EXECUTION_CONTROL.json"
+      - "tests/test_g0_scheduled_evidence_successor.py"
+      - "tests/test_g1_approved_successor.py"
+      - "tests/test_d1_d2_execution_successor.py"
+      - ".github/workflows/g0-scheduled-evidence-successor.yml"
+  push:
+    branches: [main]
+    paths:
+      - "curation/PROGRAMME_EXECUTION_STATE_2026-09-08_SCHEDULED_G0_EVIDENCE_SUCCESSOR.json"
+      - "curation/CURRENT_EXECUTION_CONTROL.json"
+      - "tests/test_g0_scheduled_evidence_successor.py"
+      - "tests/test_g1_approved_successor.py"
+      - "tests/test_d1_d2_execution_successor.py"
+      - ".github/workflows/g0-scheduled-evidence-successor.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-scheduled-g0-evidence-successor:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Parse exact successor and pointer JSON
+        run: |
+          python -m json.tool curation/PROGRAMME_EXECUTION_STATE_2026-09-08_SCHEDULED_G0_EVIDENCE_SUCCESSOR.json >/dev/null
+          python -m json.tool curation/CURRENT_EXECUTION_CONTROL.json >/dev/null
+      - name: Revalidate exact D1 and D2 technical contracts
+        run: |
+          python scripts/validate_landscape_research_contract.py
+          python scripts/validate_capability_context_taxonomy.py
+      - name: Validate scheduled evidence and append-only pointer succession
+        run: |
+          python -m unittest tests.test_g0_scheduled_evidence_successor -v
+          python -m unittest tests.test_g1_approved_successor -v
+          python -m unittest tests.test_d1_d2_execution_successor -v
+      - name: Revalidate independent PATSTAT fail-closed rights boundary
+        run: python -m unittest tests.test_patstat_rights_boundary -v
+      - name: Authority boundary
+        run: |
+          echo "This workflow validates append-only recording of exact scheduled operational evidence only."
+          echo "The bound scheduled run executed but did not satisfy the G0 operational-live criterion."
+          echo "It cannot pass G0 or G2, resolve SRC-14-021 or PATSTAT rights, establish scientific truth,"
+          echo "authorize canonical S2 mutation/publication, authorize Phase 4, or alter v4.2 assessments."
