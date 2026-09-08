@@ -30,14 +30,14 @@
   },
   "review_packet_schema": {
     "path": "schemas/pre-g2-d4-product-review-packet-v0.1.schema.json",
-    "git_blob_sha": "385762f930fa4e0251a7f5c2c2045c01ca8a0b1f",
+    "git_blob_sha": "857361a829aa72bdc41ec36aad5f84e3b67816f8",
     "custody_of_real_packets": "S3_CONTROLLED",
     "public_repository_may_contain_real_packets": false
   },
   "semantic_validator": {
     "path": "scripts/validate_pre_g2_d4_review_packet_semantics.py",
-    "git_blob_sha": "7384b35cbce89faa5abc0e3af127b1674e2ddded",
-    "purpose": "Fail-closed cross-field validation for exact-object identity, evidence cutoff, reviewer-role uniqueness, independent double labeling, adjudication consistency, exposure eligibility, and S3 rights containment.",
+    "git_blob_sha": "24d817df54209fec09018c3fe7584fbed40b5c9d",
+    "purpose": "Fail-closed cross-field validation for exact-object identity, same-packet identity evidence, evidence cutoff, reviewer-role and reviewer-reference uniqueness, independent double labeling, adjudication consistency and chronology, exposure eligibility, and S3 rights containment.",
     "structural_json_schema_validation_is_separate": true,
     "validator_establishes_source_truth_or_reviewer_competence": false
   },
@@ -151,6 +151,8 @@
     "ambiguous_identity_must_remain_explicit": true,
     "model_inference_may_not_repair_identity_ambiguity": true,
     "ambiguous_object_identity_held_out_eligible": false,
+    "identity_basis_refs_must_resolve_to_same_packet_evidence": true,
+    "identity_basis_requires_existence_identity_claim_scope": true,
     "company_level_statement_may_not_silently_bind_different_product_or_release": true,
     "observation_time_required": true
   },
@@ -185,6 +187,9 @@
       "rationale",
       "timestamp"
     ],
+    "reviewer_ref_extension_required": true,
+    "reviewer_refs_are_pseudonymous_s3_registry_references": true,
+    "reviewer_refs_must_be_distinct_across_roles": true,
     "double_label_subset_required": true,
     "double_label_all_final_held_out_candidates": true,
     "double_label_subset_count": null,
@@ -192,6 +197,7 @@
     "adjudication_protocol_required": true,
     "agreement_requires_matching_primary_secondary_dispositions": true,
     "adjudication_requires_real_primary_secondary_disagreement_and_final_adjudicator": true,
+    "final_adjudicator_timestamp_must_follow_primary_secondary_review": true,
     "unresolved_disagreement_cannot_be_held_out_eligible": true,
     "reviewer_training_and_calibration_record_required": true,
     "pilot_disagreements_separate_from_final_held_out_labels": true,
