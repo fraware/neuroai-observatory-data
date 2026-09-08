@@ -5,14 +5,18 @@ on:
     paths:
       - "curation/PRE_G2_D4_PRODUCT_CHALLENGE_PROTOCOL_2026-09-08_v0.1.json"
       - "schemas/pre-g2-d4-product-review-packet-v0.1.schema.json"
+      - "scripts/validate_pre_g2_d4_review_packet_semantics.py"
       - "tests/test_pre_g2_d4_product_challenge_protocol.py"
+      - "tests/test_pre_g2_d4_review_packet_semantics.py"
       - ".github/workflows/pre-g2-d4-product-challenge-protocol.yml"
   push:
     branches: [main]
     paths:
       - "curation/PRE_G2_D4_PRODUCT_CHALLENGE_PROTOCOL_2026-09-08_v0.1.json"
       - "schemas/pre-g2-d4-product-review-packet-v0.1.schema.json"
+      - "scripts/validate_pre_g2_d4_review_packet_semantics.py"
       - "tests/test_pre_g2_d4_product_challenge_protocol.py"
+      - "tests/test_pre_g2_d4_review_packet_semantics.py"
       - ".github/workflows/pre-g2-d4-product-challenge-protocol.yml"
   workflow_dispatch:
 
@@ -28,12 +32,15 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: "3.12"
-      - name: Validate D4 construction and evidence-role boundary
-        run: python -m unittest tests.test_pre_g2_d4_product_challenge_protocol -v
+      - name: Validate D4 construction, evidence role, and cross-field semantics
+        run: |
+          python -m unittest tests.test_pre_g2_d4_product_challenge_protocol -v
+          python -m unittest tests.test_pre_g2_d4_review_packet_semantics -v
       - name: Authority boundary
         run: |
           echo "This workflow validates the public PRE-G2 D4 protocol, exact contract bindings, schema identity,"
-          echo "challenge-set non-generalizability, D1 boundary semantics, S3 custody, and fail-closed authority only."
-          echo "It cannot create or validate real held-out membership, human labels, reviewer competence, benchmark adequacy,"
-          echo "product effectiveness or regulatory status, population prevalence/recall, rights clearance, G0/G2/G5 passage,"
-          echo "canonical S2 authority, publication authority, Phase 4 authorization, or assessment effects."
+          echo "challenge-set non-generalizability, D1 boundary semantics, cross-field review/adjudication semantics,"
+          echo "S3 custody, exposure eligibility, and fail-closed authority only."
+          echo "It cannot create or validate real held-out membership, human labels, source truth, reviewer competence,"
+          echo "benchmark adequacy, product effectiveness or regulatory status, population prevalence/recall, rights clearance,"
+          echo "G0/G2/G5 passage, canonical S2 authority, publication authority, Phase 4 authorization, or assessment effects."
