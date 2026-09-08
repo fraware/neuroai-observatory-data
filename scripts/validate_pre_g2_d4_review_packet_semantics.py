@@ -8,7 +8,6 @@ from typing import Any
 
 D1_DISPOSITIONS = frozenset({"ABSTAIN", "BORDERLINE", "EXCLUDE", "INCLUDE"})
 REVIEWER_ROLES = frozenset({"PRIMARY_REVIEWER", "SECONDARY_REVIEWER", "FINAL_ADJUDICATOR"})
-RESOLVED_STATES = frozenset({"AGREE", "ADJUDICATED"})
 UNRESOLVED_STATE = "DISAGREE_UNADJUDICATED"
 
 
@@ -72,6 +71,15 @@ def validate_packet_semantics(packet: dict[str, Any]) -> None:
     if identity_state not in {"RESOLVED", "AMBIGUOUS"}:
         raise D4ReviewPacketSemanticError("identity_resolution_state is unsupported")
     object_observed_at = _parse_aware_timestamp(object_binding.get("observed_at"), "exact_object_binding.observed_at")
+    raw_identity_basis_refs = _require_list(object_binding.get("identity_basis_refs"), "exact_object_binding.identity_basis_refs")
+    if not raw_identity_basis_refs:
+        raise D4ReviewPacketSemanticError("identity_basis_refs must not be empty")
+    identity_basis_refs = [
+        _require_string(value, f"exact_object_binding.identity_basis_refs[{index}]")
+        for index, value in enumerate(raw_identity_basis_refs)
+    ]
+    if len(identity_basis_refs) != len(set(identity_basis_refs)):
+        raise D4ReviewPacketSemanticError("identity_basis_refs must be unique")
 
     evidence_packet = _require_mapping(packet.get("evidence_packet"), "evidence_packet")
     cutoff = _parse_aware_timestamp(evidence_packet.get("observation_cutoff"), "evidence_packet.observation_cutoff")
@@ -85,18 +93,31 @@ def validate_packet_semantics(packet: dict[str, Any]) -> None:
     evidence_refs = _require_list(evidence_packet.get("evidence_refs"), "evidence_packet.evidence_refs")
     if not evidence_refs:
         raise D4ReviewPacketSemanticError("evidence_packet.evidence_refs must not be empty")
-    evidence_ids: set[str] = set()
+    evidence_by_id: dict[str, dict[str, Any]] = {}
     for index, raw_ref in enumerate(evidence_refs):
         ref = _require_mapping(raw_ref, f"evidence_packet.evidence_refs[{index}]")
         evidence_id = _require_string(ref.get("evidence_id"), f"evidence_packet.evidence_refs[{index}].evidence_id")
-        if evidence_id in evidence_ids:
+        if evidence_id in evidence_by_id:
             raise D4ReviewPacketSemanticError("evidence_id values must be unique within a packet")
-        evidence_ids.add(evidence_id)
+        evidence_by_id[evidence_id] = ref
         observed = _parse_aware_timestamp(
             ref.get("observed_at"), f"evidence_packet.evidence_refs[{index}].observed_at"
         )
         if observed > cutoff:
             raise D4ReviewPacketSemanticError("evidence observation cannot be later than the packet cutoff")
+
+    missing_identity_refs = [ref for ref in identity_basis_refs if ref not in evidence_by_id]
+    if missing_identity_refs:
+        raise D4ReviewPacketSemanticError(
+            f"identity_basis_refs must resolve to evidence in the same packet: {sorted(missing_identity_refs)}"
+        )
+    if not any(
+        "EXISTENCE_IDENTITY" in _require_list(evidence_by_id[ref].get("claim_scopes"), f"evidence {ref}.claim_scopes")
+        for ref in identity_basis_refs
+    ):
+        raise D4ReviewPacketSemanticError(
+            "at least one identity_basis_ref must explicitly support EXISTENCE_IDENTITY"
+        )
 
     review_design = _require_mapping(packet.get("review_design"), "review_design")
     double_label_required = review_design.get("double_label_required")
@@ -118,8 +139,14 @@ def validate_packet_semantics(packet: dict[str, Any]) -> None:
     if not reviewer_records:
         raise D4ReviewPacketSemanticError("at least one reviewer record is required")
     by_role: dict[str, dict[str, Any]] = {}
+    reviewer_refs: set[str] = set()
+    reviewed_at_by_role: dict[str, datetime] = {}
     for index, raw_record in enumerate(reviewer_records):
         record = _require_mapping(raw_record, f"reviewer_records[{index}]")
+        reviewer_ref = _require_string(record.get("reviewer_ref"), f"reviewer_records[{index}].reviewer_ref")
+        if reviewer_ref in reviewer_refs:
+            raise D4ReviewPacketSemanticError("reviewer_ref values must be distinct across reviewer roles")
+        reviewer_refs.add(reviewer_ref)
         role = record.get("adjudicator_role")
         if role not in REVIEWER_ROLES:
             raise D4ReviewPacketSemanticError("reviewer adjudicator_role is unsupported")
@@ -138,6 +165,7 @@ def validate_packet_semantics(packet: dict[str, Any]) -> None:
         reviewed_at = _parse_aware_timestamp(record.get("timestamp"), f"reviewer_records[{index}].timestamp")
         if reviewed_at < cutoff:
             raise D4ReviewPacketSemanticError("review timestamp cannot precede the frozen evidence cutoff")
+        reviewed_at_by_role[role] = reviewed_at
 
     primary = by_role.get("PRIMARY_REVIEWER")
     secondary = by_role.get("SECONDARY_REVIEWER")
@@ -175,6 +203,11 @@ def validate_packet_semantics(packet: dict[str, Any]) -> None:
             raise D4ReviewPacketSemanticError("adjudicated final_disposition is outside the D1 domain")
         if final_adjudicator.get("decision") != final_disposition:
             raise D4ReviewPacketSemanticError("FINAL_ADJUDICATOR decision must equal final_disposition")
+        adjudicator_time = reviewed_at_by_role["FINAL_ADJUDICATOR"]
+        if adjudicator_time < max(
+            reviewed_at_by_role["PRIMARY_REVIEWER"], reviewed_at_by_role["SECONDARY_REVIEWER"]
+        ):
+            raise D4ReviewPacketSemanticError("FINAL_ADJUDICATOR timestamp cannot precede primary/secondary review")
         _require_string(final_rationale, "adjudication.final_rationale")
     elif state == UNRESOLVED_STATE:
         if secondary is None:
