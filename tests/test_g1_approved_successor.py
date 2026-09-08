@@ -8,6 +8,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 SUCCESSOR = ROOT / "curation" / "PROGRAMME_EXECUTION_STATE_2026-09-05_G1_APPROVED_SUCCESSOR.json"
+CURRENT_SUCCESSOR = ROOT / "curation" / "PROGRAMME_EXECUTION_STATE_2026-09-08_SCHEDULED_G0_EVIDENCE_SUCCESSOR.json"
 PREDECESSOR = ROOT / "curation" / "PROGRAMME_EXECUTION_STATE_2026-09-05_D1_D2_CONSTRUCT_VALIDITY_SUCCESSOR.json"
 POINTER = ROOT / "curation" / "CURRENT_EXECUTION_CONTROL.json"
 DISPOSITION = ROOT / "curation" / "HUMAN_G1_DISPOSITION_2026-09-05_D1_D2_v0.1.json"
@@ -19,6 +20,8 @@ PATSTAT_RIGHTS = ROOT / "curation" / "PATSTAT_PUBLIC_EXTRACT_RIGHTS_REVIEW_2026-
 D1_VALIDATOR = ROOT / "scripts" / "validate_landscape_research_contract.py"
 
 EXPECTED_SUCCESSOR_PATH = "curation/PROGRAMME_EXECUTION_STATE_2026-09-05_G1_APPROVED_SUCCESSOR.json"
+EXPECTED_CURRENT_SUCCESSOR_PATH = "curation/PROGRAMME_EXECUTION_STATE_2026-09-08_SCHEDULED_G0_EVIDENCE_SUCCESSOR.json"
+EXPECTED_SUCCESSOR_BLOB = "1f902dbe8776495d2e4bd2e90ba88a09ffaa913d"
 EXPECTED_DISPOSITION_PATH = "curation/HUMAN_G1_DISPOSITION_2026-09-05_D1_D2_v0.1.json"
 EXPECTED_PREDECESSOR_BLOB = "bcce43681e0419836cc22249322dcfb712d1e729"
 EXPECTED_REVIEW_BINDING_BLOB = "28e69f53f9b475a2ee474e9fa886d9660db7f7b0"
@@ -53,6 +56,7 @@ class G1ApprovedSuccessorTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.successor = load_json(SUCCESSOR)
+        cls.current_successor = load_json(CURRENT_SUCCESSOR)
         cls.predecessor = load_json(PREDECESSOR)
         cls.pointer = load_json(POINTER)
         cls.disposition = load_json(DISPOSITION)
@@ -62,11 +66,15 @@ class G1ApprovedSuccessorTests(unittest.TestCase):
         cls.patstat = load_json(PATSTAT_RIGHTS)
         cls.d1_validator = load_d1_validator()
 
-    def test_pointer_targets_exact_g1_successor_and_disposition(self) -> None:
+    def test_pointer_advances_append_only_beyond_exact_g1_successor(self) -> None:
         self.assertEqual(self.pointer["status"], "CURRENT_CONTROL_POINTER_NONCANONICAL")
-        self.assertEqual(self.pointer["as_of"], "2026-09-05")
-        self.assertEqual(self.pointer["current_programme_execution_state"], EXPECTED_SUCCESSOR_PATH)
+        self.assertEqual(self.pointer["as_of"], "2026-09-08")
+        self.assertEqual(self.pointer["current_programme_execution_state"], EXPECTED_CURRENT_SUCCESSOR_PATH)
         self.assertEqual(self.pointer["current_g1_disposition"], EXPECTED_DISPOSITION_PATH)
+        self.assertEqual(self.current_successor["predecessor"]["path"], EXPECTED_SUCCESSOR_PATH)
+        self.assertEqual(self.current_successor["predecessor"]["git_blob_sha"], EXPECTED_SUCCESSOR_BLOB)
+        self.assertEqual(git_blob_sha(SUCCESSOR), EXPECTED_SUCCESSOR_BLOB)
+        self.assertFalse(self.current_successor["predecessor"]["predecessor_is_modified_by_this_successor"])
 
     def test_predecessor_and_historical_records_are_byte_immutable(self) -> None:
         self.assertEqual(git_blob_sha(PREDECESSOR), EXPECTED_PREDECESSOR_BLOB)
@@ -117,7 +125,7 @@ class G1ApprovedSuccessorTests(unittest.TestCase):
         self.assertTrue(self.disposition["authority"]["g1_approved"])
         self.assertTrue(self.successor["gate_state"]["g1"]["g1_approved"])
 
-    def test_only_g1_transitions(self) -> None:
+    def test_only_g1_transitions_in_historical_successor(self) -> None:
         gates = self.successor["gate_state"]
         self.assertEqual(gates["g0"]["decision"], "BLOCKED_NOT_PASSED")
         self.assertFalse(gates["g0"]["passed"])

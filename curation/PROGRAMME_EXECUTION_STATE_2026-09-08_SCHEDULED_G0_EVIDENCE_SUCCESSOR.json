@@ -1,0 +1,182 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-08_SCHEDULED_G0_EVIDENCE_SUCCESSOR",
+  "status": "SCHEDULED_G0_EVIDENCE_SUCCESSOR_STATE_NONCANONICAL",
+  "as_of": "2026-09-08",
+  "purpose": "Append-only execution-control successor recording exact September 7 normal-schedule operational due-cycle evidence while preserving the existing G1 approval and all independent G0, G2, rights, publication, assessment, and Phase 3/4 boundaries.",
+  "governing_issue": 225,
+  "predecessor": {
+    "path": "curation/PROGRAMME_EXECUTION_STATE_2026-09-05_G1_APPROVED_SUCCESSOR.json",
+    "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-05_G1_APPROVED_SUCCESSOR",
+    "git_blob_sha": "1f902dbe8776495d2e4bd2e90ba88a09ffaa913d",
+    "predecessor_is_modified_by_this_successor": false,
+    "predecessor_immutability": "HISTORICAL_IMMUTABLE_EXECUTION_STATE_NOT_EDITED_IN_PLACE"
+  },
+  "frozen_baseline": {
+    "path": "curation/PROGRAMME_EXECUTION_BASELINE_2026-09-01.json",
+    "baseline_id": "PROGRAMME_EXECUTION_BASELINE_2026-09-01",
+    "modified_by_this_successor": false
+  },
+  "g1_disposition_inheritance": {
+    "decision": "APPROVE",
+    "g1_approved": true,
+    "human_disposition_recorded": true,
+    "record_path": "curation/HUMAN_G1_DISPOSITION_2026-09-05_D1_D2_v0.1.json",
+    "record_id": "HUMAN_G1_DISPOSITION_2026-09-05_D1_D2_v0.1",
+    "d1_canonical_json_sha256": "7d270002094dcdecb703d5b70ef2268e4869005c284ffd98db3eb936641a78cb",
+    "d2_canonical_json_sha256": "bd9451a5084485ef7a36251b0bc39d486fe0c2174636171a29ec03d7010cbf1d",
+    "re_adjudicated_by_this_successor": false,
+    "source": "PREDECESSOR_INHERITANCE_ONLY"
+  },
+  "scheduled_g0_evidence": {
+    "evidence_class": "NORMAL_SCHEDULED_OPERATIONAL_DUE_CYCLE",
+    "workflow_run": {
+      "repository": "fraware/neuroai-observatory-data",
+      "workflow_path": ".github/workflows/operational-live-cycle.yml",
+      "event": "schedule",
+      "run_id": 34110413357,
+      "run_number": 55,
+      "head_sha": "e208a5361fbf57610a10d760266458a75b7505c1",
+      "run_started_at": "2026-09-07T10:14:32Z",
+      "updated_at": "2026-09-07T10:15:15Z",
+      "conclusion": "failure"
+    },
+    "runtime_pairing": {
+      "observatory_head_sha": "e208a5361fbf57610a10d760266458a75b7505c1",
+      "workbench_checked_out_sha": "685f1597a2a63f2e2217f65f115a67ac3e35cc55",
+      "workbench_pin_updated_by_this_successor": false,
+      "note": "This is the exact Workbench runtime pin used by scheduled run 34110413357; it is not a claim about the later Workbench main head."
+    },
+    "jobs": {
+      "validation": {
+        "job_id": 101705081004,
+        "conclusion": "success"
+      },
+      "live": {
+        "job_id": 101705112713,
+        "conclusion": "failure",
+        "due_cycle_and_exact_resume_step_conclusion": "success",
+        "post_transition_invariants_step_conclusion": "failure",
+        "sanitized_artifact_retention_step_conclusion": "success"
+      }
+    },
+    "retained_sanitized_artifact": {
+      "artifact_id": 10014107494,
+      "name": "operational-live-proof-34110413357-1",
+      "size_in_bytes": 3509,
+      "github_artifact_digest_sha256": "8086464058b2eedc7b24b147c35034587cf2f12c7fef59d77f01ab711cbe602b",
+      "expired_at_observation": false,
+      "contains_protected_capture_bytes": false,
+      "note": "Digest is the GitHub-recorded workflow-artifact digest; this successor does not reinterpret it as a digest of any protected capture payload."
+    },
+    "reported_execution_facts": {
+      "execution_status": "COMPLETE_WITH_SOURCE_FAILURES",
+      "transport_security": "DNS_PINNED_VALIDATED_ADDRESS_SET",
+      "source_accountability_coverage": 1.0,
+      "target_execution_coverage": 1.0,
+      "resume_additional_transport_sends": 0,
+      "engineering_state": "READY",
+      "active_source_availability_state": "HEALTHY",
+      "active_evidence_payload_availability_state": "HEALTHY",
+      "top_level_health": "DEGRADED",
+      "source_resolution_state": "DEGRADED",
+      "failed_source_ids": [
+        "SRC-0064",
+        "SRC-14-019",
+        "SRC-14-021"
+      ],
+      "route_resolved_failed_source_ids": [
+        "SRC-0064",
+        "SRC-14-019"
+      ],
+      "unresolved_failed_source_ids": [
+        "SRC-14-021"
+      ],
+      "src_14_021_failure": {
+        "failure_class": "NETWORK_ERROR",
+        "retryable": true,
+        "attempt_count": 3
+      }
+    },
+    "criterion_interpretation": {
+      "normal_schedule_event_observed": true,
+      "scheduled_operational_live_criterion_satisfied": false,
+      "state": "EXECUTED_NOT_SATISFIED",
+      "blocking_source_id": "SRC-14-021",
+      "blocking_issue": 224,
+      "reason": "The normal scheduled run executed the governed live due-cycle and exact-resume path, but its post-transition invariant failed because SRC-14-021 remained unresolved."
+    },
+    "evidence_limit": "This record proves the listed GitHub workflow/run/job/artifact identities and records the run's sanitized reported operational facts. It does not establish source truth, scientific completeness, G0 passage, legal rights, publication authority, or assessment conclusions."
+  },
+  "gate_state": {
+    "g0": {
+      "decision": "BLOCKED_NOT_PASSED",
+      "passed": false,
+      "scheduled_event_observed": true,
+      "scheduled_operational_live_criterion_satisfied": false,
+      "evidence_updated_by_this_successor": true,
+      "blocking_issue": 224,
+      "blocking_source_id": "SRC-14-021"
+    },
+    "g1": {
+      "decision": "APPROVE",
+      "approved": true,
+      "g1_approved": true,
+      "human_disposition_recorded": true,
+      "source": "PREDECESSOR_INHERITANCE_ONLY",
+      "re_adjudicated_by_this_successor": false
+    },
+    "g2": {
+      "g2_passed": false,
+      "source": "PREDECESSOR_INHERITANCE_ONLY",
+      "re_adjudicated_by_this_successor": false
+    }
+  },
+  "pre_g2_execution_boundary": {
+    "construction_against_approved_d1_d2_may_proceed": true,
+    "technical_scaffold_presence_does_not_pass_g2": true,
+    "actual_heldout_membership_labels_and_adjudication_remain_s3_controlled": true,
+    "g2_freeze_or_passage_recorded_by_this_successor": false,
+    "publication_or_s2_authority_created_by_this_successor": false
+  },
+  "independent_unresolved_matters": {
+    "src_14_021_successor_domain_verification": {
+      "issue": 224,
+      "state": "OPEN",
+      "verified_successor_route_registered": false,
+      "sonafrica_net_promoted_by_this_successor": false,
+      "note": "The reachable sonafrica.net site remains candidate evidence only; independent identity-bearing provenance is required before any route registration."
+    },
+    "patstat_public_extract_rights_review": {
+      "issue": 210,
+      "state": "OPEN",
+      "rights_clearance": false,
+      "disposed_by_this_successor": false
+    },
+    "online_first_phase3_external_proof": {
+      "workbench_issue": 287,
+      "state": "INCOMPLETE_EXTERNAL_PROOF_NOT_EXECUTED",
+      "phase4_default_transition_authorized": false,
+      "disposed_by_this_successor": false
+    }
+  },
+  "historical_record_boundary": {
+    "predecessor_execution_state_modified": false,
+    "g1_disposition_modified_by_this_successor": false,
+    "d1_artifact_modified_by_this_successor": false,
+    "d2_artifact_modified_by_this_successor": false,
+    "frozen_baseline_modified_by_this_successor": false
+  },
+  "authority": {
+    "g0_passed": false,
+    "g1_approved": true,
+    "g2_passed": false,
+    "canonical_s2_authority": false,
+    "publication_authority": false,
+    "mutation_authority": false,
+    "assessment_effect": "NONE",
+    "patstat_rights_clearance": false,
+    "phase4_online_first_default_authorized": false
+  },
+  "boundary": "This successor records exact normal-schedule operational evidence from run 34110413357 and advances execution bookkeeping only. The scheduled criterion was executed but not satisfied because SRC-14-021 remained unresolved. G0 remains BLOCKED_NOT_PASSED; G1 remains approved only for the exact prior D1/D2 identities; G2 remains unpassed; PATSTAT rights remain unresolved; Workbench Phase 3 external proof remains incomplete; Phase 4 remains unauthorized; and no canonical S2 mutation, publication, legal, scientific-truth, completeness, or v4.2 assessment authority is created."
+}
