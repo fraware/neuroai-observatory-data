@@ -492,6 +492,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
+        "reviewer_ref",
         "decision",
         "rationale",
         "adjudicator_role",
@@ -499,6 +500,11 @@
         "exact_object_binding"
       ],
       "properties": {
+        "reviewer_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Controlled pseudonymous reference into the S3 reviewer registry; not a public reviewer identity."
+        },
         "decision": {
           "enum": [
             "ABSTAIN",
