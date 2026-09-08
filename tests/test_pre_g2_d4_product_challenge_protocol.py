@@ -17,8 +17,8 @@ G1_SHA = "ed6489fe1085b5aec1b594970dd1c574b57bd6bbd25a659643e9bd1b7b72d8ef"
 WORKBENCH_SHA = "854cc9d1c8e24a9e8ae8b21d871329bc3c24c118"
 WORKBENCH_PRODUCT_CONTRACT_BLOB = "2d01f0bbc72eaa4f4e9aac55ad01bbe3185cfe1d"
 WORKBENCH_EVIDENCE_ROLE_BLOB = "a79c92dd3c3419ef97b38c62fea8b850b6f02c23"
-REVIEW_SCHEMA_BLOB = "385762f930fa4e0251a7f5c2c2045c01ca8a0b1f"
-SEMANTIC_VALIDATOR_BLOB = "7384b35cbce89faa5abc0e3af127b1674e2ddded"
+REVIEW_SCHEMA_BLOB = "857361a829aa72bdc41ec36aad5f84e3b67816f8"
+SEMANTIC_VALIDATOR_BLOB = "24d817df54209fec09018c3fe7584fbed40b5c9d"
 
 REQUIRED_STRATA = {
     "AMBIGUOUS_BIOSIGNAL",
@@ -148,6 +148,8 @@ class PreG2D4ProductChallengeProtocolTests(unittest.TestCase):
         self.assertTrue(identity["ambiguous_identity_must_remain_explicit"])
         self.assertTrue(identity["model_inference_may_not_repair_identity_ambiguity"])
         self.assertFalse(identity["ambiguous_object_identity_held_out_eligible"])
+        self.assertTrue(identity["identity_basis_refs_must_resolve_to_same_packet_evidence"])
+        self.assertTrue(identity["identity_basis_requires_existence_identity_claim_scope"])
         self.assertTrue(identity["company_level_statement_may_not_silently_bind_different_product_or_release"])
         self.assertTrue(identity["observation_time_required"])
 
@@ -174,6 +176,9 @@ class PreG2D4ProductChallengeProtocolTests(unittest.TestCase):
             set(review["required_review_field_names"]),
             {"decision", "rationale", "adjudicator_role", "timestamp", "exact_object_binding"},
         )
+        self.assertTrue(review["reviewer_ref_extension_required"])
+        self.assertTrue(review["reviewer_refs_are_pseudonymous_s3_registry_references"])
+        self.assertTrue(review["reviewer_refs_must_be_distinct_across_roles"])
         self.assertTrue(review["double_label_subset_required"])
         self.assertTrue(review["double_label_all_final_held_out_candidates"])
         self.assertIsNone(review["double_label_subset_count"])
@@ -181,6 +186,7 @@ class PreG2D4ProductChallengeProtocolTests(unittest.TestCase):
         self.assertTrue(review["adjudication_protocol_required"])
         self.assertTrue(review["agreement_requires_matching_primary_secondary_dispositions"])
         self.assertTrue(review["adjudication_requires_real_primary_secondary_disagreement_and_final_adjudicator"])
+        self.assertTrue(review["final_adjudicator_timestamp_must_follow_primary_secondary_review"])
         self.assertTrue(review["unresolved_disagreement_cannot_be_held_out_eligible"])
         self.assertTrue(review["reviewer_training_and_calibration_record_required"])
 
@@ -216,7 +222,9 @@ class PreG2D4ProductChallengeProtocolTests(unittest.TestCase):
         self.assertIn("review_design", self.schema["required"])
         strata_enum = set(self.schema["properties"]["construct_strata"]["items"]["enum"])
         self.assertEqual(strata_enum, REQUIRED_STRATA)
-        reviewer_decisions = set(self.schema["$defs"]["reviewer_record"]["properties"]["decision"]["enum"])
+        reviewer_def = self.schema["$defs"]["reviewer_record"]
+        self.assertIn("reviewer_ref", reviewer_def["required"])
+        reviewer_decisions = set(reviewer_def["properties"]["decision"]["enum"])
         self.assertEqual(reviewer_decisions, D1_DISPOSITIONS)
         adjudication_states = set(self.schema["$defs"]["adjudication"]["properties"]["state"]["enum"])
         self.assertEqual(adjudication_states, ADJUDICATION_STATES)
