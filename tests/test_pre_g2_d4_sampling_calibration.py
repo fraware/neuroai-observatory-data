@@ -60,6 +60,7 @@ def _pilot_report() -> dict[str, object]:
         "blinding_exception_with_rationale_count": 2,
         "pilot_items_held_out_eligible_count": 0,
         "pilot_membership_commitment": "1" * 64,
+        "pilot_membership_commitment_scheme": COMMITMENT_SCHEME,
         "reviewer_training_record_sha256": "2" * 64,
         "exposure_register_sha256": "3" * 64,
         "pilot_disjointness_proof_sha256": "4" * 64,
@@ -164,6 +165,12 @@ class D4PilotReadinessTests(unittest.TestCase):
         report = _pilot_report()
         report["adjudicated_disagreement_count"] = 8
         with self.assertRaisesRegex(D4PilotReadinessError, "account for all 60"):
+            evaluate_pilot_readiness(report)
+
+    def test_pilot_commitment_scheme_mismatch_is_invalid(self) -> None:
+        report = _pilot_report()
+        report["pilot_membership_commitment_scheme"] = "SHA256"
+        with self.assertRaisesRegex(D4PilotReadinessError, "pilot_membership_commitment_scheme"):
             evaluate_pilot_readiness(report)
 
     def test_authority_escalation_is_rejected(self) -> None:
