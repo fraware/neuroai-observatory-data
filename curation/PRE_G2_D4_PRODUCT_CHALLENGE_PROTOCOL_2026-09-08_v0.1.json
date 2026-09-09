@@ -1,0 +1,297 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "PRE_G2_D4_PRODUCT_CHALLENGE_PROTOCOL_2026-09-08_v0.1",
+  "status": "PRE_G2_PROTOCOL_ONLY_NO_MEMBERSHIP_OR_LABELS",
+  "as_of": "2026-09-08",
+  "governing_issue": 223,
+  "purpose": "Predeclare the D4 product edge-case benchmark construction, evidence-role, human-review, leakage, identity, and freeze requirements before any real held-out membership or human disposition is selected.",
+  "governing_semantics": {
+    "d1_canonical_json_sha256": "7d270002094dcdecb703d5b70ef2268e4869005c284ffd98db3eb936641a78cb",
+    "d2_canonical_json_sha256": "bd9451a5084485ef7a36251b0bc39d486fe0c2174636171a29ec03d7010cbf1d",
+    "g1_disposition_id": "HUMAN_G1_DISPOSITION_2026-09-05_D1_D2_v0.1",
+    "g1_disposition_sha256": "ed6489fe1085b5aec1b594970dd1c574b57bd6bbd25a659643e9bd1b7b72d8ef",
+    "g1_decision": "APPROVE",
+    "g1_scope": "EXACT_D1_D2_IDENTITIES_ONLY"
+  },
+  "workbench_contract_binding": {
+    "repository": "fraware/neuroai-workbench",
+    "commit_sha": "854cc9d1c8e24a9e8ae8b21d871329bc3c24c118",
+    "product_public_contract_path": "src/neuroai_workbench/resources/benchmarks/D4_PRODUCT_PRE_G2.contract.json",
+    "product_public_contract_git_blob_sha": "2d01f0bbc72eaa4f4e9aac55ad01bbe3185cfe1d",
+    "benchmark_id": "PRE_G2_PRODUCT_V0_1",
+    "benchmark_kind": "PRODUCT",
+    "public_contract_schema_version": "0.2",
+    "public_contract_state": "DRAFT_UNFROZEN",
+    "evaluation_evidence_roles_path": "src/neuroai_workbench/evaluation_evidence_roles.py",
+    "evaluation_evidence_roles_git_blob_sha": "a79c92dd3c3419ef97b38c62fea8b850b6f02c23",
+    "evaluation_plan_schema_version": "0.1",
+    "evidence_binding_schema_version": "0.3",
+    "binary_projection_id": "D1_INCLUDE_EXCLUDE_BINARY_V1"
+  },
+  "review_packet_schema": {
+    "path": "schemas/pre-g2-d4-product-review-packet-v0.1.schema.json",
+    "git_blob_sha": "d0511d994bb65c5027b7a341a42a4b5e30ed72e2",
+    "custody_of_real_packets": "S3_CONTROLLED",
+    "public_repository_may_contain_real_packets": false
+  },
+  "semantic_validator": {
+    "path": "scripts/validate_pre_g2_d4_review_packet_semantics.py",
+    "git_blob_sha": "6365d7667744e1a45fa5da71a044158896036903",
+    "purpose": "Fail-closed cross-field validation for exact-object identity, same-packet identity evidence, evidence cutoff, exact reviewer-to-evidence-packet SHA-256 binding, multilingual translation provenance consistency, reviewer-role and reviewer-reference uniqueness, independent double labeling, adjudication disposition/rationale consistency and strict chronology, exposure eligibility, and S3 rights containment.",
+    "structural_json_schema_validation_is_separate": true,
+    "validator_establishes_source_truth_or_reviewer_competence": false
+  },
+  "statistical_evidence_role": {
+    "role": "CHALLENGE_CONSTRUCT_COVERAGE",
+    "sampling_design_type": "NONPROBABILITY_CHALLENGE",
+    "population_generalizable": false,
+    "challenge_enrichment": true,
+    "component_pooling_policy": "NO_CROSS_ROLE_POOLING",
+    "population_frame_id": null,
+    "inclusion_probability_manifest_sha256": null,
+    "estimator_id": null,
+    "uncertainty_method_id": null,
+    "prevalence_reporting_allowed": false,
+    "population_recall_reporting_allowed": false,
+    "market_share_reporting_allowed": false,
+    "global_completeness_reporting_allowed": false,
+    "permitted_metric_families": [
+      "ABSTENTION",
+      "BINARY_CLASSIFICATION",
+      "CALIBRATION",
+      "FOUR_WAY_ROUTING",
+      "SUBGROUP_DIAGNOSTIC"
+    ],
+    "calibration_interpretation": "CHALLENGE_SET_DESCRIPTIVE_ONLY_NO_DEPLOYMENT_OR_POPULATION_CALIBRATION_INFERENCE",
+    "interpretation_boundary": "D4 may diagnose construct coverage and failure modes under deliberate enrichment. Its class balance and raw error rates are not estimators of open-world product prevalence, market share, completeness, population retrieval recall, or deployment/population calibration."
+  },
+  "required_construct_strata": [
+    "AMBIGUOUS_BIOSIGNAL",
+    "CLINICAL",
+    "CONSUMER",
+    "ENTERTAINMENT_XR",
+    "MULTI_JURISDICTION",
+    "MULTILINGUAL",
+    "NONTRADITIONAL_FORM_FACTOR",
+    "RESEARCH",
+    "WELLNESS",
+    "WORKPLACE"
+  ],
+  "construct_coverage_questions": {
+    "AMBIGUOUS_BIOSIGNAL": "Does the evidence distinguish a real neuro/biosignal capability from generic physiological sensing, inference, marketing language, or underspecified signal claims?",
+    "CLINICAL": "Does the item test the D1 boundary in a clinical or medical context without treating regulatory or therapeutic status as implied by product existence?",
+    "CONSUMER": "Does the item test consumer-facing neurotechnology or adjacent consumer products where marketing terminology may exceed supported capability?",
+    "ENTERTAINMENT_XR": "Does the item test entertainment, gaming, XR, immersive, or interaction systems whose neurotechnology status depends on actual sensing, stimulation, inference, or closed-loop capability?",
+    "MULTI_JURISDICTION": "Does the evidence packet bind jurisdiction-specific identity, availability, regulatory, or product-state claims instead of silently globalizing one jurisdiction?",
+    "MULTILINGUAL": "Does the packet preserve source language and translation provenance sufficiently to review the same boundary in non-English evidence?",
+    "NONTRADITIONAL_FORM_FACTOR": "Does the item test neurotechnology expressed through nontraditional devices, ambient systems, wearables, software-mediated systems, or other form factors without relying on category stereotypes?",
+    "RESEARCH": "Does the item test research-only, prototype, laboratory, or scientific-platform systems without promoting research existence into commercial deployment?",
+    "WELLNESS": "Does the item test wellness, cognitive-performance, sleep, meditation, stress, or adjacent claims where clinical and nonclinical interpretations must remain distinct?",
+    "WORKPLACE": "Does the item test workplace, occupational, productivity, safety, or monitoring contexts where capability, deployment, intent, and effectiveness require separate evidence?"
+  },
+  "boundary_semantics": {
+    "allowed_dispositions": [
+      "ABSTAIN",
+      "BORDERLINE",
+      "EXCLUDE",
+      "INCLUDE"
+    ],
+    "required_g2_coverage_dispositions": [
+      "BORDERLINE",
+      "EXCLUDE",
+      "INCLUDE"
+    ],
+    "resolved_adjudication_states": [
+      "ADJUDICATED",
+      "AGREE"
+    ],
+    "unresolved_adjudication_state": "DISAGREE_UNADJUDICATED",
+    "human_abstain_is_resolved_governed_disposition": true,
+    "unresolved_disagreement_must_not_be_coerced": true,
+    "unresolved_disagreement_excluded_from_binary_reference_denominators": true,
+    "rationale_required_for_resolved_gold_rows": true
+  },
+  "candidate_selection_protocol": {
+    "selection_time_boundary": "BEFORE_FINAL_HELD_OUT_MODEL_PROMPT_THRESHOLD_PERFORMANCE",
+    "candidate_membership_chosen_from_final_model_errors": false,
+    "development_pilot_required": true,
+    "development_pilot_is_held_out": false,
+    "pilot_items_permanently_excluded_or_exposure_marked_from_final_held_out": true,
+    "selection_provenance_required": true,
+    "deliberate_enrichment_must_be_recorded": true,
+    "allowed_enrichment_targets": [
+      "AMBIGUOUS_IDENTITY",
+      "BOUNDARY_CASE",
+      "GRAY_NONCLINICAL_CAPABILITY",
+      "MULTILINGUAL_EVIDENCE",
+      "MULTI_JURISDICTION_EVIDENCE",
+      "NONTRADITIONAL_FORM_FACTOR",
+      "SEMANTICALLY_DECEPTIVE_NEGATIVE",
+      "SOURCE_DISAGREEMENT",
+      "VERSION_AMBIGUITY"
+    ],
+    "minimum_final_sample_size": null,
+    "minimum_per_stratum_counts": null,
+    "count_policy": "COUNTS_MUST_BE_PREDECLARED_FROM_CONSTRUCT_COVERAGE_FAILURE_MODE_STRESS_COVERAGE_AND_BENCHMARK_LEVEL_DECISION_SENSITIVITY_BEFORE_FINAL_FREEZE; NO_POPULATION_PRECISION_CLAIM_IS_CREATED; THIS PROTOCOL_DOES_NOT_INVENT_COUNTS",
+    "real_candidate_membership_location": "S3_CONTROLLED"
+  },
+  "exact_object_identity_protocol": {
+    "required_dimensions": [
+      "object_name",
+      "organization_identity",
+      "object_type",
+      "version_status",
+      "version_or_release",
+      "observed_at",
+      "jurisdiction_context",
+      "language_context",
+      "identity_resolution_state",
+      "identity_basis_refs"
+    ],
+    "unknown_version_must_remain_explicit": true,
+    "ambiguous_identity_must_remain_explicit": true,
+    "model_inference_may_not_repair_identity_ambiguity": true,
+    "ambiguous_object_identity_held_out_eligible": false,
+    "identity_basis_refs_must_resolve_to_same_packet_evidence": true,
+    "identity_basis_requires_existence_identity_claim_scope": true,
+    "company_level_statement_may_not_silently_bind_different_product_or_release": true,
+    "observation_time_required": true
+  },
+  "evidence_scope_protocol": {
+    "claim_scopes": [
+      "CAPABILITY_DESCRIPTION",
+      "COMMERCIALIZATION",
+      "CONTEXT_OF_USE",
+      "DEPLOYMENT",
+      "EFFECTIVENESS",
+      "EXISTENCE_IDENTITY",
+      "REGULATORY_STATUS"
+    ],
+    "stronger_claims_require_independent_support": true,
+    "product_existence_does_not_establish_effectiveness": true,
+    "product_existence_does_not_establish_regulatory_authorization": true,
+    "product_existence_does_not_establish_deployment": true,
+    "patent_ownership_does_not_establish_product_identity_or_commercialization": true,
+    "marketing_claim_does_not_establish_effectiveness": true,
+    "jurisdiction_specific_status_must_not_be_globalized": true,
+    "translation_provenance_required_for_translated_evidence": true,
+    "translation_provenance_enforced_by_schema_and_semantic_validator": true
+  },
+  "human_review_protocol": {
+    "human_reference_standard_required": true,
+    "model_consensus_may_be_reference_standard": false,
+    "reviewers_blinded_to_model_predictions_scores_and_machine_labels_where_practical": true,
+    "blinding_exception_requires_recorded_rationale": true,
+    "required_review_field_names": [
+      "adjudicator_role",
+      "decision",
+      "exact_object_binding",
+      "rationale",
+      "timestamp"
+    ],
+    "reviewer_ref_extension_required": true,
+    "reviewer_refs_are_pseudonymous_s3_registry_references": true,
+    "reviewer_refs_must_be_distinct_across_roles": true,
+    "evidence_packet_sha256_extension_required": true,
+    "review_decision_must_bind_exact_evidence_packet": true,
+    "evidence_packet_binding_scheme": "SHA256_UTF8_JSON_SORT_KEYS_COMPACT_ENSURE_ASCII_FALSE_ALLOW_NAN_FALSE",
+    "double_label_subset_required": true,
+    "double_label_all_final_held_out_candidates": true,
+    "double_label_subset_count": null,
+    "double_label_count_policy": "EVERY FINAL HELD-OUT D4 CANDIDATE MUST HAVE PRIMARY AND SECONDARY HUMAN REVIEW; THE EXACT COUNT IS DERIVED FROM THE PREDECLARED FINAL SAMPLE SIZE AND IS NOT INVENTED HERE",
+    "adjudication_protocol_required": true,
+    "agreement_requires_matching_primary_secondary_dispositions": true,
+    "adjudication_requires_real_primary_secondary_disagreement_and_final_adjudicator": true,
+    "final_adjudicator_timestamp_must_follow_primary_secondary_review": true,
+    "final_adjudicator_timestamp_must_be_strictly_later_than_primary_secondary_review": true,
+    "final_adjudicator_rationale_must_equal_final_rationale": true,
+    "unresolved_disagreement_cannot_be_held_out_eligible": true,
+    "reviewer_training_and_calibration_record_required": true,
+    "pilot_disagreements_separate_from_final_held_out_labels": true,
+    "reviewer_identity_and_competence_evidence_location": "S3_CONTROLLED"
+  },
+  "leakage_and_contamination_protocol": {
+    "held_out_membership_location": "S3_CONTROLLED",
+    "held_out_labels_location": "S3_CONTROLLED",
+    "review_records_location": "S3_CONTROLLED",
+    "adjudication_records_location": "S3_CONTROLLED",
+    "source_evidence_packets_location": "S3_CONTROLLED_OR_RIGHTS_APPROVED_CONTROLLED_STORE",
+    "model_prompt_threshold_development_access_to_final_membership_or_labels": false,
+    "exposure_register_required": true,
+    "held_out_eligibility_requires_no_known_exposure_reviewed": true,
+    "unknown_exposure_status_held_out_eligible": false,
+    "known_exposure_handling": "FAIL_CLOSED_EXCLUDE_OR_EXPLICITLY_MARK_UNDER_FROZEN_CONTAMINATION_PROTOCOL",
+    "public_git_allowed_material": [
+      "OPAQUE_COMMITMENTS_AND_DIGESTS",
+      "PUBLIC_PROTOCOL_METADATA",
+      "SCHEMAS",
+      "SYNTHETIC_FIXTURES"
+    ],
+    "public_git_may_contain_real_held_out_membership_or_labels": false
+  },
+  "freeze_requirements": {
+    "future_public_contract_state": "FROZEN_COMMITMENTS_ONLY",
+    "commitment_scheme": "HMAC_SHA256_DOMAIN_CANONICAL_JSON_V1",
+    "required_boundary_count_keys": [
+      "ABSTAIN",
+      "BORDERLINE",
+      "EXCLUDE",
+      "INCLUDE",
+      "UNRESOLVED_ADJUDICATION"
+    ],
+    "required_nonzero_boundary_coverage": [
+      "BORDERLINE",
+      "EXCLUDE",
+      "INCLUDE"
+    ],
+    "boundary_coverage_report_digest_required": true,
+    "strata_coverage_report_digest_required": true,
+    "sampling_protocol_id_and_digest_required": true,
+    "human_review_provenance_digest_required": true,
+    "adjudication_protocol_id_and_digest_required": true,
+    "adjudication_accounting_digest_required": true,
+    "double_label_subset_count_required": true,
+    "rights_containment_review_required": true,
+    "contamination_review_and_exposure_register_required": true,
+    "evaluation_plan_digest_binding_required": true,
+    "evaluation_plan_role": "CHALLENGE_CONSTRUCT_COVERAGE",
+    "cross_role_pooling_permitted": false
+  },
+  "required_outputs_before_human_g2_disposition": [
+    "S3_D4_CANDIDATE_SELECTION_PROTOCOL_INSTANCE",
+    "S3_REVIEWER_TRAINING_AND_CALIBRATION_RECORD",
+    "S3_EXACT_OBJECT_EVIDENCE_PACKETS",
+    "S3_HELD_OUT_MEMBERSHIP_PAYLOAD",
+    "S3_HUMAN_REVIEW_AND_ADJUDICATION_PAYLOADS",
+    "BOUNDARY_DISPOSITION_COVERAGE_REPORT",
+    "PRODUCT_STRATA_COVERAGE_REPORT",
+    "CONTAMINATION_AND_EXPOSURE_REVIEW",
+    "RIGHTS_AND_CONTAINMENT_REVIEW",
+    "PUBLIC_D4_FROZEN_COMMITMENTS_ONLY_CONTRACT",
+    "D4_V0_2_FREEZE_MANIFEST",
+    "D4_EVALUATION_PLAN_AND_V0_3_EVIDENCE_ROLE_BINDING"
+  ],
+  "current_evidence_state": {
+    "real_candidate_membership_selected": false,
+    "real_human_labels_present_in_public_repo": false,
+    "real_d4_frozen": false,
+    "benchmark_adequacy_established": false,
+    "g2_human_disposition_recorded": false
+  },
+  "authority": {
+    "g0_passed": false,
+    "g1_approved": true,
+    "g2_passed": false,
+    "g5_passed": false,
+    "canonical_s2_authority": false,
+    "publication_authority": false,
+    "product_effectiveness_authority": false,
+    "regulatory_status_authority": false,
+    "global_completeness_claim": false,
+    "population_generalization_authority": false,
+    "rights_clearance": false,
+    "phase4_online_first_default_authorized": false,
+    "assessment_effect": "NONE"
+  },
+  "boundary": "This file predeclares D4 construction and review semantics only. It creates no real benchmark membership, labels, sampling weights, population frame, scientific finding, product effectiveness or regulatory conclusion, G0/G2/G5 passage, rights clearance, canonical S2 mutation, publication authority, Phase 4 authorization, or assessment effect."
+}
