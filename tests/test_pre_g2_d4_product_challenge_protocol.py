@@ -17,8 +17,8 @@ G1_SHA = "ed6489fe1085b5aec1b594970dd1c574b57bd6bbd25a659643e9bd1b7b72d8ef"
 WORKBENCH_SHA = "854cc9d1c8e24a9e8ae8b21d871329bc3c24c118"
 WORKBENCH_PRODUCT_CONTRACT_BLOB = "2d01f0bbc72eaa4f4e9aac55ad01bbe3185cfe1d"
 WORKBENCH_EVIDENCE_ROLE_BLOB = "a79c92dd3c3419ef97b38c62fea8b850b6f02c23"
-REVIEW_SCHEMA_BLOB = "857361a829aa72bdc41ec36aad5f84e3b67816f8"
-SEMANTIC_VALIDATOR_BLOB = "24d817df54209fec09018c3fe7584fbed40b5c9d"
+REVIEW_SCHEMA_BLOB = "1c4f52f2c4690c4e0f5d893e0c5cda9f8b081491"
+SEMANTIC_VALIDATOR_BLOB = "d116504af88fa68a2377ef25ecabe6ac0a585246"
 
 REQUIRED_STRATA = {
     "AMBIGUOUS_BIOSIGNAL",
@@ -179,6 +179,8 @@ class PreG2D4ProductChallengeProtocolTests(unittest.TestCase):
         self.assertTrue(review["reviewer_ref_extension_required"])
         self.assertTrue(review["reviewer_refs_are_pseudonymous_s3_registry_references"])
         self.assertTrue(review["reviewer_refs_must_be_distinct_across_roles"])
+        self.assertTrue(review["evidence_packet_sha256_extension_required"])
+        self.assertTrue(review["review_decision_must_bind_exact_evidence_packet"])
         self.assertTrue(review["double_label_subset_required"])
         self.assertTrue(review["double_label_all_final_held_out_candidates"])
         self.assertIsNone(review["double_label_subset_count"])
@@ -224,6 +226,8 @@ class PreG2D4ProductChallengeProtocolTests(unittest.TestCase):
         self.assertEqual(strata_enum, REQUIRED_STRATA)
         reviewer_def = self.schema["$defs"]["reviewer_record"]
         self.assertIn("reviewer_ref", reviewer_def["required"])
+        self.assertIn("evidence_packet_sha256", reviewer_def["required"])
+        self.assertEqual(reviewer_def["properties"]["evidence_packet_sha256"]["$ref"], "#/$defs/sha256")
         reviewer_decisions = set(reviewer_def["properties"]["decision"]["enum"])
         self.assertEqual(reviewer_decisions, D1_DISPOSITIONS)
         adjudication_states = set(self.schema["$defs"]["adjudication"]["properties"]["state"]["enum"])
