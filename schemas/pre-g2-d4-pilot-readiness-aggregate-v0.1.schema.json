@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:neuroai:observatory:d4-pilot-readiness-aggregate:0.1",
+  "title": "PRE-G2 D4 pilot readiness aggregate",
+  "description": "Aggregate-only schema for a completed 60-item D4 reviewer/sourcing pilot round. Contains no item identities, source evidence, reviewer identities, human rationales, or held-out membership.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "benchmark_id",
+    "protocol_id",
+    "pilot_round_id",
+    "state",
+    "total_items",
+    "double_labeled_items",
+    "primary_secondary_exact_agreement_count",
+    "adjudicated_disagreement_count",
+    "unresolved_disagreement_count",
+    "resolved_disposition_counts",
+    "required_stratum_counts",
+    "per_stratum_disagreement_counts",
+    "semantic_validation_failure_count",
+    "reviewer_reference_collision_count",
+    "evidence_binding_failure_count",
+    "blinding_exception_count",
+    "blinding_exception_with_rationale_count",
+    "pilot_items_held_out_eligible_count",
+    "pilot_membership_commitment",
+    "reviewer_training_record_sha256",
+    "exposure_register_sha256",
+    "pilot_disjointness_proof_sha256",
+    "authority"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "benchmark_id": {"const": "PRE_G2_PRODUCT_V0_1"},
+    "protocol_id": {"const": "PRE_G2_D4_SAMPLING_CALIBRATION_PROTOCOL_2026-09-09_v0.1"},
+    "pilot_round_id": {"type": "string", "minLength": 1},
+    "state": {"const": "COMPLETE_ROUND_NO_EXTENSION"},
+    "total_items": {"const": 60},
+    "double_labeled_items": {"const": 60},
+    "primary_secondary_exact_agreement_count": {"type": "integer", "minimum": 0, "maximum": 60},
+    "adjudicated_disagreement_count": {"type": "integer", "minimum": 0, "maximum": 60},
+    "unresolved_disagreement_count": {"type": "integer", "minimum": 0, "maximum": 60},
+    "resolved_disposition_counts": {"$ref": "#/$defs/disposition_counts"},
+    "required_stratum_counts": {"$ref": "#/$defs/stratum_counts"},
+    "per_stratum_disagreement_counts": {"$ref": "#/$defs/stratum_counts"},
+    "semantic_validation_failure_count": {"type": "integer", "minimum": 0},
+    "reviewer_reference_collision_count": {"type": "integer", "minimum": 0},
+    "evidence_binding_failure_count": {"type": "integer", "minimum": 0},
+    "blinding_exception_count": {"type": "integer", "minimum": 0, "maximum": 60},
+    "blinding_exception_with_rationale_count": {"type": "integer", "minimum": 0, "maximum": 60},
+    "pilot_items_held_out_eligible_count": {"type": "integer", "minimum": 0, "maximum": 60},
+    "pilot_membership_commitment": {"$ref": "#/$defs/sha256"},
+    "reviewer_training_record_sha256": {"$ref": "#/$defs/sha256"},
+    "exposure_register_sha256": {"$ref": "#/$defs/sha256"},
+    "pilot_disjointness_proof_sha256": {"$ref": "#/$defs/sha256"},
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reviewer_competence_established", "benchmark_adequacy_established", "g2_passed", "canonical_s2_authority", "publication_authority", "assessment_effect"],
+      "properties": {
+        "reviewer_competence_established": {"const": false},
+        "benchmark_adequacy_established": {"const": false},
+        "g2_passed": {"const": false},
+        "canonical_s2_authority": {"const": false},
+        "publication_authority": {"const": false},
+        "assessment_effect": {"const": "NONE"}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "disposition_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ABSTAIN", "BORDERLINE", "EXCLUDE", "INCLUDE"],
+      "properties": {
+        "ABSTAIN": {"type": "integer", "minimum": 0, "maximum": 60},
+        "BORDERLINE": {"type": "integer", "minimum": 0, "maximum": 60},
+        "EXCLUDE": {"type": "integer", "minimum": 0, "maximum": 60},
+        "INCLUDE": {"type": "integer", "minimum": 0, "maximum": 60}
+      }
+    },
+    "stratum_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["AMBIGUOUS_BIOSIGNAL", "CLINICAL", "CONSUMER", "ENTERTAINMENT_XR", "MULTI_JURISDICTION", "MULTILINGUAL", "NONTRADITIONAL_FORM_FACTOR", "RESEARCH", "WELLNESS", "WORKPLACE"],
+      "properties": {
+        "AMBIGUOUS_BIOSIGNAL": {"type": "integer", "minimum": 0, "maximum": 60},
+        "CLINICAL": {"type": "integer", "minimum": 0, "maximum": 60},
+        "CONSUMER": {"type": "integer", "minimum": 0, "maximum": 60},
+        "ENTERTAINMENT_XR": {"type": "integer", "minimum": 0, "maximum": 60},
+        "MULTI_JURISDICTION": {"type": "integer", "minimum": 0, "maximum": 60},
+        "MULTILINGUAL": {"type": "integer", "minimum": 0, "maximum": 60},
+        "NONTRADITIONAL_FORM_FACTOR": {"type": "integer", "minimum": 0, "maximum": 60},
+        "RESEARCH": {"type": "integer", "minimum": 0, "maximum": 60},
+        "WELLNESS": {"type": "integer", "minimum": 0, "maximum": 60},
+        "WORKPLACE": {"type": "integer", "minimum": 0, "maximum": 60}
+      }
+    }
+  }
+}
