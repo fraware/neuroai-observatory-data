@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import hmac
 import json
 from collections import Counter
 from fractions import Fraction
@@ -17,6 +18,7 @@ NON_ENGLISH_LANGUAGE_MINIMUM = 3
 JURISDICTION_COUNT = 6
 JURISDICTION_MINIMUM = 3
 
+COMMITMENT_SCHEME = "HMAC_SHA256_DOMAIN_CANONICAL_JSON_V1"
 POOL_COMMITMENT_DOMAIN = "PRE_G2_D4_CANDIDATE_POOL_COMMITMENT_V1"
 SELECTION_SEED_DOMAIN = "PRE_G2_D4_SELECTION_SEED_V1"
 TIE_BREAK_DOMAIN = "PRE_G2_D4_SELECTION_TIE_BREAK_V1"
@@ -78,6 +80,13 @@ def _sha256_domain(domain: str, value: Any) -> str:
     return h.hexdigest()
 
 
+def _hmac_sha256_domain(key: bytes, domain: str, value: Any) -> str:
+    if not isinstance(key, bytes) or not key:
+        raise D4SelectionError("candidate-pool commitment key must be non-empty bytes")
+    payload = domain.encode("utf-8") + b"\0" + _canonical_bytes(value)
+    return hmac.new(key, payload, hashlib.sha256).hexdigest()
+
+
 def _require_exact_keys(mapping: dict[str, Any], expected: set[str], field: str) -> None:
     actual = set(mapping)
     if actual != expected:
@@ -97,7 +106,7 @@ def _require_string_list(value: Any, field: str) -> list[str]:
         raise D4SelectionError(f"{field} must be a non-empty array")
     result: list[str] = []
     for index, item in enumerate(value):
-        result.append(_require_nonempty_string(item, f"{field}[{index}]") )
+        result.append(_require_nonempty_string(item, f"{field}[{index}]"))
     if len(result) != len(set(result)):
         raise D4SelectionError(f"{field} must contain unique values")
     return result
@@ -122,16 +131,19 @@ def _normalize_candidate(candidate: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def candidate_pool_commitment(pool: dict[str, Any]) -> str:
-    """Return the order-invariant SHA-256 commitment for the frozen controlled pool."""
+def candidate_pool_commitment(pool: dict[str, Any], key: bytes) -> str:
+    """Return an order-invariant HMAC commitment for the frozen controlled pool."""
 
     candidates = pool.get("candidates")
     if not isinstance(candidates, list):
         raise D4SelectionError("candidates must be an array before commitment can be computed")
-    normalized_candidates = sorted(
-        (_normalize_candidate(candidate) for candidate in candidates),
-        key=lambda candidate: candidate["candidate_id"],
-    )
+    try:
+        normalized_candidates = sorted(
+            (_normalize_candidate(candidate) for candidate in candidates),
+            key=lambda candidate: candidate["candidate_id"],
+        )
+    except (KeyError, TypeError) as exc:
+        raise D4SelectionError("candidate pool is malformed and cannot be committed") from exc
     preimage = {
         "schema_version": pool.get("schema_version"),
         "benchmark_id": pool.get("benchmark_id"),
@@ -140,10 +152,10 @@ def candidate_pool_commitment(pool: dict[str, Any]) -> str:
         "candidate_pool_frozen": pool.get("candidate_pool_frozen"),
         "candidates": normalized_candidates,
     }
-    return _sha256_domain(POOL_COMMITMENT_DOMAIN, preimage)
+    return _hmac_sha256_domain(key, POOL_COMMITMENT_DOMAIN, preimage)
 
 
-def _validate_pool(pool: dict[str, Any]) -> list[dict[str, Any]]:
+def _validate_pool(pool: dict[str, Any], key: bytes) -> list[dict[str, Any]]:
     _require_exact_keys(pool, EXPECTED_POOL_KEYS, "candidate_pool")
     if pool["schema_version"] != "0.1":
         raise D4SelectionError("schema_version must be 0.1")
@@ -155,7 +167,7 @@ def _validate_pool(pool: dict[str, Any]) -> list[dict[str, Any]]:
     if pool["candidate_pool_frozen"] is not True:
         raise D4SelectionError("candidate_pool_frozen must be true before deterministic selection")
     if not isinstance(pool["candidate_pool_commitment"], str) or len(pool["candidate_pool_commitment"]) != 64:
-        raise D4SelectionError("candidate_pool_commitment must be a 64-character lowercase SHA-256 digest")
+        raise D4SelectionError("candidate_pool_commitment must be a 64-character lowercase HMAC-SHA-256 digest")
     if any(ch not in "0123456789abcdef" for ch in pool["candidate_pool_commitment"]):
         raise D4SelectionError("candidate_pool_commitment must be lowercase hexadecimal")
 
@@ -201,10 +213,10 @@ def _validate_pool(pool: dict[str, Any]) -> list[dict[str, Any]]:
             }
         )
 
-    recomputed = candidate_pool_commitment(pool)
-    if recomputed != pool["candidate_pool_commitment"]:
+    recomputed = candidate_pool_commitment(pool, key)
+    if not hmac.compare_digest(recomputed, pool["candidate_pool_commitment"]):
         raise D4SelectionError(
-            "candidate_pool_commitment does not match the exact frozen pre-label candidate pool"
+            "candidate_pool_commitment does not match the exact frozen pre-label candidate pool under the supplied key"
         )
     return candidates
 
@@ -282,18 +294,18 @@ def _count_selected(selected: list[dict[str, Any]]) -> tuple[Counter[str], Count
     return strata, languages, jurisdictions
 
 
-def select_candidates(pool: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
+def select_candidates(pool: dict[str, Any], commitment_key: bytes) -> tuple[dict[str, Any], dict[str, Any]]:
     """Select exactly 240 pre-label candidates deterministically and fail closed.
 
     The selector uses only frozen eligibility/construct/language/jurisdiction metadata.
     It contains no path for human D1 labels, model outputs, scores, prompts,
-    thresholds, or final model errors. The greedy quota satisfier is deterministic
-    and conservative: failure means this selector did not establish a valid 240-item
+    thresholds, or final model errors. The quota satisfier is deterministic and
+    conservative: failure means this algorithm did not establish a valid 240-item
     allocation for the committed pool; it is not a proof that no feasible allocation
     exists.
     """
 
-    candidates = _validate_pool(pool)
+    candidates = _validate_pool(pool, commitment_key)
     quotas, language_targets, jurisdiction_targets = _feature_quotas(candidates)
     language_target_set = set(language_targets)
     jurisdiction_target_set = set(jurisdiction_targets)
@@ -329,7 +341,7 @@ def select_candidates(pool: dict[str, Any]) -> tuple[dict[str, Any], dict[str, A
                     f"remaining committed pool cannot satisfy {feature} under the current deterministic selection state"
                 )
 
-        ranked: list[tuple[Fraction, int, int, dict[str, Any]]] = []
+        ranked: list[tuple[Fraction, int, int, str, dict[str, Any]]] = []
         for candidate in remaining:
             features = candidate_features[candidate["candidate_id"]]
             active = [feature for feature in features if deficits.get(feature, 0) > 0]
@@ -341,19 +353,17 @@ def select_candidates(pool: dict[str, Any]) -> tuple[dict[str, Any], dict[str, A
                     -urgency,
                     -len(active),
                     _tie_break(seed, candidate["candidate_id"]),
+                    candidate["candidate_id"],
                     candidate,
                 )
             )
         if not ranked:
             raise D4SelectionError("no remaining candidate covers an unsatisfied frozen quota")
-        ranked.sort(key=lambda item: (item[0], item[1], item[2], item[3]["candidate_id"]))
-        chosen = ranked[0][3]
+        ranked.sort(key=lambda item: (item[0], item[1], item[2], item[3]))
+        chosen = ranked[0][4]
         selected.append(chosen)
         selected_ids.add(chosen["candidate_id"])
         achieved.update(candidate_features[chosen["candidate_id"]])
-
-    if len(selected) > FINAL_N:
-        raise D4SelectionError("selector exceeded the exact final membership size")
 
     if len(selected) < FINAL_N:
         remaining = [candidate for candidate in candidates if candidate["candidate_id"] not in selected_ids]
@@ -372,13 +382,9 @@ def select_candidates(pool: dict[str, Any]) -> tuple[dict[str, Any], dict[str, A
     for stratum in REQUIRED_STRATA:
         if stratum_counts[stratum] < STRATUM_MINIMUM:
             missing.append(f"STRATUM:{stratum}")
-    if stratum_counts["MULTILINGUAL"] < STRATUM_MINIMUM:
-        missing.append("MULTILINGUAL_TOTAL")
     for language in language_targets:
         if language_counts[language] < NON_ENGLISH_LANGUAGE_MINIMUM:
             missing.append(f"LANG:{language}")
-    if stratum_counts["MULTI_JURISDICTION"] < STRATUM_MINIMUM:
-        missing.append("MULTI_JURISDICTION_TOTAL")
     for jurisdiction in jurisdiction_targets:
         if jurisdiction_counts[jurisdiction] < JURISDICTION_MINIMUM:
             missing.append(f"JURIS:{jurisdiction}")
@@ -396,6 +402,7 @@ def select_candidates(pool: dict[str, Any]) -> tuple[dict[str, Any], dict[str, A
         "protocol_id": PROTOCOL_ID,
         "candidate_pool_id": pool["candidate_pool_id"],
         "candidate_pool_commitment": pool["candidate_pool_commitment"],
+        "candidate_pool_commitment_scheme": COMMITMENT_SCHEME,
         "selection_seed_sha256": seed,
         "selected_membership_sha256": membership_sha256,
         "selected_candidate_ids": sorted_ids,
@@ -416,6 +423,7 @@ def select_candidates(pool: dict[str, Any]) -> tuple[dict[str, Any], dict[str, A
         "benchmark_id": BENCHMARK_ID,
         "protocol_id": PROTOCOL_ID,
         "candidate_pool_commitment": pool["candidate_pool_commitment"],
+        "candidate_pool_commitment_scheme": COMMITMENT_SCHEME,
         "selection_seed_sha256": seed,
         "selected_membership_sha256": membership_sha256,
         "selected_count": FINAL_N,
@@ -425,7 +433,8 @@ def select_candidates(pool: dict[str, Any]) -> tuple[dict[str, Any], dict[str, A
         "jurisdiction_targets": jurisdiction_targets,
         "jurisdiction_counts": {jurisdiction: jurisdiction_counts[jurisdiction] for jurisdiction in jurisdiction_targets},
         "population_generalizable": False,
-        "selection_feasibility_proven": False,
+        "quota_satisfaction_established_for_selected_membership": True,
+        "global_pool_feasibility_solver_used": False,
         "selection_algorithm": "DETERMINISTIC_CONSERVATIVE_GREEDY_V1",
         "authority": controlled_selection["authority"],
     }
@@ -435,6 +444,12 @@ def select_candidates(pool: dict[str, Any]) -> tuple[dict[str, Any], dict[str, A
 def main() -> int:
     parser = argparse.ArgumentParser(description="Deterministically select the PRE-G2 D4 240-item held-out challenge set")
     parser.add_argument("candidate_pool", type=Path)
+    parser.add_argument(
+        "--commitment-key-file",
+        type=Path,
+        required=True,
+        help="S3-controlled HMAC key file used only to verify the frozen candidate-pool commitment.",
+    )
     parser.add_argument(
         "--controlled-output",
         type=Path,
@@ -446,7 +461,10 @@ def main() -> int:
         pool = json.loads(args.candidate_pool.read_text(encoding="utf-8"))
         if not isinstance(pool, dict):
             raise D4SelectionError("candidate-pool root must be an object")
-        controlled, aggregate = select_candidates(pool)
+        commitment_key = args.commitment_key_file.read_bytes()
+        if not commitment_key:
+            raise D4SelectionError("commitment key file must not be empty")
+        controlled, aggregate = select_candidates(pool, commitment_key)
         if args.controlled_output is not None:
             args.controlled_output.write_text(
                 json.dumps(controlled, sort_keys=True, separators=(",", ":"), ensure_ascii=False) + "\n",
