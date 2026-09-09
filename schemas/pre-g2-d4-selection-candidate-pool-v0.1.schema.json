@@ -5,13 +5,14 @@
   "description": "Schema for S3-only pre-label D4 candidate metadata used by deterministic challenge selection. Real candidate identities and membership must not be committed to public Git.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "benchmark_id", "protocol_id", "candidate_pool_id", "candidate_pool_commitment", "candidate_pool_frozen", "candidates"],
+  "required": ["schema_version", "benchmark_id", "protocol_id", "candidate_pool_id", "candidate_pool_commitment", "candidate_pool_commitment_scheme", "candidate_pool_frozen", "candidates"],
   "properties": {
     "schema_version": {"const": "0.1"},
     "benchmark_id": {"const": "PRE_G2_PRODUCT_V0_1"},
     "protocol_id": {"const": "PRE_G2_D4_SAMPLING_CALIBRATION_PROTOCOL_2026-09-09_v0.1"},
     "candidate_pool_id": {"type": "string", "minLength": 1},
-    "candidate_pool_commitment": {"$ref": "#/$defs/sha256"},
+    "candidate_pool_commitment": {"$ref": "#/$defs/sha256", "description": "HMAC-SHA-256 commitment over the normalized frozen pre-label pool; the key remains S3-controlled."},
+    "candidate_pool_commitment_scheme": {"const": "HMAC_SHA256_DOMAIN_CANONICAL_JSON_V1"},
     "candidate_pool_frozen": {"const": true},
     "candidates": {"type": "array", "minItems": 240, "uniqueItems": true, "items": {"$ref": "#/$defs/candidate"}}
   },
