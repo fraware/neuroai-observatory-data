@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:neuroai:observatory:d4-identity-namespace-attestation:0.1",
+  "title": "PRE-G2 D4 controlled identifier namespace attestation",
+  "description": "Schema for an S3-controlled human identity-resolution attestation binding a pilot membership and later candidate pool to the same controlled item-ID namespace. It does not itself establish entity-resolution truth.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "namespace_id",
+    "state",
+    "pilot_round_id",
+    "pilot_membership_commitment",
+    "candidate_pool_id",
+    "candidate_pool_commitment",
+    "human_identity_resolution_provenance_sha256",
+    "authority"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "namespace_id": {"const": "D4_CONTROLLED_ITEM_ID_V1"},
+    "state": {"const": "HUMAN_CONTROLLED_NAMESPACE_BINDING_RECORDED"},
+    "pilot_round_id": {"type": "string", "minLength": 1},
+    "pilot_membership_commitment": {"$ref": "#/$defs/sha256"},
+    "candidate_pool_id": {"type": "string", "minLength": 1},
+    "candidate_pool_commitment": {"$ref": "#/$defs/sha256"},
+    "human_identity_resolution_provenance_sha256": {"$ref": "#/$defs/sha256"},
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity_resolution_truth_established", "g2_passed", "canonical_s2_authority", "publication_authority", "assessment_effect"],
+      "properties": {
+        "identity_resolution_truth_established": {"const": false},
+        "g2_passed": {"const": false},
+        "canonical_s2_authority": {"const": false},
+        "publication_authority": {"const": false},
+        "assessment_effect": {"const": "NONE"}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}
