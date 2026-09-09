@@ -16,6 +16,7 @@
     "pilot_membership_commitment_scheme",
     "reviewer_training_record_sha256",
     "exposure_register_sha256",
+    "prior_exposure_disjointness_audit_sha256",
     "packet_manifest"
   ],
   "properties": {
@@ -32,6 +33,10 @@
     "pilot_membership_commitment_scheme": {"const": "HMAC_SHA256_DOMAIN_CANONICAL_JSON_V1"},
     "reviewer_training_record_sha256": {"$ref": "#/$defs/sha256"},
     "exposure_register_sha256": {"$ref": "#/$defs/sha256"},
+    "prior_exposure_disjointness_audit_sha256": {
+      "$ref": "#/$defs/sha256",
+      "description": "Digest of controlled audit evidence that the pilot is disjoint from prior development/training/pilot material. This is mapped to the legacy aggregate field pilot_disjointness_proof_sha256 and does not claim disjointness from a future final candidate pool."
+    },
     "packet_manifest": {
       "type": "array",
       "minItems": 60,
