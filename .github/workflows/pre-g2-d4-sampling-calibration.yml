@@ -1,0 +1,49 @@
+name: PRE-G2 D4 sampling and calibration
+
+on:
+  pull_request:
+    paths:
+      - "curation/PRE_G2_D4_SAMPLING_CALIBRATION_PROTOCOL_2026-09-09_v0.1.json"
+      - "schemas/pre-g2-d4-pilot-readiness-aggregate-v0.1.schema.json"
+      - "schemas/pre-g2-d4-selection-candidate-pool-v0.1.schema.json"
+      - "scripts/evaluate_pre_g2_d4_pilot_readiness.py"
+      - "scripts/select_pre_g2_d4_held_out.py"
+      - "tests/test_pre_g2_d4_sampling_calibration.py"
+      - "tests/test_pre_g2_d4_sampling_calibration_protocol.py"
+      - ".github/workflows/pre-g2-d4-sampling-calibration.yml"
+  push:
+    branches: [main]
+    paths:
+      - "curation/PRE_G2_D4_SAMPLING_CALIBRATION_PROTOCOL_2026-09-09_v0.1.json"
+      - "schemas/pre-g2-d4-pilot-readiness-aggregate-v0.1.schema.json"
+      - "schemas/pre-g2-d4-selection-candidate-pool-v0.1.schema.json"
+      - "scripts/evaluate_pre_g2_d4_pilot_readiness.py"
+      - "scripts/select_pre_g2_d4_held_out.py"
+      - "tests/test_pre_g2_d4_sampling_calibration.py"
+      - "tests/test_pre_g2_d4_sampling_calibration_protocol.py"
+      - ".github/workflows/pre-g2-d4-sampling-calibration.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-d4-sampling-calibration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Validate D4 pilot gate, deterministic selection, and artifact bindings
+        run: |
+          python -m unittest tests.test_pre_g2_d4_sampling_calibration -v
+          python -m unittest tests.test_pre_g2_d4_sampling_calibration_protocol -v
+      - name: Authority boundary
+        run: |
+          echo "This workflow validates PRE-G2 D4 pilot-readiness arithmetic, keyed commitments, deterministic pre-label selection,"
+          echo "challenge allocation floors, artifact identities, leakage controls, and fail-closed authority only."
+          echo "It does not execute a real pilot, approve reviewers, select real held-out membership, collect human labels,"
+          echo "establish benchmark adequacy, population inference, rights clearance, G0/G2/G5, S2/publication authority,"
+          echo "Phase 4 authorization, or assessment effects."
