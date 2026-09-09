@@ -125,6 +125,35 @@ def validate_packet_semantics(packet: dict[str, Any]) -> None:
         if observed > cutoff:
             raise D4ReviewPacketSemanticError("evidence observation cannot be later than the packet cutoff")
 
+        source_language = _require_string(
+            ref.get("source_language"), f"evidence_packet.evidence_refs[{index}].source_language"
+        )
+        review_language = _require_string(
+            ref.get("review_language"), f"evidence_packet.evidence_refs[{index}].review_language"
+        )
+        translation_status = ref.get("translation_status")
+        translation_provenance_ref = ref.get("translation_provenance_ref")
+        if translation_status == "SOURCE_LANGUAGE_REVIEWED":
+            if source_language != review_language:
+                raise D4ReviewPacketSemanticError(
+                    "SOURCE_LANGUAGE_REVIEWED requires source_language and review_language to match"
+                )
+            if translation_provenance_ref is not None:
+                raise D4ReviewPacketSemanticError(
+                    "SOURCE_LANGUAGE_REVIEWED must not carry translation provenance"
+                )
+        elif translation_status == "TRANSLATED_FOR_REVIEW":
+            if source_language == review_language:
+                raise D4ReviewPacketSemanticError(
+                    "TRANSLATED_FOR_REVIEW requires a distinct review_language"
+                )
+            _require_string(
+                translation_provenance_ref,
+                f"evidence_packet.evidence_refs[{index}].translation_provenance_ref",
+            )
+        else:
+            raise D4ReviewPacketSemanticError("translation_status is unsupported")
+
     missing_identity_refs = [ref for ref in identity_basis_refs if ref not in evidence_by_id]
     if missing_identity_refs:
         raise D4ReviewPacketSemanticError(
