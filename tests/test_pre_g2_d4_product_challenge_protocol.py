@@ -17,8 +17,8 @@ G1_SHA = "ed6489fe1085b5aec1b594970dd1c574b57bd6bbd25a659643e9bd1b7b72d8ef"
 WORKBENCH_SHA = "854cc9d1c8e24a9e8ae8b21d871329bc3c24c118"
 WORKBENCH_PRODUCT_CONTRACT_BLOB = "2d01f0bbc72eaa4f4e9aac55ad01bbe3185cfe1d"
 WORKBENCH_EVIDENCE_ROLE_BLOB = "a79c92dd3c3419ef97b38c62fea8b850b6f02c23"
-REVIEW_SCHEMA_BLOB = "1c4f52f2c4690c4e0f5d893e0c5cda9f8b081491"
-SEMANTIC_VALIDATOR_BLOB = "d116504af88fa68a2377ef25ecabe6ac0a585246"
+REVIEW_SCHEMA_BLOB = "d0511d994bb65c5027b7a341a42a4b5e30ed72e2"
+SEMANTIC_VALIDATOR_BLOB = "6365d7667744e1a45fa5da71a044158896036903"
 
 REQUIRED_STRATA = {
     "AMBIGUOUS_BIOSIGNAL",
@@ -41,6 +41,12 @@ PERMITTED_CHALLENGE_METRICS = {
     "CALIBRATION",
     "FOUR_WAY_ROUTING",
     "SUBGROUP_DIAGNOSTIC",
+}
+TRANSLATION_FIELDS = {
+    "source_language",
+    "review_language",
+    "translation_status",
+    "translation_provenance_ref",
 }
 
 
@@ -105,6 +111,11 @@ class PreG2D4ProductChallengeProtocolTests(unittest.TestCase):
         self.assertEqual(set(role["permitted_metric_families"]), PERMITTED_CHALLENGE_METRICS)
         self.assertNotIn("PREVALENCE", role["permitted_metric_families"])
         self.assertNotIn("RETRIEVAL_RECALL", role["permitted_metric_families"])
+        self.assertEqual(
+            role["calibration_interpretation"],
+            "CHALLENGE_SET_DESCRIPTIVE_ONLY_NO_DEPLOYMENT_OR_POPULATION_CALIBRATION_INFERENCE",
+        )
+        self.assertIn("deployment/population calibration", role["interpretation_boundary"])
 
     def test_required_product_strata_and_construct_questions_are_exact(self) -> None:
         self.assertEqual(set(self.protocol["required_construct_strata"]), REQUIRED_STRATA)
@@ -124,7 +135,7 @@ class PreG2D4ProductChallengeProtocolTests(unittest.TestCase):
         self.assertTrue(boundary["unresolved_disagreement_excluded_from_binary_reference_denominators"])
         self.assertTrue(boundary["rationale_required_for_resolved_gold_rows"])
 
-    def test_selection_protocol_does_not_reverse_engineer_or_invent_counts(self) -> None:
+    def test_selection_protocol_does_not_reverse_engineer_or_create_population_precision_claim(self) -> None:
         selection = self.protocol["candidate_selection_protocol"]
         self.assertEqual(
             selection["selection_time_boundary"],
@@ -139,7 +150,8 @@ class PreG2D4ProductChallengeProtocolTests(unittest.TestCase):
         self.assertIsNone(selection["minimum_final_sample_size"])
         self.assertIsNone(selection["minimum_per_stratum_counts"])
         self.assertIn("COUNTS_MUST_BE_PREDECLARED", selection["count_policy"])
-        self.assertIn("DOES NOT INVENT", selection["count_policy"])
+        self.assertIn("NO_POPULATION_PRECISION_CLAIM_IS_CREATED", selection["count_policy"])
+        self.assertIn("PROTOCOL_DOES_NOT_INVENT_COUNTS", selection["count_policy"])
         self.assertEqual(selection["real_candidate_membership_location"], "S3_CONTROLLED")
 
     def test_identity_and_evidence_scope_are_fail_closed(self) -> None:
@@ -163,6 +175,7 @@ class PreG2D4ProductChallengeProtocolTests(unittest.TestCase):
             "marketing_claim_does_not_establish_effectiveness",
             "jurisdiction_specific_status_must_not_be_globalized",
             "translation_provenance_required_for_translated_evidence",
+            "translation_provenance_enforced_by_schema_and_semantic_validator",
         ):
             self.assertTrue(evidence[field])
 
@@ -189,6 +202,8 @@ class PreG2D4ProductChallengeProtocolTests(unittest.TestCase):
         self.assertTrue(review["agreement_requires_matching_primary_secondary_dispositions"])
         self.assertTrue(review["adjudication_requires_real_primary_secondary_disagreement_and_final_adjudicator"])
         self.assertTrue(review["final_adjudicator_timestamp_must_follow_primary_secondary_review"])
+        self.assertTrue(review["final_adjudicator_timestamp_must_be_strictly_later_than_primary_secondary_review"])
+        self.assertTrue(review["final_adjudicator_rationale_must_equal_final_rationale"])
         self.assertTrue(review["unresolved_disagreement_cannot_be_held_out_eligible"])
         self.assertTrue(review["reviewer_training_and_calibration_record_required"])
 
@@ -230,6 +245,12 @@ class PreG2D4ProductChallengeProtocolTests(unittest.TestCase):
         self.assertEqual(reviewer_def["properties"]["evidence_packet_sha256"]["$ref"], "#/$defs/sha256")
         reviewer_decisions = set(reviewer_def["properties"]["decision"]["enum"])
         self.assertEqual(reviewer_decisions, D1_DISPOSITIONS)
+        evidence_def = self.schema["$defs"]["evidence_ref"]
+        self.assertTrue(TRANSLATION_FIELDS.issubset(set(evidence_def["required"])))
+        self.assertEqual(
+            set(evidence_def["properties"]["translation_status"]["enum"]),
+            {"SOURCE_LANGUAGE_REVIEWED", "TRANSLATED_FOR_REVIEW"},
+        )
         adjudication_states = set(self.schema["$defs"]["adjudication"]["properties"]["state"]["enum"])
         self.assertEqual(adjudication_states, ADJUDICATION_STATES)
         rights = self.schema["properties"]["rights_containment"]["properties"]
