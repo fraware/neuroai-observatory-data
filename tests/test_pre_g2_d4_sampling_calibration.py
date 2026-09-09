@@ -11,6 +11,7 @@ from scripts.evaluate_pre_g2_d4_pilot_readiness import (
     evaluate_pilot_readiness,
 )
 from scripts.select_pre_g2_d4_held_out import (
+    COMMITMENT_SCHEME,
     D4SelectionError,
     candidate_pool_commitment,
     select_candidates,
@@ -87,6 +88,7 @@ def _candidate_pool(size: int = 300) -> dict[str, object]:
         "protocol_id": "PRE_G2_D4_SAMPLING_CALIBRATION_PROTOCOL_2026-09-09_v0.1",
         "candidate_pool_id": "SYNTHETIC-POOL-001",
         "candidate_pool_commitment": "0" * 64,
+        "candidate_pool_commitment_scheme": COMMITMENT_SCHEME,
         "candidate_pool_frozen": True,
         "candidates": [_candidate(index) for index in range(size)],
     }
@@ -177,6 +179,7 @@ class D4DeterministicSelectionTests(unittest.TestCase):
         self.assertEqual(controlled["selected_count"], 240)
         self.assertEqual(len(controlled["selected_candidate_ids"]), 240)
         self.assertEqual(len(set(controlled["selected_candidate_ids"])), 240)
+        self.assertEqual(controlled["candidate_pool_commitment_scheme"], COMMITMENT_SCHEME)
         self.assertTrue(aggregate["quota_satisfaction_established_for_selected_membership"])
         self.assertFalse(aggregate["population_generalizable"])
         self.assertFalse(aggregate["global_pool_feasibility_solver_used"])
@@ -224,6 +227,13 @@ class D4DeterministicSelectionTests(unittest.TestCase):
         pool = _candidate_pool()
         with self.assertRaisesRegex(D4SelectionError, "supplied key"):
             select_candidates(pool, b"wrong-key")
+
+    def test_commitment_scheme_mismatch_is_rejected(self) -> None:
+        pool = _candidate_pool()
+        pool["candidate_pool_commitment_scheme"] = "SHA256"
+        _recommit(pool)
+        with self.assertRaisesRegex(D4SelectionError, "candidate_pool_commitment_scheme"):
+            select_candidates(pool, COMMITMENT_KEY)
 
     def test_final_labels_or_model_outputs_are_not_permitted_input_fields(self) -> None:
         for field in ("decision", "prediction", "model_score", "threshold", "final_model_error"):
