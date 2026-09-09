@@ -1,12 +1,25 @@
 from __future__ import annotations
 
 import copy
+import hashlib
+import json
 import unittest
 
 from scripts.validate_pre_g2_d4_review_packet_semantics import (
     D4ReviewPacketSemanticError,
     validate_packet_semantics,
 )
+
+
+def _canonical_sha256(value: object) -> str:
+    payload = json.dumps(
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+        allow_nan=False,
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
 
 
 def _object_binding() -> dict[str, object]:
@@ -24,9 +37,34 @@ def _object_binding() -> dict[str, object]:
     }
 
 
-def _review(role: str, decision: str, *, timestamp: str = "2026-09-08T01:00:00Z") -> dict[str, object]:
+def _evidence_packet() -> dict[str, object]:
+    return {
+        "evidence_refs": [
+            {
+                "evidence_id": "EVIDENCE-IDENTITY-1",
+                "source_class": "FIRST_PARTY",
+                "observed_at": "2026-09-07T12:00:00Z",
+                "content_sha256": "1" * 64,
+                "claim_scopes": ["EXISTENCE_IDENTITY", "CAPABILITY_DESCRIPTION"],
+                "source_identity_ref": "SYNTHETIC-SOURCE-1",
+            }
+        ],
+        "observation_cutoff": "2026-09-08T00:00:00Z",
+        "identity_evidence_present": True,
+        "stronger_claims_require_independent_support": True,
+    }
+
+
+def _review(
+    role: str,
+    decision: str,
+    *,
+    evidence_packet_sha256: str,
+    timestamp: str = "2026-09-08T01:00:00Z",
+) -> dict[str, object]:
     return {
         "reviewer_ref": f"REVIEWER-{role}",
+        "evidence_packet_sha256": evidence_packet_sha256,
         "decision": decision,
         "rationale": f"Synthetic rationale for {role}",
         "adjudicator_role": role,
@@ -36,6 +74,8 @@ def _review(role: str, decision: str, *, timestamp: str = "2026-09-08T01:00:00Z"
 
 
 def _valid_agree_packet() -> dict[str, object]:
+    evidence_packet = _evidence_packet()
+    evidence_digest = _canonical_sha256(evidence_packet)
     return {
         "schema_version": "0.1",
         "benchmark_id": "PRE_G2_PRODUCT_V0_1",
@@ -43,21 +83,7 @@ def _valid_agree_packet() -> dict[str, object]:
         "item_id": "D4-SYNTHETIC-001",
         "candidate_role": "HELD_OUT_CANDIDATE",
         "exact_object_binding": _object_binding(),
-        "evidence_packet": {
-            "evidence_refs": [
-                {
-                    "evidence_id": "EVIDENCE-IDENTITY-1",
-                    "source_class": "FIRST_PARTY",
-                    "observed_at": "2026-09-07T12:00:00Z",
-                    "content_sha256": "1" * 64,
-                    "claim_scopes": ["EXISTENCE_IDENTITY", "CAPABILITY_DESCRIPTION"],
-                    "source_identity_ref": "SYNTHETIC-SOURCE-1",
-                }
-            ],
-            "observation_cutoff": "2026-09-08T00:00:00Z",
-            "identity_evidence_present": True,
-            "stronger_claims_require_independent_support": True,
-        },
+        "evidence_packet": evidence_packet,
         "construct_strata": ["CONSUMER", "AMBIGUOUS_BIOSIGNAL"],
         "review_design": {
             "double_label_required": True,
@@ -65,8 +91,13 @@ def _valid_agree_packet() -> dict[str, object]:
             "blinding_exception_rationale": None,
         },
         "reviewer_records": [
-            _review("PRIMARY_REVIEWER", "INCLUDE"),
-            _review("SECONDARY_REVIEWER", "INCLUDE", timestamp="2026-09-08T01:10:00Z"),
+            _review("PRIMARY_REVIEWER", "INCLUDE", evidence_packet_sha256=evidence_digest),
+            _review(
+                "SECONDARY_REVIEWER",
+                "INCLUDE",
+                evidence_packet_sha256=evidence_digest,
+                timestamp="2026-09-08T01:10:00Z",
+            ),
         ],
         "adjudication": {
             "state": "AGREE",
@@ -83,6 +114,23 @@ def _valid_agree_packet() -> dict[str, object]:
             "redistribution_authority_claimed": False,
         },
     }
+
+
+def _append_final_adjudicator(
+    packet: dict[str, object],
+    decision: str,
+    *,
+    timestamp: str,
+) -> None:
+    evidence_digest = _canonical_sha256(packet["evidence_packet"])
+    packet["reviewer_records"].append(
+        _review(
+            "FINAL_ADJUDICATOR",
+            decision,
+            evidence_packet_sha256=evidence_digest,
+            timestamp=timestamp,
+        )
+    )
 
 
 class PreG2D4ReviewPacketSemanticTests(unittest.TestCase):
@@ -107,6 +155,16 @@ class PreG2D4ReviewPacketSemanticTests(unittest.TestCase):
         packet = _valid_agree_packet()
         packet["reviewer_records"][1]["reviewer_ref"] = packet["reviewer_records"][0]["reviewer_ref"]
         self.assert_invalid(packet, "reviewer_ref values must be distinct")
+
+    def test_reviewer_digest_must_bind_exact_evidence_packet(self) -> None:
+        packet = _valid_agree_packet()
+        packet["reviewer_records"][0]["evidence_packet_sha256"] = "0" * 64
+        self.assert_invalid(packet, "exact canonical evidence_packet SHA-256")
+
+    def test_evidence_mutation_after_review_is_detected(self) -> None:
+        packet = _valid_agree_packet()
+        packet["evidence_packet"]["evidence_refs"][0]["content_sha256"] = "2" * 64
+        self.assert_invalid(packet, "exact canonical evidence_packet SHA-256")
 
     def test_held_out_candidate_cannot_disable_double_label(self) -> None:
         packet = _valid_agree_packet()
@@ -149,9 +207,7 @@ class PreG2D4ReviewPacketSemanticTests(unittest.TestCase):
     def test_adjudicator_decision_must_equal_final_disposition(self) -> None:
         packet = _valid_agree_packet()
         packet["reviewer_records"][1]["decision"] = "EXCLUDE"
-        packet["reviewer_records"].append(
-            _review("FINAL_ADJUDICATOR", "BORDERLINE", timestamp="2026-09-08T02:00:00Z")
-        )
+        _append_final_adjudicator(packet, "BORDERLINE", timestamp="2026-09-08T02:00:00Z")
         packet["adjudication"] = {
             "state": "ADJUDICATED",
             "final_disposition": "INCLUDE",
@@ -159,12 +215,22 @@ class PreG2D4ReviewPacketSemanticTests(unittest.TestCase):
         }
         self.assert_invalid(packet, "FINAL_ADJUDICATOR decision must equal")
 
+    def test_final_adjudicator_must_bind_same_evidence_packet(self) -> None:
+        packet = _valid_agree_packet()
+        packet["reviewer_records"][1]["decision"] = "EXCLUDE"
+        _append_final_adjudicator(packet, "BORDERLINE", timestamp="2026-09-08T02:00:00Z")
+        packet["reviewer_records"][2]["evidence_packet_sha256"] = "0" * 64
+        packet["adjudication"] = {
+            "state": "ADJUDICATED",
+            "final_disposition": "BORDERLINE",
+            "final_rationale": "Synthetic adjudication rationale",
+        }
+        self.assert_invalid(packet, "exact canonical evidence_packet SHA-256")
+
     def test_adjudicator_must_follow_primary_and_secondary_review(self) -> None:
         packet = _valid_agree_packet()
         packet["reviewer_records"][1]["decision"] = "EXCLUDE"
-        packet["reviewer_records"].append(
-            _review("FINAL_ADJUDICATOR", "BORDERLINE", timestamp="2026-09-08T01:05:00Z")
-        )
+        _append_final_adjudicator(packet, "BORDERLINE", timestamp="2026-09-08T01:05:00Z")
         packet["adjudication"] = {
             "state": "ADJUDICATED",
             "final_disposition": "BORDERLINE",
@@ -175,9 +241,7 @@ class PreG2D4ReviewPacketSemanticTests(unittest.TestCase):
     def test_valid_adjudicated_disagreement(self) -> None:
         packet = _valid_agree_packet()
         packet["reviewer_records"][1]["decision"] = "EXCLUDE"
-        packet["reviewer_records"].append(
-            _review("FINAL_ADJUDICATOR", "BORDERLINE", timestamp="2026-09-08T02:00:00Z")
-        )
+        _append_final_adjudicator(packet, "BORDERLINE", timestamp="2026-09-08T02:00:00Z")
         packet["adjudication"] = {
             "state": "ADJUDICATED",
             "final_disposition": "BORDERLINE",
