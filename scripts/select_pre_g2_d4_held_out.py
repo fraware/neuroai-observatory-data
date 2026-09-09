@@ -42,6 +42,7 @@ EXPECTED_POOL_KEYS = {
     "protocol_id",
     "candidate_pool_id",
     "candidate_pool_commitment",
+    "candidate_pool_commitment_scheme",
     "candidate_pool_frozen",
     "candidates",
 }
@@ -149,6 +150,7 @@ def candidate_pool_commitment(pool: dict[str, Any], key: bytes) -> str:
         "benchmark_id": pool.get("benchmark_id"),
         "protocol_id": pool.get("protocol_id"),
         "candidate_pool_id": pool.get("candidate_pool_id"),
+        "candidate_pool_commitment_scheme": pool.get("candidate_pool_commitment_scheme"),
         "candidate_pool_frozen": pool.get("candidate_pool_frozen"),
         "candidates": normalized_candidates,
     }
@@ -164,6 +166,8 @@ def _validate_pool(pool: dict[str, Any], key: bytes) -> list[dict[str, Any]]:
     if pool["protocol_id"] != PROTOCOL_ID:
         raise D4SelectionError(f"protocol_id must be {PROTOCOL_ID}")
     _require_nonempty_string(pool["candidate_pool_id"], "candidate_pool_id")
+    if pool["candidate_pool_commitment_scheme"] != COMMITMENT_SCHEME:
+        raise D4SelectionError(f"candidate_pool_commitment_scheme must be {COMMITMENT_SCHEME}")
     if pool["candidate_pool_frozen"] is not True:
         raise D4SelectionError("candidate_pool_frozen must be true before deterministic selection")
     if not isinstance(pool["candidate_pool_commitment"], str) or len(pool["candidate_pool_commitment"]) != 64:
