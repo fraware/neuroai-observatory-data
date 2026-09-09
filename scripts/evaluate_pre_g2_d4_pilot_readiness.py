@@ -8,6 +8,7 @@ from typing import Any
 
 BENCHMARK_ID = "PRE_G2_PRODUCT_V0_1"
 PROTOCOL_ID = "PRE_G2_D4_SAMPLING_CALIBRATION_PROTOCOL_2026-09-09_v0.1"
+COMMITMENT_SCHEME = "HMAC_SHA256_DOMAIN_CANONICAL_JSON_V1"
 READY_STATE = "READY_FOR_HUMAN_CALIBRATION_DISPOSITION"
 NOT_READY_STATE = "NOT_READY_NEW_DISJOINT_ROUND_REQUIRED"
 
@@ -47,6 +48,7 @@ EXPECTED_TOP_LEVEL_KEYS = {
     "blinding_exception_with_rationale_count",
     "pilot_items_held_out_eligible_count",
     "pilot_membership_commitment",
+    "pilot_membership_commitment_scheme",
     "reviewer_training_record_sha256",
     "exposure_register_sha256",
     "pilot_disjointness_proof_sha256",
@@ -137,6 +139,8 @@ def evaluate_pilot_readiness(report: dict[str, Any]) -> dict[str, Any]:
         raise D4PilotReadinessError("pilot_round_id must be a non-empty string")
     if report["state"] != "COMPLETE_ROUND_NO_EXTENSION":
         raise D4PilotReadinessError("state must be COMPLETE_ROUND_NO_EXTENSION")
+    if report["pilot_membership_commitment_scheme"] != COMMITMENT_SCHEME:
+        raise D4PilotReadinessError(f"pilot_membership_commitment_scheme must be {COMMITMENT_SCHEME}")
 
     total = _require_int(report["total_items"], "total_items", maximum=60)
     double_labeled = _require_int(report["double_labeled_items"], "double_labeled_items", maximum=60)
