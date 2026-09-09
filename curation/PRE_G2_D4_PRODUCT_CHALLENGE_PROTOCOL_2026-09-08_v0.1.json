@@ -30,14 +30,14 @@
   },
   "review_packet_schema": {
     "path": "schemas/pre-g2-d4-product-review-packet-v0.1.schema.json",
-    "git_blob_sha": "1c4f52f2c4690c4e0f5d893e0c5cda9f8b081491",
+    "git_blob_sha": "d0511d994bb65c5027b7a341a42a4b5e30ed72e2",
     "custody_of_real_packets": "S3_CONTROLLED",
     "public_repository_may_contain_real_packets": false
   },
   "semantic_validator": {
     "path": "scripts/validate_pre_g2_d4_review_packet_semantics.py",
-    "git_blob_sha": "d116504af88fa68a2377ef25ecabe6ac0a585246",
-    "purpose": "Fail-closed cross-field validation for exact-object identity, same-packet identity evidence, evidence cutoff, exact reviewer-to-evidence-packet SHA-256 binding, reviewer-role and reviewer-reference uniqueness, independent double labeling, adjudication consistency and chronology, exposure eligibility, and S3 rights containment.",
+    "git_blob_sha": "6365d7667744e1a45fa5da71a044158896036903",
+    "purpose": "Fail-closed cross-field validation for exact-object identity, same-packet identity evidence, evidence cutoff, exact reviewer-to-evidence-packet SHA-256 binding, multilingual translation provenance consistency, reviewer-role and reviewer-reference uniqueness, independent double labeling, adjudication disposition/rationale consistency and strict chronology, exposure eligibility, and S3 rights containment.",
     "structural_json_schema_validation_is_separate": true,
     "validator_establishes_source_truth_or_reviewer_competence": false
   },
@@ -62,7 +62,8 @@
       "FOUR_WAY_ROUTING",
       "SUBGROUP_DIAGNOSTIC"
     ],
-    "interpretation_boundary": "D4 may diagnose construct coverage and failure modes under deliberate enrichment. Its class balance and raw error rates are not estimators of open-world product prevalence, market share, completeness, or population retrieval recall."
+    "calibration_interpretation": "CHALLENGE_SET_DESCRIPTIVE_ONLY_NO_DEPLOYMENT_OR_POPULATION_CALIBRATION_INFERENCE",
+    "interpretation_boundary": "D4 may diagnose construct coverage and failure modes under deliberate enrichment. Its class balance and raw error rates are not estimators of open-world product prevalence, market share, completeness, population retrieval recall, or deployment/population calibration."
   },
   "required_construct_strata": [
     "AMBIGUOUS_BIOSIGNAL",
@@ -131,7 +132,7 @@
     ],
     "minimum_final_sample_size": null,
     "minimum_per_stratum_counts": null,
-    "count_policy": "COUNTS_MUST_BE_PREDECLARED_FROM_CONSTRUCT_COVERAGE_AND_ESTIMAND_PRECISION_NEEDS_BEFORE_FINAL_FREEZE; THIS PROTOCOL DOES NOT INVENT THEM",
+    "count_policy": "COUNTS_MUST_BE_PREDECLARED_FROM_CONSTRUCT_COVERAGE_FAILURE_MODE_STRESS_COVERAGE_AND_BENCHMARK_LEVEL_DECISION_SENSITIVITY_BEFORE_FINAL_FREEZE; NO_POPULATION_PRECISION_CLAIM_IS_CREATED; THIS PROTOCOL_DOES_NOT_INVENT_COUNTS",
     "real_candidate_membership_location": "S3_CONTROLLED"
   },
   "exact_object_identity_protocol": {
@@ -173,7 +174,8 @@
     "patent_ownership_does_not_establish_product_identity_or_commercialization": true,
     "marketing_claim_does_not_establish_effectiveness": true,
     "jurisdiction_specific_status_must_not_be_globalized": true,
-    "translation_provenance_required_for_translated_evidence": true
+    "translation_provenance_required_for_translated_evidence": true,
+    "translation_provenance_enforced_by_schema_and_semantic_validator": true
   },
   "human_review_protocol": {
     "human_reference_standard_required": true,
@@ -201,6 +203,8 @@
     "agreement_requires_matching_primary_secondary_dispositions": true,
     "adjudication_requires_real_primary_secondary_disagreement_and_final_adjudicator": true,
     "final_adjudicator_timestamp_must_follow_primary_secondary_review": true,
+    "final_adjudicator_timestamp_must_be_strictly_later_than_primary_secondary_review": true,
+    "final_adjudicator_rationale_must_equal_final_rationale": true,
     "unresolved_disagreement_cannot_be_held_out_eligible": true,
     "reviewer_training_and_calibration_record_required": true,
     "pilot_disagreements_separate_from_final_held_out_labels": true,
