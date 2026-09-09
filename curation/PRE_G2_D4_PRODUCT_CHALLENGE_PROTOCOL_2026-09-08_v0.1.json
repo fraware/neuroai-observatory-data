@@ -30,14 +30,14 @@
   },
   "review_packet_schema": {
     "path": "schemas/pre-g2-d4-product-review-packet-v0.1.schema.json",
-    "git_blob_sha": "857361a829aa72bdc41ec36aad5f84e3b67816f8",
+    "git_blob_sha": "1c4f52f2c4690c4e0f5d893e0c5cda9f8b081491",
     "custody_of_real_packets": "S3_CONTROLLED",
     "public_repository_may_contain_real_packets": false
   },
   "semantic_validator": {
     "path": "scripts/validate_pre_g2_d4_review_packet_semantics.py",
-    "git_blob_sha": "24d817df54209fec09018c3fe7584fbed40b5c9d",
-    "purpose": "Fail-closed cross-field validation for exact-object identity, same-packet identity evidence, evidence cutoff, reviewer-role and reviewer-reference uniqueness, independent double labeling, adjudication consistency and chronology, exposure eligibility, and S3 rights containment.",
+    "git_blob_sha": "d116504af88fa68a2377ef25ecabe6ac0a585246",
+    "purpose": "Fail-closed cross-field validation for exact-object identity, same-packet identity evidence, evidence cutoff, exact reviewer-to-evidence-packet SHA-256 binding, reviewer-role and reviewer-reference uniqueness, independent double labeling, adjudication consistency and chronology, exposure eligibility, and S3 rights containment.",
     "structural_json_schema_validation_is_separate": true,
     "validator_establishes_source_truth_or_reviewer_competence": false
   },
@@ -190,6 +190,9 @@
     "reviewer_ref_extension_required": true,
     "reviewer_refs_are_pseudonymous_s3_registry_references": true,
     "reviewer_refs_must_be_distinct_across_roles": true,
+    "evidence_packet_sha256_extension_required": true,
+    "review_decision_must_bind_exact_evidence_packet": true,
+    "evidence_packet_binding_scheme": "SHA256_UTF8_JSON_SORT_KEYS_COMPACT_ENSURE_ASCII_FALSE_ALLOW_NAN_FALSE",
     "double_label_subset_required": true,
     "double_label_all_final_held_out_candidates": true,
     "double_label_subset_count": null,
