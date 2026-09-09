@@ -47,6 +47,10 @@ def _evidence_packet() -> dict[str, object]:
                 "content_sha256": "1" * 64,
                 "claim_scopes": ["EXISTENCE_IDENTITY", "CAPABILITY_DESCRIPTION"],
                 "source_identity_ref": "SYNTHETIC-SOURCE-1",
+                "source_language": "en",
+                "review_language": "en",
+                "translation_status": "SOURCE_LANGUAGE_REVIEWED",
+                "translation_provenance_ref": None,
             }
         ],
         "observation_cutoff": "2026-09-08T00:00:00Z",
@@ -116,6 +120,12 @@ def _valid_agree_packet() -> dict[str, object]:
     }
 
 
+def _rebind_evidence(packet: dict[str, object]) -> None:
+    evidence_digest = _canonical_sha256(packet["evidence_packet"])
+    for record in packet["reviewer_records"]:
+        record["evidence_packet_sha256"] = evidence_digest
+
+
 def _append_final_adjudicator(
     packet: dict[str, object],
     decision: str,
@@ -166,6 +176,42 @@ class PreG2D4ReviewPacketSemanticTests(unittest.TestCase):
         packet["evidence_packet"]["evidence_refs"][0]["content_sha256"] = "2" * 64
         self.assert_invalid(packet, "exact canonical evidence_packet SHA-256")
 
+    def test_source_language_review_requires_matching_languages(self) -> None:
+        packet = _valid_agree_packet()
+        packet["evidence_packet"]["evidence_refs"][0]["review_language"] = "fr"
+        self.assert_invalid(packet, "SOURCE_LANGUAGE_REVIEWED requires source_language and review_language to match")
+
+    def test_source_language_review_cannot_carry_translation_provenance(self) -> None:
+        packet = _valid_agree_packet()
+        packet["evidence_packet"]["evidence_refs"][0]["translation_provenance_ref"] = "S3-TRANSLATION-1"
+        self.assert_invalid(packet, "must not carry translation provenance")
+
+    def test_translated_evidence_requires_distinct_language_and_provenance(self) -> None:
+        packet = _valid_agree_packet()
+        ref = packet["evidence_packet"]["evidence_refs"][0]
+        ref["translation_status"] = "TRANSLATED_FOR_REVIEW"
+        self.assert_invalid(packet, "requires a distinct review_language")
+
+        packet = _valid_agree_packet()
+        ref = packet["evidence_packet"]["evidence_refs"][0]
+        ref["source_language"] = "fr"
+        ref["review_language"] = "en"
+        ref["translation_status"] = "TRANSLATED_FOR_REVIEW"
+        self.assert_invalid(packet, "translation_provenance_ref must be a non-empty string")
+
+    def test_valid_translated_evidence_with_provenance(self) -> None:
+        packet = _valid_agree_packet()
+        ref = packet["evidence_packet"]["evidence_refs"][0]
+        ref["source_language"] = "fr"
+        ref["review_language"] = "en"
+        ref["translation_status"] = "TRANSLATED_FOR_REVIEW"
+        ref["translation_provenance_ref"] = "S3-TRANSLATION-SYNTHETIC-1"
+        packet["exact_object_binding"]["language_context"] = ["fr", "en"]
+        for record in packet["reviewer_records"]:
+            record["exact_object_binding"]["language_context"] = ["fr", "en"]
+        _rebind_evidence(packet)
+        validate_packet_semantics(packet)
+
     def test_held_out_candidate_cannot_disable_double_label(self) -> None:
         packet = _valid_agree_packet()
         packet["review_design"]["double_label_required"] = False
@@ -211,9 +257,20 @@ class PreG2D4ReviewPacketSemanticTests(unittest.TestCase):
         packet["adjudication"] = {
             "state": "ADJUDICATED",
             "final_disposition": "INCLUDE",
-            "final_rationale": "Synthetic adjudication rationale",
+            "final_rationale": "Synthetic rationale for FINAL_ADJUDICATOR",
         }
         self.assert_invalid(packet, "FINAL_ADJUDICATOR decision must equal")
+
+    def test_final_adjudicator_rationale_must_equal_final_rationale(self) -> None:
+        packet = _valid_agree_packet()
+        packet["reviewer_records"][1]["decision"] = "EXCLUDE"
+        _append_final_adjudicator(packet, "BORDERLINE", timestamp="2026-09-08T02:00:00Z")
+        packet["adjudication"] = {
+            "state": "ADJUDICATED",
+            "final_disposition": "BORDERLINE",
+            "final_rationale": "Different rationale",
+        }
+        self.assert_invalid(packet, "FINAL_ADJUDICATOR rationale must equal final_rationale")
 
     def test_final_adjudicator_must_bind_same_evidence_packet(self) -> None:
         packet = _valid_agree_packet()
@@ -223,20 +280,20 @@ class PreG2D4ReviewPacketSemanticTests(unittest.TestCase):
         packet["adjudication"] = {
             "state": "ADJUDICATED",
             "final_disposition": "BORDERLINE",
-            "final_rationale": "Synthetic adjudication rationale",
+            "final_rationale": "Synthetic rationale for FINAL_ADJUDICATOR",
         }
         self.assert_invalid(packet, "exact canonical evidence_packet SHA-256")
 
-    def test_adjudicator_must_follow_primary_and_secondary_review(self) -> None:
+    def test_adjudicator_must_strictly_follow_primary_and_secondary_review(self) -> None:
         packet = _valid_agree_packet()
         packet["reviewer_records"][1]["decision"] = "EXCLUDE"
-        _append_final_adjudicator(packet, "BORDERLINE", timestamp="2026-09-08T01:05:00Z")
+        _append_final_adjudicator(packet, "BORDERLINE", timestamp="2026-09-08T01:10:00Z")
         packet["adjudication"] = {
             "state": "ADJUDICATED",
             "final_disposition": "BORDERLINE",
-            "final_rationale": "Synthetic adjudication rationale",
+            "final_rationale": "Synthetic rationale for FINAL_ADJUDICATOR",
         }
-        self.assert_invalid(packet, "timestamp cannot precede primary/secondary")
+        self.assert_invalid(packet, "timestamp must be later than primary/secondary review")
 
     def test_valid_adjudicated_disagreement(self) -> None:
         packet = _valid_agree_packet()
@@ -245,7 +302,7 @@ class PreG2D4ReviewPacketSemanticTests(unittest.TestCase):
         packet["adjudication"] = {
             "state": "ADJUDICATED",
             "final_disposition": "BORDERLINE",
-            "final_rationale": "Synthetic adjudication rationale",
+            "final_rationale": "Synthetic rationale for FINAL_ADJUDICATOR",
         }
         validate_packet_semantics(packet)
 
