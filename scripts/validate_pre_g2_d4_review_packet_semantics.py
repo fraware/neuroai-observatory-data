@@ -259,12 +259,16 @@ def validate_packet_semantics(packet: dict[str, Any]) -> None:
             raise D4ReviewPacketSemanticError("adjudicated final_disposition is outside the D1 domain")
         if final_adjudicator.get("decision") != final_disposition:
             raise D4ReviewPacketSemanticError("FINAL_ADJUDICATOR decision must equal final_disposition")
+        final_rationale_text = _require_string(final_rationale, "adjudication.final_rationale")
+        if final_adjudicator.get("rationale") != final_rationale_text:
+            raise D4ReviewPacketSemanticError("FINAL_ADJUDICATOR rationale must equal final_rationale")
         adjudicator_time = reviewed_at_by_role["FINAL_ADJUDICATOR"]
-        if adjudicator_time < max(
+        if adjudicator_time <= max(
             reviewed_at_by_role["PRIMARY_REVIEWER"], reviewed_at_by_role["SECONDARY_REVIEWER"]
         ):
-            raise D4ReviewPacketSemanticError("FINAL_ADJUDICATOR timestamp cannot precede primary/secondary review")
-        _require_string(final_rationale, "adjudication.final_rationale")
+            raise D4ReviewPacketSemanticError(
+                "FINAL_ADJUDICATOR timestamp must be later than primary/secondary review"
+            )
     elif state == UNRESOLVED_STATE:
         if secondary is None:
             raise D4ReviewPacketSemanticError("unresolved disagreement requires primary and secondary reviews")
