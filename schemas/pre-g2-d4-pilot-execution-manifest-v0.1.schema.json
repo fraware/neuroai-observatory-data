@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:neuroai:observatory:d4-pilot-execution-manifest:0.1",
+  "title": "PRE-G2 D4 controlled pilot execution manifest",
+  "description": "Public schema for an S3-only 60-item D4 pilot execution manifest. Real packet references, item identities, human labels, reviewer references, evidence, rationales, and HMAC keys remain controlled and must not be committed to public Git.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "benchmark_id",
+    "sampling_protocol_id",
+    "execution_protocol_id",
+    "pilot_round_id",
+    "state",
+    "pilot_membership_commitment",
+    "pilot_membership_commitment_scheme",
+    "reviewer_training_record_sha256",
+    "exposure_register_sha256",
+    "packet_manifest"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "benchmark_id": {"const": "PRE_G2_PRODUCT_V0_1"},
+    "sampling_protocol_id": {"const": "PRE_G2_D4_SAMPLING_CALIBRATION_PROTOCOL_2026-09-09_v0.1"},
+    "execution_protocol_id": {"const": "PRE_G2_D4_PILOT_EXECUTION_PROTOCOL_2026-09-09_v0.1"},
+    "pilot_round_id": {"type": "string", "minLength": 1},
+    "state": {"const": "COMPLETE_ROUND_NO_EXTENSION"},
+    "pilot_membership_commitment": {
+      "$ref": "#/$defs/sha256",
+      "description": "Opaque HMAC-SHA-256 commitment over the exact sorted 60-item pilot membership. The key remains S3-controlled."
+    },
+    "pilot_membership_commitment_scheme": {"const": "HMAC_SHA256_DOMAIN_CANONICAL_JSON_V1"},
+    "reviewer_training_record_sha256": {"$ref": "#/$defs/sha256"},
+    "exposure_register_sha256": {"$ref": "#/$defs/sha256"},
+    "packet_manifest": {
+      "type": "array",
+      "minItems": 60,
+      "maxItems": 60,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/packet_entry"}
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "packet_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["controlled_packet_ref", "packet_sha256"],
+      "properties": {
+        "controlled_packet_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "S3-relative packet reference. Real values remain controlled and must never be copied into public Git."
+        },
+        "packet_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  }
+}
