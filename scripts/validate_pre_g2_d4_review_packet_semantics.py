@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from datetime import datetime
 from pathlib import Path
@@ -44,8 +45,26 @@ def _parse_aware_timestamp(value: Any, field: str) -> datetime:
     return parsed
 
 
+def _canonical_json_bytes(value: Any) -> bytes:
+    try:
+        encoded = json.dumps(
+            value,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            allow_nan=False,
+        )
+    except (TypeError, ValueError) as exc:
+        raise D4ReviewPacketSemanticError("controlled packet material must be finite JSON-compatible data") from exc
+    return encoded.encode("utf-8")
+
+
 def _canonical(value: Any) -> str:
-    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return _canonical_json_bytes(value).decode("utf-8")
+
+
+def _canonical_sha256(value: Any) -> str:
+    return hashlib.sha256(_canonical_json_bytes(value)).hexdigest()
 
 
 def validate_packet_semantics(packet: dict[str, Any]) -> None:
@@ -118,6 +137,7 @@ def validate_packet_semantics(packet: dict[str, Any]) -> None:
         raise D4ReviewPacketSemanticError(
             "at least one identity_basis_ref must explicitly support EXISTENCE_IDENTITY"
         )
+    evidence_packet_sha256 = _canonical_sha256(evidence_packet)
 
     review_design = _require_mapping(packet.get("review_design"), "review_design")
     double_label_required = review_design.get("double_label_required")
@@ -147,6 +167,13 @@ def validate_packet_semantics(packet: dict[str, Any]) -> None:
         if reviewer_ref in reviewer_refs:
             raise D4ReviewPacketSemanticError("reviewer_ref values must be distinct across reviewer roles")
         reviewer_refs.add(reviewer_ref)
+        bound_evidence_sha256 = _require_string(
+            record.get("evidence_packet_sha256"), f"reviewer_records[{index}].evidence_packet_sha256"
+        )
+        if bound_evidence_sha256 != evidence_packet_sha256:
+            raise D4ReviewPacketSemanticError(
+                "every reviewer record must bind the exact canonical evidence_packet SHA-256"
+            )
         role = record.get("adjudicator_role")
         if role not in REVIEWER_ROLES:
             raise D4ReviewPacketSemanticError("reviewer adjudicator_role is unsupported")
