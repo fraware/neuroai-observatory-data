@@ -103,6 +103,43 @@ REVIEWER_RECORD_KEYS = {
 ADJUDICATION_KEYS = {"state", "final_disposition", "final_rationale"}
 EXPOSURE_KEYS = {"exposure_status", "exposure_register_ref", "held_out_eligible"}
 RIGHTS_KEYS = {"custody", "redistribution_authority_claimed"}
+
+OBJECT_TYPES = {
+    "PRODUCT",
+    "SYSTEM",
+    "SERVICE",
+    "PLATFORM",
+    "SOFTWARE",
+    "DEVICE",
+    "NONTRADITIONAL_FORM_FACTOR",
+}
+SOURCE_CLASSES = {
+    "FIRST_PARTY",
+    "REGULATOR",
+    "SCIENTIFIC_PUBLICATION",
+    "INSTITUTIONAL_PARTNER",
+    "DISTRIBUTOR_OR_RETAILER",
+    "MEDIA_OR_ANALYST",
+    "OTHER",
+}
+CLAIM_SCOPES = {
+    "EXISTENCE_IDENTITY",
+    "CAPABILITY_DESCRIPTION",
+    "CONTEXT_OF_USE",
+    "REGULATORY_STATUS",
+    "EFFECTIVENESS",
+    "DEPLOYMENT",
+    "COMMERCIALIZATION",
+}
+D1_DISPOSITIONS = {"ABSTAIN", "BORDERLINE", "EXCLUDE", "INCLUDE"}
+REVIEWER_ROLES = {"PRIMARY_REVIEWER", "SECONDARY_REVIEWER", "FINAL_ADJUDICATOR"}
+ADJUDICATION_STATES = {"ADJUDICATED", "AGREE", "DISAGREE_UNADJUDICATED"}
+EXPOSURE_STATES = {
+    "NO_KNOWN_EXPOSURE_REVIEWED",
+    "EXPOSED_EXCLUDE_FROM_HELD_OUT",
+    "UNKNOWN_REVIEW_REQUIRED",
+}
+
 FORBIDDEN_MODEL_KEYS = {
     "prediction",
     "probability_positive",
@@ -129,13 +166,16 @@ class D4PilotExecutionError(ValueError):
 
 
 def _canonical_bytes(value: Any) -> bytes:
-    return json.dumps(
-        value,
-        sort_keys=True,
-        separators=(",", ":"),
-        ensure_ascii=False,
-        allow_nan=False,
-    ).encode("utf-8")
+    try:
+        return json.dumps(
+            value,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            allow_nan=False,
+        ).encode("utf-8")
+    except (TypeError, ValueError) as exc:
+        raise D4PilotExecutionError("controlled pilot material must be finite JSON-compatible data") from exc
 
 
 def _hmac_domain(key: bytes, domain: str, value: Any) -> str:
@@ -171,6 +211,20 @@ def _require_sha256(value: Any, field: str) -> str:
     return value
 
 
+def _require_unique_strings(value: Any, field: str, *, min_length: int = 1) -> list[str]:
+    if not isinstance(value, list) or not value:
+        raise D4PilotExecutionError(f"{field} must be a non-empty array")
+    result: list[str] = []
+    for index, item in enumerate(value):
+        text = _require_nonempty_string(item, f"{field}[{index}]")
+        if len(text) < min_length:
+            raise D4PilotExecutionError(f"{field}[{index}] is shorter than the public schema permits")
+        result.append(text)
+    if len(result) != len(set(result)):
+        raise D4PilotExecutionError(f"{field} values must be unique")
+    return result
+
+
 def _reject_forbidden_model_fields(value: Any, field: str = "packet") -> None:
     if isinstance(value, dict):
         forbidden = sorted(set(value).intersection(FORBIDDEN_MODEL_KEYS))
@@ -184,63 +238,131 @@ def _reject_forbidden_model_fields(value: Any, field: str = "packet") -> None:
 
 
 def _validate_object_binding_shape(value: Any, field: str) -> None:
-    mapping = _require_mapping(value, field)
-    _require_exact_keys(mapping, EXACT_OBJECT_KEYS, field)
+    binding = _require_mapping(value, field)
+    _require_exact_keys(binding, EXACT_OBJECT_KEYS, field)
+    _require_nonempty_string(binding["object_name"], f"{field}.object_name")
+    _require_nonempty_string(binding["organization_identity"], f"{field}.organization_identity")
+    if binding["object_type"] not in OBJECT_TYPES:
+        raise D4PilotExecutionError(f"{field}.object_type is outside the public schema enum")
+    if binding["version_status"] not in {"KNOWN", "NOT_STATED"}:
+        raise D4PilotExecutionError(f"{field}.version_status is outside the public schema enum")
+    if binding["version_status"] == "KNOWN":
+        _require_nonempty_string(binding["version_or_release"], f"{field}.version_or_release")
+    elif binding["version_or_release"] is not None:
+        raise D4PilotExecutionError(f"{field}.version_or_release must be null when version_status=NOT_STATED")
+    _require_nonempty_string(binding["observed_at"], f"{field}.observed_at")
+    _require_unique_strings(binding["jurisdiction_context"], f"{field}.jurisdiction_context")
+    _require_unique_strings(binding["language_context"], f"{field}.language_context", min_length=2)
+    if binding["identity_resolution_state"] not in {"RESOLVED", "AMBIGUOUS"}:
+        raise D4PilotExecutionError(f"{field}.identity_resolution_state is outside the public schema enum")
+    _require_unique_strings(binding["identity_basis_refs"], f"{field}.identity_basis_refs")
 
 
 def _validate_packet_shape(packet: dict[str, Any]) -> None:
-    """Enforce the exact public packet shape before semantic aggregation.
-
-    This is deliberately narrower than a general JSON-Schema engine. It locks the
-    exact object keys used by the merged public schema, rejects model-development
-    fields recursively, and then delegates cross-field semantics to the merged
-    validator.
-    """
+    """Enforce the merged public review-packet structure before semantic aggregation."""
 
     _require_exact_keys(packet, PACKET_TOP_KEYS, "packet")
     _reject_forbidden_model_fields(packet)
-    _validate_object_binding_shape(packet.get("exact_object_binding"), "packet.exact_object_binding")
+    if packet["schema_version"] != "0.1" or packet["benchmark_id"] != BENCHMARK_ID:
+        raise D4PilotExecutionError("packet version/benchmark binding is invalid")
+    if packet["benchmark_kind"] != "PRODUCT":
+        raise D4PilotExecutionError("packet.benchmark_kind must be PRODUCT")
+    _require_nonempty_string(packet["item_id"], "packet.item_id")
+    if packet["candidate_role"] not in {"PILOT_DEVELOPMENT", "HELD_OUT_CANDIDATE"}:
+        raise D4PilotExecutionError("packet.candidate_role is outside the public schema enum")
 
-    evidence_packet = _require_mapping(packet.get("evidence_packet"), "packet.evidence_packet")
+    _validate_object_binding_shape(packet["exact_object_binding"], "packet.exact_object_binding")
+
+    evidence_packet = _require_mapping(packet["evidence_packet"], "packet.evidence_packet")
     _require_exact_keys(evidence_packet, EVIDENCE_PACKET_KEYS, "packet.evidence_packet")
-    evidence_refs = evidence_packet.get("evidence_refs")
+    evidence_refs = evidence_packet["evidence_refs"]
     if not isinstance(evidence_refs, list) or not evidence_refs:
         raise D4PilotExecutionError("packet.evidence_packet.evidence_refs must be a non-empty array")
     for index, raw_ref in enumerate(evidence_refs):
-        ref = _require_mapping(raw_ref, f"packet.evidence_packet.evidence_refs[{index}]")
-        _require_exact_keys(ref, EVIDENCE_REF_KEYS, f"packet.evidence_packet.evidence_refs[{index}]")
+        field = f"packet.evidence_packet.evidence_refs[{index}]"
+        ref = _require_mapping(raw_ref, field)
+        _require_exact_keys(ref, EVIDENCE_REF_KEYS, field)
+        _require_nonempty_string(ref["evidence_id"], f"{field}.evidence_id")
+        if ref["source_class"] not in SOURCE_CLASSES:
+            raise D4PilotExecutionError(f"{field}.source_class is outside the public schema enum")
+        _require_nonempty_string(ref["observed_at"], f"{field}.observed_at")
+        _require_sha256(ref["content_sha256"], f"{field}.content_sha256")
+        claim_scopes = _require_unique_strings(ref["claim_scopes"], f"{field}.claim_scopes")
+        if not set(claim_scopes).issubset(CLAIM_SCOPES):
+            raise D4PilotExecutionError(f"{field}.claim_scopes contains an unsupported value")
+        _require_nonempty_string(ref["source_identity_ref"], f"{field}.source_identity_ref")
+        if len(_require_nonempty_string(ref["source_language"], f"{field}.source_language")) < 2:
+            raise D4PilotExecutionError(f"{field}.source_language is shorter than the public schema permits")
+        if len(_require_nonempty_string(ref["review_language"], f"{field}.review_language")) < 2:
+            raise D4PilotExecutionError(f"{field}.review_language is shorter than the public schema permits")
+        if ref["translation_status"] not in {"SOURCE_LANGUAGE_REVIEWED", "TRANSLATED_FOR_REVIEW"}:
+            raise D4PilotExecutionError(f"{field}.translation_status is outside the public schema enum")
+        if ref["translation_provenance_ref"] is not None:
+            _require_nonempty_string(ref["translation_provenance_ref"], f"{field}.translation_provenance_ref")
+    _require_nonempty_string(evidence_packet["observation_cutoff"], "packet.evidence_packet.observation_cutoff")
+    if not isinstance(evidence_packet["identity_evidence_present"], bool):
+        raise D4PilotExecutionError("packet.evidence_packet.identity_evidence_present must be boolean")
+    if evidence_packet["stronger_claims_require_independent_support"] is not True:
+        raise D4PilotExecutionError("packet stronger-claim boundary must remain enabled")
 
-    strata = packet.get("construct_strata")
-    if not isinstance(strata, list) or not strata:
-        raise D4PilotExecutionError("packet.construct_strata must be a non-empty array")
-    if any(not isinstance(value, str) for value in strata):
-        raise D4PilotExecutionError("packet.construct_strata values must be strings")
-    if len(strata) != len(set(strata)):
-        raise D4PilotExecutionError("packet.construct_strata values must be unique")
+    strata = _require_unique_strings(packet["construct_strata"], "packet.construct_strata")
     unknown_strata = sorted(set(strata) - set(REQUIRED_STRATA))
     if unknown_strata:
         raise D4PilotExecutionError(f"packet.construct_strata contains unsupported values: {unknown_strata}")
 
-    review_design = _require_mapping(packet.get("review_design"), "packet.review_design")
+    review_design = _require_mapping(packet["review_design"], "packet.review_design")
     _require_exact_keys(review_design, REVIEW_DESIGN_KEYS, "packet.review_design")
-
-    reviewer_records = packet.get("reviewer_records")
-    if not isinstance(reviewer_records, list) or not reviewer_records:
-        raise D4PilotExecutionError("packet.reviewer_records must be a non-empty array")
-    for index, raw_record in enumerate(reviewer_records):
-        record = _require_mapping(raw_record, f"packet.reviewer_records[{index}]")
-        _require_exact_keys(record, REVIEWER_RECORD_KEYS, f"packet.reviewer_records[{index}]")
-        _validate_object_binding_shape(
-            record.get("exact_object_binding"),
-            f"packet.reviewer_records[{index}].exact_object_binding",
+    if not isinstance(review_design["double_label_required"], bool):
+        raise D4PilotExecutionError("packet.review_design.double_label_required must be boolean")
+    if review_design["model_output_blinding_state"] not in {
+        "BLINDED_TO_MODEL_OUTPUT",
+        "BLINDING_NOT_PRACTICABLE_RECORDED",
+    }:
+        raise D4PilotExecutionError("packet review blinding state is outside the public schema enum")
+    if review_design["blinding_exception_rationale"] is not None:
+        _require_nonempty_string(
+            review_design["blinding_exception_rationale"],
+            "packet.review_design.blinding_exception_rationale",
         )
 
-    adjudication = _require_mapping(packet.get("adjudication"), "packet.adjudication")
+    reviewer_records = packet["reviewer_records"]
+    if not isinstance(reviewer_records, list) or not 1 <= len(reviewer_records) <= 3:
+        raise D4PilotExecutionError("packet.reviewer_records must contain between one and three records")
+    for index, raw_record in enumerate(reviewer_records):
+        field = f"packet.reviewer_records[{index}]"
+        record = _require_mapping(raw_record, field)
+        _require_exact_keys(record, REVIEWER_RECORD_KEYS, field)
+        _require_nonempty_string(record["reviewer_ref"], f"{field}.reviewer_ref")
+        _require_sha256(record["evidence_packet_sha256"], f"{field}.evidence_packet_sha256")
+        if record["decision"] not in D1_DISPOSITIONS:
+            raise D4PilotExecutionError(f"{field}.decision is outside the D1 disposition domain")
+        _require_nonempty_string(record["rationale"], f"{field}.rationale")
+        if record["adjudicator_role"] not in REVIEWER_ROLES:
+            raise D4PilotExecutionError(f"{field}.adjudicator_role is outside the public schema enum")
+        _require_nonempty_string(record["timestamp"], f"{field}.timestamp")
+        _validate_object_binding_shape(record["exact_object_binding"], f"{field}.exact_object_binding")
+
+    adjudication = _require_mapping(packet["adjudication"], "packet.adjudication")
     _require_exact_keys(adjudication, ADJUDICATION_KEYS, "packet.adjudication")
-    exposure = _require_mapping(packet.get("exposure_control"), "packet.exposure_control")
+    if adjudication["state"] not in ADJUDICATION_STATES:
+        raise D4PilotExecutionError("packet.adjudication.state is outside the public schema enum")
+    if adjudication["final_disposition"] is not None and adjudication["final_disposition"] not in D1_DISPOSITIONS:
+        raise D4PilotExecutionError("packet.adjudication.final_disposition is outside the D1 domain")
+    if adjudication["final_rationale"] is not None:
+        _require_nonempty_string(adjudication["final_rationale"], "packet.adjudication.final_rationale")
+
+    exposure = _require_mapping(packet["exposure_control"], "packet.exposure_control")
     _require_exact_keys(exposure, EXPOSURE_KEYS, "packet.exposure_control")
-    rights = _require_mapping(packet.get("rights_containment"), "packet.rights_containment")
+    if exposure["exposure_status"] not in EXPOSURE_STATES:
+        raise D4PilotExecutionError("packet.exposure_control.exposure_status is outside the public schema enum")
+    _require_nonempty_string(exposure["exposure_register_ref"], "packet.exposure_control.exposure_register_ref")
+    if not isinstance(exposure["held_out_eligible"], bool):
+        raise D4PilotExecutionError("packet.exposure_control.held_out_eligible must be boolean")
+
+    rights = _require_mapping(packet["rights_containment"], "packet.rights_containment")
     _require_exact_keys(rights, RIGHTS_KEYS, "packet.rights_containment")
+    if rights["custody"] != "S3_CONTROLLED" or rights["redistribution_authority_claimed"] is not False:
+        raise D4PilotExecutionError("packet rights containment must remain S3-controlled and non-authorizing")
 
 
 def pilot_membership_commitment(pilot_round_id: str, item_ids: list[str], key: bytes) -> str:
@@ -348,19 +470,19 @@ def load_validated_pilot_packets(
         _validate_packet_shape(packet)
         try:
             validate_packet_semantics(packet)
-        except D4ReviewPacketSemanticError as exc:
-            raise D4PilotExecutionError(f"controlled packet failed merged D4 semantic validation: {exc}") from exc
+        except D4ReviewPacketSemanticError:
+            # The merged semantic validator may include controlled evidence refs in
+            # detailed diagnostics. Do not propagate those identifiers to stdout.
+            raise D4PilotExecutionError("controlled packet failed merged D4 semantic validation") from None
 
-        if packet.get("candidate_role") != "PILOT_DEVELOPMENT":
+        if packet["candidate_role"] != "PILOT_DEVELOPMENT":
             raise D4PilotExecutionError("every controlled pilot packet must have candidate_role=PILOT_DEVELOPMENT")
-        review_design = _require_mapping(packet.get("review_design"), "packet.review_design")
-        if review_design.get("double_label_required") is not True:
+        if packet["review_design"]["double_label_required"] is not True:
             raise D4PilotExecutionError("every controlled pilot packet must require independent double labeling")
-        exposure = _require_mapping(packet.get("exposure_control"), "packet.exposure_control")
-        if exposure.get("held_out_eligible") is not False:
+        if packet["exposure_control"]["held_out_eligible"] is not False:
             raise D4PilotExecutionError("pilot item cannot be held-out eligible")
 
-        item_id = _require_nonempty_string(packet.get("item_id"), "packet.item_id")
+        item_id = _require_nonempty_string(packet["item_id"], "packet.item_id")
         if item_id in seen_items:
             raise D4PilotExecutionError("pilot review packets must contain 60 unique item IDs")
         seen_items.add(item_id)
@@ -390,11 +512,10 @@ def build_pilot_readiness_aggregate(
     blinding_exception_count = 0
 
     for packet in packets:
-        adjudication = packet["adjudication"]
-        state = adjudication["state"]
+        state = packet["adjudication"]["state"]
         state_counts[state] += 1
         if state in {"AGREE", "ADJUDICATED"}:
-            final_disposition = adjudication["final_disposition"]
+            final_disposition = packet["adjudication"]["final_disposition"]
             if final_disposition not in disposition_counts:
                 raise D4PilotExecutionError("resolved packet final disposition is outside approved D1 domain")
             disposition_counts[final_disposition] += 1
@@ -450,9 +571,9 @@ def build_pilot_readiness_aggregate(
         },
     }
 
-    # Reuse the merged readiness evaluator as an invariant checker. A scientifically
-    # valid but threshold-failing pilot remains a valid aggregate; the evaluator's
-    # quantitative result is intentionally not promoted into authority here.
+    # Reuse the merged readiness evaluator as an invariant checker. A structurally
+    # valid but threshold-failing pilot remains a valid aggregate; the quantitative
+    # result is intentionally not promoted into authority here.
     evaluate_pilot_readiness(aggregate)
     return aggregate
 
