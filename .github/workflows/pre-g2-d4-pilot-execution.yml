@@ -8,7 +8,7 @@ on:
       - 'schemas/pre-g2-d4-pilot-execution-manifest-v0.1.schema.json'
       - 'schemas/pre-g2-d4-identity-namespace-attestation-v0.1.schema.json'
       - 'schemas/pre-g2-d4-pilot-final-disjointness-summary-v0.1.schema.json'
-      - 'curation/PRE_G2_D4_PILOT_EXECUTION_PROTOCOL_2026-09-10_v0.1.json'
+      - 'curation/PRE_G2_D4_PILOT_EXECUTION_PROTOCOL_2026-09-09_v0.1.json'
       - 'tests/test_pre_g2_d4_pilot_execution.py'
       - 'tests/test_pre_g2_d4_pilot_execution_hardening.py'
       - 'tests/test_pre_g2_d4_pilot_execution_protocol.py'
@@ -21,7 +21,7 @@ on:
       - 'schemas/pre-g2-d4-pilot-execution-manifest-v0.1.schema.json'
       - 'schemas/pre-g2-d4-identity-namespace-attestation-v0.1.schema.json'
       - 'schemas/pre-g2-d4-pilot-final-disjointness-summary-v0.1.schema.json'
-      - 'curation/PRE_G2_D4_PILOT_EXECUTION_PROTOCOL_2026-09-10_v0.1.json'
+      - 'curation/PRE_G2_D4_PILOT_EXECUTION_PROTOCOL_2026-09-09_v0.1.json'
       - 'tests/test_pre_g2_d4_pilot_execution.py'
       - 'tests/test_pre_g2_d4_pilot_execution_hardening.py'
       - 'tests/test_pre_g2_d4_pilot_execution_protocol.py'
@@ -42,9 +42,7 @@ jobs:
         run: |
           python -m unittest tests.test_pre_g2_d4_pilot_execution -v
           python -m unittest tests.test_pre_g2_d4_pilot_execution_hardening -v
-          if [ -f tests/test_pre_g2_d4_pilot_execution_protocol.py ]; then
-            python -m unittest tests.test_pre_g2_d4_pilot_execution_protocol -v
-          fi
+          python -m unittest tests.test_pre_g2_d4_pilot_execution_protocol -v
       - name: Authority boundary
         run: |
           echo "This workflow validates PRE-G2 D4 controlled pilot-execution software using synthetic fixtures only."
