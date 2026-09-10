@@ -9,14 +9,15 @@ from typing import Any
 
 from scripts.build_pre_g2_d4_pilot_readiness_aggregate import (
     BENCHMARK_ID,
-    EXECUTION_PROTOCOL_ID,
     D4PilotExecutionError,
+    EXECUTION_PROTOCOL_ID,
     load_validated_pilot_packets,
 )
 from scripts.select_pre_g2_d4_held_out import D4SelectionError, _validate_pool
 
 NAMESPACE_ID = "D4_CONTROLLED_ITEM_ID_V1"
 ATTESTATION_STATE = "HUMAN_CONTROLLED_NAMESPACE_BINDING_RECORDED"
+ATTESTATION_DIGEST_SEMANTICS = "SHA256_CANONICAL_JSON_V1"
 AUDIT_DOMAIN = "PRE_G2_D4_PILOT_FINAL_DISJOINTNESS_AUDIT_V1"
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
@@ -45,13 +46,20 @@ class D4DisjointnessError(ValueError):
 
 
 def _canonical_bytes(value: Any) -> bytes:
-    return json.dumps(
-        value,
-        sort_keys=True,
-        separators=(",", ":"),
-        ensure_ascii=False,
-        allow_nan=False,
-    ).encode("utf-8")
+    try:
+        return json.dumps(
+            value,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            allow_nan=False,
+        ).encode("utf-8")
+    except (TypeError, ValueError) as exc:
+        raise D4DisjointnessError("controlled disjointness material must be finite JSON-compatible data") from exc
+
+
+def _canonical_sha256(value: Any) -> str:
+    return hashlib.sha256(_canonical_bytes(value)).hexdigest()
 
 
 def _sha256_domain(domain: str, value: Any) -> str:
@@ -86,7 +94,15 @@ def _validate_attestation(
     attestation: dict[str, Any],
     manifest: dict[str, Any],
     candidate_pool: dict[str, Any],
-) -> None:
+    supplied_attestation_sha256: str,
+) -> str:
+    _require_sha256(supplied_attestation_sha256, "identity_namespace_attestation_sha256")
+    actual_attestation_sha256 = _canonical_sha256(attestation)
+    if actual_attestation_sha256 != supplied_attestation_sha256:
+        raise D4DisjointnessError(
+            "identity namespace attestation digest does not bind the supplied canonical attestation content"
+        )
+
     _require_exact_keys(attestation, ATTESTATION_KEYS, "identity_namespace_attestation")
     if attestation["schema_version"] != "0.1":
         raise D4DisjointnessError("identity namespace attestation schema_version must be 0.1")
@@ -123,6 +139,7 @@ def _validate_attestation(
             raise D4DisjointnessError(f"identity_namespace_attestation.authority.{field} must remain false")
     if authority["assessment_effect"] != "NONE":
         raise D4DisjointnessError("identity_namespace_attestation.authority.assessment_effect must remain NONE")
+    return actual_attestation_sha256
 
 
 def compute_disjointness_audit(
@@ -136,23 +153,31 @@ def compute_disjointness_audit(
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     """Compare exact controlled IDs under an explicit shared-namespace attestation.
 
-    This establishes exact string-ID overlap for the validated controlled inputs.
-    It does not establish that human entity/alias resolution underlying the shared
-    identifier namespace is scientifically or factually correct.
+    The attestation digest is recomputed from canonical JSON and must match the
+    supplied digest. The audit establishes exact string-ID overlap for validated
+    controlled inputs only. It does not establish the factual correctness of
+    human entity/alias resolution underlying the identifier namespace.
     """
 
-    _require_sha256(identity_namespace_attestation_sha256, "identity_namespace_attestation_sha256")
     try:
         _, pilot_item_ids = load_validated_pilot_packets(manifest, packet_root, pilot_commitment_key)
-    except D4PilotExecutionError as exc:
-        raise D4DisjointnessError(f"pilot execution validation failed: {exc}") from exc
+    except D4PilotExecutionError:
+        # Do not surface item/evidence/reviewer identifiers from controlled packet failures.
+        raise D4DisjointnessError("pilot execution validation failed under the merged controlled contract") from None
 
     try:
         validated_candidates = _validate_pool(candidate_pool, candidate_pool_commitment_key)
-    except D4SelectionError as exc:
-        raise D4DisjointnessError(f"candidate-pool validation failed: {exc}") from exc
+    except D4SelectionError:
+        # The parent selector's internal diagnostics may contain candidate IDs.
+        # They remain inside the controlled process and are intentionally not propagated.
+        raise D4DisjointnessError("candidate-pool validation failed under the merged controlled contract") from None
 
-    _validate_attestation(identity_namespace_attestation, manifest, candidate_pool)
+    attestation_sha256 = _validate_attestation(
+        identity_namespace_attestation,
+        manifest,
+        candidate_pool,
+        identity_namespace_attestation_sha256,
+    )
 
     pilot_ids = set(pilot_item_ids)
     candidate_ids = {candidate["candidate_id"] for candidate in validated_candidates}
@@ -164,7 +189,8 @@ def compute_disjointness_audit(
         "execution_protocol_id": EXECUTION_PROTOCOL_ID,
         "comparison_semantics": "SHARED_CONTROLLED_ITEM_ID_NAMESPACE_EXACT_EQUALITY",
         "namespace_id": NAMESPACE_ID,
-        "identity_namespace_attestation_sha256": identity_namespace_attestation_sha256,
+        "identity_namespace_attestation_digest_semantics": ATTESTATION_DIGEST_SEMANTICS,
+        "identity_namespace_attestation_sha256": attestation_sha256,
         "human_identity_resolution_provenance_sha256": identity_namespace_attestation[
             "human_identity_resolution_provenance_sha256"
         ],
@@ -197,7 +223,8 @@ def compute_disjointness_audit(
         "execution_protocol_id": EXECUTION_PROTOCOL_ID,
         "comparison_semantics": "SHARED_CONTROLLED_ITEM_ID_NAMESPACE_EXACT_EQUALITY",
         "namespace_id": NAMESPACE_ID,
-        "identity_namespace_attestation_sha256": identity_namespace_attestation_sha256,
+        "identity_namespace_attestation_digest_semantics": ATTESTATION_DIGEST_SEMANTICS,
+        "identity_namespace_attestation_sha256": attestation_sha256,
         "pilot_membership_commitment": manifest["pilot_membership_commitment"],
         "candidate_pool_commitment": candidate_pool["candidate_pool_commitment"],
         "pilot_item_count": len(pilot_ids),
@@ -235,15 +262,14 @@ def main() -> int:
     try:
         manifest = json.loads(args.pilot_manifest.read_text(encoding="utf-8"))
         candidate_pool = json.loads(args.candidate_pool.read_text(encoding="utf-8"))
-        attestation_raw = args.identity_namespace_attestation.read_bytes()
-        attestation = json.loads(attestation_raw.decode("utf-8"))
+        attestation = json.loads(args.identity_namespace_attestation.read_text(encoding="utf-8"))
         if not isinstance(manifest, dict) or not isinstance(candidate_pool, dict) or not isinstance(attestation, dict):
             raise D4DisjointnessError("manifest, candidate pool, and identity namespace attestation must be objects")
         pilot_key = args.pilot_commitment_key_file.read_bytes()
         candidate_key = args.candidate_pool_commitment_key_file.read_bytes()
         if not pilot_key or not candidate_key:
             raise D4DisjointnessError("commitment key files must not be empty")
-        attestation_sha256 = hashlib.sha256(attestation_raw).hexdigest()
+        attestation_sha256 = _canonical_sha256(attestation)
         controlled_audit, public_summary = compute_disjointness_audit(
             manifest,
             args.packet_root,
@@ -258,7 +284,7 @@ def main() -> int:
                 json.dumps(controlled_audit, sort_keys=True, separators=(",", ":"), ensure_ascii=False) + "\n",
                 encoding="utf-8",
             )
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError, D4DisjointnessError) as exc:
+    except (OSError, json.JSONDecodeError, D4DisjointnessError) as exc:
         print(f"INVALID: {exc}")
         return 1
 
