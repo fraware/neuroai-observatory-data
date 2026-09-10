@@ -1,0 +1,51 @@
+name: PRE-G2 D4 pilot execution controls
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/build_pre_g2_d4_pilot_readiness_aggregate.py'
+      - 'scripts/check_pre_g2_d4_pilot_final_disjointness.py'
+      - 'schemas/pre-g2-d4-pilot-execution-manifest-v0.1.schema.json'
+      - 'schemas/pre-g2-d4-identity-namespace-attestation-v0.1.schema.json'
+      - 'schemas/pre-g2-d4-pilot-final-disjointness-summary-v0.1.schema.json'
+      - 'curation/PRE_G2_D4_PILOT_EXECUTION_PROTOCOL_2026-09-09_v0.1.json'
+      - 'tests/test_pre_g2_d4_pilot_execution.py'
+      - 'tests/test_pre_g2_d4_pilot_execution_hardening.py'
+      - 'tests/test_pre_g2_d4_pilot_execution_protocol.py'
+      - '.github/workflows/pre-g2-d4-pilot-execution.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/build_pre_g2_d4_pilot_readiness_aggregate.py'
+      - 'scripts/check_pre_g2_d4_pilot_final_disjointness.py'
+      - 'schemas/pre-g2-d4-pilot-execution-manifest-v0.1.schema.json'
+      - 'schemas/pre-g2-d4-identity-namespace-attestation-v0.1.schema.json'
+      - 'schemas/pre-g2-d4-pilot-final-disjointness-summary-v0.1.schema.json'
+      - 'curation/PRE_G2_D4_PILOT_EXECUTION_PROTOCOL_2026-09-09_v0.1.json'
+      - 'tests/test_pre_g2_d4_pilot_execution.py'
+      - 'tests/test_pre_g2_d4_pilot_execution_hardening.py'
+      - 'tests/test_pre_g2_d4_pilot_execution_protocol.py'
+      - '.github/workflows/pre-g2-d4-pilot-execution.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-d4-pilot-execution:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Validate controlled pilot execution and disjointness semantics
+        run: |
+          python -m unittest tests.test_pre_g2_d4_pilot_execution -v
+          python -m unittest tests.test_pre_g2_d4_pilot_execution_hardening -v
+          python -m unittest tests.test_pre_g2_d4_pilot_execution_protocol -v
+      - name: Authority boundary
+        run: |
+          echo "This workflow validates PRE-G2 D4 controlled pilot-execution software using synthetic fixtures only."
+          echo "It does not execute a real pilot, establish reviewer competence or identity-resolution truth, freeze D4,"
+          echo "pass G0/G2/G5, resolve rights, create population inference, mutate canonical S2, authorize publication,"
+          echo "authorize Phase 4, or alter assessment state."
