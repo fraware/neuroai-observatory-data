@@ -10,6 +10,7 @@ on:
       - 'schemas/pre-g2-d4-pilot-final-disjointness-summary-v0.1.schema.json'
       - 'curation/PRE_G2_D4_PILOT_EXECUTION_PROTOCOL_2026-09-10_v0.1.json'
       - 'tests/test_pre_g2_d4_pilot_execution.py'
+      - 'tests/test_pre_g2_d4_pilot_execution_hardening.py'
       - 'tests/test_pre_g2_d4_pilot_execution_protocol.py'
       - '.github/workflows/pre-g2-d4-pilot-execution.yml'
   push:
@@ -22,6 +23,7 @@ on:
       - 'schemas/pre-g2-d4-pilot-final-disjointness-summary-v0.1.schema.json'
       - 'curation/PRE_G2_D4_PILOT_EXECUTION_PROTOCOL_2026-09-10_v0.1.json'
       - 'tests/test_pre_g2_d4_pilot_execution.py'
+      - 'tests/test_pre_g2_d4_pilot_execution_hardening.py'
       - 'tests/test_pre_g2_d4_pilot_execution_protocol.py'
       - '.github/workflows/pre-g2-d4-pilot-execution.yml'
 
@@ -39,6 +41,7 @@ jobs:
       - name: Validate controlled pilot execution and disjointness semantics
         run: |
           python -m unittest tests.test_pre_g2_d4_pilot_execution -v
+          python -m unittest tests.test_pre_g2_d4_pilot_execution_hardening -v
           if [ -f tests/test_pre_g2_d4_pilot_execution_protocol.py ]; then
             python -m unittest tests.test_pre_g2_d4_pilot_execution_protocol -v
           fi
