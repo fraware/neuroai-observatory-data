@@ -1,0 +1,50 @@
+name: PATSTAT Baseline A provenance intake
+
+on:
+  pull_request:
+    paths:
+      - 'curation/PATSTAT_BASELINE_A_PROVENANCE_INTAKE_REQUIREMENTS_2026-09-12_v0.1.json'
+      - 'curation/PATSTAT_BASELINE_A_PROVENANCE_INTAKE_STATUS_2026-09-12_v0.1.json'
+      - 'curation/PATSTAT_BASELINE_A_PROVENANCE_INTAKE_CONTROL_2026-09-12_v0.1.json'
+      - 'schemas/patstat-baseline-a-provenance-intake-status-v0.1.schema.json'
+      - 'scripts/validate_patstat_baseline_a_provenance_intake.py'
+      - 'tests/test_patstat_baseline_a_provenance_intake.py'
+      - 'tests/test_patstat_baseline_a_provenance_intake_control.py'
+      - '.github/workflows/patstat-baseline-a-provenance-intake.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'curation/PATSTAT_BASELINE_A_PROVENANCE_INTAKE_REQUIREMENTS_2026-09-12_v0.1.json'
+      - 'curation/PATSTAT_BASELINE_A_PROVENANCE_INTAKE_STATUS_2026-09-12_v0.1.json'
+      - 'curation/PATSTAT_BASELINE_A_PROVENANCE_INTAKE_CONTROL_2026-09-12_v0.1.json'
+      - 'schemas/patstat-baseline-a-provenance-intake-status-v0.1.schema.json'
+      - 'scripts/validate_patstat_baseline_a_provenance_intake.py'
+      - 'tests/test_patstat_baseline_a_provenance_intake.py'
+      - 'tests/test_patstat_baseline_a_provenance_intake_control.py'
+      - '.github/workflows/patstat-baseline-a-provenance-intake.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-patstat-provenance-intake:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Validate current waiting status
+        run: |
+          python scripts/validate_patstat_baseline_a_provenance_intake.py \
+            curation/PATSTAT_BASELINE_A_PROVENANCE_INTAKE_STATUS_2026-09-12_v0.1.json \
+            curation/PATSTAT_BASELINE_A_PROVENANCE_INTAKE_REQUIREMENTS_2026-09-12_v0.1.json
+      - name: Run provenance intake adversarial tests
+        run: |
+          python -m unittest tests.test_patstat_baseline_a_provenance_intake -v
+          python -m unittest tests.test_patstat_baseline_a_provenance_intake_control -v
+      - name: Authority boundary
+        run: |
+          echo "This workflow validates provenance-intake structure and completeness semantics only."
+          echo "It does not validate Roman's estimator, design unbiasedness, confidence interval, 49,671 estimate, 67% recall,"
+          echo "human truth, global completeness, PATSTAT rights, D3/G2/G5, S2/publication/Phase 4 authority, or assessment state."
