@@ -1,0 +1,201 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "PRE_G2_D4_CALIBRATION_SELECTION_COMPOSITION_2026-09-12_v0.1",
+  "status": "PRE_G2_COMPOSED_EXECUTION_CONTROL_ONLY_NO_REAL_SELECTION",
+  "as_of": "2026-09-12",
+  "governing_issue": 240,
+  "umbrella_d4_issue": 223,
+  "parent_main_binding": {
+    "repository": "fraware/neuroai-observatory-data",
+    "main_commit_sha": "5c8c24f5f2a2af610c8a75cba8ce7b627b732c24"
+  },
+  "parent_artifact_bindings": {
+    "product_challenge_protocol": {
+      "path": "curation/PRE_G2_D4_PRODUCT_CHALLENGE_PROTOCOL_2026-09-08_v0.1.json",
+      "git_blob_sha": "ec472ac66264e34343c97544d8da597014a9d80e"
+    },
+    "sampling_calibration_protocol": {
+      "path": "curation/PRE_G2_D4_SAMPLING_CALIBRATION_PROTOCOL_2026-09-09_v0.1.json",
+      "git_blob_sha": "feedbc5587b0de8a548d41efd49fc66c24cde271"
+    },
+    "pilot_execution_protocol": {
+      "path": "curation/PRE_G2_D4_PILOT_EXECUTION_PROTOCOL_2026-09-09_v0.1.json",
+      "git_blob_sha": "998ea2d47a9ecfd5bf697ab8c6eb62b95182a39f"
+    },
+    "selector_diagnostic_containment_protocol": {
+      "path": "curation/PRE_G2_D4_SELECTOR_DIAGNOSTIC_CONTAINMENT_2026-09-10_v0.1.json",
+      "git_blob_sha": "2c74c2f7d26d53d6d6a1d30df198ca87652e0b60"
+    },
+    "pilot_readiness_builder": {
+      "path": "scripts/build_pre_g2_d4_pilot_readiness_aggregate.py",
+      "git_blob_sha": "2a59f0c7160b3692f4f68cbceafc2b94e51ab04b"
+    },
+    "pilot_readiness_evaluator": {
+      "path": "scripts/evaluate_pre_g2_d4_pilot_readiness.py",
+      "git_blob_sha": "ffdcdee9cb35fbfc26c619a18aa1d728124c8e3d"
+    },
+    "candidate_pool_schema": {
+      "path": "schemas/pre-g2-d4-selection-candidate-pool-v0.1.schema.json",
+      "git_blob_sha": "c36857c378e7ccbd432d88a3a44fe194a1ec0f18"
+    },
+    "lower_level_selector_v0_1": {
+      "path": "scripts/select_pre_g2_d4_held_out.py",
+      "git_blob_sha": "1adfc08ddc57d0f77e24870eb839cc513d5fbb65"
+    },
+    "selector_v0_2_diagnostic_boundary": {
+      "path": "scripts/select_pre_g2_d4_held_out_v0_2.py",
+      "git_blob_sha": "47f9bba26bafe2c4c36254f830bc50b31a8df6a8"
+    },
+    "identity_namespace_attestation_schema": {
+      "path": "schemas/pre-g2-d4-identity-namespace-attestation-v0.1.schema.json",
+      "git_blob_sha": "8a138f6c2c72c62bea964986da9117d30a18329b"
+    },
+    "pilot_final_disjointness_checker": {
+      "path": "scripts/check_pre_g2_d4_pilot_final_disjointness.py",
+      "git_blob_sha": "2f4c6e4707ed253078560df36a90bfbaff6b09e9"
+    }
+  },
+  "successor_artifact_bindings": {
+    "human_calibration_disposition_schema": {
+      "path": "schemas/pre-g2-d4-human-calibration-disposition-v0.1.schema.json",
+      "git_blob_sha": "c5942bf3bf035fc68f2e5fae7c624608d5c1676c"
+    },
+    "final_selection_authorization_envelope_schema": {
+      "path": "schemas/pre-g2-d4-final-selection-authorization-envelope-v0.1.schema.json",
+      "git_blob_sha": "110780d73a143389b1b134d4e77aa5540141831c"
+    },
+    "calibration_selection_authorization_validator": {
+      "path": "scripts/validate_pre_g2_d4_calibration_selection_authorization.py",
+      "git_blob_sha": "829fd1e6c6edced15df9e0ea350e160d8320ceac"
+    },
+    "composed_final_selection_entrypoint": {
+      "path": "scripts/execute_pre_g2_d4_final_selection.py",
+      "git_blob_sha": "95dd67a2e246a923f536bc3a45268bdae6a8bd84"
+    }
+  },
+  "audit_finding": {
+    "historical_candidate_pool_schema_binds_human_calibration_disposition": false,
+    "historical_lower_selector_validates_human_calibration_disposition": false,
+    "historical_lower_selector_requires_approve_decision": false,
+    "historical_lower_selector_requires_pilot_final_disjointness_before_selection": false,
+    "historical_artifact_rewrite_authorized": false,
+    "append_only_authorization_envelope_required": true,
+    "required_real_execution_path": "D4_FINAL_SELECTION_COMPOSED_V0_1",
+    "lower_selector_status_after_successor": "VALID_DETERMINISTIC_PRIMITIVE_NOT_SUFFICIENT_ALONE_FOR_REAL_FINAL_SELECTION"
+  },
+  "human_calibration_disposition_contract": {
+    "custody": "S3_CONTROLLED",
+    "decision_domain": [
+      "APPROVE",
+      "REVISE",
+      "REJECT"
+    ],
+    "only_approve_unlocks_selection": true,
+    "approval_scope": "FINAL_D4_CHALLENGE_SELECTION_ONLY",
+    "governance_role": "D4_HUMAN_CALIBRATION_AUTHORITY",
+    "pseudonymous_governance_ref_required": true,
+    "human_rationale_required": true,
+    "timezone_aware_timestamp_required": true,
+    "quantitative_gate_pass_required": true,
+    "binds_exact_pilot_round_id": true,
+    "binds_exact_pilot_membership_hmac": true,
+    "binds_canonical_pilot_manifest_sha256": true,
+    "binds_canonical_readiness_aggregate_sha256": true,
+    "binds_canonical_readiness_result_sha256": true,
+    "binds_reviewer_training_record_sha256": true,
+    "binds_exposure_register_sha256": true,
+    "binds_prior_exposure_disjointness_audit_sha256": true,
+    "reviewer_competence_established_by_approval": false,
+    "benchmark_adequacy_established_by_approval": false,
+    "governance_identity_established_by_software": false
+  },
+  "selection_authorization_envelope_contract": {
+    "custody": "S3_CONTROLLED",
+    "state": "CONTROLLED_COMPOSITION_BINDING_RECORDED",
+    "scope": "FINAL_D4_CHALLENGE_SELECTION_ONLY",
+    "binds_exact_approved_disposition_sha256": true,
+    "binds_exact_pilot_round_id": true,
+    "binds_exact_pilot_membership_hmac": true,
+    "binds_exact_candidate_pool_id": true,
+    "binds_exact_candidate_pool_commitment": true,
+    "binds_exact_identity_namespace_attestation_sha256": true,
+    "independent_human_authority_created": false,
+    "s3_custody_established_by_schema": false
+  },
+  "composed_execution_contract": {
+    "execution_type": "D4_FINAL_SELECTION_COMPOSED_V0_1",
+    "sequence": [
+      "VALIDATE_OUTPUT_PATHS_BEFORE_ANY_WRITE",
+      "LOAD_EXACT_CONTROLLED_INPUTS_AND_KEYS",
+      "VALIDATE_EXACT_60_PACKET_PILOT_AND_RECOMPUTE_PILOT_HMAC",
+      "DERIVE_PILOT_READINESS_AGGREGATE_FROM_EXACT_PACKET_BYTES",
+      "EVALUATE_CURRENT_GOVERNED_D4_QUANTITATIVE_GATE",
+      "REQUIRE_QUANTITATIVE_GATE_PASS",
+      "VALIDATE_EXACT_HUMAN_CALIBRATION_DISPOSITION",
+      "REQUIRE_HUMAN_DECISION_APPROVE",
+      "VALIDATE_SELECTION_AUTHORIZATION_ENVELOPE",
+      "RECOMPUTE_PILOT_FINAL_DISJOINTNESS_WITH_BOTH_HMAC_KEYS_AND_NAMESPACE_ATTESTATION",
+      "REQUIRE_ZERO_OVERLAP",
+      "EXECUTE_EXISTING_DETERMINISTIC_SELECTION_SEMANTICS",
+      "WRITE_CONTROLLED_MEMBERSHIP_AND_AUDIT_ATOMICALLY",
+      "EMIT_AGGREGATE_ONLY_PUBLIC_SUMMARY"
+    ],
+    "candidate_pool_hmac_reverified": true,
+    "pilot_membership_hmac_reverified": true,
+    "identity_namespace_attestation_reverified": true,
+    "valid_success_preserves_lower_level_selection_semantics": true,
+    "controlled_success_output_required": true,
+    "controlled_outputs_may_alias_direct_inputs": false,
+    "controlled_outputs_may_be_inside_pilot_packet_root": false,
+    "detailed_failure_diagnostics_custody": "S3_CONTROLLED",
+    "public_failure_diagnostics": "FIXED_GENERIC_MESSAGES_ONLY",
+    "unexpected_exception_detail_publicly_permitted": false,
+    "runtime_s3_custody_established_by_filesystem_path_alone": false
+  },
+  "governed_pilot_thresholds_preserved": {
+    "this_successor_changes_quantitative_gate_semantics": false,
+    "minimum_primary_secondary_exact_four_way_agreement_count": 48,
+    "maximum_unresolved_disagreement_count": 3,
+    "minimum_resolved_include": 10,
+    "minimum_resolved_exclude": 10,
+    "minimum_resolved_borderline": 10,
+    "minimum_items_per_controlled_stratum": 6,
+    "scientific_appropriateness_of_raw_agreement_gate_reopened_here": false,
+    "note": "The 48/60 agreement threshold is inherited unchanged from the merged D4 protocol. Its scientific appropriateness for an ambiguity-enriched challenge pilot requires a separate explicit governance review if reconsidered."
+  },
+  "statistical_boundary": {
+    "evidence_role": "CHALLENGE_CONSTRUCT_COVERAGE",
+    "sampling_design_type": "NONPROBABILITY_CHALLENGE",
+    "population_generalizable": false,
+    "population_prevalence_claim_created": false,
+    "population_recall_claim_created": false,
+    "market_share_claim_created": false,
+    "global_completeness_claim_created": false
+  },
+  "current_evidence_state": {
+    "real_pilot_executed": false,
+    "real_human_calibration_disposition_created": false,
+    "real_selection_authorization_envelope_created": false,
+    "real_candidate_pool_frozen": false,
+    "real_final_selection_executed": false,
+    "real_final_human_labels_created": false,
+    "real_d4_frozen": false,
+    "benchmark_adequacy_established": false
+  },
+  "authority": {
+    "g1_approved": true,
+    "g0_passed": false,
+    "g2_passed": false,
+    "g5_passed": false,
+    "rights_clearance": false,
+    "reviewer_competence_established": false,
+    "identity_resolution_truth_established": false,
+    "benchmark_adequacy_established": false,
+    "population_generalization_authority": false,
+    "canonical_s2_authority": false,
+    "publication_authority": false,
+    "phase4_online_first_default_authorized": false,
+    "assessment_effect": "NONE"
+  },
+  "boundary": "This successor composes existing PRE-G2 D4 challenge primitives into a fail-closed final-selection execution path. It validates only declared software/control preconditions and preserves the existing D4 quantitative gate. It creates no real human approval, benchmark membership, labels, D4 freeze, reviewer competence, identity truth, rights clearance, gate passage, population inference, publication/S2/Phase4 authority, or assessment effect."
+}
