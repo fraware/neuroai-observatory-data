@@ -109,7 +109,8 @@ class D4SelectorDiagnosticContainmentTests(unittest.TestCase):
             root = Path(tmp)
             pool = _candidate_pool()
             del pool["candidates"][0]["candidate_id"]
-            _recommit(pool)
+            # Keep the previously valid pool commitment. Shape validation must fail
+            # before commitment recomputation and the outward boundary must remain generic.
             pool_path, key_path = _write_inputs(root, pool)
             status, aggregate, public_message = run_selector(pool_path, key_path)
             self.assertEqual(status, CONTROLLED_INPUT_FAILURE)
