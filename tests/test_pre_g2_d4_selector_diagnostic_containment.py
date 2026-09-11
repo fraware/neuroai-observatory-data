@@ -9,6 +9,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from scripts.select_pre_g2_d4_held_out import select_candidates as parent_select_candidates
 from scripts.select_pre_g2_d4_held_out_v0_2 import (
     CONTROLLED_INPUT_FAILURE,
     PUBLIC_CONTROLLED_FAILURE,
@@ -40,28 +41,31 @@ def _write_inputs(root: Path, pool: dict[str, object] | None = None) -> tuple[Pa
 
 
 class D4SelectorDiagnosticContainmentTests(unittest.TestCase):
-    def test_valid_selection_preserves_v0_1_semantics_and_separates_controlled_membership(self) -> None:
+    def test_valid_selection_is_exactly_equivalent_to_v0_1_semantics(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            pool_path, key_path = _write_inputs(root)
+            pool = _candidate_pool()
+            pool_path, key_path = _write_inputs(root, pool)
             controlled_path = root / "s3" / "selected-membership.json"
+
+            expected_controlled, expected_aggregate = parent_select_candidates(copy.deepcopy(pool), COMMITMENT_KEY)
             status, aggregate, public_message = run_selector(
                 pool_path,
                 key_path,
                 controlled_output=controlled_path,
             )
+
             self.assertEqual(status, SUCCESS)
             self.assertEqual(public_message, "")
-            self.assertIsNotNone(aggregate)
-            assert aggregate is not None
-            self.assertEqual(aggregate["selected_count"], 240)
-            self.assertNotIn("selected_candidate_ids", aggregate)
-            self.assertNotIn("SYNTHETIC-CANDIDATE-", json.dumps(aggregate, sort_keys=True))
+            self.assertEqual(aggregate, expected_aggregate)
 
             controlled = json.loads(controlled_path.read_text(encoding="utf-8"))
+            self.assertEqual(controlled, expected_controlled)
             self.assertEqual(controlled["selected_count"], 240)
             self.assertEqual(len(controlled["selected_candidate_ids"]), 240)
-            self.assertTrue(all(value.startswith("SYNTHETIC-CANDIDATE-") for value in controlled["selected_candidate_ids"]))
+            assert aggregate is not None
+            self.assertNotIn("selected_candidate_ids", aggregate)
+            self.assertNotIn("SYNTHETIC-CANDIDATE-", json.dumps(aggregate, sort_keys=True))
 
     def test_exposure_failure_is_generic_publicly_and_detailed_only_in_controlled_record(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -185,20 +189,27 @@ class D4SelectorDiagnosticContainmentTests(unittest.TestCase):
             self.assertEqual(public_message, PUBLIC_CONTROLLED_FAILURE)
             self.assertNotIn(SECRET_CANDIDATE, public_message)
 
-    def test_output_paths_cannot_overwrite_input_or_key_material(self) -> None:
+    def test_no_controlled_output_path_can_alias_input_or_key_material(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             pool_path, key_path = _write_inputs(root)
-            for output_path in (pool_path, key_path):
-                with self.subTest(output_path=output_path.name):
-                    status, aggregate, public_message = run_selector(
-                        pool_path,
-                        key_path,
-                        controlled_output=output_path,
-                    )
-                    self.assertEqual(status, CONTROLLED_INPUT_FAILURE)
-                    self.assertIsNone(aggregate)
-                    self.assertEqual(public_message, PUBLIC_CONTROLLED_FAILURE)
+            original_pool = pool_path.read_bytes()
+            original_key = key_path.read_bytes()
+
+            for field in ("controlled_output", "controlled_error_output"):
+                for output_path in (pool_path, key_path):
+                    with self.subTest(field=field, output_path=output_path.name):
+                        kwargs = {field: output_path}
+                        status, aggregate, public_message = run_selector(
+                            pool_path,
+                            key_path,
+                            **kwargs,
+                        )
+                        self.assertEqual(status, CONTROLLED_INPUT_FAILURE)
+                        self.assertIsNone(aggregate)
+                        self.assertEqual(public_message, PUBLIC_CONTROLLED_FAILURE)
+                        self.assertEqual(pool_path.read_bytes(), original_pool)
+                        self.assertEqual(key_path.read_bytes(), original_key)
 
     def test_success_and_error_outputs_must_be_distinct(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -214,6 +225,7 @@ class D4SelectorDiagnosticContainmentTests(unittest.TestCase):
             self.assertEqual(status, CONTROLLED_INPUT_FAILURE)
             self.assertIsNone(aggregate)
             self.assertEqual(public_message, PUBLIC_CONTROLLED_FAILURE)
+            self.assertFalse(shared.exists())
 
     def test_cli_stdout_never_contains_candidate_id_on_controlled_failure(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
