@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:neuroai:observatory:d4-human-calibration-disposition:0.1",
+  "title": "PRE-G2 D4 controlled human calibration disposition",
+  "description": "S3-controlled human governance disposition over one exact D4 pilot/readiness evidence package. APPROVE authorizes only the local final challenge selection step and creates no broader authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "disposition_id",
+    "benchmark_id",
+    "sampling_protocol_id",
+    "pilot_execution_protocol_id",
+    "pilot_round_id",
+    "pilot_membership_commitment",
+    "pilot_manifest_sha256",
+    "pilot_readiness_aggregate_sha256",
+    "pilot_readiness_result_sha256",
+    "reviewer_training_record_sha256",
+    "exposure_register_sha256",
+    "prior_exposure_disjointness_audit_sha256",
+    "quantitative_gate_passed",
+    "decision",
+    "approval_scope",
+    "governance_ref",
+    "governance_role",
+    "rationale",
+    "decided_at",
+    "authority"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "disposition_id": {"type": "string", "minLength": 1},
+    "benchmark_id": {"const": "PRE_G2_PRODUCT_V0_1"},
+    "sampling_protocol_id": {"const": "PRE_G2_D4_SAMPLING_CALIBRATION_PROTOCOL_2026-09-09_v0.1"},
+    "pilot_execution_protocol_id": {"const": "PRE_G2_D4_PILOT_EXECUTION_PROTOCOL_2026-09-09_v0.1"},
+    "pilot_round_id": {"type": "string", "minLength": 1},
+    "pilot_membership_commitment": {"$ref": "#/$defs/sha256"},
+    "pilot_manifest_sha256": {"$ref": "#/$defs/sha256"},
+    "pilot_readiness_aggregate_sha256": {"$ref": "#/$defs/sha256"},
+    "pilot_readiness_result_sha256": {"$ref": "#/$defs/sha256"},
+    "reviewer_training_record_sha256": {"$ref": "#/$defs/sha256"},
+    "exposure_register_sha256": {"$ref": "#/$defs/sha256"},
+    "prior_exposure_disjointness_audit_sha256": {"$ref": "#/$defs/sha256"},
+    "quantitative_gate_passed": {"const": true},
+    "decision": {"enum": ["APPROVE", "REVISE", "REJECT"]},
+    "approval_scope": {"const": "FINAL_D4_CHALLENGE_SELECTION_ONLY"},
+    "governance_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Pseudonymous reference into the controlled governance registry."
+    },
+    "governance_role": {"const": "D4_HUMAN_CALIBRATION_AUTHORITY"},
+    "rationale": {"type": "string", "minLength": 1},
+    "decided_at": {"type": "string", "format": "date-time"},
+    "authority": {"$ref": "#/$defs/authority"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reviewer_competence_established",
+        "benchmark_adequacy_established",
+        "g0_passed",
+        "g2_passed",
+        "g5_passed",
+        "rights_clearance",
+        "population_generalization_authority",
+        "canonical_s2_authority",
+        "publication_authority",
+        "phase4_online_first_default_authorized",
+        "assessment_effect"
+      ],
+      "properties": {
+        "reviewer_competence_established": {"const": false},
+        "benchmark_adequacy_established": {"const": false},
+        "g0_passed": {"const": false},
+        "g2_passed": {"const": false},
+        "g5_passed": {"const": false},
+        "rights_clearance": {"const": false},
+        "population_generalization_authority": {"const": false},
+        "canonical_s2_authority": {"const": false},
+        "publication_authority": {"const": false},
+        "phase4_online_first_default_authorized": {"const": false},
+        "assessment_effect": {"const": "NONE"}
+      }
+    }
+  }
+}
