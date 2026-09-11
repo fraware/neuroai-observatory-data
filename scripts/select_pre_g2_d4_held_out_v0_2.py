@@ -101,6 +101,9 @@ def run_selector(
     deployment custody remains an external runtime responsibility.
     """
 
+    # Validate every output path before any diagnostic write is permitted. In
+    # particular, an invalid controlled-error path must never be used to overwrite
+    # the candidate pool or HMAC key while reporting the path-separation failure.
     try:
         _validate_output_path_separation(
             candidate_pool_path,
@@ -108,6 +111,10 @@ def run_selector(
             controlled_output,
             controlled_error_output,
         )
+    except D4SelectionError:
+        return CONTROLLED_INPUT_FAILURE, None, PUBLIC_CONTROLLED_FAILURE
+
+    try:
         pool, commitment_key = _load_inputs(candidate_pool_path, commitment_key_path)
         controlled, aggregate = select_candidates(pool, commitment_key)
         if controlled_output is not None:
