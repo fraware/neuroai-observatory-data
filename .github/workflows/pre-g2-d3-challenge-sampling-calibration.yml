@@ -1,0 +1,52 @@
+name: PRE-G2 D3 challenge sampling calibration
+
+on:
+  pull_request:
+    paths:
+      - 'curation/PRE_G2_D3_CHALLENGE_SAMPLING_CALIBRATION_PROTOCOL_2026-09-11_v0.1.json'
+      - 'schemas/pre-g2-d3-challenge-*.schema.json'
+      - 'scripts/evaluate_pre_g2_d3_challenge_pilot_readiness.py'
+      - 'scripts/build_pre_g2_d3_challenge_pilot_readiness.py'
+      - 'scripts/select_pre_g2_d3_challenge_held_out.py'
+      - 'scripts/check_pre_g2_d3_challenge_pilot_final_disjointness.py'
+      - 'tests/test_pre_g2_d3_challenge_sampling_calibration.py'
+      - 'tests/test_pre_g2_d3_challenge_sampling_protocol.py'
+      - '.github/workflows/pre-g2-d3-challenge-sampling-calibration.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'curation/PRE_G2_D3_CHALLENGE_SAMPLING_CALIBRATION_PROTOCOL_2026-09-11_v0.1.json'
+      - 'schemas/pre-g2-d3-challenge-*.schema.json'
+      - 'scripts/evaluate_pre_g2_d3_challenge_pilot_readiness.py'
+      - 'scripts/build_pre_g2_d3_challenge_pilot_readiness.py'
+      - 'scripts/select_pre_g2_d3_challenge_held_out.py'
+      - 'scripts/check_pre_g2_d3_challenge_pilot_final_disjointness.py'
+      - 'tests/test_pre_g2_d3_challenge_sampling_calibration.py'
+      - 'tests/test_pre_g2_d3_challenge_sampling_protocol.py'
+      - '.github/workflows/pre-g2-d3-challenge-sampling-calibration.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-d3-challenge-sampling-calibration:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Validate merged D3 review semantics remain green
+        run: |
+          python -m unittest tests.test_pre_g2_d3_patent_review_packet -v
+          python -m unittest tests.test_pre_g2_d3_patent_challenge_protocol -v
+      - name: Validate D3 challenge sampling and calibration controls
+        run: |
+          python -m unittest tests.test_pre_g2_d3_challenge_sampling_calibration -v
+          python -m unittest tests.test_pre_g2_d3_challenge_sampling_protocol -v
+      - name: Authority boundary
+        run: |
+          echo "This workflow validates PRE-G2 D3 challenge calibration/selection software using synthetic fixtures only."
+          echo "It does not execute a real pilot, create human calibration approval, freeze a real candidate pool or final membership,"
+          echo "create real labels, implement probability sampling or population inference, validate Roman's estimator or headline figures,"
+          echo "pass G0/G2/G5, resolve PATSTAT rights, mutate canonical S2, authorize publication or Phase 4, or alter assessment state."

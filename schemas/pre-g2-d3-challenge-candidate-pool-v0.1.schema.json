@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:neuroai:observatory:d3-challenge-candidate-pool:0.1",
+  "title": "PRE-G2 D3 controlled patent challenge candidate pool",
+  "description": "S3-only pre-label candidate metadata for deterministic D3 challenge selection. Real candidate identities and membership must not enter public Git.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "benchmark_id",
+    "protocol_id",
+    "human_calibration_disposition_sha256",
+    "candidate_pool_id",
+    "candidate_pool_commitment",
+    "candidate_pool_commitment_scheme",
+    "candidate_pool_frozen",
+    "candidates"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "benchmark_id": {"const": "PRE_G2_PATENT_V0_1"},
+    "protocol_id": {"const": "PRE_G2_D3_CHALLENGE_SAMPLING_CALIBRATION_PROTOCOL_2026-09-11_v0.1"},
+    "human_calibration_disposition_sha256": {"$ref": "#/$defs/sha256"},
+    "candidate_pool_id": {"type": "string", "minLength": 1},
+    "candidate_pool_commitment": {"$ref": "#/$defs/sha256"},
+    "candidate_pool_commitment_scheme": {"const": "HMAC_SHA256_DOMAIN_CANONICAL_JSON_V1"},
+    "candidate_pool_frozen": {"const": true},
+    "candidates": {
+      "type": "array",
+      "minItems": 240,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/candidate"}
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "stratum": {
+      "enum": [
+        "GRAY_CAPABILITY",
+        "MISSING_OR_SHORT_ABSTRACT",
+        "MULTI_JURISDICTION",
+        "MULTI_YEAR",
+        "MULTILINGUAL",
+        "SEMANTICALLY_DECEPTIVE_NEGATIVE"
+      ]
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_id",
+        "construct_strata",
+        "source_languages",
+        "jurisdictions",
+        "text_availability",
+        "query_pool_provenance",
+        "exact_family_identity_resolved",
+        "exposure_status",
+        "semantic_validation_passed",
+        "human_confirmed_construct_tags",
+        "pilot_or_development_exposed"
+      ],
+      "properties": {
+        "candidate_id": {"type": "string", "minLength": 1},
+        "construct_strata": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/stratum"}
+        },
+        "source_languages": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 2}
+        },
+        "jurisdictions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "text_availability": {
+          "enum": [
+            "ENGLISH_ABSTRACT",
+            "NON_ENGLISH_ABSTRACT_ONLY",
+            "SHORT_ABSTRACT",
+            "MISSING_ABSTRACT",
+            "TITLE_ONLY"
+          ]
+        },
+        "query_pool_provenance": {
+          "enum": ["IN_QUERY_POOL", "OUTSIDE_QUERY_POOL", "UNKNOWN", "NOT_APPLICABLE"]
+        },
+        "exact_family_identity_resolved": {"const": true},
+        "exposure_status": {"const": "NO_KNOWN_EXPOSURE_REVIEWED"},
+        "semantic_validation_passed": {"const": true},
+        "human_confirmed_construct_tags": {"const": true},
+        "pilot_or_development_exposed": {"const": false}
+      }
+    }
+  }
+}
