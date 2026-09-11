@@ -44,7 +44,7 @@
     },
     "deterministic_selector": {
       "path": "scripts/select_pre_g2_d3_challenge_held_out.py",
-      "git_blob_sha": "b9676d4c567fc7e8423d531c28b7261523ab1336"
+      "git_blob_sha": "da2e00357a67d1f737da6a05e258bcb3bfb4499d"
     },
     "identity_namespace_attestation_schema": {
       "path": "schemas/pre-g2-d3-challenge-identity-namespace-attestation-v0.1.schema.json",
