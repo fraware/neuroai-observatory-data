@@ -1,0 +1,43 @@
+name: PRE-G2 D4 selector diagnostic containment
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/select_pre_g2_d4_held_out_v0_2.py'
+      - 'curation/PRE_G2_D4_SELECTOR_DIAGNOSTIC_CONTAINMENT_2026-09-10_v0.1.json'
+      - 'tests/test_pre_g2_d4_selector_diagnostic_containment.py'
+      - 'tests/test_pre_g2_d4_selector_diagnostic_protocol.py'
+      - 'tests/test_pre_g2_d4_sampling_calibration.py'
+      - '.github/workflows/pre-g2-d4-selector-diagnostic-containment.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/select_pre_g2_d4_held_out_v0_2.py'
+      - 'curation/PRE_G2_D4_SELECTOR_DIAGNOSTIC_CONTAINMENT_2026-09-10_v0.1.json'
+      - 'tests/test_pre_g2_d4_selector_diagnostic_containment.py'
+      - 'tests/test_pre_g2_d4_selector_diagnostic_protocol.py'
+      - 'tests/test_pre_g2_d4_sampling_calibration.py'
+      - '.github/workflows/pre-g2-d4-selector-diagnostic-containment.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-selector-diagnostic-containment:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Validate parent semantics and diagnostic containment
+        run: |
+          python -m unittest tests.test_pre_g2_d4_sampling_calibration -v
+          python -m unittest tests.test_pre_g2_d4_selector_diagnostic_containment -v
+          python -m unittest tests.test_pre_g2_d4_selector_diagnostic_protocol -v
+      - name: Authority boundary
+        run: |
+          echo "This workflow validates PRE-G2 D4 selector diagnostic-containment software using synthetic fixtures only."
+          echo "It does not execute a real candidate-pool selection, create human labels, freeze D4, establish benchmark adequacy,"
+          echo "pass G0/G2/G5, resolve rights, create population inference, mutate canonical S2, authorize publication,"
+          echo "authorize Phase 4, establish runtime S3 custody, or alter assessment state."
