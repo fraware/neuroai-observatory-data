@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:neuroai:observatory:patstat-baseline-a-provenance-intake-status:0.1",
+  "title": "PATSTAT Baseline A provenance intake status",
+  "description": "Sanitized public completeness/digest record for controlled PATSTAT Baseline A provenance intake. It contains no row-level PATSTAT evidence and creates no scientific or rights authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "intake_id",
+    "requirements_control_id",
+    "requirements_git_blob_sha",
+    "baseline_binding",
+    "response_binding",
+    "declared_readiness",
+    "components",
+    "fixed_scientific_boundaries",
+    "rights_boundary",
+    "authority"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "intake_id": {"type": "string", "minLength": 1},
+    "requirements_control_id": {"const": "PATSTAT_BASELINE_A_PROVENANCE_INTAKE_REQUIREMENTS_2026-09-12_v0.1"},
+    "requirements_git_blob_sha": {"$ref": "#/$defs/git_blob_sha"},
+    "baseline_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "roman_source_commit",
+        "scientific_status_git_blob_sha",
+        "patstat_edition",
+        "population_unit"
+      ],
+      "properties": {
+        "roman_source_commit": {"const": "2a09c02f7ec313a1da929c94a2b4ed6e0e88beb8"},
+        "scientific_status_git_blob_sha": {"const": "18c3b4b44f5f5d5381032236d1a696b7c3495fd7"},
+        "patstat_edition": {"const": "Autumn 2025"},
+        "population_unit": {"const": "DOCDB_SIMPLE_PATENT_FAMILY"}
+      }
+    },
+    "response_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "controlled_response_sha256",
+        "received_at",
+        "source_ref"
+      ],
+      "properties": {
+        "state": {"enum": ["AWAITING_RESPONSE", "RESPONSE_RECEIVED"]},
+        "controlled_response_sha256": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256"}]
+        },
+        "received_at": {
+          "oneOf": [{"type": "null"}, {"type": "string", "format": "date-time"}]
+        },
+        "source_ref": {
+          "oneOf": [{"type": "null"}, {"type": "string", "minLength": 1}]
+        }
+      }
+    },
+    "declared_readiness": {"enum": ["WAITING_FOR_PROVENANCE", "READY_FOR_SCIENTIFIC_AUDIT"]},
+    "components": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "HISTORICAL_JUDGES_AND_RUBRIC",
+        "FIRST_STAGE_PROBABILITY_DESIGN",
+        "SECOND_STAGE_333_DESIGN",
+        "ESTIMATOR_AND_UNCERTAINTY",
+        "RETRIEVAL_POOL_CONSTRUCTION",
+        "EXPORT_CLARIFICATION"
+      ],
+      "properties": {
+        "HISTORICAL_JUDGES_AND_RUBRIC": {"$ref": "#/$defs/component"},
+        "FIRST_STAGE_PROBABILITY_DESIGN": {"$ref": "#/$defs/component"},
+        "SECOND_STAGE_333_DESIGN": {"$ref": "#/$defs/component"},
+        "ESTIMATOR_AND_UNCERTAINTY": {"$ref": "#/$defs/component"},
+        "RETRIEVAL_POOL_CONSTRUCTION": {"$ref": "#/$defs/component"},
+        "EXPORT_CLARIFICATION": {"$ref": "#/$defs/component"}
+      }
+    },
+    "fixed_scientific_boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "historical_labels_authority",
+        "english_abstract_frame_is_global_patent_population",
+        "global_population_claim_allowed",
+        "roman_49671_validated",
+        "roman_67_percent_retrieval_recall_validated",
+        "design_unbiasedness_validated",
+        "reported_interval_validated",
+        "human_reference_standard_created"
+      ],
+      "properties": {
+        "historical_labels_authority": {"const": "MODEL_GENERATED_NOT_HUMAN_GOLD"},
+        "english_abstract_frame_is_global_patent_population": {"const": false},
+        "global_population_claim_allowed": {"const": false},
+        "roman_49671_validated": {"const": false},
+        "roman_67_percent_retrieval_recall_validated": {"const": false},
+        "design_unbiasedness_validated": {"const": false},
+        "reported_interval_validated": {"const": false},
+        "human_reference_standard_created": {"const": false}
+      }
+    },
+    "rights_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rights_issue", "rights_clearance", "scientific_readiness_implies_rights_clearance"],
+      "properties": {
+        "rights_issue": {"const": 210},
+        "rights_clearance": {"const": false},
+        "scientific_readiness_implies_rights_clearance": {"const": false}
+      }
+    },
+    "authority": {"$ref": "#/$defs/authority"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "git_blob_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "evidence_manifest_sha256",
+        "independent_verification_sha256",
+        "required_evidence"
+      ],
+      "properties": {
+        "state": {"enum": ["MISSING", "PROVIDED_UNVERIFIED", "VERIFIED_RECONSTRUCTIBLE"]},
+        "evidence_manifest_sha256": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256"}]
+        },
+        "independent_verification_sha256": {
+          "oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256"}]
+        },
+        "required_evidence": {
+          "type": "object",
+          "additionalProperties": {"type": "boolean"}
+        }
+      }
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "g0_passed",
+        "g2_passed",
+        "g5_passed",
+        "rights_clearance",
+        "canonical_scientific_finding",
+        "benchmark_adequacy_established",
+        "population_generalization_authority",
+        "canonical_s2_authority",
+        "publication_authority",
+        "phase4_online_first_default_authorized",
+        "assessment_effect"
+      ],
+      "properties": {
+        "g0_passed": {"const": false},
+        "g2_passed": {"const": false},
+        "g5_passed": {"const": false},
+        "rights_clearance": {"const": false},
+        "canonical_scientific_finding": {"const": false},
+        "benchmark_adequacy_established": {"const": false},
+        "population_generalization_authority": {"const": false},
+        "canonical_s2_authority": {"const": false},
+        "publication_authority": {"const": false},
+        "phase4_online_first_default_authorized": {"const": false},
+        "assessment_effect": {"const": "NONE"}
+      }
+    }
+  }
+}

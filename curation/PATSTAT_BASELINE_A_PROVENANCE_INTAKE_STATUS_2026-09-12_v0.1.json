@@ -1,0 +1,137 @@
+{
+  "schema_version": "0.1",
+  "intake_id": "PATSTAT_BASELINE_A_PROVENANCE_INTAKE_STATUS_2026-09-12_v0.1",
+  "requirements_control_id": "PATSTAT_BASELINE_A_PROVENANCE_INTAKE_REQUIREMENTS_2026-09-12_v0.1",
+  "requirements_git_blob_sha": "19178e12b28f2f10729a7ff3cb92261e83bbcb81",
+  "baseline_binding": {
+    "roman_source_commit": "2a09c02f7ec313a1da929c94a2b4ed6e0e88beb8",
+    "scientific_status_git_blob_sha": "18c3b4b44f5f5d5381032236d1a696b7c3495fd7",
+    "patstat_edition": "Autumn 2025",
+    "population_unit": "DOCDB_SIMPLE_PATENT_FAMILY"
+  },
+  "response_binding": {
+    "state": "AWAITING_RESPONSE",
+    "controlled_response_sha256": null,
+    "received_at": null,
+    "source_ref": null
+  },
+  "declared_readiness": "WAITING_FOR_PROVENANCE",
+  "components": {
+    "HISTORICAL_JUDGES_AND_RUBRIC": {
+      "state": "MISSING",
+      "evidence_manifest_sha256": null,
+      "independent_verification_sha256": null,
+      "required_evidence": {
+        "first_stage_rubric_prompt_bound": false,
+        "first_stage_model_identity_bound": false,
+        "first_stage_inference_configuration_bound": false,
+        "second_stage_rubric_prompt_bound": false,
+        "second_stage_model_identity_bound": false,
+        "second_stage_inference_configuration_bound": false,
+        "historical_labels_confirmed_machine_generated": false,
+        "historical_label_0_1_2_semantics_bound": false,
+        "four_malformed_verdicts_handling_bound": false
+      }
+    },
+    "FIRST_STAGE_PROBABILITY_DESIGN": {
+      "state": "MISSING",
+      "evidence_manifest_sha256": null,
+      "independent_verification_sha256": null,
+      "required_evidence": {
+        "exact_frame_construction_bound": false,
+        "nine_stratum_definitions_bound": false,
+        "stratum_Nh_nh_manifest_bound": false,
+        "certainty_exhaustive_cells_bound": false,
+        "sampling_implementation_bound": false,
+        "seed_randomization_procedure_bound": false,
+        "inclusion_probability_reconstruction_rule_bound": false,
+        "deduplication_unit_rule_bound": false,
+        "missing_malformed_handling_bound": false
+      }
+    },
+    "SECOND_STAGE_333_DESIGN": {
+      "state": "MISSING",
+      "evidence_manifest_sha256": null,
+      "independent_verification_sha256": null,
+      "required_evidence": {
+        "eligibility_frame_bound": false,
+        "stratification_cell_definitions_bound": false,
+        "frame_cell_counts_bound": false,
+        "sample_counts_by_cell_bound": false,
+        "inclusion_probability_manifest_bound": false,
+        "seed_randomization_procedure_bound": false,
+        "selection_timing_bound": false,
+        "adaptive_targeted_replacement_certainty_semantics_bound": false
+      }
+    },
+    "ESTIMATOR_AND_UNCERTAINTY": {
+      "state": "MISSING",
+      "evidence_manifest_sha256": null,
+      "independent_verification_sha256": null,
+      "required_evidence": {
+        "full_estimator_implementation_bound": false,
+        "population_estimands_bound": false,
+        "correction_formula_bound": false,
+        "second_stage_uncertainty_method_bound": false,
+        "population_total_interval_method_bound": false,
+        "retrieval_recall_ratio_uncertainty_method_bound": false,
+        "finite_population_correction_semantics_bound": false,
+        "exhaustive_strata_handling_bound": false,
+        "malformed_verdict_estimator_handling_bound": false,
+        "runtime_environment_bound": false
+      }
+    },
+    "RETRIEVAL_POOL_CONSTRUCTION": {
+      "state": "MISSING",
+      "evidence_manifest_sha256": null,
+      "independent_verification_sha256": null,
+      "required_evidence": {
+        "exact_query_definitions_bound": false,
+        "query_version_time_configuration_bound": false,
+        "family_deduplication_aggregation_bound": false,
+        "query_in_out_definition_bound": false,
+        "pool_construction_implementation_bound": false,
+        "pool_to_probability_frame_relation_bound": false
+      }
+    },
+    "EXPORT_CLARIFICATION": {
+      "state": "MISSING",
+      "evidence_manifest_sha256": null,
+      "independent_verification_sha256": null,
+      "required_evidence": {
+        "pool_frame_cluster_field_explained": false,
+        "cluster_field_estimator_use_declared": false,
+        "gold_labels_machine_generated_confirmed": false,
+        "export_misalignment_or_field_semantics_disposition_bound": false
+      }
+    }
+  },
+  "fixed_scientific_boundaries": {
+    "historical_labels_authority": "MODEL_GENERATED_NOT_HUMAN_GOLD",
+    "english_abstract_frame_is_global_patent_population": false,
+    "global_population_claim_allowed": false,
+    "roman_49671_validated": false,
+    "roman_67_percent_retrieval_recall_validated": false,
+    "design_unbiasedness_validated": false,
+    "reported_interval_validated": false,
+    "human_reference_standard_created": false
+  },
+  "rights_boundary": {
+    "rights_issue": 210,
+    "rights_clearance": false,
+    "scientific_readiness_implies_rights_clearance": false
+  },
+  "authority": {
+    "g0_passed": false,
+    "g2_passed": false,
+    "g5_passed": false,
+    "rights_clearance": false,
+    "canonical_scientific_finding": false,
+    "benchmark_adequacy_established": false,
+    "population_generalization_authority": false,
+    "canonical_s2_authority": false,
+    "publication_authority": false,
+    "phase4_online_first_default_authorized": false,
+    "assessment_effect": "NONE"
+  }
+}
