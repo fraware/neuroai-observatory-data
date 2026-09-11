@@ -1,0 +1,123 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "PATSTAT_BASELINE_A_PROVENANCE_INTAKE_REQUIREMENTS_2026-09-12_v0.1",
+  "status": "PRE_G2_PROVENANCE_INTAKE_REQUIREMENTS",
+  "as_of": "2026-09-12",
+  "governing_issue": 243,
+  "baseline_audit_issue": 220,
+  "d3_umbrella_issue": 222,
+  "rights_issue": 210,
+  "created_against_main_sha": "8d780ae2276f23ab9091bca94fb7f33a7d666e3d",
+  "baseline_binding": {
+    "scientific_status_path": "curation/PATSTAT_BASELINE_A_SCIENTIFIC_STATUS_2026-09-05_v0.1.json",
+    "scientific_status_git_blob_sha": "18c3b4b44f5f5d5381032236d1a696b7c3495fd7",
+    "roman_source_commit": "2a09c02f7ec313a1da929c94a2b4ed6e0e88beb8",
+    "patstat_edition": "Autumn 2025",
+    "population_unit": "DOCDB_SIMPLE_PATENT_FAMILY",
+    "patstat_family_count": 104742722,
+    "english_abstract_frame_count": 69273903,
+    "outside_english_abstract_frame_count": 35468819,
+    "first_stage_judged_count": 235738,
+    "second_stage_reread_count": 333,
+    "query_pool_count": 118629
+  },
+  "component_requirements": {
+    "HISTORICAL_JUDGES_AND_RUBRIC": [
+      "first_stage_rubric_prompt_bound",
+      "first_stage_model_identity_bound",
+      "first_stage_inference_configuration_bound",
+      "second_stage_rubric_prompt_bound",
+      "second_stage_model_identity_bound",
+      "second_stage_inference_configuration_bound",
+      "historical_labels_confirmed_machine_generated",
+      "historical_label_0_1_2_semantics_bound",
+      "four_malformed_verdicts_handling_bound"
+    ],
+    "FIRST_STAGE_PROBABILITY_DESIGN": [
+      "exact_frame_construction_bound",
+      "nine_stratum_definitions_bound",
+      "stratum_Nh_nh_manifest_bound",
+      "certainty_exhaustive_cells_bound",
+      "sampling_implementation_bound",
+      "seed_randomization_procedure_bound",
+      "inclusion_probability_reconstruction_rule_bound",
+      "deduplication_unit_rule_bound",
+      "missing_malformed_handling_bound"
+    ],
+    "SECOND_STAGE_333_DESIGN": [
+      "eligibility_frame_bound",
+      "stratification_cell_definitions_bound",
+      "frame_cell_counts_bound",
+      "sample_counts_by_cell_bound",
+      "inclusion_probability_manifest_bound",
+      "seed_randomization_procedure_bound",
+      "selection_timing_bound",
+      "adaptive_targeted_replacement_certainty_semantics_bound"
+    ],
+    "ESTIMATOR_AND_UNCERTAINTY": [
+      "full_estimator_implementation_bound",
+      "population_estimands_bound",
+      "correction_formula_bound",
+      "second_stage_uncertainty_method_bound",
+      "population_total_interval_method_bound",
+      "retrieval_recall_ratio_uncertainty_method_bound",
+      "finite_population_correction_semantics_bound",
+      "exhaustive_strata_handling_bound",
+      "malformed_verdict_estimator_handling_bound",
+      "runtime_environment_bound"
+    ],
+    "RETRIEVAL_POOL_CONSTRUCTION": [
+      "exact_query_definitions_bound",
+      "query_version_time_configuration_bound",
+      "family_deduplication_aggregation_bound",
+      "query_in_out_definition_bound",
+      "pool_construction_implementation_bound",
+      "pool_to_probability_frame_relation_bound"
+    ],
+    "EXPORT_CLARIFICATION": [
+      "pool_frame_cluster_field_explained",
+      "cluster_field_estimator_use_declared",
+      "gold_labels_machine_generated_confirmed",
+      "export_misalignment_or_field_semantics_disposition_bound"
+    ]
+  },
+  "component_states": {
+    "MISSING": "Required evidence has not been supplied.",
+    "PROVIDED_UNVERIFIED": "Evidence is supplied and digest-bound but has not been independently reconstructed or verified.",
+    "VERIFIED_RECONSTRUCTIBLE": "Evidence is supplied, digest-bound and separately independently verified as structurally sufficient for reconstruction. This is not scientific validity."
+  },
+  "readiness_semantics": {
+    "WAITING_FOR_PROVENANCE": "At least one mandatory component remains MISSING.",
+    "READY_FOR_SCIENTIFIC_AUDIT": "Every mandatory component is at least PROVIDED_UNVERIFIED. Estimator reconstruction/audit may start; no scientific claim is validated.",
+    "all_verified_reconstructible_means_scientifically_valid": false
+  },
+  "fixed_scientific_boundaries": {
+    "historical_labels_authority": "MODEL_GENERATED_NOT_HUMAN_GOLD",
+    "english_abstract_frame_is_global_patent_population": false,
+    "global_population_claim_allowed": false,
+    "roman_49671_validated_by_intake": false,
+    "roman_67_percent_retrieval_recall_validated_by_intake": false,
+    "design_unbiasedness_validated_by_intake": false,
+    "reported_interval_validated_by_intake": false,
+    "human_reference_standard_created_by_intake": false
+  },
+  "custody": {
+    "public_record": "SANITIZED_DIGEST_AND_COMPLETENESS_STATUS_ONLY",
+    "raw_prompts_scripts_sampling_manifests_or_licensed_material": "S3_CONTROLLED_WHEN_REQUIRED",
+    "public_record_may_expose_patstat_row_level_evidence": false
+  },
+  "authority": {
+    "g0_passed": false,
+    "g2_passed": false,
+    "g5_passed": false,
+    "rights_clearance": false,
+    "canonical_scientific_finding": false,
+    "benchmark_adequacy_established": false,
+    "population_generalization_authority": false,
+    "canonical_s2_authority": false,
+    "publication_authority": false,
+    "phase4_online_first_default_authorized": false,
+    "assessment_effect": "NONE"
+  },
+  "boundary": "This control specifies the provenance evidence required before independent scientific audit of PATSTAT Baseline A may begin. Intake completeness is not estimator validity, human truth, global completeness, rights clearance, benchmark adequacy, gate passage, publication authority, S2 authority, Phase 4 authority, or assessment effect."
+}
