@@ -1,0 +1,58 @@
+name: PRE-G2 D4 calibration selection composition
+
+on:
+  pull_request:
+    paths:
+      - 'curation/PRE_G2_D4_CALIBRATION_SELECTION_COMPOSITION_2026-09-12_v0.1.json'
+      - 'schemas/pre-g2-d4-human-calibration-disposition-v0.1.schema.json'
+      - 'schemas/pre-g2-d4-final-selection-authorization-envelope-v0.1.schema.json'
+      - 'scripts/validate_pre_g2_d4_calibration_selection_authorization.py'
+      - 'scripts/execute_pre_g2_d4_final_selection.py'
+      - 'tests/test_pre_g2_d4_calibration_selection_composition.py'
+      - 'tests/test_pre_g2_d4_calibration_selection_protocol.py'
+      - '.github/workflows/pre-g2-d4-calibration-selection-composition.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'curation/PRE_G2_D4_CALIBRATION_SELECTION_COMPOSITION_2026-09-12_v0.1.json'
+      - 'schemas/pre-g2-d4-human-calibration-disposition-v0.1.schema.json'
+      - 'schemas/pre-g2-d4-final-selection-authorization-envelope-v0.1.schema.json'
+      - 'scripts/validate_pre_g2_d4_calibration_selection_authorization.py'
+      - 'scripts/execute_pre_g2_d4_final_selection.py'
+      - 'tests/test_pre_g2_d4_calibration_selection_composition.py'
+      - 'tests/test_pre_g2_d4_calibration_selection_protocol.py'
+      - '.github/workflows/pre-g2-d4-calibration-selection-composition.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-d4-calibration-selection-composition:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Revalidate merged D4 review and sampling controls
+        run: |
+          python -m unittest tests.test_pre_g2_d4_review_packet_semantics -v
+          python -m unittest tests.test_pre_g2_d4_product_challenge_protocol -v
+          python -m unittest tests.test_pre_g2_d4_sampling_calibration -v
+          python -m unittest tests.test_pre_g2_d4_sampling_calibration_protocol -v
+          python -m unittest tests.test_pre_g2_d4_pilot_execution -v
+          python -m unittest tests.test_pre_g2_d4_pilot_execution_hardening -v
+          python -m unittest tests.test_pre_g2_d4_pilot_execution_protocol -v
+          python -m unittest tests.test_pre_g2_d4_selector_diagnostic_containment -v
+          python -m unittest tests.test_pre_g2_d4_selector_diagnostic_protocol -v
+      - name: Validate composed D4 calibration and final-selection controls
+        run: |
+          python -m unittest tests.test_pre_g2_d4_calibration_selection_composition -v
+          python -m unittest tests.test_pre_g2_d4_calibration_selection_protocol -v
+      - name: Authority boundary
+        run: |
+          echo "This workflow validates PRE-G2 composed D4 challenge-selection controls using synthetic fixtures only."
+          echo "It preserves the existing governed D4 quantitative pilot gate and does not execute a real pilot,"
+          echo "create real human calibration approval, freeze a real candidate pool, execute real final selection,"
+          echo "freeze D4, establish reviewer competence or benchmark adequacy, pass G0/G2/G5, resolve rights,"
+          echo "authorize population inference, mutate canonical S2, authorize publication or Phase 4, or alter assessment state."
