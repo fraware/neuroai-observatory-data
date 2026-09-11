@@ -177,12 +177,9 @@ def _candidate(index: int) -> dict[str, object]:
     language = NON_ENGLISH[index % len(NON_ENGLISH)]
     jurisdiction_a = JURISDICTIONS[index % len(JURISDICTIONS)]
     jurisdiction_b = JURISDICTIONS[(index + 1) % len(JURISDICTIONS)]
-    if index % 3 == 0:
-        text = "MISSING_ABSTRACT"
-    elif index % 3 == 1:
-        text = "SHORT_ABSTRACT"
-    else:
-        text = "ENGLISH_ABSTRACT"
+    # Every synthetic candidate carries the MISSING_OR_SHORT_ABSTRACT construct,
+    # so the text-availability metadata must remain mechanically compatible.
+    text = "MISSING_ABSTRACT" if index % 2 == 0 else "SHORT_ABSTRACT"
     return {
         "candidate_id": f"S3-CANDIDATE-FAMILY-{index:04d}",
         "construct_strata": list(ALL_STRATA),
