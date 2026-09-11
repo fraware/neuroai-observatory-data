@@ -1,0 +1,50 @@
+name: PRE-G2 D3 calibration selection composition
+
+on:
+  pull_request:
+    paths:
+      - 'curation/PRE_G2_D3_CALIBRATION_SELECTION_COMPOSITION_2026-09-11_v0.1.json'
+      - 'schemas/pre-g2-d3-challenge-human-calibration-disposition-v0.1.schema.json'
+      - 'scripts/validate_pre_g2_d3_challenge_human_calibration_disposition.py'
+      - 'scripts/execute_pre_g2_d3_challenge_final_selection.py'
+      - 'tests/test_pre_g2_d3_calibration_selection_composition.py'
+      - 'tests/test_pre_g2_d3_calibration_selection_protocol.py'
+      - '.github/workflows/pre-g2-d3-calibration-selection-composition.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'curation/PRE_G2_D3_CALIBRATION_SELECTION_COMPOSITION_2026-09-11_v0.1.json'
+      - 'schemas/pre-g2-d3-challenge-human-calibration-disposition-v0.1.schema.json'
+      - 'scripts/validate_pre_g2_d3_challenge_human_calibration_disposition.py'
+      - 'scripts/execute_pre_g2_d3_challenge_final_selection.py'
+      - 'tests/test_pre_g2_d3_calibration_selection_composition.py'
+      - 'tests/test_pre_g2_d3_calibration_selection_protocol.py'
+      - '.github/workflows/pre-g2-d3-calibration-selection-composition.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-composed-d3-selection:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Revalidate merged D3 challenge primitives
+        run: |
+          python -m unittest tests.test_pre_g2_d3_patent_review_packet -v
+          python -m unittest tests.test_pre_g2_d3_patent_challenge_protocol -v
+          python -m unittest tests.test_pre_g2_d3_challenge_sampling_calibration -v
+          python -m unittest tests.test_pre_g2_d3_challenge_sampling_protocol -v
+      - name: Validate composed calibration and final-selection controls
+        run: |
+          python -m unittest tests.test_pre_g2_d3_calibration_selection_composition -v
+          python -m unittest tests.test_pre_g2_d3_calibration_selection_protocol -v
+      - name: Authority boundary
+        run: |
+          echo "This workflow validates PRE-G2 composed D3 challenge selection controls with synthetic fixtures only."
+          echo "It does not create a real human calibration approval, execute a real pilot or final selection, freeze D3,"
+          echo "implement population inference, validate Roman's estimator or headline figures, pass G0/G2/G5,"
+          echo "resolve PATSTAT rights, mutate canonical S2, authorize publication or Phase 4, or alter assessment state."
