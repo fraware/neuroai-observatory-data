@@ -16,7 +16,7 @@ UNEXPECTED_INTERNAL_FAILURE = 70
 PUBLIC_CONTROLLED_FAILURE = (
     "INVALID: controlled candidate-pool selection failed under the D4 v0.2 diagnostic-containment boundary"
 )
-PUBLIC_INTERNAL_FAILURE = "INVALID: internal selector failure contained; inspect the configured S3 diagnostic record"
+PUBLIC_INTERNAL_FAILURE = "INVALID: internal selector failure contained under the D4 v0.2 diagnostic-containment boundary"
 
 
 def _controlled_diagnostic(error: BaseException, *, failure_class: str) -> dict[str, Any]:
