@@ -1,0 +1,100 @@
+{
+  "schema_version": "0.1.0",
+  "protocol_id": "PRE_G2_D4_SELECTOR_DIAGNOSTIC_CONTAINMENT_2026-09-10_v0.1",
+  "state": "SOFTWARE_CONTROL_SUCCESSOR_ONLY_NO_REAL_SELECTION",
+  "governing_issue": 232,
+  "parent_main_binding": {
+    "repository": "fraware/neuroai-observatory-data",
+    "main_commit_sha": "9105aae4b36e8e03f71ffa76e9c7656ea8dd3570"
+  },
+  "parent_artifact_bindings": {
+    "selector_v0_1": {
+      "path": "scripts/select_pre_g2_d4_held_out.py",
+      "git_blob_sha": "1adfc08ddc57d0f77e24870eb839cc513d5fbb65",
+      "status": "HISTORICAL_SEMANTICS_PRESERVED_DIAGNOSTIC_BOUNDARY_SUPERSEDED"
+    },
+    "sampling_calibration_protocol": {
+      "path": "curation/PRE_G2_D4_SAMPLING_CALIBRATION_PROTOCOL_2026-09-09_v0.1.json",
+      "git_blob_sha": "feedbc5587b0de8a548d41efd49fc66c24cde271"
+    },
+    "candidate_pool_schema": {
+      "path": "schemas/pre-g2-d4-selection-candidate-pool-v0.1.schema.json",
+      "git_blob_sha": "c36857c378e7ccbd432d88a3a44fe194a1ec0f18"
+    }
+  },
+  "successor_artifact_binding": {
+    "selector_v0_2_diagnostic_containment_entrypoint": {
+      "path": "scripts/select_pre_g2_d4_held_out_v0_2.py",
+      "git_blob_sha": "a286dac1fb8b72309c53e70e32c8d1d117fa3331"
+    }
+  },
+  "semantic_contract": {
+    "selection_semantics_source": "V0_1_SELECT_CANDIDATES_UNCHANGED",
+    "selection_arithmetic_changed": false,
+    "candidate_pool_commitment_semantics_changed": false,
+    "selected_membership_semantics_changed": false,
+    "aggregate_summary_semantics_changed": false,
+    "public_failure_detail_policy": "FIXED_GENERIC_MESSAGES_ONLY",
+    "controlled_failure_detail_policy": "OPTIONAL_CALLER_DESIGNATED_S3_PATH",
+    "controlled_output_atomic_write": true,
+    "output_paths_must_not_alias_candidate_pool_or_hmac_key": true,
+    "success_and_error_output_paths_must_be_distinct": true,
+    "path_validation_occurs_before_any_diagnostic_write": true,
+    "unexpected_exceptions_fail_closed": true,
+    "runtime_path_custody_established_by_software": false
+  },
+  "required_adversarial_coverage": [
+    "EXACT_V0_1_SUCCESS_EQUIVALENCE",
+    "MALFORMED_CANDIDATE_ROW",
+    "EXPOSURE_FAILURE",
+    "IDENTITY_FAILURE",
+    "COMMITMENT_FAILURE",
+    "QUOTA_FAILURE",
+    "MALFORMED_OR_MISSING_INPUT",
+    "UNEXPECTED_INTERNAL_EXCEPTION",
+    "CONTROLLED_OUTPUT_WRITE_FAILURE",
+    "CONTROLLED_DIAGNOSTIC_WRITE_FAILURE",
+    "INPUT_OUTPUT_ALIASING",
+    "SUCCESS_ERROR_OUTPUT_ALIASING",
+    "PUBLIC_STDOUT_IDENTIFIER_CONTAINMENT",
+    "INPUT_IMMUTABILITY"
+  ],
+  "controlled_diagnostic_boundary": {
+    "candidate_ids_publicly_permitted": false,
+    "membership_ids_publicly_permitted": false,
+    "evidence_refs_publicly_permitted": false,
+    "reviewer_refs_publicly_permitted": false,
+    "hmac_keys_publicly_permitted": false,
+    "controlled_detail_publicly_permitted": false,
+    "controlled_detail_custody": "S3_CONTROLLED",
+    "standalone_v0_1_real_s3_cli_approved": false,
+    "v0_2_real_s3_cli_approved_by_this_protocol": false,
+    "note": "This protocol validates software containment only. Deployment configuration must separately establish that caller-designated controlled paths are actually within the S3 boundary."
+  },
+  "current_evidence_state": {
+    "real_candidate_pool_selected": false,
+    "real_final_membership_selected": false,
+    "real_human_labels_created": false,
+    "d4_frozen": false,
+    "benchmark_adequacy_established": false
+  },
+  "limitations_and_nonclaims": [
+    "The successor wraps the existing v0.1 selection function; it does not independently prove the scientific adequacy of its selection algorithm or quotas.",
+    "Generic outward diagnostics prevent known identifier disclosure through this entrypoint but do not prove containment of external runner, filesystem, shell, platform, or logging layers.",
+    "A caller-designated controlled diagnostic path is not established as S3 by software; deployment custody remains external.",
+    "Synthetic adversarial tests do not execute a real D4 candidate pool or benchmark selection."
+  ],
+  "authority": {
+    "g1_approved": true,
+    "g0_passed": false,
+    "g2_passed": false,
+    "g5_passed": false,
+    "benchmark_adequacy_established": false,
+    "rights_clearance": false,
+    "population_generalization_authority": false,
+    "canonical_s2_authority": false,
+    "publication_authority": false,
+    "phase4_online_first_default_authorized": false,
+    "assessment_effect": "NONE"
+  }
+}
