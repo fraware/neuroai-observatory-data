@@ -1,0 +1,180 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "PRE_G2_D3_CHALLENGE_SAMPLING_CALIBRATION_PROTOCOL_2026-09-11_v0.1",
+  "status": "PRE_G2_SOFTWARE_CONTROL_ONLY_NO_REAL_PILOT_OR_MEMBERSHIP",
+  "as_of": "2026-09-11",
+  "governing_issue": 236,
+  "umbrella_d3_issue": 222,
+  "baseline_a_audit_issue": 220,
+  "patstat_rights_issue": 210,
+  "parent_main_binding": {
+    "repository": "fraware/neuroai-observatory-data",
+    "main_commit_sha": "c55f7615384d13dcb5c14a2d18f347fb18554cfe"
+  },
+  "parent_d3_challenge_binding": {
+    "path": "curation/PRE_G2_D3_PATENT_CHALLENGE_PROTOCOL_2026-09-11_v0.1.json",
+    "git_blob_sha": "0b66a1f5242e9c6020935b2d25e2da068b76c8c1"
+  },
+  "parent_review_packet_binding": {
+    "schema_path": "schemas/pre-g2-d3-patent-review-packet-v0.1.schema.json",
+    "schema_git_blob_sha": "5e47501690efd3aa272d1a163da80d6393685664",
+    "validator_path": "scripts/validate_pre_g2_d3_patent_review_packet_semantics.py",
+    "validator_git_blob_sha": "496bf9f143694f25602ba86f6dff91a79e13dda3"
+  },
+  "artifact_bindings": {
+    "pilot_readiness_schema": {
+      "path": "schemas/pre-g2-d3-challenge-pilot-readiness-aggregate-v0.1.schema.json",
+      "git_blob_sha": "c2eec3fc4564b2866fe584eb0eb43b098272d390"
+    },
+    "pilot_readiness_evaluator": {
+      "path": "scripts/evaluate_pre_g2_d3_challenge_pilot_readiness.py",
+      "git_blob_sha": "4574e2dde14a5d9cee8271a03c79b1214f709018"
+    },
+    "pilot_execution_manifest_schema": {
+      "path": "schemas/pre-g2-d3-challenge-pilot-execution-manifest-v0.1.schema.json",
+      "git_blob_sha": "070dcb1fd85797278d605cab62a05a9b2959e034"
+    },
+    "pilot_readiness_builder": {
+      "path": "scripts/build_pre_g2_d3_challenge_pilot_readiness.py",
+      "git_blob_sha": "c6c1b178cd5ffba4719da255f4f0afe86128e6f1"
+    },
+    "candidate_pool_schema": {
+      "path": "schemas/pre-g2-d3-challenge-candidate-pool-v0.1.schema.json",
+      "git_blob_sha": "4ce401093ae1eecd69b63ac41f3d859f9f478a95"
+    },
+    "deterministic_selector": {
+      "path": "scripts/select_pre_g2_d3_challenge_held_out.py",
+      "git_blob_sha": "b9676d4c567fc7e8423d531c28b7261523ab1336"
+    },
+    "identity_namespace_attestation_schema": {
+      "path": "schemas/pre-g2-d3-challenge-identity-namespace-attestation-v0.1.schema.json",
+      "git_blob_sha": "043b180a2f5e4ff5df9716d725d17abaf5df14d4"
+    },
+    "disjointness_summary_schema": {
+      "path": "schemas/pre-g2-d3-challenge-pilot-final-disjointness-summary-v0.1.schema.json",
+      "git_blob_sha": "ddd1f2d7f32004c407995d200968c1d98c2de8d2"
+    },
+    "disjointness_checker": {
+      "path": "scripts/check_pre_g2_d3_challenge_pilot_final_disjointness.py",
+      "git_blob_sha": "62596d81da8d594cb7e6914733277d19c00f487f"
+    }
+  },
+  "statistical_role": {
+    "evidence_role": "CHALLENGE_CONSTRUCT_COVERAGE",
+    "sampling_design_type": "NONPROBABILITY_CHALLENGE",
+    "population_generalizable": false,
+    "component_pooling_policy": "NO_CROSS_ROLE_POOLING",
+    "sample_size_is_population_power_calculation": false,
+    "confidence_interval_claim_created": false,
+    "prevalence_claim_created": false,
+    "population_recall_claim_created": false,
+    "global_completeness_claim_created": false
+  },
+  "pilot_design": {
+    "pilot_n": 60,
+    "state": "COMPLETE_ROUND_NO_EXTENSION",
+    "independent_double_review_all_items": true,
+    "minimum_per_required_stratum": 10,
+    "minimum_resolved_include": 10,
+    "minimum_resolved_exclude": 10,
+    "minimum_resolved_borderline": 10,
+    "maximum_unresolved_disagreement": 6,
+    "raw_four_way_agreement_is_automated_gate": false,
+    "raw_four_way_agreement_reporting_required": true,
+    "primary_secondary_confusion_matrix_reporting_required": true,
+    "semantic_validation_failures_permitted": 0,
+    "evidence_binding_failures_permitted": 0,
+    "reviewer_reference_collisions_permitted": 0,
+    "pilot_items_held_out_eligible_permitted": 0,
+    "human_calibration_disposition_required_after_quantitative_gate": true,
+    "failed_round_extension_permitted": false,
+    "failed_round_must_be_preserved": true,
+    "replacement_round_must_be_disjoint": true,
+    "interpretation": "Pilot thresholds establish operational readiness for a separate human calibration disposition only. Deliberately ambiguous challenge cases make raw agreement unsuitable as an automated competence threshold."
+  },
+  "final_challenge_design": {
+    "final_n": 240,
+    "minimum_per_required_stratum": 40,
+    "single_item_descriptive_stratum_rate_increment_max": 0.025,
+    "multilingual_minimum": 40,
+    "non_english_language_target_count": 8,
+    "minimum_per_counted_non_english_language": 4,
+    "multi_jurisdiction_minimum": 40,
+    "jurisdiction_target_count": 8,
+    "minimum_per_counted_jurisdiction": 4,
+    "missing_or_short_abstract_minimum": 40,
+    "missing_abstract_minimum": 16,
+    "short_abstract_minimum": 16,
+    "outside_query_pool_challenge_minimum": 40,
+    "outside_query_pool_is_population_recall_denominator": false,
+    "items_may_satisfy_multiple_cells": true,
+    "final_labels_observed_before_selection": false,
+    "selection_may_use_model_predictions_scores_prompts_thresholds_or_final_errors": false,
+    "selection_may_use_human_confirmed_prelabel_construct_metadata": true,
+    "quota_relaxation_after_failed_selection_permitted": false,
+    "selector_failure_proves_global_infeasibility": false
+  },
+  "anti_cherry_picking": {
+    "human_calibration_disposition_digest_required": true,
+    "candidate_pool_frozen_before_selection": true,
+    "candidate_pool_hmac_required": true,
+    "commitment_scheme": "HMAC_SHA256_DOMAIN_CANONICAL_JSON_V1",
+    "deterministic_tie_break_bound_to_pool_commitment": true,
+    "final_human_d1_labels_forbidden_from_selector_input": true,
+    "historical_machine_label_fields_forbidden_from_selector_input": true,
+    "model_output_score_prompt_threshold_error_fields_forbidden_from_selector_input": true,
+    "selected_membership_custody": "S3_CONTROLLED",
+    "public_output": "AGGREGATE_ONLY_PLUS_OPAQUE_DIGESTS",
+    "safe_generic_outward_diagnostics_required": true,
+    "detailed_diagnostics_custody": "S3_CONTROLLED"
+  },
+  "pilot_final_disjointness": {
+    "namespace_id": "D3_DOCDB_SIMPLE_PATENT_FAMILY_ID_V1",
+    "identity_namespace_attestation_required": true,
+    "pilot_membership_hmac_verified": true,
+    "candidate_pool_hmac_verified": true,
+    "exact_string_equality_under_attested_namespace": true,
+    "family_resolution_truth_established_by_software": false,
+    "overlap_blocks_final_selection": true,
+    "public_zero_knowledge_proof_claimed": false,
+    "independent_public_verifiability_without_s3_inputs_claimed": false
+  },
+  "rights_boundary": {
+    "patstat_rights_issue": 210,
+    "patstat_rights_clearance": false,
+    "patstat_controlled_evidence_remains_s3": true,
+    "scientific_validity_implies_redistribution_rights": false,
+    "redistribution_rights_imply_scientific_validity": false
+  },
+  "probability_audit_boundary": {
+    "implemented_by_this_protocol": false,
+    "roman_second_stage_estimator_certified": false,
+    "roman_reported_population_total_validated": false,
+    "roman_reported_query_recall_validated": false,
+    "challenge_counts_create_population_inference": false
+  },
+  "current_evidence_state": {
+    "real_pilot_executed": false,
+    "real_human_calibration_approval_exists": false,
+    "real_candidate_pool_frozen": false,
+    "real_final_membership_selected": false,
+    "real_final_human_labels_created": false,
+    "real_d3_frozen": false,
+    "benchmark_adequacy_established": false
+  },
+  "authority": {
+    "g1_approved": true,
+    "g0_passed": false,
+    "g2_passed": false,
+    "g5_passed": false,
+    "rights_clearance": false,
+    "reviewer_competence_established": false,
+    "benchmark_adequacy_established": false,
+    "population_generalization_authority": false,
+    "canonical_s2_authority": false,
+    "publication_authority": false,
+    "phase4_online_first_default_authorized": false,
+    "assessment_effect": "NONE"
+  },
+  "boundary": "This protocol fixes PRE-G2 challenge calibration and anti-cherry-picking software controls only. It does not execute a real pilot, create human calibration approval, freeze a real candidate pool or membership, create real labels, implement population inference, validate Roman's estimator, pass G0/G2/G5, resolve rights, authorize S2/publication/Phase 4, or alter assessment state."
+}
