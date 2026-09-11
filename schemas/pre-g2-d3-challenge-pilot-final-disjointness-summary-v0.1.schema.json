@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:neuroai:observatory:d3-challenge-pilot-final-disjointness-summary:0.1",
+  "title": "PRE-G2 D3 aggregate pilot/final-pool disjointness summary",
+  "description": "Aggregate-only public schema for controlled D3 pilot/final candidate-pool equality checking. Contains no family IDs and is not a public zero-knowledge proof.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "benchmark_id",
+    "protocol_id",
+    "comparison_semantics",
+    "namespace_id",
+    "identity_namespace_attestation_sha256",
+    "pilot_membership_commitment",
+    "candidate_pool_commitment",
+    "pilot_item_count",
+    "candidate_pool_count",
+    "overlap_count",
+    "overlap_zero",
+    "controlled_audit_sha256",
+    "identity_namespace_binding_verified",
+    "family_resolution_truth_established",
+    "public_zero_knowledge_proof",
+    "independently_verifiable_without_s3_inputs",
+    "authority"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "benchmark_id": {"const": "PRE_G2_PATENT_V0_1"},
+    "protocol_id": {"const": "PRE_G2_D3_CHALLENGE_SAMPLING_CALIBRATION_PROTOCOL_2026-09-11_v0.1"},
+    "comparison_semantics": {"const": "SHARED_CONTROLLED_DOCDB_FAMILY_NAMESPACE_EXACT_EQUALITY"},
+    "namespace_id": {"const": "D3_DOCDB_SIMPLE_PATENT_FAMILY_ID_V1"},
+    "identity_namespace_attestation_sha256": {"$ref": "#/$defs/sha256"},
+    "pilot_membership_commitment": {"$ref": "#/$defs/sha256"},
+    "candidate_pool_commitment": {"$ref": "#/$defs/sha256"},
+    "pilot_item_count": {"const": 60},
+    "candidate_pool_count": {"type": "integer", "minimum": 240},
+    "overlap_count": {"type": "integer", "minimum": 0},
+    "overlap_zero": {"type": "boolean"},
+    "controlled_audit_sha256": {"$ref": "#/$defs/sha256"},
+    "identity_namespace_binding_verified": {"const": true},
+    "family_resolution_truth_established": {"const": false},
+    "public_zero_knowledge_proof": {"const": false},
+    "independently_verifiable_without_s3_inputs": {"const": false},
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "final_selection_authorized",
+        "benchmark_adequacy_established",
+        "g2_passed",
+        "canonical_s2_authority",
+        "publication_authority",
+        "population_generalization_authority",
+        "assessment_effect"
+      ],
+      "properties": {
+        "final_selection_authorized": {"const": false},
+        "benchmark_adequacy_established": {"const": false},
+        "g2_passed": {"const": false},
+        "canonical_s2_authority": {"const": false},
+        "publication_authority": {"const": false},
+        "population_generalization_authority": {"const": false},
+        "assessment_effect": {"const": "NONE"}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}
