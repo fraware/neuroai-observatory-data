@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:neuroai:observatory:d4-final-selection-authorization-envelope:0.1",
+  "title": "PRE-G2 D4 controlled final-selection authorization envelope",
+  "description": "S3-controlled composition binding between one exact APPROVE calibration disposition, one exact frozen candidate pool and one exact identity-namespace attestation. It is not an independent source of authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "envelope_id",
+    "benchmark_id",
+    "sampling_protocol_id",
+    "pilot_execution_protocol_id",
+    "scope",
+    "state",
+    "pilot_round_id",
+    "pilot_membership_commitment",
+    "human_calibration_disposition_sha256",
+    "candidate_pool_id",
+    "candidate_pool_commitment",
+    "identity_namespace_attestation_sha256",
+    "bound_at",
+    "control_ref",
+    "authority"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "envelope_id": {"type": "string", "minLength": 1},
+    "benchmark_id": {"const": "PRE_G2_PRODUCT_V0_1"},
+    "sampling_protocol_id": {"const": "PRE_G2_D4_SAMPLING_CALIBRATION_PROTOCOL_2026-09-09_v0.1"},
+    "pilot_execution_protocol_id": {"const": "PRE_G2_D4_PILOT_EXECUTION_PROTOCOL_2026-09-09_v0.1"},
+    "scope": {"const": "FINAL_D4_CHALLENGE_SELECTION_ONLY"},
+    "state": {"const": "CONTROLLED_COMPOSITION_BINDING_RECORDED"},
+    "pilot_round_id": {"type": "string", "minLength": 1},
+    "pilot_membership_commitment": {"$ref": "#/$defs/sha256"},
+    "human_calibration_disposition_sha256": {"$ref": "#/$defs/sha256"},
+    "candidate_pool_id": {"type": "string", "minLength": 1},
+    "candidate_pool_commitment": {"$ref": "#/$defs/sha256"},
+    "identity_namespace_attestation_sha256": {"$ref": "#/$defs/sha256"},
+    "bound_at": {"type": "string", "format": "date-time"},
+    "control_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Pseudonymous reference into a controlled execution/control registry."
+    },
+    "authority": {"$ref": "#/$defs/authority"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "human_identity_established",
+        "reviewer_competence_established",
+        "benchmark_adequacy_established",
+        "g0_passed",
+        "g2_passed",
+        "g5_passed",
+        "rights_clearance",
+        "population_generalization_authority",
+        "canonical_s2_authority",
+        "publication_authority",
+        "phase4_online_first_default_authorized",
+        "assessment_effect"
+      ],
+      "properties": {
+        "human_identity_established": {"const": false},
+        "reviewer_competence_established": {"const": false},
+        "benchmark_adequacy_established": {"const": false},
+        "g0_passed": {"const": false},
+        "g2_passed": {"const": false},
+        "g5_passed": {"const": false},
+        "rights_clearance": {"const": false},
+        "population_generalization_authority": {"const": false},
+        "canonical_s2_authority": {"const": false},
+        "publication_authority": {"const": false},
+        "phase4_online_first_default_authorized": {"const": false},
+        "assessment_effect": {"const": "NONE"}
+      }
+    }
+  }
+}
