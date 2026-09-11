@@ -104,6 +104,35 @@ class D4SelectorDiagnosticContainmentTests(unittest.TestCase):
             self.assertEqual(public_message, PUBLIC_CONTROLLED_FAILURE)
             self.assertNotIn(SECRET_CANDIDATE, public_message)
 
+    def test_malformed_candidate_row_is_generic_publicly(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            pool = _candidate_pool()
+            del pool["candidates"][0]["candidate_id"]
+            _recommit(pool)
+            pool_path, key_path = _write_inputs(root, pool)
+            status, aggregate, public_message = run_selector(pool_path, key_path)
+            self.assertEqual(status, CONTROLLED_INPUT_FAILURE)
+            self.assertIsNone(aggregate)
+            self.assertEqual(public_message, PUBLIC_CONTROLLED_FAILURE)
+            self.assertNotIn("SYNTHETIC-CANDIDATE-", public_message)
+
+    def test_quota_failure_is_generic_publicly(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            pool = _candidate_pool()
+            for candidate in pool["candidates"]:
+                candidate["construct_strata"] = ["CLINICAL"]
+                candidate["source_languages"] = ["en"]
+                candidate["jurisdictions"] = ["US"]
+            _recommit(pool)
+            pool_path, key_path = _write_inputs(root, pool)
+            status, aggregate, public_message = run_selector(pool_path, key_path)
+            self.assertEqual(status, CONTROLLED_INPUT_FAILURE)
+            self.assertIsNone(aggregate)
+            self.assertEqual(public_message, PUBLIC_CONTROLLED_FAILURE)
+            self.assertNotIn("SYNTHETIC-CANDIDATE-", public_message)
+
     def test_wrong_hmac_key_and_commitment_failure_are_generic(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
