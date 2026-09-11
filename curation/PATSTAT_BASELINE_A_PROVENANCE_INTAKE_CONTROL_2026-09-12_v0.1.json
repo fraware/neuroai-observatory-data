@@ -1,0 +1,73 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "PATSTAT_BASELINE_A_PROVENANCE_INTAKE_CONTROL_2026-09-12_v0.1",
+  "status": "WAITING_FOR_PROVENANCE",
+  "as_of": "2026-09-12",
+  "governing_issue": 243,
+  "baseline_audit_issue": 220,
+  "d3_umbrella_issue": 222,
+  "rights_issue": 210,
+  "created_against_main_sha": "8d780ae2276f23ab9091bca94fb7f33a7d666e3d",
+  "artifact_bindings": {
+    "requirements": {
+      "path": "curation/PATSTAT_BASELINE_A_PROVENANCE_INTAKE_REQUIREMENTS_2026-09-12_v0.1.json",
+      "git_blob_sha": "19178e12b28f2f10729a7ff3cb92261e83bbcb81"
+    },
+    "status_schema": {
+      "path": "schemas/patstat-baseline-a-provenance-intake-status-v0.1.schema.json",
+      "git_blob_sha": "475287046f6185dc657322d96ea19497dd4b17a9"
+    },
+    "current_status": {
+      "path": "curation/PATSTAT_BASELINE_A_PROVENANCE_INTAKE_STATUS_2026-09-12_v0.1.json",
+      "git_blob_sha": "17eaa932c46b4bf311c94e6852395a0133c4987d"
+    },
+    "semantic_validator": {
+      "path": "scripts/validate_patstat_baseline_a_provenance_intake.py",
+      "git_blob_sha": "ee49b80a9116895a8ec2a92a3a1ac44e9103e43b"
+    },
+    "baseline_scientific_status": {
+      "path": "curation/PATSTAT_BASELINE_A_SCIENTIFIC_STATUS_2026-09-05_v0.1.json",
+      "git_blob_sha": "18c3b4b44f5f5d5381032236d1a696b7c3495fd7"
+    },
+    "rights_control": {
+      "path": "curation/PATSTAT_PUBLIC_EXTRACT_RIGHTS_REVIEW_2026-09-05_v0.1.json",
+      "git_blob_sha": "92698b640f0c533fca03f576acb79cf9d450a4ed"
+    }
+  },
+  "current_evidence_state": {
+    "roman_response_received_and_bound": false,
+    "historical_judges_and_rubric_complete": false,
+    "first_stage_probability_design_complete": false,
+    "second_stage_333_design_complete": false,
+    "estimator_and_uncertainty_complete": false,
+    "retrieval_pool_construction_complete": false,
+    "export_clarification_complete": false,
+    "ready_for_scientific_audit": false,
+    "scientific_validity_established": false
+  },
+  "intake_boundary": {
+    "ready_for_scientific_audit_means": "ALL_MANDATORY_PROVENANCE_COMPONENTS_SUPPLIED_AND_DIGEST_BOUND_ONLY",
+    "verified_reconstructible_requires_independent_verification_digest": true,
+    "provided_by_original_author_implies_verified_reconstructible": false,
+    "intake_completeness_implies_design_unbiasedness": false,
+    "intake_completeness_implies_interval_validity": false,
+    "intake_completeness_implies_human_truth": false,
+    "intake_completeness_implies_global_completeness": false,
+    "intake_completeness_implies_rights_clearance": false
+  },
+  "authority": {
+    "g1_approved": true,
+    "g0_passed": false,
+    "g2_passed": false,
+    "g5_passed": false,
+    "rights_clearance": false,
+    "canonical_scientific_finding": false,
+    "benchmark_adequacy_established": false,
+    "population_generalization_authority": false,
+    "canonical_s2_authority": false,
+    "publication_authority": false,
+    "phase4_online_first_default_authorized": false,
+    "assessment_effect": "NONE"
+  },
+  "boundary": "This control predeclares how Roman's pending provenance response will be ingested and checked for audit readiness. It records the current waiting state only. It does not validate the estimator, reported interval, 49,671 estimate, 67% retrieval recall, human truth, rights, D3/G2/G5, publication/S2/Phase4 authority, or assessment state."
+}
