@@ -25,7 +25,7 @@
   "successor_artifact_binding": {
     "selector_v0_2_diagnostic_containment_entrypoint": {
       "path": "scripts/select_pre_g2_d4_held_out_v0_2.py",
-      "git_blob_sha": "a286dac1fb8b72309c53e70e32c8d1d117fa3331"
+      "git_blob_sha": "47f9bba26bafe2c4c36254f830bc50b31a8df6a8"
     }
   },
   "semantic_contract": {
