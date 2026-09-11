@@ -1,0 +1,160 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "PRE_G2_D3_CALIBRATION_SELECTION_COMPOSITION_2026-09-11_v0.1",
+  "status": "PRE_G2_COMPOSED_EXECUTION_CONTROL_ONLY_NO_REAL_SELECTION",
+  "as_of": "2026-09-11",
+  "governing_issue": 238,
+  "umbrella_d3_issue": 222,
+  "baseline_a_audit_issue": 220,
+  "patstat_rights_issue": 210,
+  "parent_main_binding": {
+    "repository": "fraware/neuroai-observatory-data",
+    "main_commit_sha": "a2d7af14eaadd44c140a29846696dfce99a884a0"
+  },
+  "parent_artifact_bindings": {
+    "sampling_calibration_protocol": {
+      "path": "curation/PRE_G2_D3_CHALLENGE_SAMPLING_CALIBRATION_PROTOCOL_2026-09-11_v0.1.json",
+      "git_blob_sha": "e4c95c6608f31744e8370276478dbd1f3d7a3643"
+    },
+    "pilot_readiness_builder": {
+      "path": "scripts/build_pre_g2_d3_challenge_pilot_readiness.py",
+      "git_blob_sha": "c6c1b178cd5ffba4719da255f4f0afe86128e6f1"
+    },
+    "candidate_pool_schema": {
+      "path": "schemas/pre-g2-d3-challenge-candidate-pool-v0.1.schema.json",
+      "git_blob_sha": "4ce401093ae1eecd69b63ac41f3d859f9f478a95"
+    },
+    "lower_level_selector": {
+      "path": "scripts/select_pre_g2_d3_challenge_held_out.py",
+      "git_blob_sha": "da2e00357a67d1f737da6a05e258bcb3bfb4499d"
+    },
+    "pilot_final_disjointness_checker": {
+      "path": "scripts/check_pre_g2_d3_challenge_pilot_final_disjointness.py",
+      "git_blob_sha": "62596d81da8d594cb7e6914733277d19c00f487f"
+    },
+    "review_packet_semantic_validator": {
+      "path": "scripts/validate_pre_g2_d3_patent_review_packet_semantics.py",
+      "git_blob_sha": "496bf9f143694f25602ba86f6dff91a79e13dda3"
+    }
+  },
+  "successor_artifact_bindings": {
+    "human_calibration_disposition_schema": {
+      "path": "schemas/pre-g2-d3-challenge-human-calibration-disposition-v0.1.schema.json",
+      "git_blob_sha": "c91fe77bc614ed13fcd434cc03505662984403d1"
+    },
+    "human_calibration_disposition_validator": {
+      "path": "scripts/validate_pre_g2_d3_challenge_human_calibration_disposition.py",
+      "git_blob_sha": "70ce299093a37dc2830718a3209435c23a43c350"
+    },
+    "composed_final_selection_entrypoint": {
+      "path": "scripts/execute_pre_g2_d3_challenge_final_selection.py",
+      "git_blob_sha": "57f4e4dedf79058f3f832fd66d02c65f75cc86eb"
+    }
+  },
+  "audit_finding": {
+    "v0_1_candidate_pool_binds_calibration_disposition_digest": true,
+    "v0_1_lower_selector_validates_disposition_object_semantics": false,
+    "v0_1_lower_selector_requires_approve_decision": false,
+    "v0_1_lower_selector_requires_pilot_disjointness_before_selection": false,
+    "v0_1_lower_selector_status_after_successor": "VALID_DETERMINISTIC_PRIMITIVE_NOT_SUFFICIENT_ALONE_FOR_REAL_FINAL_SELECTION",
+    "historical_v0_1_rewrite_authorized": false,
+    "required_real_execution_path": "COMPOSED_FINAL_SELECTION_ENTRYPOINT"
+  },
+  "human_calibration_disposition_contract": {
+    "custody": "S3_CONTROLLED",
+    "decision_domain": [
+      "APPROVE",
+      "REVISE",
+      "REJECT"
+    ],
+    "only_approve_unlocks_selection": true,
+    "approval_scope": "FINAL_CHALLENGE_CANDIDATE_POOL_SELECTION_ONLY",
+    "governance_role": "D3_HUMAN_CALIBRATION_AUTHORITY",
+    "pseudonymous_governance_ref_required": true,
+    "human_rationale_required": true,
+    "timezone_aware_decision_timestamp_required": true,
+    "quantitative_gate_passed_required": true,
+    "binds_exact_pilot_round_id": true,
+    "binds_exact_pilot_membership_hmac": true,
+    "binds_canonical_pilot_manifest_sha256": true,
+    "binds_canonical_readiness_aggregate_sha256": true,
+    "binds_canonical_readiness_result_sha256": true,
+    "binds_reviewer_training_record_sha256": true,
+    "binds_exposure_register_sha256": true,
+    "binds_prior_exposure_disjointness_audit_sha256": true,
+    "governance_identity_or_competence_established_by_software": false,
+    "reviewer_competence_established_by_approval": false,
+    "benchmark_adequacy_established_by_approval": false
+  },
+  "composed_execution_contract": {
+    "execution_type": "D3_CHALLENGE_FINAL_SELECTION_COMPOSED_V0_1",
+    "sequence": [
+      "VALIDATE_OUTPUT_PATHS_BEFORE_ANY_WRITE",
+      "LOAD_EXACT_CONTROLLED_INPUTS_AND_KEYS",
+      "VALIDATE_60_PILOT_PACKETS_AND_RECOMPUTE_PILOT_MEMBERSHIP_HMAC",
+      "DERIVE_READINESS_AGGREGATE_AND_RESULT_FROM_EXACT_PACKETS",
+      "REQUIRE_QUANTITATIVE_GATE_PASS",
+      "VALIDATE_EXACT_HUMAN_CALIBRATION_DISPOSITION_BINDINGS",
+      "REQUIRE_HUMAN_DECISION_APPROVE",
+      "REQUIRE_CANDIDATE_POOL_BOUND_DISPOSITION_DIGEST_MATCH",
+      "EXECUTE_PILOT_FINAL_DISJOINTNESS_FROM_ACTUAL_S3_INPUTS_AND_BOTH_HMAC_KEYS",
+      "REQUIRE_ZERO_OVERLAP",
+      "EXECUTE_DETERMINISTIC_LOWER_LEVEL_SELECTION",
+      "WRITE_CONTROLLED_MEMBERSHIP_AND_COMPOSED_AUDIT_ATOMICALLY",
+      "EMIT_AGGREGATE_ONLY_PUBLIC_SUMMARY"
+    ],
+    "valid_success_preserves_lower_level_selected_membership_semantics": true,
+    "valid_success_preserves_lower_level_public_selection_aggregate_semantics": true,
+    "candidate_pool_hmac_reverified": true,
+    "pilot_membership_hmac_reverified": true,
+    "identity_namespace_attestation_reverified": true,
+    "detailed_failure_diagnostics_custody": "S3_CONTROLLED",
+    "public_failure_diagnostics": "FIXED_GENERIC_MESSAGES_ONLY",
+    "unexpected_exception_detail_publicly_permitted": false,
+    "controlled_success_output_required": true,
+    "controlled_outputs_may_alias_direct_inputs": false,
+    "controlled_outputs_may_be_inside_pilot_packet_directory": false,
+    "runtime_s3_custody_established_by_filesystem_path_alone": false
+  },
+  "selection_authority_boundary": {
+    "human_calibration_approval_verified_means": "THE_EXACT_SYNTHETIC_OR_REAL_DISPOSITION_OBJECT_SATISFIES_THE_DECLARED_LOCAL_SELECTION_PRECONDITION",
+    "human_calibration_approval_does_not_mean": [
+      "REVIEWER_COMPETENCE_ESTABLISHED",
+      "BENCHMARK_ADEQUACY_ESTABLISHED",
+      "D3_FROZEN",
+      "G2_PASSED",
+      "G5_PASSED",
+      "PATSTAT_RIGHTS_CLEARED",
+      "POPULATION_INFERENCE_AUTHORIZED",
+      "CANONICAL_S2_AUTHORIZED",
+      "PUBLICATION_AUTHORIZED",
+      "PHASE4_AUTHORIZED",
+      "ASSESSMENT_MUTATION_AUTHORIZED"
+    ]
+  },
+  "current_evidence_state": {
+    "real_pilot_executed": false,
+    "real_human_calibration_disposition_created": false,
+    "real_candidate_pool_frozen": false,
+    "real_final_selection_executed": false,
+    "real_final_human_labels_created": false,
+    "real_d3_frozen": false,
+    "probability_audit_implemented": false,
+    "benchmark_adequacy_established": false
+  },
+  "authority": {
+    "g1_approved": true,
+    "g0_passed": false,
+    "g2_passed": false,
+    "g5_passed": false,
+    "rights_clearance": false,
+    "reviewer_competence_established": false,
+    "benchmark_adequacy_established": false,
+    "population_generalization_authority": false,
+    "canonical_s2_authority": false,
+    "publication_authority": false,
+    "phase4_online_first_default_authorized": false,
+    "assessment_effect": "NONE"
+  },
+  "boundary": "This successor composes existing PRE-G2 D3 challenge primitives into a fail-closed final-selection execution path. It validates only declared software/control preconditions. It creates no real human approval, benchmark membership, labels, D3 freeze, probability estimator, population inference, rights clearance, gate passage, publication/S2/Phase4 authority, or assessment effect."
+}
