@@ -214,11 +214,19 @@ def _normalize_candidate(candidate: dict[str, Any]) -> dict[str, Any]:
 
 
 def candidate_pool_commitment(pool: dict[str, Any], key: bytes) -> str:
+    # Commitment generation is itself fail-closed: malformed or smuggled fields
+    # must not be silently omitted from the committed preimage.
+    _require_exact_keys(pool, EXPECTED_POOL_KEYS, "candidate_pool")
+    _reject_forbidden_fields(pool)
     candidates = pool.get("candidates")
     if not isinstance(candidates, list):
         raise D3ChallengeSelectionError(
             "candidates must be an array before commitment can be computed"
         )
+    for index, candidate in enumerate(candidates):
+        if not isinstance(candidate, dict):
+            raise D3ChallengeSelectionError(f"candidates[{index}] must be an object")
+        _require_exact_keys(candidate, EXPECTED_CANDIDATE_KEYS, f"candidates[{index}]")
     try:
         normalized_candidates = sorted(
             (_normalize_candidate(candidate) for candidate in candidates),
