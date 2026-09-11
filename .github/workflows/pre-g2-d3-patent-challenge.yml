@@ -1,0 +1,42 @@
+name: PRE-G2 D3 patent challenge controls
+
+on:
+  pull_request:
+    paths:
+      - 'curation/PRE_G2_D3_PATENT_CHALLENGE_PROTOCOL_2026-09-11_v0.1.json'
+      - 'schemas/pre-g2-d3-patent-review-packet-v0.1.schema.json'
+      - 'scripts/validate_pre_g2_d3_patent_review_packet_semantics.py'
+      - 'tests/test_pre_g2_d3_patent_review_packet.py'
+      - 'tests/test_pre_g2_d3_patent_challenge_protocol.py'
+      - '.github/workflows/pre-g2-d3-patent-challenge.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'curation/PRE_G2_D3_PATENT_CHALLENGE_PROTOCOL_2026-09-11_v0.1.json'
+      - 'schemas/pre-g2-d3-patent-review-packet-v0.1.schema.json'
+      - 'scripts/validate_pre_g2_d3_patent_review_packet_semantics.py'
+      - 'tests/test_pre_g2_d3_patent_review_packet.py'
+      - 'tests/test_pre_g2_d3_patent_challenge_protocol.py'
+      - '.github/workflows/pre-g2-d3-patent-challenge.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-d3-patent-challenge:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Validate D3 patent challenge semantics
+        run: |
+          python -m unittest tests.test_pre_g2_d3_patent_review_packet -v
+          python -m unittest tests.test_pre_g2_d3_patent_challenge_protocol -v
+      - name: Authority boundary
+        run: |
+          echo "This workflow validates PRE-G2 D3 patent challenge software with synthetic fixtures only."
+          echo "It does not select or label real benchmark membership, set a final challenge sample size, implement a probability audit,"
+          echo "validate Roman's estimator or reported estimates, pass G0/G2/G5, resolve PATSTAT rights, mutate canonical S2,"
+          echo "authorize publication or Phase 4, establish population inference, or alter assessment state."

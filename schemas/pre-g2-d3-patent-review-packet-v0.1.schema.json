@@ -1,0 +1,363 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:neuroai:observatory:d3-patent-review-packet:0.1",
+  "title": "PRE-G2 D3 controlled patent challenge review packet",
+  "description": "Public schema for S3-controlled D3 patent challenge review packets. Real membership, patent evidence, labels, reviewer references, rationales and adjudication outcomes remain controlled.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "benchmark_id",
+    "benchmark_kind",
+    "evidence_role",
+    "candidate_role",
+    "exact_patent_binding",
+    "evidence_packet",
+    "construct_annotations",
+    "review_design",
+    "reviewer_records",
+    "adjudication",
+    "exposure_control",
+    "sampling_provenance",
+    "rights_containment",
+    "authority"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "benchmark_id": {"const": "PRE_G2_PATENT_V0_1"},
+    "benchmark_kind": {"const": "PATENT"},
+    "evidence_role": {"const": "CHALLENGE_CONSTRUCT_COVERAGE"},
+    "candidate_role": {"enum": ["PILOT_DEVELOPMENT", "HELD_OUT_CANDIDATE"]},
+    "exact_patent_binding": {"$ref": "#/$defs/exact_patent_binding"},
+    "evidence_packet": {"$ref": "#/$defs/evidence_packet"},
+    "construct_annotations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 6,
+      "items": {"$ref": "#/$defs/construct_annotation"}
+    },
+    "review_design": {"$ref": "#/$defs/review_design"},
+    "reviewer_records": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
+      "items": {"$ref": "#/$defs/reviewer_record"}
+    },
+    "adjudication": {"$ref": "#/$defs/adjudication"},
+    "exposure_control": {"$ref": "#/$defs/exposure_control"},
+    "sampling_provenance": {"$ref": "#/$defs/sampling_provenance"},
+    "rights_containment": {"$ref": "#/$defs/rights_containment"},
+    "authority": {"$ref": "#/$defs/authority"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "nonempty_string": {"type": "string", "minLength": 1},
+    "stratum": {
+      "enum": [
+        "GRAY_CAPABILITY",
+        "MISSING_OR_SHORT_ABSTRACT",
+        "MULTI_JURISDICTION",
+        "MULTI_YEAR",
+        "MULTILINGUAL",
+        "SEMANTICALLY_DECEPTIVE_NEGATIVE"
+      ]
+    },
+    "exact_patent_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "controlled_family_ref",
+        "unit_of_observation",
+        "family_identity_state",
+        "publication_identity_refs",
+        "family_years",
+        "jurisdictions",
+        "source_languages",
+        "text_availability",
+        "observed_at",
+        "identity_basis_refs"
+      ],
+      "properties": {
+        "controlled_family_ref": {"$ref": "#/$defs/nonempty_string"},
+        "unit_of_observation": {"const": "DOCDB_SIMPLE_PATENT_FAMILY"},
+        "family_identity_state": {"enum": ["RESOLVED", "AMBIGUOUS_REVIEW_REQUIRED"]},
+        "publication_identity_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/nonempty_string"}
+        },
+        "family_years": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "integer", "minimum": 1800, "maximum": 2200}
+        },
+        "jurisdictions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/nonempty_string"}
+        },
+        "source_languages": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]+)*$"}
+        },
+        "text_availability": {
+          "enum": [
+            "ENGLISH_ABSTRACT",
+            "NON_ENGLISH_ABSTRACT_ONLY",
+            "SHORT_ABSTRACT",
+            "MISSING_ABSTRACT",
+            "TITLE_ONLY"
+          ]
+        },
+        "observed_at": {"type": "string", "format": "date-time"},
+        "identity_basis_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/nonempty_string"}
+        }
+      }
+    },
+    "evidence_packet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_refs",
+        "observation_cutoff",
+        "historical_machine_labels_included",
+        "population_weights_included"
+      ],
+      "properties": {
+        "evidence_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/evidence_ref"}
+        },
+        "observation_cutoff": {"type": "string", "format": "date-time"},
+        "historical_machine_labels_included": {"const": false},
+        "population_weights_included": {"const": false}
+      }
+    },
+    "evidence_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_id",
+        "source_class",
+        "observed_at",
+        "content_sha256",
+        "claim_scopes",
+        "source_identity_ref",
+        "source_language",
+        "review_language",
+        "translation_status",
+        "translation_provenance_ref",
+        "custody",
+        "rights_state"
+      ],
+      "properties": {
+        "evidence_id": {"$ref": "#/$defs/nonempty_string"},
+        "source_class": {
+          "enum": [
+            "EPO_OPS_BIBLIOGRAPHIC",
+            "PATENT_OFFICE_PUBLIC",
+            "PATSTAT_CONTROLLED",
+            "RIGHTS_APPROVED_OTHER"
+          ]
+        },
+        "observed_at": {"type": "string", "format": "date-time"},
+        "content_sha256": {"$ref": "#/$defs/sha256"},
+        "claim_scopes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "CAPABILITY_CONTEXT",
+              "FAMILY_IDENTITY",
+              "JURISDICTION",
+              "NEGATIVE_CONTROL_CONTEXT",
+              "PATENT_TEXT",
+              "PUBLICATION_IDENTITY",
+              "TEMPORAL"
+            ]
+          }
+        },
+        "source_identity_ref": {"$ref": "#/$defs/nonempty_string"},
+        "source_language": {"type": "string", "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]+)*$"},
+        "review_language": {"type": "string", "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]+)*$"},
+        "translation_status": {"enum": ["SOURCE_LANGUAGE_REVIEWED", "TRANSLATED_FOR_REVIEW"]},
+        "translation_provenance_ref": {
+          "oneOf": [
+            {"type": "null"},
+            {"$ref": "#/$defs/nonempty_string"}
+          ]
+        },
+        "custody": {"enum": ["PUBLIC_REPRODUCIBLE", "S3_CONTROLLED"]},
+        "rights_state": {
+          "enum": [
+            "PUBLIC_SOURCE_TERMS_APPLY",
+            "S3_LICENSED_RIGHTS_UNRESOLVED",
+            "S3_CONTROLLED_OTHER"
+          ]
+        }
+      }
+    },
+    "construct_annotation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stratum", "human_confirmed", "rationale", "evidence_refs"],
+      "properties": {
+        "stratum": {"$ref": "#/$defs/stratum"},
+        "human_confirmed": {"const": true},
+        "rationale": {"$ref": "#/$defs/nonempty_string"},
+        "evidence_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/nonempty_string"}
+        }
+      }
+    },
+    "review_design": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "double_label_required",
+        "model_output_blinding_state",
+        "blinding_exception_rationale"
+      ],
+      "properties": {
+        "double_label_required": {"type": "boolean"},
+        "model_output_blinding_state": {
+          "enum": ["BLINDED_TO_MODEL_OUTPUT", "BLINDING_NOT_PRACTICABLE_RECORDED"]
+        },
+        "blinding_exception_rationale": {
+          "oneOf": [
+            {"type": "null"},
+            {"$ref": "#/$defs/nonempty_string"}
+          ]
+        }
+      }
+    },
+    "reviewer_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reviewer_ref",
+        "evidence_packet_sha256",
+        "decision",
+        "rationale",
+        "adjudicator_role",
+        "timestamp",
+        "exact_patent_binding"
+      ],
+      "properties": {
+        "reviewer_ref": {"$ref": "#/$defs/nonempty_string"},
+        "evidence_packet_sha256": {"$ref": "#/$defs/sha256"},
+        "decision": {"enum": ["ABSTAIN", "BORDERLINE", "EXCLUDE", "INCLUDE"]},
+        "rationale": {"$ref": "#/$defs/nonempty_string"},
+        "adjudicator_role": {
+          "enum": ["PRIMARY_REVIEWER", "SECONDARY_REVIEWER", "FINAL_ADJUDICATOR"]
+        },
+        "timestamp": {"type": "string", "format": "date-time"},
+        "exact_patent_binding": {"$ref": "#/$defs/exact_patent_binding"}
+      }
+    },
+    "adjudication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "final_disposition", "final_rationale"],
+      "properties": {
+        "state": {"enum": ["AGREE", "ADJUDICATED", "DISAGREE_UNADJUDICATED"]},
+        "final_disposition": {
+          "oneOf": [
+            {"type": "null"},
+            {"enum": ["ABSTAIN", "BORDERLINE", "EXCLUDE", "INCLUDE"]}
+          ]
+        },
+        "final_rationale": {
+          "oneOf": [
+            {"type": "null"},
+            {"$ref": "#/$defs/nonempty_string"}
+          ]
+        }
+      }
+    },
+    "exposure_control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["exposure_status", "exposure_register_ref", "held_out_eligible"],
+      "properties": {
+        "exposure_status": {
+          "enum": [
+            "NO_KNOWN_EXPOSURE_REVIEWED",
+            "EXPOSED_EXCLUDE_FROM_HELD_OUT",
+            "UNKNOWN_REVIEW_REQUIRED"
+          ]
+        },
+        "exposure_register_ref": {"$ref": "#/$defs/nonempty_string"},
+        "held_out_eligible": {"type": "boolean"}
+      }
+    },
+    "sampling_provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "baseline_a_used_for_candidate_discovery",
+        "historical_machine_labels_visible_to_reviewers",
+        "query_pool_provenance",
+        "population_weight",
+        "inclusion_probability"
+      ],
+      "properties": {
+        "baseline_a_used_for_candidate_discovery": {"type": "boolean"},
+        "historical_machine_labels_visible_to_reviewers": {"const": false},
+        "query_pool_provenance": {"enum": ["IN_QUERY_POOL", "OUTSIDE_QUERY_POOL", "UNKNOWN", "NOT_APPLICABLE"]},
+        "population_weight": {"type": "null"},
+        "inclusion_probability": {"type": "null"}
+      }
+    },
+    "rights_containment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "packet_custody",
+        "patstat_rights_issue",
+        "patstat_rights_clearance",
+        "redistribution_authority_claimed"
+      ],
+      "properties": {
+        "packet_custody": {"const": "S3_CONTROLLED"},
+        "patstat_rights_issue": {"const": 210},
+        "patstat_rights_clearance": {"const": false},
+        "redistribution_authority_claimed": {"const": false}
+      }
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "g2_passed",
+        "benchmark_adequacy_established",
+        "population_generalization_authority",
+        "canonical_s2_authority",
+        "publication_authority",
+        "assessment_effect"
+      ],
+      "properties": {
+        "g2_passed": {"const": false},
+        "benchmark_adequacy_established": {"const": false},
+        "population_generalization_authority": {"const": false},
+        "canonical_s2_authority": {"const": false},
+        "publication_authority": {"const": false},
+        "assessment_effect": {"const": "NONE"}
+      }
+    }
+  }
+}
