@@ -33,7 +33,7 @@ from scripts.validate_pre_g2_d4_calibration_selection_authorization import (
     validate_selection_authorization_envelope,
 )
 
-EXECUTION_TYPE = "D4_FINAL_SELECTION_COMPOSED_V0_1"
+EXECUTION_TYPE = "D4_FINAL_SELECTION_COMPOSED_V0_2"
 PUBLIC_CONTROLLED_FAILURE = (
     "INVALID: controlled D4 final-selection preconditions or execution failed under the composed S3 boundary"
 )
