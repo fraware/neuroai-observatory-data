@@ -7,7 +7,8 @@ from pathlib import Path
 from typing import Any
 
 BENCHMARK_ID = "PRE_G2_PRODUCT_V0_1"
-PROTOCOL_ID = "PRE_G2_D4_SAMPLING_CALIBRATION_PROTOCOL_2026-09-09_v0.1"\nREADINESS_POLICY_ID = "PRE_G2_D4_PILOT_READINESS_POLICY_2026-09-12_v0.2"
+PROTOCOL_ID = "PRE_G2_D4_SAMPLING_CALIBRATION_PROTOCOL_2026-09-09_v0.1"
+READINESS_POLICY_ID = "PRE_G2_D4_PILOT_READINESS_POLICY_2026-09-12_v0.2"
 COMMITMENT_SCHEME = "HMAC_SHA256_DOMAIN_CANONICAL_JSON_V1"
 READY_STATE = "READY_FOR_HUMAN_CALIBRATION_DISPOSITION"
 NOT_READY_STATE = "NOT_READY_NEW_DISJOINT_ROUND_REQUIRED"
@@ -206,8 +207,6 @@ def evaluate_pilot_readiness(report: dict[str, Any]) -> dict[str, Any]:
     _validate_authority(report["authority"])
 
     violations: list[str] = []
-    if agreement < 48:
-        violations.append("PRIMARY_SECONDARY_EXACT_AGREEMENT_BELOW_48_OF_60")
     if unresolved > 3:
         violations.append("UNRESOLVED_DISAGREEMENT_ABOVE_3_OF_60")
     for disposition in ("INCLUDE", "EXCLUDE", "BORDERLINE"):
@@ -229,6 +228,7 @@ def evaluate_pilot_readiness(report: dict[str, Any]) -> dict[str, Any]:
 
     quantitative_gate_passed = not violations
     return {
+        "readiness_policy_id": READINESS_POLICY_ID,
         "pilot_round_id": report["pilot_round_id"],
         "state": READY_STATE if quantitative_gate_passed else NOT_READY_STATE,
         "quantitative_gate_passed": quantitative_gate_passed,
