@@ -1,0 +1,54 @@
+name: PRE-G2 D4 agreement-gate successor
+
+on:
+  pull_request:
+    paths:
+      - 'curation/HUMAN_D4_AGREEMENT_GATE_DISPOSITION_2026-09-12_v0.1.json'
+      - 'curation/PRE_G2_D4_PILOT_READINESS_POLICY_2026-09-12_v0.2.json'
+      - 'scripts/evaluate_pre_g2_d4_pilot_readiness_v0_2.py'
+      - 'scripts/execute_pre_g2_d4_final_selection_v0_2.py'
+      - 'tests/test_pre_g2_d4_pilot_readiness_v0_2.py'
+      - 'tests/test_pre_g2_d4_agreement_gate_successor.py'
+      - 'tests/test_pre_g2_d4_calibration_selection_composition_v0_2.py'
+      - '.github/workflows/pre-g2-d4-agreement-gate-successor.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'curation/HUMAN_D4_AGREEMENT_GATE_DISPOSITION_2026-09-12_v0.1.json'
+      - 'curation/PRE_G2_D4_PILOT_READINESS_POLICY_2026-09-12_v0.2.json'
+      - 'scripts/evaluate_pre_g2_d4_pilot_readiness_v0_2.py'
+      - 'scripts/execute_pre_g2_d4_final_selection_v0_2.py'
+      - 'tests/test_pre_g2_d4_pilot_readiness_v0_2.py'
+      - 'tests/test_pre_g2_d4_agreement_gate_successor.py'
+      - 'tests/test_pre_g2_d4_calibration_selection_composition_v0_2.py'
+      - '.github/workflows/pre-g2-d4-agreement-gate-successor.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-d4-agreement-gate-successor:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Validate successor policy and evaluator
+        run: |
+          python -m py_compile \
+            scripts/evaluate_pre_g2_d4_pilot_readiness_v0_2.py \
+            scripts/execute_pre_g2_d4_final_selection_v0_2.py
+          python -m unittest tests.test_pre_g2_d4_pilot_readiness_v0_2 -v
+          python -m unittest tests.test_pre_g2_d4_agreement_gate_successor -v
+          python -m unittest tests.test_pre_g2_d4_calibration_selection_composition_v0_2 -v
+      - name: Prove historical v0.1 semantics remain intact
+        run: |
+          python -m unittest tests.test_pre_g2_d4_sampling_calibration -v
+          python -m unittest tests.test_pre_g2_d4_calibration_selection_composition -v
+      - name: Authority boundary
+        run: |
+          echo "This workflow validates an append-only PRE-G2 D4 readiness-policy successor only."
+          echo "It does not execute a real pilot, establish reviewer competence or benchmark adequacy, freeze D4,"
+          echo "pass G0/G2/G5, resolve rights, authorize population inference, mutate canonical S2,"
+          echo "authorize publication or Phase 4, or alter assessment state."
