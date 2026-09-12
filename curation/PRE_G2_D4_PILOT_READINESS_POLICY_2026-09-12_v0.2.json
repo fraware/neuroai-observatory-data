@@ -14,7 +14,8 @@
     "path": "curation/HUMAN_D4_AGREEMENT_GATE_DISPOSITION_2026-09-12_v0.1.json",
     "disposition_id": "HUMAN_D4_AGREEMENT_GATE_DISPOSITION_2026-09-12_v0.1",
     "github_comment_id": 5646135687,
-    "decision": "APPROVE_REMOVE_RAW_EXACT_AGREEMENT_FROM_AUTOMATED_GATE"
+    "decision": "APPROVE_REMOVE_RAW_EXACT_AGREEMENT_FROM_AUTOMATED_GATE",
+    "git_blob_sha": "faec9bf7158ccbc44db453d8729f20f36184a1c3"
   },
   "aggregate_contract": {
     "base_protocol_id": "PRE_G2_D4_SAMPLING_CALIBRATION_PROTOCOL_2026-09-09_v0.1",
@@ -79,5 +80,15 @@
     "phase4_online_first_default_authorized": false,
     "assessment_effect": "NONE"
   },
-  "boundary": "This successor changes only the automated D4 pilot-readiness treatment of raw exact four-way reviewer agreement. Raw agreement remains mandatory diagnostic evidence for human calibration review. All historical v0.1 artifacts remain immutable. No real pilot, benchmark freeze, gate passage, rights clearance, publication/S2/Phase4 authority, population inference, or assessment effect is created."
+  "boundary": "This successor changes only the automated D4 pilot-readiness treatment of raw exact four-way reviewer agreement. Raw agreement remains mandatory diagnostic evidence for human calibration review. All historical v0.1 artifacts remain immutable. No real pilot, benchmark freeze, gate passage, rights clearance, publication/S2/Phase4 authority, population inference, or assessment effect is created.",
+  "implementation_bindings": {
+    "successor_evaluator": {
+      "path": "scripts/evaluate_pre_g2_d4_pilot_readiness_v0_2.py",
+      "git_blob_sha": "47b79e76cef9925ca1ac8e14eb1582f2e314e4d7"
+    },
+    "successor_composed_entrypoint": {
+      "path": "scripts/execute_pre_g2_d4_final_selection_v0_2.py",
+      "git_blob_sha": "077df54afc2426131b881ffffbd303e0c3d6e9b5"
+    }
+  }
 }
