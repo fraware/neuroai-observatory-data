@@ -1,0 +1,83 @@
+{
+  "schema_version": "0.2.0",
+  "control_id": "PRE_G2_D4_PILOT_READINESS_POLICY_2026-09-12_v0.2",
+  "status": "PRE_G2_APPEND_ONLY_GOVERNANCE_SUCCESSOR_NO_REAL_PILOT",
+  "as_of": "2026-09-12",
+  "governing_issue": 242,
+  "umbrella_issue": 223,
+  "predecessor": {
+    "path": "curation/PRE_G2_D4_SAMPLING_CALIBRATION_PROTOCOL_2026-09-09_v0.1.json",
+    "git_blob_sha": "feedbc5587b0de8a548d41efd49fc66c24cde271",
+    "modified_by_successor": false
+  },
+  "human_governance_disposition": {
+    "path": "curation/HUMAN_D4_AGREEMENT_GATE_DISPOSITION_2026-09-12_v0.1.json",
+    "disposition_id": "HUMAN_D4_AGREEMENT_GATE_DISPOSITION_2026-09-12_v0.1",
+    "github_comment_id": 5646135687,
+    "decision": "APPROVE_REMOVE_RAW_EXACT_AGREEMENT_FROM_AUTOMATED_GATE"
+  },
+  "aggregate_contract": {
+    "base_protocol_id": "PRE_G2_D4_SAMPLING_CALIBRATION_PROTOCOL_2026-09-09_v0.1",
+    "aggregate_shape_unchanged": true,
+    "raw_agreement_count_remains_required": true,
+    "raw_agreement_rate_remains_reported": true,
+    "raw_agreement_is_automated_gate": false,
+    "raw_agreement_role": "DESCRIPTIVE_HUMAN_REVIEW_DIAGNOSTIC_ONLY"
+  },
+  "automated_readiness_controls": {
+    "exact_total_items": 60,
+    "exact_double_labeled_items": 60,
+    "maximum_unresolved_disagreement_count": 3,
+    "minimum_resolved_include": 10,
+    "minimum_resolved_exclude": 10,
+    "minimum_resolved_borderline": 10,
+    "minimum_items_per_controlled_stratum": 6,
+    "semantic_validation_failure_count_required": 0,
+    "reviewer_reference_collision_count_required": 0,
+    "evidence_binding_failure_count_required": 0,
+    "all_blinding_exceptions_require_rationale": true,
+    "pilot_items_held_out_eligible_count_required": 0
+  },
+  "mandatory_human_review": [
+    "FULL_4X4_PRIMARY_SECONDARY_CONFUSION_MATRIX",
+    "RAW_EXACT_AGREEMENT_COUNT_AND_RATE",
+    "CONSTRUCT_CONDITIONAL_DISAGREEMENT",
+    "INCLUDE_EXCLUDE_REVERSALS",
+    "BORDERLINE_ABSTAIN_DISAGREEMENTS",
+    "ADJUDICATION_BURDEN",
+    "UNRESOLVED_DISAGREEMENT",
+    "REVIEWER_TRAINING_AND_QUALIFICATION_PROVENANCE",
+    "BLINDING_EXCEPTIONS",
+    "RATIONALE_QUALITY_AND_RUBRIC_AMBIGUITY"
+  ],
+  "real_execution_boundary": {
+    "approved_successor_evaluator_path": "scripts/evaluate_pre_g2_d4_pilot_readiness_v0_2.py",
+    "approved_successor_composed_entrypoint_path": "scripts/execute_pre_g2_d4_final_selection_v0_2.py",
+    "historical_v0_1_composed_entrypoint_status": "HISTORICAL_NOT_APPROVED_FOR_NEW_REAL_D4_SELECTION_AFTER_THIS_DISPOSITION",
+    "human_calibration_disposition_still_required": true
+  },
+  "current_evidence_state": {
+    "real_pilot_executed": false,
+    "human_calibration_disposition_created": false,
+    "real_final_candidate_pool_frozen": false,
+    "real_final_membership_selected": false,
+    "real_final_human_labels_created": false,
+    "real_d4_frozen": false,
+    "benchmark_adequacy_established": false
+  },
+  "authority": {
+    "g1_approved": true,
+    "g0_passed": false,
+    "g2_passed": false,
+    "g5_passed": false,
+    "rights_clearance": false,
+    "reviewer_competence_established": false,
+    "benchmark_adequacy_established": false,
+    "population_generalization_authority": false,
+    "canonical_s2_authority": false,
+    "publication_authority": false,
+    "phase4_online_first_default_authorized": false,
+    "assessment_effect": "NONE"
+  },
+  "boundary": "This successor changes only the automated D4 pilot-readiness treatment of raw exact four-way reviewer agreement. Raw agreement remains mandatory diagnostic evidence for human calibration review. All historical v0.1 artifacts remain immutable. No real pilot, benchmark freeze, gate passage, rights clearance, publication/S2/Phase4 authority, population inference, or assessment effect is created."
+}
