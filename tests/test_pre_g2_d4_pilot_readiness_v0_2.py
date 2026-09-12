@@ -32,6 +32,7 @@ class D4PilotReadinessV02Tests(unittest.TestCase):
         report["primary_secondary_exact_agreement_count"] = 30
         report["adjudicated_disagreement_count"] = 26
         report["unresolved_disagreement_count"] = 4
+        report["resolved_disposition_counts"]["BORDERLINE"] = 18
         result = evaluate_pilot_readiness(report)
         self.assertFalse(result["quantitative_gate_passed"])
         self.assertIn("UNRESOLVED_DISAGREEMENT_ABOVE_3_OF_60", result["violations"])
