@@ -45,6 +45,15 @@ docs/                    Release, branch-protection, and signed-publication poli
 WORKBENCH_VERSION        Pinned compatible neuroai-workbench package version
 ```
 
+
+## Engineering execution control
+
+The end-to-end implementation and gate sequence for completing the programme is maintained in [docs/true-vision-engineering-execution-spec.md](docs/true-vision-engineering-execution-spec.md).
+
+Engineers resuming work should read that specification together with `curation/CURRENT_EXECUTION_CONTROL.json` and the immutable execution successor referenced by that pointer. Fresh repository state remains authoritative for mutable facts such as exact `main` SHAs, open issues, and hosted workflow runs.
+
+The execution specification is deliberately non-authorizing: it describes the required path through G0-G12 and the final true-vision acceptance audit, but does not itself pass a gate, approve a benchmark, clear rights, mutate canonical S2, authorize publication, or alter v4.2 assessment state.
+
 ## Observatory v2 graph-native release contract
 
 The first graph-native release family uses this stable shape:
