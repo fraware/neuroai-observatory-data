@@ -90,5 +90,23 @@
       "path": "scripts/execute_pre_g2_d4_final_selection_v0_2.py",
       "git_blob_sha": "077df54afc2426131b881ffffbd303e0c3d6e9b5"
     }
+  },
+  "parent_main_binding": {
+    "repository": "fraware/neuroai-observatory-data",
+    "main_commit_sha": "6a9db0c456663316dd42f8160b6089d9082afd3f"
+  },
+  "successor_artifact_bindings": {
+    "human_governance_disposition": {
+      "path": "curation/HUMAN_D4_AGREEMENT_GATE_DISPOSITION_2026-09-12_v0.1.json",
+      "git_blob_sha": "faec9bf7158ccbc44db453d8729f20f36184a1c3"
+    },
+    "readiness_evaluator_v0_2": {
+      "path": "scripts/evaluate_pre_g2_d4_pilot_readiness_v0_2.py",
+      "git_blob_sha": "47b79e76cef9925ca1ac8e14eb1582f2e314e4d7"
+    },
+    "composed_final_selection_entrypoint_v0_2": {
+      "path": "scripts/execute_pre_g2_d4_final_selection_v0_2.py",
+      "git_blob_sha": "077df54afc2426131b881ffffbd303e0c3d6e9b5"
+    }
   }
 }
