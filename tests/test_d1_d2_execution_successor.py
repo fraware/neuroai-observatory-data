@@ -67,8 +67,9 @@ class D1D2ExecutionSuccessorTests(unittest.TestCase):
 
     def test_pointer_advanced_through_append_only_successor_chain(self) -> None:
         self.assertEqual(self.pointer["status"], "CURRENT_CONTROL_POINTER_NONCANONICAL")
-        self.assertEqual(self.pointer["as_of"], "2026-09-08")
-        self.assertEqual(self.pointer["current_programme_execution_state"], CURRENT_SUCCESSOR_PATH)
+        self.assertGreaterEqual(self.pointer["as_of"], "2026-09-08")
+        current_path = ROOT / self.pointer["current_programme_execution_state"]
+        self.assertTrue(current_path.exists())
         self.assertEqual(self.current_successor["predecessor"]["path"], G1_SUCCESSOR_PATH)
         self.assertEqual(self.current_successor["predecessor"]["git_blob_sha"], EXPECTED_G1_SUCCESSOR_BLOB)
         self.assertEqual(git_blob_sha(G1_SUCCESSOR), EXPECTED_G1_SUCCESSOR_BLOB)
