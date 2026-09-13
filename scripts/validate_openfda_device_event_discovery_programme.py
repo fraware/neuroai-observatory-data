@@ -3,7 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any
-PROGRAMME_PATH=Path("curation/openfda_device_event_discovery_programme_v0.1.json");UNIVERSE_REGISTRY_PATH=Path("curation/source_universe_registry_v0.1.json")
+from scripts.source_universe_programme_control import require_source_universe_stream
+PROGRAMME_PATH=Path("curation/openfda_device_event_discovery_programme_v0.1.json");UNIVERSE_REGISTRY_PATH=Path("curation/source_universe_expansion_backlog_v0.1.json")
 EXPECTED={"DISCOVERY-OPENFDA-MAUDE-BCI-001","DISCOVERY-OPENFDA-MAUDE-DBS-NEUROSTIM-001","DISCOVERY-OPENFDA-MAUDE-NEUROPROSTHESIS-001","DISCOVERY-OPENFDA-MAUDE-VISUAL-NEUROPROSTHESIS-001","DISCOVERY-OPENFDA-MAUDE-IMPLANTED-NEURAL-RECORDING-001"}
 FIELDS={"mdr_report_key","report_number","date_received","report_date","event_type","product_problems","source_type","remedial_action","removal_correction_number","devices","query_memberships","normalized_record_sha256"}
 DEVICE_FIELDS={"brand_name","generic_name","udi_di","device_report_product_code","model_number","manufacturer_d_name","implant_flag"}
@@ -11,10 +12,8 @@ COVERAGE={"supplied_page_count","returned_record_count","unique_mdr_report_key_c
 def _load(p:Path)->Any:return json.loads(p.read_text(encoding="utf-8"))
 def _require(c:bool,m:str)->None:
     if not c:raise ValueError(m)
-def _universe(reg:dict[str,Any])->dict[str,Any]:
-    rows=reg.get("universes");_require(isinstance(rows,list),"Source-universe registry must contain universes");matches=[r for r in rows if r.get("universe_id")=="SU-REGULATION"];_require(len(matches)==1,"Expected exactly one SU-REGULATION universe");return matches[0]
 def validate_programme(p:dict[str,Any],reg:dict[str,Any])->dict[str,Any]:
-    _require(p.get("programme_id")=="SU-REGULATION-OPENFDA-DEVICE-EVENTS-v0.1","Unexpected programme_id");_require(p.get("status")=="NONCANONICAL_PROGRAMME_CONTROL","Programme must remain noncanonical");_require(p.get("source_universe_id")=="SU-REGULATION","Programme must bind SU-REGULATION");_require(_universe(reg).get("canonical_completeness_claim") is False,"SU-REGULATION must not claim completeness")
+    _require(p.get("programme_id")=="SU-REGULATION-OPENFDA-DEVICE-EVENTS-v0.1","Unexpected programme_id");_require(p.get("status")=="NONCANONICAL_PROGRAMME_CONTROL","Programme must remain noncanonical");_require(p.get("source_universe_id")=="SU-REGULATION","Programme must bind SU-REGULATION");require_source_universe_stream(reg,"SU-SAFETY-US")
     provider=p.get("provider_contract") or {};_require(provider.get("endpoint")=="https://api.fda.gov/device/event.json" and provider.get("method")=="GET","Provider endpoint changed");_require(provider.get("source_dataset")=="MAUDE","Dataset changed");_require(provider.get("primary_report_id_field")=="mdr_report_key","MDR identity changed");_require(provider.get("max_records_per_request")==1000 and provider.get("max_skip")==25000 and provider.get("max_direct_skip_limit_result_count")==26000,"Paging bounds changed");_require(provider.get("configuration_performs_http") is False,"Programme config must not perform HTTP")
     dep=p.get("workbench_dependency") or {};_require(dep.get("required_capability")=="project_openfda_device_event_pages","Unexpected Workbench capability");_require(dep.get("integration_state")=="AVAILABLE","Merged MAUDE projector must be AVAILABLE")
     ident=p.get("identity_policy") or {};_require(ident.get("primary_identity")=="MDR_REPORT_KEY" and ident.get("conflicting_same_mdr_report_key_policy")=="FAIL_CLOSED","MDR identity policy changed")
