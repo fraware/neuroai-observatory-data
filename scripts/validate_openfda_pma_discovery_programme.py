@@ -1,7 +1,8 @@
 """Validate current bounded openFDA PMA discovery without network access."""
 import json
 from pathlib import Path
-P=Path('curation/openfda_pma_discovery_programme_v0.1.json');R=Path('curation/source_universe_registry_v0.1.json')
+from scripts.source_universe_programme_control import require_source_universe_stream
+P=Path('curation/openfda_pma_discovery_programme_v0.1.json');R=Path('curation/source_universe_expansion_backlog_v0.1.json')
 DEC={'APPR':'APPROVAL_RECORDED','WTDR':'WITHDRAWAL_RECORDED','DENY':'DENIAL_RECORDED','LE30':'THIRTY_DAY_NOTICE_ACCEPTANCE_RECORDED','APRL':'RECLASSIFICATION_AFTER_APPROVAL_RECORDED','APWD':'WITHDRAWAL_AFTER_APPROVAL_RECORDED','GT30':'NO_DECISION_WITHIN_30_DAYS_RECORDED','APCV':'CONVERSION_AFTER_APPROVAL_RECORDED'}
 Q={'DISCOVERY-OPENFDA-PMA-BCI-001','DISCOVERY-OPENFDA-PMA-DBS-NEUROSTIM-001','DISCOVERY-OPENFDA-PMA-NEUROPROSTHESIS-001','DISCOVERY-OPENFDA-PMA-VISUAL-NEUROPROSTHESIS-001','DISCOVERY-OPENFDA-PMA-NEURAL-RECORDING-001'}
 def load(x):return json.loads(x.read_text())
@@ -10,7 +11,7 @@ def req(c,m):
 def validate_programme(p,r):
     req(p.get('programme_id')=='SU-REGULATION-OPENFDA-PMA-v0.1' and p.get('status')=='NONCANONICAL_PROGRAMME_CONTROL','PMA programme identity/status changed')
     req(p.get('source_universe_id')=='SU-REGULATION' and p.get('source_system')=='OPENFDA_DEVICE_PMA','PMA source binding changed')
-    u=[x for x in r.get('universes',[]) if x.get('universe_id')=='SU-REGULATION'];req(len(u)==1 and u[0].get('canonical_completeness_claim') is False,'SU-REGULATION completeness boundary changed')
+    require_source_universe_stream(r,'SU-REGULATORY-US')
     req(p['workbench_dependency']=={'minimum_package_line':'0.3.0.dev0','required_capability':'project_openfda_pma_pages','integration_state':'AVAILABLE'},'PMA capability must remain AVAILABLE')
     i=p['identity_policy'];req(i['record_identity']=='PMA_NUMBER_PLUS_SUPPLEMENT_NUMBER' and i['original_application_sentinel']=='ORIGINAL','PMA composite identity changed');req(i['admitted_pma_prefixes']==['P','BP','D'] and i['h_prefix_hde_out_of_scope_for_v0_1'] is True and i['n_prefix_legacy_nda_out_of_scope_for_v0_1'] is True,'PMA pathway split changed')
     req(i['same_pma_number_different_supplement_auto_merge'] is False and i['record_content_change_is_successor_observation_not_new_record_identity'] is True,'PMA history boundary changed')
