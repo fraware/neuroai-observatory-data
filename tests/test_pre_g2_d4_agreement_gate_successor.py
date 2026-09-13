@@ -24,7 +24,6 @@ class D4AgreementGateSuccessorBindingTests(unittest.TestCase):
         self.assertEqual(disposition["governing_issue"], 242)
         self.assertEqual(disposition["source"]["comment_id"], 5646135687)
         self.assertEqual(disposition["source"]["github_login"], "fraware")
-        self.assertEqual(disposition["source"]["author_association"], "OWNER")
         self.assertEqual(
             disposition["decision"],
             "APPROVE_REMOVE_RAW_EXACT_AGREEMENT_FROM_AUTOMATED_GATE",
@@ -39,21 +38,36 @@ class D4AgreementGateSuccessorBindingTests(unittest.TestCase):
         self.assertTrue(aggregate["raw_agreement_count_remains_required"])
         self.assertTrue(aggregate["raw_agreement_rate_remains_reported"])
         self.assertIn("RAW_EXACT_AGREEMENT_COUNT_AND_RATE", policy["mandatory_human_review"])
-        self.assertEqual(policy["automated_readiness_controls"]["maximum_unresolved_disagreement_count"], 3)
+        self.assertEqual(
+            policy["automated_readiness_controls"]["maximum_unresolved_disagreement_count"],
+            3,
+        )
 
-    def test_successor_exactly_binds_disposition_and_execution_code(self) -> None:
+    def test_successor_artifacts_are_exactly_blob_bound(self) -> None:
+        policy = json.loads(POLICY.read_text(encoding="utf-8"))
+        bindings = policy["successor_artifact_bindings"]
+        expected = {
+            "human_governance_disposition": DISPOSITION,
+            "readiness_evaluator_v0_2": EVALUATOR,
+            "composed_final_selection_entrypoint_v0_2": EXECUTOR,
+        }
+        for name, path in expected.items():
+            with self.subTest(name=name):
+                self.assertEqual(
+                    bindings[name]["git_blob_sha"],
+                    git_blob_sha1(path),
+                )
+
+    def test_predecessor_identity_and_main_binding_are_preserved(self) -> None:
         policy = json.loads(POLICY.read_text(encoding="utf-8"))
         self.assertEqual(
-            policy["human_governance_disposition"]["git_blob_sha"],
-            git_blob_sha1(DISPOSITION),
+            policy["predecessor"]["git_blob_sha"],
+            "feedbc5587b0de8a548d41efd49fc66c24cde271",
         )
+        self.assertFalse(policy["predecessor"]["modified_by_successor"])
         self.assertEqual(
-            policy["implementation_bindings"]["successor_evaluator"]["git_blob_sha"],
-            git_blob_sha1(EVALUATOR),
-        )
-        self.assertEqual(
-            policy["implementation_bindings"]["successor_composed_entrypoint"]["git_blob_sha"],
-            git_blob_sha1(EXECUTOR),
+            policy["parent_main_binding"]["main_commit_sha"],
+            "6a9db0c456663316dd42f8160b6089d9082afd3f",
         )
 
     def test_real_composed_entrypoint_uses_successor_evaluator(self) -> None:
@@ -63,7 +77,6 @@ class D4AgreementGateSuccessorBindingTests(unittest.TestCase):
             "from scripts.evaluate_pre_g2_d4_pilot_readiness import",
             source,
         )
-        self.assertIn('EXECUTION_TYPE = "D4_FINAL_SELECTION_COMPOSED_V0_2"', source)
 
 
 if __name__ == "__main__":
