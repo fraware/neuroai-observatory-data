@@ -3,7 +3,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any
-from scripts.source_universe_programme_control import require_source_universe_stream
+try:
+    from scripts.source_universe_programme_control import require_source_universe_stream
+except ModuleNotFoundError:  # direct script execution from repository root
+    from source_universe_programme_control import require_source_universe_stream
 PROGRAMME_PATH=Path("curation/epo_ops_patent_discovery_programme_v0.1.json");UNIVERSE_REGISTRY_PATH=Path("curation/source_universe_expansion_backlog_v0.1.json")
 EXPECTED_IDS={"DISCOVERY-OPS-BCI-001","DISCOVERY-OPS-INVASIVE-NEURAL-001","DISCOVERY-OPS-CLOSED-LOOP-NEUROMODULATION-001","DISCOVERY-OPS-NEURAL-DECODING-AI-001","DISCOVERY-OPS-VISUAL-NEUROPROSTHESIS-001","DISCOVERY-OPS-GREY-MENTAL-STATE-001","DISCOVERY-OPS-GREY-NEURAL-BIOMETRIC-001","DISCOVERY-OPS-GREY-WORKPLACE-ATTENTION-001","DISCOVERY-OPS-KNOWN-APPLICANTS-001"}
 REQUIRED_FIELDS={"docdb_publication_reference","country","document_number","kind_code","title","publication_date","applicants","inventors","ipc_symbols","cpc_symbols","application_references","priority_references","query_memberships","normalized_record_sha256"}
