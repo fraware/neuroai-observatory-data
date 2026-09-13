@@ -3,9 +3,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any
+from scripts.source_universe_programme_control import require_source_universe_stream
 
 PROGRAMME_PATH=Path("curation/openfda_udi_discovery_programme_v0.1.json")
-UNIVERSE_REGISTRY_PATH=Path("curation/source_universe_registry_v0.1.json")
+UNIVERSE_REGISTRY_PATH=Path("curation/source_universe_expansion_backlog_v0.1.json")
 EXPECTED_QUERY_IDS={"DISCOVERY-OPENFDA-UDI-BCI-001","DISCOVERY-OPENFDA-UDI-DBS-NEUROSTIM-001","DISCOVERY-OPENFDA-UDI-NEUROPROSTHESIS-001","DISCOVERY-OPENFDA-UDI-VISUAL-NEUROPROSTHESIS-001","DISCOVERY-OPENFDA-UDI-NEURAL-RECORDING-001"}
 REQUIRED_FIELDS={"record_identity","primary_di","primary_di_issuing_agency","record_key","record_status","public_version_number","public_version_date","public_version_status","publish_date","brand_name","company_name","version_or_model_number","catalog_number","device_description","commercial_distribution_status","commercial_distribution_end_date","identifiers","premarket_submissions","product_codes","query_memberships","normalized_record_sha256"}
 REQUIRED_COVERAGE={"supplied_page_count","returned_record_count","unique_primary_di_record_count","reported_total_count","reported_total_count_state","skip_sequence_valid","skip_coverage_state","over_26000_limit","bulk_download_or_partition_required","known_controlled_duplicate_count","new_candidate_count","duplicate_representation_count","unresolved_primary_di_count","multiple_primary_di_count"}
@@ -13,11 +14,8 @@ REQUIRED_COVERAGE={"supplied_page_count","returned_record_count","unique_primary
 def _load(p:Path)->Any:return json.loads(p.read_text(encoding="utf-8"))
 def _require(c:bool,m:str)->None:
     if not c:raise ValueError(m)
-def _universe(reg:dict[str,Any],uid:str)->dict[str,Any]:
-    rows=reg.get("universes");_require(isinstance(rows,list),"Source-universe registry must contain universes");matches=[r for r in rows if r.get("universe_id")==uid];_require(len(matches)==1,f"Expected exactly one {uid} universe");return matches[0]
-
 def validate_programme(p:dict[str,Any],reg:dict[str,Any])->dict[str,Any]:
-    _require(p.get("programme_id")=="SU-REGULATION-OPENFDA-UDI-v0.1","Unexpected programme_id");_require(p.get("status")=="NONCANONICAL_PROGRAMME_CONTROL","Programme must remain noncanonical");_require(p.get("source_universe_id")=="SU-REGULATION","Programme must bind SU-REGULATION");_require(p.get("source_system")=="OPENFDA_DEVICE_UDI_GUDID","Unexpected source system");_require(_universe(reg,"SU-REGULATION").get("canonical_completeness_claim") is False,"SU-REGULATION must not claim completeness")
+    _require(p.get("programme_id")=="SU-REGULATION-OPENFDA-UDI-v0.1","Unexpected programme_id");_require(p.get("status")=="NONCANONICAL_PROGRAMME_CONTROL","Programme must remain noncanonical");_require(p.get("source_universe_id")=="SU-REGULATION","Programme must bind SU-REGULATION");_require(p.get("source_system")=="OPENFDA_DEVICE_UDI_GUDID","Unexpected source system");require_source_universe_stream(reg,"SU-REGULATORY-US")
     provider=p.get("provider_contract") or {};_require(provider.get("provider")=="U.S. FDA openFDA Unique Device Identifier API (GUDID)","Provider changed");_require(provider.get("endpoint")=="https://api.fda.gov/device/udi.json","Endpoint changed");_require(provider.get("max_records_per_request")==1000 and provider.get("max_skip")==25000 and provider.get("max_direct_result_count")==26000,"Provider paging bounds changed");_require(provider.get("bulk_download_requires_all_files_for_complete_current_dataset") is True,"Bulk completeness boundary changed");_require(provider.get("old_records_may_change_on_provider_update") is True,"Provider update boundary changed");_require(provider.get("configuration_performs_http") is False,"Programme configuration must not perform HTTP")
     dep=p.get("workbench_dependency") or {};_require(dep.get("required_capability")=="project_openfda_udi_pages","Unexpected Workbench capability");_require(dep.get("integration_state")=="AVAILABLE","Merged UDI projector must be AVAILABLE")
     ident=p.get("identity_policy") or {};_require(ident.get("device_record_identity")=="PRIMARY_DI_ISSUING_AGENCY_PLUS_ID","UDI identity changed");_require(ident.get("exactly_one_primary_di_required_for_candidate") is True,"Exactly one Primary DI required");_require(ident.get("primary_di_is_gudid_record_primary_key") is True,"Primary DI primary-key boundary changed");_require(ident.get("record_key_is_provider_tracking_key_not_device_identity") is True,"record_key must remain provider tracking key");_require(ident.get("public_version_fields_track_record_updates") is True,"Public version fields must track updates");_require(ident.get("same_primary_di_changed_public_version_is_successor_observation") is True,"Version changes must be successor observations")
