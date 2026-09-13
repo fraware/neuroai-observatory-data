@@ -3,7 +3,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any
-from scripts.source_universe_programme_control import require_source_universe_stream
+try:
+    from scripts.source_universe_programme_control import require_source_universe_stream
+except ModuleNotFoundError:  # direct script execution from repository root
+    from source_universe_programme_control import require_source_universe_stream
 PROGRAMME_PATH=Path("curation/openfda_device_event_discovery_programme_v0.1.json");UNIVERSE_REGISTRY_PATH=Path("curation/source_universe_expansion_backlog_v0.1.json")
 EXPECTED={"DISCOVERY-OPENFDA-MAUDE-BCI-001","DISCOVERY-OPENFDA-MAUDE-DBS-NEUROSTIM-001","DISCOVERY-OPENFDA-MAUDE-NEUROPROSTHESIS-001","DISCOVERY-OPENFDA-MAUDE-VISUAL-NEUROPROSTHESIS-001","DISCOVERY-OPENFDA-MAUDE-IMPLANTED-NEURAL-RECORDING-001"}
 FIELDS={"mdr_report_key","report_number","date_received","report_date","event_type","product_problems","source_type","remedial_action","removal_correction_number","devices","query_memberships","normalized_record_sha256"}
