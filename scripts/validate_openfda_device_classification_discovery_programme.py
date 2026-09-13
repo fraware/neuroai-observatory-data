@@ -3,7 +3,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any
-from scripts.source_universe_programme_control import require_source_universe_stream
+try:
+    from scripts.source_universe_programme_control import require_source_universe_stream
+except ModuleNotFoundError:  # direct script execution from repository root
+    from source_universe_programme_control import require_source_universe_stream
 PROGRAMME_PATH=Path("curation/openfda_device_classification_discovery_programme_v0.1.json");UNIVERSE_REGISTRY_PATH=Path("curation/source_universe_expansion_backlog_v0.1.json")
 EXPECTED_QUERY_IDS={"DISCOVERY-OPENFDA-CLASS-BCI-001","DISCOVERY-OPENFDA-CLASS-DBS-NEUROSTIM-001","DISCOVERY-OPENFDA-CLASS-NEUROPROSTHESIS-001","DISCOVERY-OPENFDA-CLASS-VISUAL-NEUROPROSTHESIS-001","DISCOVERY-OPENFDA-CLASS-NEURAL-RECORDING-001"}
 REQUIRED_FIELDS={"product_code","record_identity","device_name","definition","device_class","classification_finality","regulation_number","medical_specialty","medical_specialty_description","review_code","implant_flag","life_sustain_support_flag","gmp_exempt_flag","query_memberships","normalized_record_sha256"}
