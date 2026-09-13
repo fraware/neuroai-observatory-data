@@ -1,7 +1,10 @@
 """Validate current bounded openFDA 510(k) discovery without network access."""
 import json
 from pathlib import Path
-from scripts.source_universe_programme_control import require_source_universe_stream
+try:
+    from scripts.source_universe_programme_control import require_source_universe_stream
+except ModuleNotFoundError:  # direct script execution from repository root
+    from source_universe_programme_control import require_source_universe_stream
 P=Path('curation/openfda_510k_discovery_programme_v0.1.json');R=Path('curation/source_universe_expansion_backlog_v0.1.json')
 SE=['SEKD','SESD','SESE','SESK','SESP','SESU','SESR']
 Q={'DISCOVERY-OPENFDA-510K-BCI-001','DISCOVERY-OPENFDA-510K-DBS-NEUROSTIM-001','DISCOVERY-OPENFDA-510K-NEUROPROSTHESIS-001','DISCOVERY-OPENFDA-510K-VISUAL-NEUROPROSTHESIS-001','DISCOVERY-OPENFDA-510K-NEURAL-RECORDING-001'}
