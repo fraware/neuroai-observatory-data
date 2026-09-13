@@ -3,7 +3,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any
-from scripts.source_universe_programme_control import require_source_universe_stream
+try:
+    from scripts.source_universe_programme_control import require_source_universe_stream
+except ModuleNotFoundError:  # direct script execution from repository root
+    from source_universe_programme_control import require_source_universe_stream
 PROGRAMME_PATH=Path("curation/europepmc_publications_discovery_programme_v0.1.json");UNIVERSE_REGISTRY_PATH=Path("curation/source_universe_expansion_backlog_v0.1.json")
 EXPECTED_QUERY_IDS={"DISCOVERY-EPMC-BCI-001","DISCOVERY-EPMC-NEURAL-DECODING-AI-001","DISCOVERY-EPMC-INVASIVE-INTERFACE-AI-001","DISCOVERY-EPMC-CLOSED-LOOP-NEUROMODULATION-001","DISCOVERY-EPMC-EEG-FOUNDATION-001","DISCOVERY-EPMC-SPEECH-COMMUNICATION-001","DISCOVERY-EPMC-VISUAL-NEUROPROSTHESIS-COMPUTATION-001","DISCOVERY-EPMC-GREY-MENTAL-STATE-001"}
 EXPECTED_ANCHORS={"EPMC-ANCHOR-PRIMA-001":("10.1056/nejmoa2501396","41124203"),"EPMC-ANCHOR-SPEECH-NEUROPROSTHESIS-001":("10.1056/nejmoa2314132","39141853")}
