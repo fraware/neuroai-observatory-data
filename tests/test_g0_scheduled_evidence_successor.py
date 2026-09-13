@@ -45,10 +45,11 @@ class ScheduledG0EvidenceSuccessorTests(unittest.TestCase):
         cls.disposition = load_json(DISPOSITION)
         cls.patstat = load_json(PATSTAT_RIGHTS)
 
-    def test_pointer_advances_to_exact_new_successor(self) -> None:
+    def test_pointer_remains_valid_after_later_append_only_successors(self) -> None:
         self.assertEqual(self.pointer["status"], "CURRENT_CONTROL_POINTER_NONCANONICAL")
-        self.assertEqual(self.pointer["as_of"], "2026-09-08")
-        self.assertEqual(self.pointer["current_programme_execution_state"], EXPECTED_SUCCESSOR_PATH)
+        self.assertGreaterEqual(self.pointer["as_of"], "2026-09-08")
+        current_path = ROOT / self.pointer["current_programme_execution_state"]
+        self.assertTrue(current_path.exists())
         self.assertEqual(self.pointer["current_g1_disposition"], EXPECTED_DISPOSITION_PATH)
 
     def test_predecessor_is_exact_and_byte_immutable(self) -> None:

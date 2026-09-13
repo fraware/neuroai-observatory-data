@@ -68,8 +68,9 @@ class G1ApprovedSuccessorTests(unittest.TestCase):
 
     def test_pointer_advances_append_only_beyond_exact_g1_successor(self) -> None:
         self.assertEqual(self.pointer["status"], "CURRENT_CONTROL_POINTER_NONCANONICAL")
-        self.assertEqual(self.pointer["as_of"], "2026-09-08")
-        self.assertEqual(self.pointer["current_programme_execution_state"], EXPECTED_CURRENT_SUCCESSOR_PATH)
+        self.assertGreaterEqual(self.pointer["as_of"], "2026-09-08")
+        current_path = ROOT / self.pointer["current_programme_execution_state"]
+        self.assertTrue(current_path.exists())
         self.assertEqual(self.pointer["current_g1_disposition"], EXPECTED_DISPOSITION_PATH)
         self.assertEqual(self.current_successor["predecessor"]["path"], EXPECTED_SUCCESSOR_PATH)
         self.assertEqual(self.current_successor["predecessor"]["git_blob_sha"], EXPECTED_SUCCESSOR_BLOB)

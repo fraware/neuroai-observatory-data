@@ -1,0 +1,132 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-13_PRE_G2_CURRENT_SUCCESSOR",
+  "status": "PRE_G2_CURRENT_EXECUTION_SUCCESSOR_STATE_NONCANONICAL",
+  "as_of": "2026-09-13",
+  "purpose": "Append-only execution-control successor consolidating the exact current programme state after merged D3/D4 PRE-G2 controls and the D4 agreement-gate governance successor, without re-adjudicating G0/G1/G2 or creating publication, assessment, rights, or Phase 4 authority.",
+  "governing_issue": 246,
+  "predecessor": {
+    "path": "curation/PROGRAMME_EXECUTION_STATE_2026-09-08_SCHEDULED_G0_EVIDENCE_SUCCESSOR.json",
+    "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-08_SCHEDULED_G0_EVIDENCE_SUCCESSOR",
+    "git_blob_sha": "1f42ef2dbba19b047ab1ea47e4e0ac5967e20b51",
+    "predecessor_is_modified_by_this_successor": false,
+    "predecessor_immutability": "HISTORICAL_IMMUTABLE_EXECUTION_STATE_NOT_EDITED_IN_PLACE"
+  },
+  "frozen_baseline": {
+    "path": "curation/PROGRAMME_EXECUTION_BASELINE_2026-09-01.json",
+    "git_blob_sha": "73ef722fb6a4f46464a39da3ffb4213150a32208",
+    "modified_by_this_successor": false
+  },
+  "repository_binding": {
+    "observatory_repository": "fraware/neuroai-observatory-data",
+    "observatory_main_sha": "c5d827bfec0f4d30d1880fb2096159461ceb0f51",
+    "workbench_repository": "fraware/neuroai-workbench",
+    "workbench_main_sha": "854cc9d1c8e24a9e8ae8b21d871329bc3c24c118"
+  },
+  "inherited_gate_state": {
+    "g0": {
+      "decision": "BLOCKED_NOT_PASSED",
+      "passed": false,
+      "last_qualifying_normal_schedule_run_id": 34110413357,
+      "blocking_source_id": "SRC-14-021",
+      "blocking_issue": 224,
+      "re_adjudicated_by_this_successor": false
+    },
+    "g1": {
+      "decision": "APPROVE",
+      "approved": true,
+      "record_path": "curation/HUMAN_G1_DISPOSITION_2026-09-05_D1_D2_v0.1.json",
+      "git_blob_sha": "ed42dc5b77cf011562db8c8c39bc9e71968fdb37",
+      "re_adjudicated_by_this_successor": false
+    },
+    "g2": {
+      "passed": false,
+      "re_adjudicated_by_this_successor": false
+    }
+  },
+  "source_universe_state": {
+    "path": "curation/source_universe_execution_state_2026-09-03_SRC14021_DISPOSITION_C_SUCCESSOR.json",
+    "git_blob_sha": "dc27d7d3cb0d21d65f0698a042594efdd5d5de04",
+    "src_14_021_successor_domain_verified": false,
+    "issue": 224,
+    "issue_state_at_recording": "OPEN",
+    "route_mutation_authorized": false
+  },
+  "pre_g2_state": {
+    "d3": {
+      "umbrella_issue": 222,
+      "issue_state_at_recording": "OPEN",
+      "challenge_composition_path": "curation/PRE_G2_D3_CALIBRATION_SELECTION_COMPOSITION_2026-09-11_v0.1.json",
+      "challenge_composition_git_blob_sha": "daa984537315def2d49cbabc624fe5f26b530ab0",
+      "challenge_software_control_composed": true,
+      "real_pilot_executed": false,
+      "real_final_membership_selected": false,
+      "real_human_labels_created": false,
+      "frozen": false,
+      "probability_audit_ready": false,
+      "note": "Challenge-side control composition exists. Real human benchmark construction remains outstanding, and the probability-audit component remains blocked on PATSTAT Baseline A provenance."
+    },
+    "d4": {
+      "umbrella_issue": 223,
+      "issue_state_at_recording": "OPEN",
+      "readiness_policy_path": "curation/PRE_G2_D4_PILOT_READINESS_POLICY_2026-09-12_v0.2.json",
+      "readiness_policy_git_blob_sha": "c3d12fabd0a5f1c97048f6f64f9d1e9a87e7fb38",
+      "agreement_gate_governance_issue": 242,
+      "agreement_gate_governance_issue_state": "CLOSED_COMPLETED",
+      "raw_exact_agreement_automated_gate": false,
+      "raw_exact_agreement_retained_as_human_review_diagnostic": true,
+      "real_pilot_executed": false,
+      "human_calibration_approval_created": false,
+      "real_final_membership_selected": false,
+      "real_human_labels_created": false,
+      "frozen": false
+    },
+    "patstat_baseline_a": {
+      "scientific_audit_issue": 220,
+      "scientific_audit_issue_state_at_recording": "OPEN",
+      "provenance_status_path": "curation/PATSTAT_BASELINE_A_PROVENANCE_INTAKE_STATUS_2026-09-12_v0.1.json",
+      "provenance_status_git_blob_sha": "17eaa932c46b4bf311c94e6852395a0133c4987d",
+      "provenance_readiness": "WAITING_FOR_PROVENANCE",
+      "probability_audit_ready": false,
+      "roman_49671_validated": false,
+      "roman_67_percent_retrieval_recall_validated": false,
+      "rights_issue": 210,
+      "rights_issue_state_at_recording": "OPEN",
+      "rights_clearance": false
+    }
+  },
+  "workbench_phase3": {
+    "issue": 287,
+    "issue_state_at_recording": "OPEN",
+    "workbench_main_sha": "854cc9d1c8e24a9e8ae8b21d871329bc3c24c118",
+    "workflow_path": ".github/workflows/phase3-external-proof.yml",
+    "workflow_git_blob_sha": "aa75dfaa1559b35377af64a775a7285278faad6e",
+    "execution_readiness_merged": true,
+    "external_live_proof_executed": false,
+    "external_live_proof_reviewed_complete": false,
+    "phase4_online_first_default_authorized": false
+  },
+  "historical_record_boundary": {
+    "predecessor_execution_state_modified": false,
+    "frozen_baseline_modified": false,
+    "g1_disposition_modified": false,
+    "source_universe_state_modified": false,
+    "d3_control_modified": false,
+    "d4_control_modified": false,
+    "patstat_status_modified": false
+  },
+  "authority": {
+    "g0_passed": false,
+    "g1_approved": true,
+    "g2_passed": false,
+    "g5_passed": false,
+    "canonical_s2_authority": false,
+    "publication_authority": false,
+    "mutation_authority": false,
+    "assessment_effect": "NONE",
+    "patstat_rights_clearance": false,
+    "population_generalization_authority": false,
+    "phase4_online_first_default_authorized": false
+  },
+  "boundary": "This successor consolidates current execution bookkeeping only. G0 remains blocked by unresolved SRC-14-021 pending a legitimate successor-domain disposition and a successful normal scheduled due-cycle; G1 remains approved only for the exact previously bound D1/D2 identities; G2 remains unpassed; real D3/D4 human benchmark construction remains outstanding; PATSTAT Baseline A provenance and redistribution rights remain unresolved; Workbench Phase 3 external proof remains unexecuted and unreviewed; Phase 4 remains unauthorized. No canonical S2 mutation, publication authority, scientific-truth/completeness claim, population inference, legal authority, or v4.2 assessment effect is created."
+}
