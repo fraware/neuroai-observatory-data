@@ -12,6 +12,19 @@ def _load(p:Path)->Any:return json.loads(p.read_text(encoding="utf-8"))
 def _require(c:bool,m:str)->None:
     if not c:raise ValueError(m)
 
+def _balanced(query:str)->bool:
+    depth=0;quoted=False;escaped=False
+    for ch in query:
+        if escaped:escaped=False;continue
+        if ch=="\\":escaped=True;continue
+        if ch=='"':quoted=not quoted;continue
+        if quoted:continue
+        if ch=="(":depth+=1
+        elif ch==")":
+            depth-=1
+            if depth<0:return False
+    return depth==0 and not quoted and not escaped
+
 REQUIRED_CONTROL_INVARIANTS={
     "DISCOVERY_RESULT_IS_NOT_CANONICAL_SOURCE",
     "SOURCE_IDENTITY_ACCEPTANCE_REQUIRES_HUMAN_DISPOSITION",
