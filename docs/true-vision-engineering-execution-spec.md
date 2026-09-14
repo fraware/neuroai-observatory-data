@@ -8,7 +8,7 @@ Initial repository baseline for this version: `fraware/neuroai-observatory-data@
 
 Companion Workbench baseline observed during authoring: `fraware/neuroai-workbench@854cc9d1c8e24a9e8ae8b21d871329bc3c24c118`
 
-Last substantive status snapshot in this version: **2026-09-13**
+Last substantive status snapshot in this version: **2026-09-14**
 
 ---
 
@@ -230,15 +230,17 @@ Landscape state MAY trigger assessment review; it MUST NOT substitute for exact-
 
 This section is a **snapshot**, not the authoritative mutable state.
 
-At authoring:
+At the 2026-09-14 documentation refresh:
 
-- Observatory `main`: `9cd32e616d6bf1aebd85bab6c6564ca777117205`.
+- Observatory `main` immediately before this documentation-only refresh: `06da8887c3700c6d16c52cbfb83aa71b62aab3df`.
 - Workbench `main`: `854cc9d1c8e24a9e8ae8b21d871329bc3c24c118`.
 - Current programme pointer: `curation/CURRENT_EXECUTION_CONTROL.json`.
-- Current immutable successor: `curation/PROGRAMME_EXECUTION_STATE_2026-09-13_PRE_G2_CURRENT_SUCCESSOR.json`.
+- Current immutable successor: `curation/PROGRAMME_EXECUTION_STATE_2026-09-14_PRE_G3_REPLAY_REBIND_SUCCESSOR.json`.
+- PRE-G3 current-baseline structured recorded-replay compatibility: complete for the 12 controlled replay workflows through Observatory PR #250; this is compatibility evidence only and is not a G3 pass.
 - G0: `BLOCKED_NOT_PASSED`.
 - G1: `APPROVE` for the exact bound D1/D2 identities only.
 - G2: not passed.
+- G3: not passed.
 - G5: not passed.
 - S2 canonical mutation authority: false.
 - publication authority: false.
@@ -247,16 +249,18 @@ At authoring:
 - Phase 4 online-first default authorization: false.
 - v4.2 assessment effect: none.
 
-Open blocking work represented by live issues at this snapshot:
+Open blocking/execution work represented by live issues at this snapshot:
 
 - Workbench #287 — controlled live/replay equivalence and interruption proof.
 - Observatory #224 — SRC-14-021 / SONA successor-domain adjudication.
-- Observatory #222 — D3 patent benchmark.
-- Observatory #223 — D4 product benchmark.
+- Observatory #222 — D3 patent benchmark umbrella.
+- Observatory #259 — real D3 challenge 60-family S3 calibration pilot, explicitly separated from the PATSTAT probability-audit track.
+- Observatory #223 — D4 product benchmark umbrella.
+- Observatory #258 — real D4 60-item S3 calibration pilot and human disposition.
 - Observatory #220 — PATSTAT Baseline A scientific audit.
 - Observatory #210 — PATSTAT redistribution/containment rights review.
 
-Current PRE-G2 controls are substantially implemented. The dominant remaining work is **real execution, human evidence, provenance, rights review, measured research performance, and downstream governed release**.
+Current PRE-G2 controls are substantially implemented, and the current-baseline structured replay matrix has been re-proved. The dominant remaining work is **real execution, human evidence, provenance, rights review, measured research performance, and downstream governed release**.
 
 ---
 
@@ -1564,8 +1568,8 @@ This queue is intentionally short and ordered by real dependency value. Re-read 
 1. Execute and review the Workbench Phase-3 external proof for issue #287.
 2. Obtain admissible SRC-14-021/SONA identity-lifecycle evidence; if positive, append the route successor and obtain the next qualifying normal scheduled due-cycle for G0.
 3. Obtain the six-component PATSTAT provenance package and execute the scientific reconstruction; separately finish PATSTAT rights review.
-4. Execute the real S3 D3 60-family pilot, human calibration, frozen 240-family selection, final labeling, and D3 freeze.
-5. Execute the real S3 D4 60-item pilot, human calibration, frozen 240-item selection, final labeling, and D4 freeze.
+4. Execute the real S3 D3 60-family challenge pilot and human calibration under issue #259, then frozen 240-family selection, final labeling, and D3 freeze under the #222 umbrella; keep the separate probability-audit evidence role distinct.
+5. Execute the real S3 D4 60-item pilot and human calibration under issue #258, then frozen 240-item selection, final labeling, and D4 freeze under the #223 umbrella.
 6. Assemble exact frozen D3+D4 evidence and record a real human G2 disposition.
 7. Continue sequentially through G3-G12 under the gate contracts in this specification.
 
