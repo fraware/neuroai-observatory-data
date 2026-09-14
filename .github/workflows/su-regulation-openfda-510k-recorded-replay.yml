@@ -2,6 +2,7 @@ name: SU-REGULATION openFDA 510(k) recorded replay
 on:
   pull_request:
     paths:
+      - "curation/source_universe_expansion_backlog_v0.1.json"
       - 'curation/openfda_510k_discovery_programme_v0.1.json'
       - 'schemas/openfda-510k-discovery-programme.schema.json'
       - 'schemas/openfda-510k-discovery-replay-input.schema.json'

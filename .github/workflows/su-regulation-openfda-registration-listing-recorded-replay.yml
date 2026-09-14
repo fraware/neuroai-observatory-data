@@ -3,6 +3,7 @@ name: SU-REGULATION openFDA registration-listing recorded replay
 on:
   pull_request:
     paths:
+      - "curation/source_universe_expansion_backlog_v0.1.json"
       - "curation/openfda_registration_listing_discovery_programme_v0.1.json"
       - "schemas/openfda-registration-listing-discovery-programme.schema.json"
       - "schemas/openfda-registration-listing-discovery-replay-input.schema.json"

@@ -2,6 +2,7 @@ name: SU-REGULATION openFDA PMA recorded replay
 on:
   pull_request:
     paths:
+      - "curation/source_universe_expansion_backlog_v0.1.json"
       - 'curation/openfda_pma_discovery_programme_v0.1.json'
       - 'schemas/openfda-pma-discovery-programme.schema.json'
       - 'schemas/openfda-pma-discovery-replay-input.schema.json'

@@ -3,6 +3,7 @@ name: SU-GRANTS NIH RePORTER recorded replay
 on:
   pull_request:
     paths:
+      - "curation/source_universe_expansion_backlog_v0.1.json"
       - 'curation/nih_reporter_grants_discovery_programme_v0.1.json'
       - 'schemas/nih-reporter-grants-discovery-replay-input.schema.json'
       - 'scripts/current_source_namespace.py'
