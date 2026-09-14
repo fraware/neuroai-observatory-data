@@ -1,0 +1,53 @@
+name: Current execution successor 2026-09-14
+
+on:
+  pull_request:
+    paths:
+      - 'curation/PROGRAMME_EXECUTION_STATE_2026-09-14_G0_ROUTE_REMEDIATION_SUCCESSOR.json'
+      - 'curation/CURRENT_EXECUTION_CONTROL.json'
+      - 'tests/test_current_execution_successor_2026_09_14.py'
+      - 'tests/test_current_execution_successor_2026_09_13.py'
+      - 'tests/test_g0_scheduled_evidence_successor.py'
+      - 'tests/test_g1_approved_successor.py'
+      - 'tests/test_d1_d2_execution_successor.py'
+      - '.github/workflows/current-execution-successor-2026-09-14.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'curation/PROGRAMME_EXECUTION_STATE_2026-09-14_G0_ROUTE_REMEDIATION_SUCCESSOR.json'
+      - 'curation/CURRENT_EXECUTION_CONTROL.json'
+      - 'tests/test_current_execution_successor_2026_09_14.py'
+      - 'tests/test_current_execution_successor_2026_09_13.py'
+      - 'tests/test_g0_scheduled_evidence_successor.py'
+      - 'tests/test_g1_approved_successor.py'
+      - 'tests/test_d1_d2_execution_successor.py'
+      - '.github/workflows/current-execution-successor-2026-09-14.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-current-execution-successor:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Validate execution-control JSON
+        run: |
+          python -m json.tool curation/PROGRAMME_EXECUTION_STATE_2026-09-14_G0_ROUTE_REMEDIATION_SUCCESSOR.json >/dev/null
+          python -m json.tool curation/CURRENT_EXECUTION_CONTROL.json >/dev/null
+      - name: Validate current successor and historical chain
+        run: |
+          python -m unittest tests.test_current_execution_successor_2026_09_14 -v
+          python -m unittest tests.test_current_execution_successor_2026_09_13 -v
+          python -m unittest tests.test_g0_scheduled_evidence_successor -v
+          python -m unittest tests.test_g1_approved_successor -v
+          python -m unittest tests.test_d1_d2_execution_successor -v
+      - name: Authority boundary
+        run: |
+          echo "This workflow validates append-only execution bookkeeping only."
+          echo "The 2026-09-14 normal scheduled run did not pass G0."
+          echo "The SRC-14-014 route remediation is hosted corroboration only; SRC-14-021 remains unresolved."
+          echo "No G2/G5, Phase 3/4, PATSTAT rights, S2/publication, scientific-truth, population, or assessment authority is created."
