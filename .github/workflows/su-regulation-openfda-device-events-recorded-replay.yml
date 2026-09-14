@@ -30,11 +30,11 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Checkout exact merged Workbench provider integration
+      - name: Checkout exact current Workbench provider integration
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           repository: fraware/neuroai-workbench
-          ref: 29f3a93e7a9050684687cc11b0568b7a9c6ef867
+          ref: 854cc9d1c8e24a9e8ae8b21d871329bc3c24c118
           path: .workbench
           persist-credentials: false
 

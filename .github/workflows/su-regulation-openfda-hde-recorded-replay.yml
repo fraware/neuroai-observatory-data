@@ -23,11 +23,11 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: '3.12'
-      - name: Checkout exact merged Workbench HDE capability
+      - name: Checkout exact current Workbench HDE capability
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           repository: fraware/neuroai-workbench
-          ref: 5be514d71ef678ac546ed60c97c1e7aacb0f0583
+          ref: 854cc9d1c8e24a9e8ae8b21d871329bc3c24c118
           path: .workbench
           persist-credentials: false
       - run: python -m pip install --disable-pip-version-check -e .workbench
