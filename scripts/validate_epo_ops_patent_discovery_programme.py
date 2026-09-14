@@ -3,17 +3,37 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any
-PROGRAMME_PATH=Path("curation/epo_ops_patent_discovery_programme_v0.1.json");UNIVERSE_REGISTRY_PATH=Path("curation/source_universe_registry_v0.1.json")
+PROGRAMME_PATH=Path("curation/epo_ops_patent_discovery_programme_v0.1.json");UNIVERSE_REGISTRY_PATH=Path("curation/source_universe_expansion_backlog_v0.1.json")
 EXPECTED_IDS={"DISCOVERY-OPS-BCI-001","DISCOVERY-OPS-INVASIVE-NEURAL-001","DISCOVERY-OPS-CLOSED-LOOP-NEUROMODULATION-001","DISCOVERY-OPS-NEURAL-DECODING-AI-001","DISCOVERY-OPS-VISUAL-NEUROPROSTHESIS-001","DISCOVERY-OPS-GREY-MENTAL-STATE-001","DISCOVERY-OPS-GREY-NEURAL-BIOMETRIC-001","DISCOVERY-OPS-GREY-WORKPLACE-ATTENTION-001","DISCOVERY-OPS-KNOWN-APPLICANTS-001"}
 REQUIRED_FIELDS={"docdb_publication_reference","country","document_number","kind_code","title","publication_date","applicants","inventors","ipc_symbols","cpc_symbols","application_references","priority_references","query_memberships","normalized_record_sha256"}
 REQUIRED_COVERAGE={"requested_range_count","returned_publication_reference_count","unique_docdb_publication_count","reported_total_result_count","reported_total_result_count_state","range_sequence_valid","range_coverage_state","over_2000_limit","partition_required","known_controlled_duplicate_count","new_candidate_count","cross_query_duplicate_representation_count","unresolved_docdb_identity_count"}
 def _load(p:Path)->Any:return json.loads(p.read_text(encoding="utf-8"))
 def _require(c:bool,m:str)->None:
     if not c:raise ValueError(m)
-def _universe(reg:dict[str,Any],uid:str)->dict[str,Any]:
-    rows=reg.get("universes");_require(isinstance(rows,list),"Source-universe registry must contain universes");matches=[r for r in rows if r.get("universe_id")==uid];_require(len(matches)==1,f"Expected exactly one {uid} universe");return matches[0]
+
+REQUIRED_CONTROL_INVARIANTS={
+    "DISCOVERY_RESULT_IS_NOT_CANONICAL_SOURCE",
+    "SOURCE_IDENTITY_ACCEPTANCE_REQUIRES_HUMAN_DISPOSITION",
+    "MECHANICAL_COMPLETION_IS_NOT_DOMAIN_COMPLETENESS",
+    "NO_SILENT_CANONICAL_MUTATION",
+}
+def _validate_backlog_control(backlog):
+    _require(backlog.get("status")=="NONCANONICAL_PLANNING_CONTROL","Expansion control must remain noncanonical")
+    invariants=set(backlog.get("programme_invariants") or [])
+    missing=REQUIRED_CONTROL_INVARIANTS-invariants
+    _require(not missing,f"Missing expansion invariants: {sorted(missing)}")
+    rows=backlog.get("streams")
+    _require(isinstance(rows,list),"Expansion control must contain streams")
+    matches=[row for row in rows if isinstance(row,dict) and row.get("stream_id")=="SU-PATENTS-EPO"]
+    _require(len(matches)==1,"Expected exactly one SU-PATENTS-EPO stream")
+    stream=matches[0]
+    _require(stream.get("domain")=="PATENTS","SU-PATENTS-EPO: domain changed")
+    providers=stream.get("provider_programmes")
+    _require(isinstance(providers,list),"SU-PATENTS-EPO: provider_programmes missing")
+    _require(any(isinstance(row,dict) and row.get("provider")=="European Patent Office" for row in providers),"SU-PATENTS-EPO: provider European Patent Office missing")
+
 def validate_programme(p:dict[str,Any],reg:dict[str,Any])->dict[str,Any]:
-    _require(p.get("programme_id")=="SU-PATENTS-EPO-OPS-v0.1" and p.get("status")=="NONCANONICAL_PROGRAMME_CONTROL","Programme identity/state changed");_require(p.get("source_universe_id")=="SU-PATENTS" and p.get("source_system")=="EPO_OPS","Programme universe/system changed");_require(_universe(reg,"SU-PATENTS").get("canonical_completeness_claim") is False,"SU-PATENTS must not claim completeness")
+    _require(p.get("programme_id")=="SU-PATENTS-EPO-OPS-v0.1" and p.get("status")=="NONCANONICAL_PROGRAMME_CONTROL","Programme identity/state changed");_require(p.get("source_universe_id")=="SU-PATENTS" and p.get("source_system")=="EPO_OPS","Programme universe/system changed");_validate_backlog_control(reg)
     provider=p.get("provider_contract") or {};_require(provider.get("server")=="https://ops.epo.org/3.2/rest-services" and provider.get("search_endpoint")=="/published-data/search/biblio" and provider.get("search_constituent")=="biblio","OPS endpoint/constituent changed");_require(provider.get("query_language")=="CQL" and provider.get("response_media_type")=="application/exchange+xml" and provider.get("range_transport")=="X-OPS-Range","OPS request contract changed");_require(provider.get("max_records_per_range")==100 and provider.get("max_retrievable_results_per_search")==2000,"OPS retrieval bounds changed");_require(provider.get("configuration_performs_http") is False,"Programme must not perform HTTP")
     dep=p.get("workbench_dependency") or {};_require(dep.get("required_capability")=="project_epo_ops_search_pages" and dep.get("integration_state")=="AVAILABLE","Merged EPO OPS projector must be AVAILABLE")
     ident=p.get("identity_policy") or {};_require(ident.get("primary_identity")=="DOCDB_PUBLICATION_REFERENCE" and ident.get("required_identity_parts")==["country","document_number","kind_code"],"DOCDB identity changed")

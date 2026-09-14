@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any
-PROGRAMME_PATH=Path("curation/europepmc_publications_discovery_programme_v0.1.json");UNIVERSE_REGISTRY_PATH=Path("curation/source_universe_registry_v0.1.json")
+PROGRAMME_PATH=Path("curation/europepmc_publications_discovery_programme_v0.1.json");UNIVERSE_REGISTRY_PATH=Path("curation/source_universe_expansion_backlog_v0.1.json")
 EXPECTED_QUERY_IDS={"DISCOVERY-EPMC-BCI-001","DISCOVERY-EPMC-NEURAL-DECODING-AI-001","DISCOVERY-EPMC-INVASIVE-INTERFACE-AI-001","DISCOVERY-EPMC-CLOSED-LOOP-NEUROMODULATION-001","DISCOVERY-EPMC-EEG-FOUNDATION-001","DISCOVERY-EPMC-SPEECH-COMMUNICATION-001","DISCOVERY-EPMC-VISUAL-NEUROPROSTHESIS-COMPUTATION-001","DISCOVERY-EPMC-GREY-MENTAL-STATE-001"}
 EXPECTED_ANCHORS={"EPMC-ANCHOR-PRIMA-001":("10.1056/nejmoa2501396","41124203"),"EPMC-ANCHOR-SPEECH-NEUROPROSTHESIS-001":("10.1056/nejmoa2314132","39141853")}
 REQUIRED_FIELDS={"resolved_identity","identity_type","title","publication_year","author_string","journal_or_source","publication_type","doi","pmid","pmcid","source_plus_ext_id","is_preprint","query_memberships","normalized_record_sha256"}
@@ -11,22 +11,30 @@ REQUIRED_COVERAGE={"supplied_page_count","raw_returned_record_count","unique_res
 def _load(p:Path)->Any:return json.loads(p.read_text(encoding="utf-8"))
 def _require(c:bool,m:str)->None:
     if not c:raise ValueError(m)
-def _universe(reg:dict[str,Any],uid:str)->dict[str,Any]:
-    rows=reg.get("universes");_require(isinstance(rows,list),"Source-universe registry must contain universes");matches=[r for r in rows if r.get("universe_id")==uid];_require(len(matches)==1,f"Expected exactly one {uid} universe");return matches[0]
-def _balanced(query:str)->bool:
-    depth=0;quoted=False;escaped=False
-    for ch in query:
-        if escaped:escaped=False;continue
-        if ch=="\\":escaped=True;continue
-        if ch=='"':quoted=not quoted;continue
-        if quoted:continue
-        if ch=="(":depth+=1
-        elif ch==")":
-            depth-=1
-            if depth<0:return False
-    return depth==0 and not quoted and not escaped
+
+REQUIRED_CONTROL_INVARIANTS={
+    "DISCOVERY_RESULT_IS_NOT_CANONICAL_SOURCE",
+    "SOURCE_IDENTITY_ACCEPTANCE_REQUIRES_HUMAN_DISPOSITION",
+    "MECHANICAL_COMPLETION_IS_NOT_DOMAIN_COMPLETENESS",
+    "NO_SILENT_CANONICAL_MUTATION",
+}
+def _validate_backlog_control(backlog):
+    _require(backlog.get("status")=="NONCANONICAL_PLANNING_CONTROL","Expansion control must remain noncanonical")
+    invariants=set(backlog.get("programme_invariants") or [])
+    missing=REQUIRED_CONTROL_INVARIANTS-invariants
+    _require(not missing,f"Missing expansion invariants: {sorted(missing)}")
+    rows=backlog.get("streams")
+    _require(isinstance(rows,list),"Expansion control must contain streams")
+    matches=[row for row in rows if isinstance(row,dict) and row.get("stream_id")=="SU-PUBLICATIONS-BIOMED"]
+    _require(len(matches)==1,"Expected exactly one SU-PUBLICATIONS-BIOMED stream")
+    stream=matches[0]
+    _require(stream.get("domain")=="SCIENTIFIC_PUBLICATIONS","SU-PUBLICATIONS-BIOMED: domain changed")
+    providers=stream.get("provider_programmes")
+    _require(isinstance(providers,list),"SU-PUBLICATIONS-BIOMED: provider_programmes missing")
+    _require(any(isinstance(row,dict) and row.get("provider")=="Europe PMC" for row in providers),"SU-PUBLICATIONS-BIOMED: provider Europe PMC missing")
+
 def validate_programme(p:dict[str,Any],reg:dict[str,Any])->dict[str,Any]:
-    _require(p.get("programme_id")=="SU-PUBLICATIONS-EUROPEPMC-v0.1","Unexpected programme_id");_require(p.get("status")=="NONCANONICAL_PROGRAMME_CONTROL","Programme must remain noncanonical");_require(p.get("source_universe_id")=="SU-PUBLICATIONS" and p.get("source_system")=="EUROPE_PMC","Programme universe/system changed");_require(_universe(reg,"SU-PUBLICATIONS").get("canonical_completeness_claim") is False,"SU-PUBLICATIONS must not claim completeness")
+    _require(p.get("programme_id")=="SU-PUBLICATIONS-EUROPEPMC-v0.1","Unexpected programme_id");_require(p.get("status")=="NONCANONICAL_PROGRAMME_CONTROL","Programme must remain noncanonical");_require(p.get("source_universe_id")=="SU-PUBLICATIONS" and p.get("source_system")=="EUROPE_PMC","Programme universe/system changed");_validate_backlog_control(reg)
     provider=p.get("provider_contract") or {};_require(provider.get("provider")=="Europe PMC" and provider.get("api_endpoint")=="https://www.ebi.ac.uk/europepmc/webservices/rest/search","Provider contract changed");_require(provider.get("query_parameter")=="query" and provider.get("format")=="json" and provider.get("result_type")=="lite","Request contract changed");_require(provider.get("page_size")==1000 and provider.get("pagination_mode")=="CURSOR_MARK" and provider.get("first_cursor_mark")=="*" and provider.get("next_cursor_field")=="nextCursorMark" and provider.get("reported_denominator_field")=="hitCount","Pagination/denominator contract changed");_require(provider.get("synonym_expansion") is False and provider.get("configuration_performs_http") is False,"Provider execution boundary changed")
     dep=p.get("workbench_dependency") or {};_require(dep.get("required_capability")=="project_europepmc_search_pages","Unexpected Workbench capability");_require(dep.get("integration_state")=="AVAILABLE","Merged Europe PMC projector must be AVAILABLE")
     identity=p.get("identity_policy") or {};_require(identity.get("preferred_identity_order")==["DOI","PMID","PMCID","SOURCE_PLUS_EXT_ID"],"Identity precedence changed");_require(identity.get("fuzzy_title_identity_merge_allowed") is False and identity.get("preprint_journal_version_auto_merge") is False,"Automatic identity merge prohibited");_require(identity.get("conflicting_same_identity_policy")=="FAIL_CLOSED","Identity conflicts must fail closed")

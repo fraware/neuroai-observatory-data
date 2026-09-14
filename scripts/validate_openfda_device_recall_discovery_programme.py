@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 PROGRAMME_PATH=Path("curation/openfda_device_recall_discovery_programme_v0.1.json")
-UNIVERSE_REGISTRY_PATH=Path("curation/source_universe_registry_v0.1.json")
+UNIVERSE_REGISTRY_PATH=Path("curation/source_universe_expansion_backlog_v0.1.json")
 EXPECTED_QUERY_IDS={"DISCOVERY-OPENFDA-RECALL-BCI-001","DISCOVERY-OPENFDA-RECALL-DBS-NEUROSTIM-001","DISCOVERY-OPENFDA-RECALL-NEUROPROSTHESIS-001","DISCOVERY-OPENFDA-RECALL-VISUAL-NEUROPROSTHESIS-001","DISCOVERY-OPENFDA-RECALL-NEURAL-RECORDING-001"}
 REQUIRED_FIELDS={"cfres_id","res_event_number","product_res_number","event_date_initiated","event_date_created","event_date_posted","event_date_terminated","recall_status","recalling_firm","firm_fei_number","reason_for_recall","root_cause_description","action","product_description","product_code","k_numbers","pma_numbers","query_memberships","normalized_record_sha256"}
 REQUIRED_COVERAGE={"supplied_page_count","returned_record_count","unique_cfres_id_count","reported_total_count","reported_total_count_state","skip_sequence_valid","skip_coverage_state","over_26000_limit","search_after_or_partition_required","known_controlled_duplicate_count","new_candidate_count","duplicate_representation_count","unresolved_cfres_id_count"}
@@ -13,16 +13,33 @@ REQUIRED_COVERAGE={"supplied_page_count","returned_record_count","unique_cfres_i
 def _load(path:Path)->Any:return json.loads(path.read_text(encoding="utf-8"))
 def _require(cond:bool,msg:str)->None:
     if not cond:raise ValueError(msg)
-def _universe(registry:dict[str,Any])->dict[str,Any]:
-    rows=registry.get("universes");_require(isinstance(rows,list),"Source-universe registry must contain universes")
-    matches=[row for row in rows if row.get("universe_id")=="SU-REGULATION"]
-    _require(len(matches)==1,"Expected exactly one SU-REGULATION universe");return matches[0]
+
+REQUIRED_CONTROL_INVARIANTS={
+    "DISCOVERY_RESULT_IS_NOT_CANONICAL_SOURCE",
+    "SOURCE_IDENTITY_ACCEPTANCE_REQUIRES_HUMAN_DISPOSITION",
+    "MECHANICAL_COMPLETION_IS_NOT_DOMAIN_COMPLETENESS",
+    "NO_SILENT_CANONICAL_MUTATION",
+}
+def _validate_backlog_control(backlog):
+    _require(backlog.get("status")=="NONCANONICAL_PLANNING_CONTROL","Expansion control must remain noncanonical")
+    invariants=set(backlog.get("programme_invariants") or [])
+    missing=REQUIRED_CONTROL_INVARIANTS-invariants
+    _require(not missing,f"Missing expansion invariants: {sorted(missing)}")
+    rows=backlog.get("streams")
+    _require(isinstance(rows,list),"Expansion control must contain streams")
+    matches=[row for row in rows if isinstance(row,dict) and row.get("stream_id")=="SU-SAFETY-US"]
+    _require(len(matches)==1,"Expected exactly one SU-SAFETY-US stream")
+    stream=matches[0]
+    _require(stream.get("domain")=="POSTMARKET_SAFETY","SU-SAFETY-US: domain changed")
+    providers=stream.get("provider_programmes")
+    _require(isinstance(providers,list),"SU-SAFETY-US: provider_programmes missing")
+    _require(any(isinstance(row,dict) and row.get("provider")=="openFDA" for row in providers),"SU-SAFETY-US: provider openFDA missing")
 
 def validate_programme(p:dict[str,Any],registry:dict[str,Any])->dict[str,Any]:
     _require(p.get("programme_id")=="SU-REGULATION-OPENFDA-DEVICE-RECALLS-v0.1","Unexpected programme_id")
     _require(p.get("status")=="NONCANONICAL_PROGRAMME_CONTROL","Programme must remain noncanonical")
     _require(p.get("source_universe_id")=="SU-REGULATION" and p.get("source_system")=="OPENFDA_DEVICE_RECALL","Recall source-universe binding changed")
-    _require(_universe(registry).get("canonical_completeness_claim") is False,"SU-REGULATION must not claim completeness")
+    _validate_backlog_control(registry)
     provider=p.get("provider_contract") or {}
     expected={"provider":"U.S. FDA openFDA Device Recall API","endpoint":"https://api.fda.gov/device/recall.json","method":"GET","response_media_type":"application/json","source_dataset":"Medical Device Recalls","time_period_start":"2002","provider_update_frequency":"WEEKLY","reported_denominator_path":"meta.results.total","skip_path":"meta.results.skip","limit_path":"meta.results.limit","results_path":"results","primary_recall_id_field":"cfres_id","event_lineage_field":"res_event_number","max_records_per_request":1000,"max_skip":25000,"max_direct_result_count":26000,"provider_supports_search_after":True,"provider_supports_bulk_downloads":True,"configuration_performs_http":False}
     _require(provider==expected,"openFDA recall provider contract changed")

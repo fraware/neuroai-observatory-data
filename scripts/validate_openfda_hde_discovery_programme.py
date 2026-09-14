@@ -1,14 +1,35 @@
 """Validate current bounded openFDA HDE discovery without network access."""
 import json
 from pathlib import Path
-P=Path('curation/openfda_hde_discovery_programme_v0.1.json');R=Path('curation/source_universe_registry_v0.1.json')
+P=Path('curation/openfda_hde_discovery_programme_v0.1.json');R=Path('curation/source_universe_expansion_backlog_v0.1.json')
 DEC={'APPR':'HDE_APPROVAL_RECORDED','WTDR':'WITHDRAWAL_RECORDED','DENY':'DENIAL_RECORDED','LE30':'THIRTY_DAY_NOTICE_ACCEPTANCE_RECORDED','APRL':'RECLASSIFICATION_AFTER_APPROVAL_RECORDED','APWD':'WITHDRAWAL_AFTER_APPROVAL_RECORDED','GT30':'NO_DECISION_WITHIN_30_DAYS_RECORDED','APCV':'CONVERSION_AFTER_APPROVAL_RECORDED'}
 def load(x):return json.loads(x.read_text())
 def req(c,m):
     if not c:raise ValueError(m)
+REQUIRED_CONTROL_INVARIANTS={
+    "DISCOVERY_RESULT_IS_NOT_CANONICAL_SOURCE",
+    "SOURCE_IDENTITY_ACCEPTANCE_REQUIRES_HUMAN_DISPOSITION",
+    "MECHANICAL_COMPLETION_IS_NOT_DOMAIN_COMPLETENESS",
+    "NO_SILENT_CANONICAL_MUTATION",
+}
+def _validate_backlog_control(backlog):
+    req(backlog.get("status")=="NONCANONICAL_PLANNING_CONTROL","Expansion control must remain noncanonical")
+    invariants=set(backlog.get("programme_invariants") or [])
+    missing=REQUIRED_CONTROL_INVARIANTS-invariants
+    req(not missing,f"Missing expansion invariants: {sorted(missing)}")
+    rows=backlog.get("streams")
+    req(isinstance(rows,list),"Expansion control must contain streams")
+    matches=[row for row in rows if isinstance(row,dict) and row.get("stream_id")=="SU-REGULATORY-US"]
+    req(len(matches)==1,"Expected exactly one SU-REGULATORY-US stream")
+    stream=matches[0]
+    req(stream.get("domain")=="DEVICE_REGULATORY_RECORDS","SU-REGULATORY-US: domain changed")
+    providers=stream.get("provider_programmes")
+    req(isinstance(providers,list),"SU-REGULATORY-US: provider_programmes missing")
+    req(any(isinstance(row,dict) and row.get("provider")=="openFDA" for row in providers),"SU-REGULATORY-US: provider openFDA missing")
+
 def validate_programme(p,r):
     req(p.get('programme_id')=='SU-REGULATION-OPENFDA-HDE-v0.1' and p.get('status')=='NONCANONICAL_PROGRAMME_CONTROL','HDE programme identity/status changed')
-    req(p.get('source_universe_id')=='SU-REGULATION' and p.get('source_system')=='OPENFDA_DEVICE_PMA_HDE_SUBSET','HDE source binding changed')
+    req(p.get('source_universe_id')=='SU-REGULATION' and p.get('source_system')=='OPENFDA_DEVICE_PMA_HDE_SUBSET','HDE source binding changed');_validate_backlog_control(r)
     req(p['workbench_dependency']=={'minimum_package_line':'0.3.0.dev0','required_capability':'project_openfda_hde_pages','integration_state':'AVAILABLE'},'HDE capability must remain AVAILABLE')
     i=p['identity_policy'];req(i['record_identity']=='HDE_NUMBER_PLUS_SUPPLEMENT_NUMBER' and i['original_application_sentinel']=='ORIGINAL' and i['required_hde_prefix']=='H' and i['non_h_prefix_records_out_of_scope'] is True,'HDE identity/pathway boundary changed');req(i['same_hde_number_different_supplement_auto_merge'] is False,'HDE supplements must remain distinct')
     d=p['decision_semantics_policy'];req(d['exact_code_map']==DEC and d['hde_approval_state_requires_exact_appr_code'] is True and d['record_presence_does_not_imply_hde_approval'] is True and d['supplement_approval_does_not_rewrite_original_hde_record'] is True,'HDE decision boundary changed')

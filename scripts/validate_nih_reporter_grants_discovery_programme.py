@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 PROGRAMME_PATH=Path("curation/nih_reporter_grants_discovery_programme_v0.1.json")
-UNIVERSE_REGISTRY_PATH=Path("curation/source_universe_registry_v0.1.json")
+UNIVERSE_REGISTRY_PATH=Path("curation/source_universe_expansion_backlog_v0.1.json")
 EXPECTED_QUERY_IDS={"DISCOVERY-REPORTER-BCI-001","DISCOVERY-REPORTER-NEURAL-DECODING-AI-001","DISCOVERY-REPORTER-CLOSED-LOOP-NEUROMODULATION-001","DISCOVERY-REPORTER-EEG-MODELS-001","DISCOVERY-REPORTER-SPEECH-NEUROPROSTHESIS-001","DISCOVERY-REPORTER-VISUAL-NEUROPROSTHESIS-001","DISCOVERY-REPORTER-GREY-MENTAL-STATE-001"}
 REQUIRED_FIELDS={"appl_id","project_num","core_project_num","subproject_id","fiscal_year","project_title","abstract_text","project_start_date","project_end_date","award_notice_date","award_amount","funding_mechanism","agency_ic_admin","organization","principal_investigators","query_memberships","normalized_record_sha256"}
 REQUIRED_COVERAGE={"supplied_page_count","returned_record_count","unique_appl_id_count","reported_total_count","reported_total_count_state","offset_sequence_valid","offset_coverage_state","over_15000_limit","partition_required","known_controlled_duplicate_count","new_candidate_count","duplicate_representation_count","unresolved_appl_id_count"}
@@ -13,12 +13,31 @@ REQUIRED_COVERAGE={"supplied_page_count","returned_record_count","unique_appl_id
 def _load(path:Path)->Any:return json.loads(path.read_text(encoding="utf-8"))
 def _require(condition:bool,message:str)->None:
     if not condition:raise ValueError(message)
-def _universe(registry:dict[str,Any],uid:str)->dict[str,Any]:
-    rows=registry.get("universes");_require(isinstance(rows,list),"Source-universe registry must contain universes");matches=[row for row in rows if row.get("universe_id")==uid];_require(len(matches)==1,f"Expected exactly one {uid} universe");return matches[0]
+
+REQUIRED_CONTROL_INVARIANTS={
+    "DISCOVERY_RESULT_IS_NOT_CANONICAL_SOURCE",
+    "SOURCE_IDENTITY_ACCEPTANCE_REQUIRES_HUMAN_DISPOSITION",
+    "MECHANICAL_COMPLETION_IS_NOT_DOMAIN_COMPLETENESS",
+    "NO_SILENT_CANONICAL_MUTATION",
+}
+def _validate_backlog_control(backlog):
+    _require(backlog.get("status")=="NONCANONICAL_PLANNING_CONTROL","Expansion control must remain noncanonical")
+    invariants=set(backlog.get("programme_invariants") or [])
+    missing=REQUIRED_CONTROL_INVARIANTS-invariants
+    _require(not missing,f"Missing expansion invariants: {sorted(missing)}")
+    rows=backlog.get("streams")
+    _require(isinstance(rows,list),"Expansion control must contain streams")
+    matches=[row for row in rows if isinstance(row,dict) and row.get("stream_id")=="SU-GRANTS-US"]
+    _require(len(matches)==1,"Expected exactly one SU-GRANTS-US stream")
+    stream=matches[0]
+    _require(stream.get("domain")=="RESEARCH_FUNDING","SU-GRANTS-US: domain changed")
+    providers=stream.get("provider_programmes")
+    _require(isinstance(providers,list),"SU-GRANTS-US: provider_programmes missing")
+    _require(any(isinstance(row,dict) and row.get("provider")=="NIH RePORTER" for row in providers),"SU-GRANTS-US: provider NIH RePORTER missing")
 
 def validate_programme(programme:dict[str,Any],registry:dict[str,Any])->dict[str,Any]:
     _require(programme.get("programme_id")=="SU-GRANTS-NIH-REPORTER-v0.1","Unexpected programme_id");_require(programme.get("status")=="NONCANONICAL_PROGRAMME_CONTROL","Programme must remain noncanonical");_require(programme.get("source_universe_id")=="SU-GRANTS","Programme must bind SU-GRANTS");_require(programme.get("source_system")=="NIH_REPORTER_V2","Unexpected source system")
-    universe=_universe(registry,"SU-GRANTS");_require(universe.get("canonical_completeness_claim") is False,"SU-GRANTS must not claim completeness");_require(universe.get("implementation_state") in {"PLANNED","PARTIAL","CURRENT_BOUNDED"},"Unexpected SU-GRANTS state")
+    _validate_backlog_control(registry)
     provider=programme.get("provider_contract") or {};_require(provider.get("provider")=="NIH RePORTER API","Provider changed");_require(provider.get("endpoint")=="https://api.reporter.nih.gov/v2/projects/search","Endpoint changed");_require(provider.get("method")=="POST","RePORTER search must use POST");_require(provider.get("reported_denominator_path")=="meta.total" and provider.get("offset_path")=="meta.offset" and provider.get("limit_path")=="meta.limit","Provider paging contract changed");_require(provider.get("primary_application_id_field")=="appl_id","appl_id identity changed");_require(provider.get("max_records_per_request")==500 and provider.get("max_offset")==14999,"RePORTER paging bounds changed");_require(provider.get("recommended_max_requests_per_second")==1,"Request-rate guidance changed");_require(provider.get("configuration_performs_http") is False,"Programme config must not perform HTTP")
     dependency=programme.get("workbench_dependency") or {};_require(dependency.get("required_capability")=="project_nih_reporter_search_pages","Unexpected Workbench capability");_require(dependency.get("integration_state")=="AVAILABLE","Merged RePORTER capability must be AVAILABLE")
     identity=programme.get("identity_policy") or {};_require(identity.get("primary_identity")=="NIH_REPORTER_APPL_ID","appl_id identity changed");_require(identity.get("conflicting_same_appl_id_policy")=="FAIL_CLOSED","appl_id conflicts must fail closed")
