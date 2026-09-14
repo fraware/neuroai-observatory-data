@@ -1,16 +1,37 @@
 """Validate current bounded openFDA 510(k) discovery without network access."""
 import json
 from pathlib import Path
-P=Path('curation/openfda_510k_discovery_programme_v0.1.json');R=Path('curation/source_universe_registry_v0.1.json')
+P=Path('curation/openfda_510k_discovery_programme_v0.1.json');R=Path('curation/source_universe_expansion_backlog_v0.1.json')
 SE=['SEKD','SESD','SESE','SESK','SESP','SESU','SESR']
 Q={'DISCOVERY-OPENFDA-510K-BCI-001','DISCOVERY-OPENFDA-510K-DBS-NEUROSTIM-001','DISCOVERY-OPENFDA-510K-NEUROPROSTHESIS-001','DISCOVERY-OPENFDA-510K-VISUAL-NEUROPROSTHESIS-001','DISCOVERY-OPENFDA-510K-NEURAL-RECORDING-001'}
 def _load(p):return json.loads(p.read_text())
 def req(c,m):
     if not c:raise ValueError(m)
+REQUIRED_CONTROL_INVARIANTS={
+    "DISCOVERY_RESULT_IS_NOT_CANONICAL_SOURCE",
+    "SOURCE_IDENTITY_ACCEPTANCE_REQUIRES_HUMAN_DISPOSITION",
+    "MECHANICAL_COMPLETION_IS_NOT_DOMAIN_COMPLETENESS",
+    "NO_SILENT_CANONICAL_MUTATION",
+}
+def _validate_backlog_control(backlog):
+    req(backlog.get("status")=="NONCANONICAL_PLANNING_CONTROL","Expansion control must remain noncanonical")
+    invariants=set(backlog.get("programme_invariants") or [])
+    missing=REQUIRED_CONTROL_INVARIANTS-invariants
+    req(not missing,f"Missing expansion invariants: {sorted(missing)}")
+    rows=backlog.get("streams")
+    req(isinstance(rows,list),"Expansion control must contain streams")
+    matches=[row for row in rows if isinstance(row,dict) and row.get("stream_id")=="SU-REGULATORY-US"]
+    req(len(matches)==1,"Expected exactly one SU-REGULATORY-US stream")
+    stream=matches[0]
+    req(stream.get("domain")=="DEVICE_REGULATORY_RECORDS","SU-REGULATORY-US: domain changed")
+    providers=stream.get("provider_programmes")
+    req(isinstance(providers,list),"SU-REGULATORY-US: provider_programmes missing")
+    req(any(isinstance(row,dict) and row.get("provider")=="openFDA" for row in providers),"SU-REGULATORY-US: provider openFDA missing")
+
 def validate_programme(p,r):
     req(p.get('programme_id')=='SU-REGULATION-OPENFDA-510K-v0.1' and p.get('status')=='NONCANONICAL_PROGRAMME_CONTROL','programme identity/status changed')
     req(p.get('source_universe_id')=='SU-REGULATION' and p.get('source_system')=='OPENFDA_DEVICE_510K','source binding changed')
-    u=[x for x in r.get('universes',[]) if x.get('universe_id')=='SU-REGULATION'];req(len(u)==1 and u[0].get('canonical_completeness_claim') is False,'SU-REGULATION completeness boundary changed')
+    _validate_backlog_control(r)
     d=p['workbench_dependency'];req(d=={'minimum_package_line':'0.3.0.dev0','required_capability':'project_openfda_510k_pages','integration_state':'AVAILABLE'},'510(k) capability must remain AVAILABLE')
     i=p['identity_policy'];req(i['primary_identity']=='K_NUMBER' and i['admitted_prefixes']==['K','BK'] and i['den_prefix_is_de_novo_and_out_of_scope_for_v0_1'] is True,'510(k)/De Novo identity split changed')
     for k in ('same_device_name_auto_merge','same_applicant_auto_entity_merge','product_code_auto_system_merge','openfda_harmonized_fields_auto_identity_merge'):req(i[k] is False,k+' must remain false')

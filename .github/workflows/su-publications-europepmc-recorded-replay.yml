@@ -3,6 +3,7 @@ name: SU-PUBLICATIONS Europe PMC recorded replay
 on:
   pull_request:
     paths:
+      - "curation/source_universe_expansion_backlog_v0.1.json"
       - "curation/europepmc_publications_discovery_programme_v0.1.json"
       - "schemas/europepmc-publications-discovery-programme.schema.json"
       - "schemas/europepmc-publications-discovery-replay-input.schema.json"

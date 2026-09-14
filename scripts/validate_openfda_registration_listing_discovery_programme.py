@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 PROGRAMME_PATH=Path("curation/openfda_registration_listing_discovery_programme_v0.1.json")
-UNIVERSE_REGISTRY_PATH=Path("curation/source_universe_registry_v0.1.json")
+UNIVERSE_REGISTRY_PATH=Path("curation/source_universe_expansion_backlog_v0.1.json")
 EXPECTED_QUERY_IDS={"DISCOVERY-OPENFDA-REGLIST-BCI-001","DISCOVERY-OPENFDA-REGLIST-DBS-NEUROSTIM-001","DISCOVERY-OPENFDA-REGLIST-NEUROPROSTHESIS-001","DISCOVERY-OPENFDA-REGLIST-VISUAL-NEUROPROSTHESIS-001","DISCOVERY-OPENFDA-REGLIST-NEURAL-RECORDING-001"}
 REQUIRED_FIELDS={"representation_identity","registration_number","fei_number","registration_name","registration_status_code","registration_expiry_year","owner_operator_number","establishment_type","product_code","product_created_date","product_exempt","device_class","device_name","regulation_number","proprietary_names","k_number","pma_number","query_memberships","normalized_record_sha256"}
 REQUIRED_COVERAGE={"supplied_page_count","returned_provider_record_count","expanded_representation_count","unique_representation_count","reported_total_count","reported_total_count_state","skip_sequence_valid","skip_coverage_state","over_26000_limit","bulk_download_or_partition_required","known_controlled_duplicate_count","new_candidate_count","duplicate_representation_count","unresolved_registration_number_count","unresolved_owner_operator_number_count","unresolved_product_code_count"}
@@ -13,11 +13,30 @@ REQUIRED_COVERAGE={"supplied_page_count","returned_provider_record_count","expan
 def _load(p:Path)->Any:return json.loads(p.read_text(encoding="utf-8"))
 def _require(c:bool,m:str)->None:
     if not c:raise ValueError(m)
-def _universe(reg:dict[str,Any],uid:str)->dict[str,Any]:
-    rows=reg.get("universes");_require(isinstance(rows,list),"Source-universe registry must contain universes");matches=[r for r in rows if r.get("universe_id")==uid];_require(len(matches)==1,f"Expected exactly one {uid} universe");return matches[0]
+
+REQUIRED_CONTROL_INVARIANTS={
+    "DISCOVERY_RESULT_IS_NOT_CANONICAL_SOURCE",
+    "SOURCE_IDENTITY_ACCEPTANCE_REQUIRES_HUMAN_DISPOSITION",
+    "MECHANICAL_COMPLETION_IS_NOT_DOMAIN_COMPLETENESS",
+    "NO_SILENT_CANONICAL_MUTATION",
+}
+def _validate_backlog_control(backlog):
+    _require(backlog.get("status")=="NONCANONICAL_PLANNING_CONTROL","Expansion control must remain noncanonical")
+    invariants=set(backlog.get("programme_invariants") or [])
+    missing=REQUIRED_CONTROL_INVARIANTS-invariants
+    _require(not missing,f"Missing expansion invariants: {sorted(missing)}")
+    rows=backlog.get("streams")
+    _require(isinstance(rows,list),"Expansion control must contain streams")
+    matches=[row for row in rows if isinstance(row,dict) and row.get("stream_id")=="SU-REGULATORY-US"]
+    _require(len(matches)==1,"Expected exactly one SU-REGULATORY-US stream")
+    stream=matches[0]
+    _require(stream.get("domain")=="DEVICE_REGULATORY_RECORDS","SU-REGULATORY-US: domain changed")
+    providers=stream.get("provider_programmes")
+    _require(isinstance(providers,list),"SU-REGULATORY-US: provider_programmes missing")
+    _require(any(isinstance(row,dict) and row.get("provider")=="openFDA" for row in providers),"SU-REGULATORY-US: provider openFDA missing")
 
 def validate_programme(p:dict[str,Any],reg:dict[str,Any])->dict[str,Any]:
-    _require(p.get("programme_id")=="SU-REGULATION-OPENFDA-REGISTRATION-LISTING-v0.1","Unexpected programme_id");_require(p.get("status")=="NONCANONICAL_PROGRAMME_CONTROL","Programme must remain noncanonical");_require(p.get("source_universe_id")=="SU-REGULATION","Programme must bind SU-REGULATION");_require(p.get("source_system")=="OPENFDA_DEVICE_REGISTRATION_LISTING","Unexpected source system");_require(_universe(reg,"SU-REGULATION").get("canonical_completeness_claim") is False,"SU-REGULATION must not claim completeness")
+    _require(p.get("programme_id")=="SU-REGULATION-OPENFDA-REGISTRATION-LISTING-v0.1","Unexpected programme_id");_require(p.get("status")=="NONCANONICAL_PROGRAMME_CONTROL","Programme must remain noncanonical");_require(p.get("source_universe_id")=="SU-REGULATION","Programme must bind SU-REGULATION");_require(p.get("source_system")=="OPENFDA_DEVICE_REGISTRATION_LISTING","Unexpected source system");_validate_backlog_control(reg)
     provider=p.get("provider_contract") or {};_require(provider.get("provider")=="U.S. FDA openFDA Device Registration and Listing API","Provider changed");_require(provider.get("endpoint")=="https://api.fda.gov/device/registrationlisting.json","Endpoint changed");_require(provider.get("source_dataset")=="Device Registrations and Listings","Dataset changed");_require(provider.get("provider_update_frequency")=="MONTHLY","Provider cadence changed");_require(provider.get("reported_denominator_path")=="meta.results.total" and provider.get("skip_path")=="meta.results.skip" and provider.get("limit_path")=="meta.results.limit","Provider denominator/paging paths changed");_require(provider.get("max_records_per_request")==1000 and provider.get("max_skip")==25000 and provider.get("max_direct_result_count")==26000,"Provider paging bounds changed");_require(provider.get("bulk_download_requires_all_files_for_complete_current_dataset") is True,"Bulk completeness boundary changed");_require(provider.get("old_records_may_change_on_provider_update") is True,"Provider update boundary changed");_require(provider.get("configuration_performs_http") is False,"Programme configuration must not perform HTTP")
     dep=p.get("workbench_dependency") or {};_require(dep.get("required_capability")=="project_openfda_registration_listing_pages","Unexpected Workbench capability");_require(dep.get("integration_state")=="AVAILABLE","Merged registration/listing projector must be AVAILABLE")
     ident=p.get("identity_policy") or {};_require(ident.get("provider_exposes_no_stable_listing_number_in_v0_1_surface") is True,"Stable listing-number assumption prohibited");_require(ident.get("representation_identity")=="REGISTRATION_NUMBER_PLUS_OWNER_OPERATOR_PLUS_PRODUCT_CODE_PLUS_PROPRIETARY_NAME_SET_DIGEST","Representation identity changed");_require(ident.get("representation_identity_is_not_exact_device_identity") is True,"Representation cannot become exact device identity");_require(ident.get("registration_number_is_establishment_registration_not_device_identity") is True,"Registration number cannot become device identity");_require(ident.get("changed_proprietary_name_set_requires_successor_or_identity_review") is True,"Name-set change review required")

@@ -2,6 +2,7 @@ name: SU-REGULATION openFDA device-recall recorded replay
 on:
   pull_request:
     paths:
+      - "curation/source_universe_expansion_backlog_v0.1.json"
       - 'curation/openfda_device_recall_discovery_programme_v0.1.json'
       - 'schemas/openfda-device-recall-discovery-programme.schema.json'
       - 'schemas/openfda-device-recall-discovery-replay-input.schema.json'
