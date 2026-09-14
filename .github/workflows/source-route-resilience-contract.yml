@@ -1,0 +1,82 @@
+name: Source route resilience contract
+
+on:
+  pull_request:
+    paths:
+      - "curation/source_route_resilience_v0.1.json"
+      - "curation/source_lifecycle_monitoring_overlay_v0.1.json"
+      - "curation/lifecycle_monitoring_transition_manifest_v0.1.json"
+      - "curation/successor_discovery_watches_v0.1.json"
+      - "scripts/probe_source_route_resilience.py"
+      - "scripts/source_lifecycle_overlay.py"
+      - "scripts/evaluate_operational_health.py"
+      - "scripts/run_successor_discovery.py"
+      - "tests/test_source_route_resilience.py"
+      - "tests/test_source_lifecycle_overlay.py"
+      - "tests/test_operational_health_route_resilience.py"
+      - "tests/test_monitoring_transition_manifest.py"
+      - "tests/test_successor_discovery.py"
+      - ".github/workflows/operational-live-cycle.yml"
+      - ".github/workflows/source-route-resilience-contract.yml"
+  push:
+    branches: [main]
+    paths:
+      - "curation/source_route_resilience_v0.1.json"
+      - "curation/source_lifecycle_monitoring_overlay_v0.1.json"
+      - "curation/lifecycle_monitoring_transition_manifest_v0.1.json"
+      - "curation/successor_discovery_watches_v0.1.json"
+      - "scripts/probe_source_route_resilience.py"
+      - "scripts/source_lifecycle_overlay.py"
+      - "scripts/evaluate_operational_health.py"
+      - "scripts/run_successor_discovery.py"
+      - "tests/test_source_route_resilience.py"
+      - "tests/test_source_lifecycle_overlay.py"
+      - "tests/test_operational_health_route_resilience.py"
+      - "tests/test_monitoring_transition_manifest.py"
+      - "tests/test_successor_discovery.py"
+      - ".github/workflows/operational-live-cycle.yml"
+      - ".github/workflows/source-route-resilience-contract.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Verify route/lifecycle contracts offline
+        run: |
+          python -m compileall -q scripts tests
+          python -m unittest \
+            tests/test_source_route_resilience.py \
+            tests/test_source_lifecycle_overlay.py \
+            tests/test_operational_health_route_resilience.py \
+            tests/test_monitoring_transition_manifest.py \
+            tests/test_successor_discovery.py -v
+      - name: Check affected Python formatting and lint
+        run: |
+          python -m pip install ruff==0.12.11
+          python -m ruff format --check \
+            scripts/probe_source_route_resilience.py \
+            scripts/source_lifecycle_overlay.py \
+            scripts/evaluate_operational_health.py \
+            scripts/run_successor_discovery.py \
+            tests/test_source_route_resilience.py \
+            tests/test_source_lifecycle_overlay.py \
+            tests/test_operational_health_route_resilience.py \
+            tests/test_monitoring_transition_manifest.py \
+            tests/test_successor_discovery.py
+          python -m ruff check \
+            scripts/probe_source_route_resilience.py \
+            scripts/source_lifecycle_overlay.py \
+            scripts/evaluate_operational_health.py \
+            scripts/run_successor_discovery.py \
+            tests/test_source_route_resilience.py \
+            tests/test_source_lifecycle_overlay.py \
+            tests/test_operational_health_route_resilience.py \
+            tests/test_monitoring_transition_manifest.py \
+            tests/test_successor_discovery.py
