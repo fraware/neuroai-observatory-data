@@ -80,7 +80,9 @@ jobs:
             tests/test_operational_health_route_resilience.py \
             tests/test_monitoring_transition_manifest.py \
             tests/test_successor_discovery.py
-          python -m ruff check \
+          # Test modules intentionally amend sys.path before importing local scripts.
+          # Preserve that existing contract while linting all other enabled rules.
+          python -m ruff check --ignore E402 \
             scripts/probe_source_route_resilience.py \
             scripts/source_lifecycle_overlay.py \
             scripts/evaluate_operational_health.py \
