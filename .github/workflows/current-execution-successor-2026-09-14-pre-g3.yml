@@ -1,0 +1,44 @@
+name: Current execution successor 2026-09-14 PRE-G3
+
+on:
+  pull_request:
+    paths:
+      - 'curation/PROGRAMME_EXECUTION_STATE_2026-09-14_PRE_G3_REPLAY_REBIND_SUCCESSOR.json'
+      - 'curation/CURRENT_EXECUTION_CONTROL.json'
+      - 'tests/test_current_execution_successor_2026_09_14_pre_g3.py'
+      - 'tests/test_current_execution_successor_2026_09_14.py'
+      - '.github/workflows/current-execution-successor-2026-09-14-pre-g3.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'curation/PROGRAMME_EXECUTION_STATE_2026-09-14_PRE_G3_REPLAY_REBIND_SUCCESSOR.json'
+      - 'curation/CURRENT_EXECUTION_CONTROL.json'
+      - 'tests/test_current_execution_successor_2026_09_14_pre_g3.py'
+      - 'tests/test_current_execution_successor_2026_09_14.py'
+      - '.github/workflows/current-execution-successor-2026-09-14-pre-g3.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-current-execution-successor:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Validate execution-control JSON
+        run: |
+          python -m json.tool curation/PROGRAMME_EXECUTION_STATE_2026-09-14_PRE_G3_REPLAY_REBIND_SUCCESSOR.json >/dev/null
+          python -m json.tool curation/CURRENT_EXECUTION_CONTROL.json >/dev/null
+      - name: Validate current successor and predecessor
+        run: |
+          python -m unittest tests.test_current_execution_successor_2026_09_14_pre_g3 -v
+          python -m unittest tests.test_current_execution_successor_2026_09_14 -v
+      - name: Authority boundary
+        run: |
+          echo "This workflow validates append-only PRE-G3 execution bookkeeping only."
+          echo "All 12 structured replays passed on the exact PR #250 head, but no live structured-source pilot ran."
+          echo "G0 remains blocked on SRC-14-021; G2/G3/G5 remain false."
+          echo "No Roman/PATSTAT state, S2/publication, Phase 4, scientific-truth, population, legal, or assessment authority is changed."
