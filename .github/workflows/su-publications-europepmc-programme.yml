@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - "curation/europepmc_publications_discovery_programme_v0.1.json"
-      - "curation/source_universe_registry_v0.1.json"
+      - "curation/source_universe_expansion_backlog_v0.1.json"
       - "schemas/europepmc-publications-discovery-programme.schema.json"
       - "scripts/validate_europepmc_publications_discovery_programme.py"
       - "tests/test_europepmc_publications_discovery_programme.py"
