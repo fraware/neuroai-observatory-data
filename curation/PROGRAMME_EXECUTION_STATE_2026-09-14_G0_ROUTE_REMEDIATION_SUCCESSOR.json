@@ -1,0 +1,254 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-14_G0_ROUTE_REMEDIATION_SUCCESSOR",
+  "status": "PRE_G2_CURRENT_EXECUTION_SUCCESSOR_STATE_NONCANONICAL",
+  "as_of": "2026-09-14",
+  "purpose": "Append-only execution-control successor binding the 2026-09-14 normal scheduled G0 evidence, the SRC-14-014 route-resilience remediation, and the exact post-merge hosted corroboration while preserving all scientific, rights, publication, Phase 4, and assessment authority boundaries.",
+  "governing_issue": 253,
+  "predecessor": {
+    "path": "curation/PROGRAMME_EXECUTION_STATE_2026-09-13_PRE_G2_CURRENT_SUCCESSOR.json",
+    "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-13_PRE_G2_CURRENT_SUCCESSOR",
+    "git_blob_sha": "fbe6648c16777890fff378be7984bb85207298cc",
+    "predecessor_is_modified_by_this_successor": false,
+    "predecessor_immutability": "HISTORICAL_IMMUTABLE_EXECUTION_STATE_NOT_EDITED_IN_PLACE"
+  },
+  "frozen_baseline": {
+    "path": "curation/PROGRAMME_EXECUTION_BASELINE_2026-09-01.json",
+    "git_blob_sha": "73ef722fb6a4f46464a39da3ffb4213150a32208",
+    "modified_by_this_successor": false
+  },
+  "repository_binding": {
+    "observatory_repository": "fraware/neuroai-observatory-data",
+    "observatory_main_sha": "07485fbf464f50ee22496db6d4e7c0ffe31fe594",
+    "observatory_main_semantic_change": "SRC-14-014_ROUTE_RESILIENCE_PR_252",
+    "workbench_repository": "fraware/neuroai-workbench",
+    "workbench_main_sha": "854cc9d1c8e24a9e8ae8b21d871329bc3c24c118"
+  },
+  "g0_operational_evidence": {
+    "newest_normal_scheduled_due_cycle": {
+      "workflow_run_id": 34833993578,
+      "run_number": 56,
+      "event": "schedule",
+      "head_sha": "5668b53407efa1d703d4df8ef8d2d7268be5af4a",
+      "conclusion": "failure",
+      "validate_job_conclusion": "success",
+      "live_job_conclusion": "failure",
+      "execution_status": "COMPLETE_WITH_SOURCE_FAILURES",
+      "engineering_state": "READY",
+      "overall_health_state": "DEGRADED",
+      "source_accountability_coverage": 1,
+      "target_execution_coverage": 1,
+      "resume_additional_transport_sends": 0,
+      "failed_source_ids": [
+        "SRC-0064",
+        "SRC-14-014",
+        "SRC-14-019",
+        "SRC-14-021"
+      ],
+      "route_resolved_failed_source_ids": [
+        "SRC-0064",
+        "SRC-14-019"
+      ],
+      "unresolved_failed_source_ids": [
+        "SRC-14-014",
+        "SRC-14-021"
+      ],
+      "sanitized_artifact": {
+        "artifact_id": 10342988778,
+        "name": "operational-live-proof-34833993578-1",
+        "sha256": "806852a5809f515aad44e173d431a95b7c80c3c8d53cd8a343316f38c763da33",
+        "protected_capture_material_in_artifact": false
+      },
+      "qualifies_as_g0_pass": false,
+      "interpretation": "This is the newest observed normal scheduled due-cycle and therefore supersedes older scheduled operational evidence for current G0 interpretation. It completed accounting and exact-resume requirements but failed the closed health criterion because SRC-14-014 and SRC-14-021 remained unresolved after then-registered route resolution."
+    },
+    "src_14_014_route_remediation": {
+      "pull_request": 252,
+      "final_pr_head_sha": "f5f1b5549ccb624ea516e6f5660977c23a030b47",
+      "merged_main_sha": "07485fbf464f50ee22496db6d4e7c0ffe31fe594",
+      "route_policy_path": "curation/source_route_resilience_v0.1.json",
+      "route_policy_git_blob_sha": "ea27dee87c0cc2225e3f7ec5925a90f83e719a2f",
+      "route_policy_canonical_sha256": "ba56ac8316f04252ecdb93020fb92eb0251376271696230979ffb5e5a0a5651d",
+      "primary_route_id": "SRC-14-014:apex",
+      "identity_equivalent_route_id": "SRC-14-014:www",
+      "source_universe_expanded": false,
+      "canonical_source_registration_created": false,
+      "source_identity_truth_created": false,
+      "exact_head_checks": {
+        "source_route_resilience_contract": {
+          "workflow_run_id": 34846760331,
+          "conclusion": "success"
+        },
+        "analytical_projection": {
+          "workflow_run_id": 34846760494,
+          "conclusion": "success"
+        },
+        "observatory_v2_release_contract": {
+          "workflow_run_id": 34846760590,
+          "conclusion": "success"
+        }
+      },
+      "interpretation": "The remediation registers a narrow same-domain identity-equivalent retrieval route with fail-closed identity checks. It changes operational route policy only and does not alter source-universe identity or create substantive source truth."
+    },
+    "post_merge_push_corroboration": {
+      "workflow_run_id": 34846817313,
+      "run_number": 57,
+      "event": "push",
+      "head_sha": "07485fbf464f50ee22496db6d4e7c0ffe31fe594",
+      "conclusion": "failure",
+      "validate_job_conclusion": "success",
+      "due_cycle_execution_completed": true,
+      "execution_status": "COMPLETE_WITH_SOURCE_FAILURES",
+      "engineering_state": "READY",
+      "overall_health_state": "DEGRADED",
+      "source_accountability_coverage": 1,
+      "target_execution_coverage": 1,
+      "resume_additional_transport_sends": 0,
+      "failed_source_ids": [
+        "SRC-0064",
+        "SRC-0067",
+        "SRC-14-019",
+        "SRC-14-021"
+      ],
+      "route_resolved_failed_source_ids": [
+        "SRC-0064",
+        "SRC-0067",
+        "SRC-14-019"
+      ],
+      "unresolved_failed_source_ids": [
+        "SRC-14-021"
+      ],
+      "src_14_014_unresolved_after_remediation": false,
+      "src_14_014_selected_route_id": "SRC-14-014:apex",
+      "sanitized_artifact": {
+        "artifact_id": 10348194279,
+        "name": "operational-live-proof-34846817313-1",
+        "sha256": "d74f3e3e2161d5ce123f0b368c913e271394776f38fb9498f68dfa97c537f356",
+        "protected_capture_material_in_artifact": false
+      },
+      "normal_schedule_criterion_satisfied": false,
+      "interpretation": "This push-triggered hosted run demonstrates that SRC-14-014 is no longer an unresolved operational failure under the remediated route policy. The run remains overall DEGRADED because SRC-14-021 is unresolved. Because the event is push, it is corroboration only and cannot substitute for the required successful normal scheduled due-cycle."
+    },
+    "post_merge_interruption_resume_corroboration": {
+      "workflow_run_id": 34846817217,
+      "event": "push",
+      "head_sha": "07485fbf464f50ee22496db6d4e7c0ffe31fe594",
+      "conclusion": "success",
+      "normal_schedule_criterion_satisfied": false
+    },
+    "current_g0_decision": "BLOCKED_NOT_PASSED",
+    "g0_passed": false,
+    "remaining_known_blocking_source_ids": [
+      "SRC-14-021"
+    ],
+    "remaining_source_identity_issue": 224,
+    "successful_normal_scheduled_due_cycle_after_remediation_observed": false
+  },
+  "inherited_gate_state": {
+    "g0": {
+      "decision": "BLOCKED_NOT_PASSED",
+      "passed": false,
+      "newest_normal_schedule_run_id": 34833993578,
+      "newest_normal_schedule_run_conclusion": "failure",
+      "blocking_source_ids": [
+        "SRC-14-021"
+      ],
+      "blocking_issue": 224,
+      "re_adjudicated_by_this_successor": false
+    },
+    "g1": {
+      "decision": "APPROVE",
+      "approved": true,
+      "record_path": "curation/HUMAN_G1_DISPOSITION_2026-09-05_D1_D2_v0.1.json",
+      "git_blob_sha": "ed42dc5b77cf011562db8c8c39bc9e71968fdb37",
+      "re_adjudicated_by_this_successor": false
+    },
+    "g2": {
+      "passed": false,
+      "re_adjudicated_by_this_successor": false
+    }
+  },
+  "source_universe_state": {
+    "path": "curation/source_universe_execution_state_2026-09-03_SRC14021_DISPOSITION_C_SUCCESSOR.json",
+    "git_blob_sha": "dc27d7d3cb0d21d65f0698a042594efdd5d5de04",
+    "source_universe_modified_by_route_remediation": false,
+    "src_14_021_successor_domain_verified": false,
+    "issue": 224,
+    "issue_state_at_recording": "OPEN",
+    "src_14_021_route_mutation_authorized": false
+  },
+  "pre_g2_state": {
+    "d3": {
+      "umbrella_issue": 222,
+      "issue_state_at_recording": "OPEN",
+      "challenge_composition_path": "curation/PRE_G2_D3_CALIBRATION_SELECTION_COMPOSITION_2026-09-11_v0.1.json",
+      "challenge_composition_git_blob_sha": "daa984537315def2d49cbabc624fe5f26b530ab0",
+      "challenge_software_control_composed": true,
+      "real_pilot_executed": false,
+      "real_final_membership_selected": false,
+      "real_human_labels_created": false,
+      "frozen": false,
+      "probability_audit_ready": false
+    },
+    "d4": {
+      "umbrella_issue": 223,
+      "issue_state_at_recording": "OPEN",
+      "readiness_policy_path": "curation/PRE_G2_D4_PILOT_READINESS_POLICY_2026-09-12_v0.2.json",
+      "readiness_policy_git_blob_sha": "c3d12fabd0a5f1c97048f6f64f9d1e9a87e7fb38",
+      "raw_exact_agreement_automated_gate": false,
+      "raw_exact_agreement_retained_as_human_review_diagnostic": true,
+      "real_pilot_executed": false,
+      "human_calibration_approval_created": false,
+      "real_final_membership_selected": false,
+      "real_human_labels_created": false,
+      "frozen": false
+    },
+    "patstat_baseline_a": {
+      "scientific_audit_issue": 220,
+      "provenance_status_path": "curation/PATSTAT_BASELINE_A_PROVENANCE_INTAKE_STATUS_2026-09-12_v0.1.json",
+      "provenance_status_git_blob_sha": "17eaa932c46b4bf311c94e6852395a0133c4987d",
+      "provenance_readiness": "WAITING_FOR_PROVENANCE",
+      "probability_audit_ready": false,
+      "roman_49671_validated": false,
+      "roman_67_percent_retrieval_recall_validated": false,
+      "rights_issue": 210,
+      "rights_clearance": false
+    }
+  },
+  "workbench_phase3": {
+    "issue": 287,
+    "issue_state_at_recording": "OPEN",
+    "workbench_main_sha": "854cc9d1c8e24a9e8ae8b21d871329bc3c24c118",
+    "workflow_path": ".github/workflows/phase3-external-proof.yml",
+    "workflow_git_blob_sha": "aa75dfaa1559b35377af64a775a7285278faad6e",
+    "execution_readiness_merged": true,
+    "workflow_dispatch_runs_observed_at_recording": 0,
+    "external_live_proof_executed": false,
+    "external_live_proof_reviewed_complete": false,
+    "phase4_online_first_default_authorized": false
+  },
+  "historical_record_boundary": {
+    "predecessor_execution_state_modified": false,
+    "frozen_baseline_modified": false,
+    "g1_disposition_modified": false,
+    "source_universe_state_modified": false,
+    "d3_control_modified": false,
+    "d4_control_modified": false,
+    "patstat_status_modified": false,
+    "development_route_policy_updated_by_pr_252": true
+  },
+  "authority": {
+    "g0_passed": false,
+    "g1_approved": true,
+    "g2_passed": false,
+    "g5_passed": false,
+    "canonical_s2_authority": false,
+    "publication_authority": false,
+    "mutation_authority": false,
+    "assessment_effect": "NONE",
+    "patstat_rights_clearance": false,
+    "population_generalization_authority": false,
+    "phase4_online_first_default_authorized": false
+  },
+  "boundary": "This successor records real operational evidence and the SRC-14-014 route-policy remediation only. The newest normal scheduled run failed its closed G0 health criterion, and the post-remediation push proof leaves SRC-14-021 unresolved. G0 therefore remains BLOCKED_NOT_PASSED until legitimate SRC-14-021 resolution is established and a subsequent normal scheduled operational due-cycle satisfies the criterion. G1 remains approved only for its exact prior D1/D2 identities; G2/G5 remain unpassed; real D3/D4 human benchmarks remain outstanding; PATSTAT provenance/rights remain unresolved; Workbench Phase 3 external proof remains unexecuted/unreviewed; Phase 4 remains unauthorized. No canonical S2 mutation, publication, population inference, legal authority, or v4.2 assessment effect is created."
+}
