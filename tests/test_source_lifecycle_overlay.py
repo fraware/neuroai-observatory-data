@@ -81,11 +81,14 @@ class SourceLifecycleOverlayTests(unittest.TestCase):
         transitions = self._verify()
         active = build_active_route_policy(self.route_policy, transitions)
         ids = {row["source_id"] for row in active["sources"]}
-        self.assertEqual(ids, {"SRC-0064", "SRC-0067", "SRC-14-019", "SRC-PR-002"})
+        self.assertEqual(
+            ids,
+            {"SRC-0064", "SRC-0067", "SRC-14-014", "SRC-14-019", "SRC-PR-002"},
+        )
         self.assertEqual(
             active["metadata"]["excluded_lifecycle_source_ids"], ["SRC-PR-015"]
         )
-        self.assertEqual(active["metadata"]["source_count"], 4)
+        self.assertEqual(active["metadata"]["source_count"], 5)
 
     def test_active_route_policy_is_exactly_bound_to_parent_policy(self) -> None:
         transitions = self._verify()
@@ -152,6 +155,27 @@ class SourceLifecycleOverlayTests(unittest.TestCase):
                 host = str(route.get("official_host") or "").lower()
                 self.assertNotEqual(host, "sonafrica.org")
                 self.assertNotIn("sonafrica.org", str(route.get("url") or "").lower())
+
+    def test_aotearoa_www_route_is_identity_equivalent_and_fail_closed(self) -> None:
+        source = next(
+            item for item in self.route_policy["sources"]
+            if item["source_id"] == "SRC-14-014"
+        )
+        self.assertEqual(source["url"], "https://aotearoabrainproject.nz/")
+        routes = {item["route_id"]: item for item in source["retrieval_routes"]}
+        self.assertEqual(set(routes), {"SRC-14-014:apex", "SRC-14-014:www"})
+        self.assertEqual(routes["SRC-14-014:apex"]["route_class"], "PRIMARY")
+        self.assertEqual(
+            routes["SRC-14-014:www"]["route_class"], "IDENTITY_EQUIVALENT"
+        )
+        self.assertEqual(
+            routes["SRC-14-014:www"]["identity_check"],
+            {"kind": "TEXT_CONTAINS", "expected": "Aotearoa Brain Project"},
+        )
+        self.assertEqual(
+            set(routes["SRC-14-014:www"]["allowed_redirect_hosts"]),
+            {"aotearoabrainproject.nz", "www.aotearoabrainproject.nz"},
+        )
 
     def test_governing_monitor_cannot_be_suppressed(self) -> None:
         overlay = copy.deepcopy(self.overlay)
