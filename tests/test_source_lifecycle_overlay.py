@@ -158,7 +158,8 @@ class SourceLifecycleOverlayTests(unittest.TestCase):
 
     def test_aotearoa_www_route_is_identity_equivalent_and_fail_closed(self) -> None:
         source = next(
-            item for item in self.route_policy["sources"]
+            item
+            for item in self.route_policy["sources"]
             if item["source_id"] == "SRC-14-014"
         )
         self.assertEqual(source["url"], "https://aotearoabrainproject.nz/")
