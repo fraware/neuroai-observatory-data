@@ -1,9 +1,9 @@
 {
   "metadata": {
     "title": "Development source-route resilience policy",
-    "version": "0.3",
+    "version": "0.4",
     "status": "DEVELOPMENT_ROUTE_POLICY_NOT_CANONICAL",
-    "source_count": 5,
+    "source_count": 6,
     "boundary": "Official retrieval-route policy for operational availability and narrow lifecycle resolution only. Fallback or lifecycle resolution does not establish source truth beyond the observed route/listing state, assessment validity, regulatory or clinical status, governance authority, canonical release authority, or publication authority."
   },
   "sources": [
@@ -214,6 +214,49 @@
           "identity_check": {
             "kind": "TEXT_CONTAINS",
             "expected": "s41586-025-08829-y"
+          }
+        }
+      ]
+    },
+    {
+      "source_id": "SRC-14-014",
+      "publisher": "Aotearoa Brain Project",
+      "url": "https://aotearoabrainproject.nz/",
+      "retrieval_routes": [
+        {
+          "route_id": "SRC-14-014:apex",
+          "url": "https://aotearoabrainproject.nz/",
+          "priority": 0,
+          "role": "PRIMARY",
+          "route_class": "PRIMARY",
+          "official_host": "aotearoabrainproject.nz",
+          "allowed_redirect_hosts": [
+            "aotearoabrainproject.nz",
+            "www.aotearoabrainproject.nz"
+          ],
+          "official_basis": "Registered Aotearoa Brain Project organization page URL. Redirects are restricted to the apex and www hosts of the same registered project domain.",
+          "accept": "text/html,application/xhtml+xml;q=0.9",
+          "identity_check": {
+            "kind": "TEXT_CONTAINS",
+            "expected": "Aotearoa Brain Project"
+          }
+        },
+        {
+          "route_id": "SRC-14-014:www",
+          "url": "https://www.aotearoabrainproject.nz/",
+          "priority": 1,
+          "role": "FALLBACK",
+          "route_class": "IDENTITY_EQUIVALENT",
+          "official_host": "www.aotearoabrainproject.nz",
+          "allowed_redirect_hosts": [
+            "www.aotearoabrainproject.nz",
+            "aotearoabrainproject.nz"
+          ],
+          "official_basis": "WWW host for the same Aotearoa Brain Project domain and organization identity; use is contingent on the exact identity check succeeding.",
+          "accept": "text/html,application/xhtml+xml;q=0.9",
+          "identity_check": {
+            "kind": "TEXT_CONTAINS",
+            "expected": "Aotearoa Brain Project"
           }
         }
       ]
