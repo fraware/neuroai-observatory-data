@@ -60,6 +60,16 @@ jobs:
       - name: Check affected Python formatting and lint
         run: |
           python -m pip install ruff==0.12.11
+          python -m ruff format --diff \
+            scripts/probe_source_route_resilience.py \
+            scripts/source_lifecycle_overlay.py \
+            scripts/evaluate_operational_health.py \
+            scripts/run_successor_discovery.py \
+            tests/test_source_route_resilience.py \
+            tests/test_source_lifecycle_overlay.py \
+            tests/test_operational_health_route_resilience.py \
+            tests/test_monitoring_transition_manifest.py \
+            tests/test_successor_discovery.py
           python -m ruff format --check \
             scripts/probe_source_route_resilience.py \
             scripts/source_lifecycle_overlay.py \
