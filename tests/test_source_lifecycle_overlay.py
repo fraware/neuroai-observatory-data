@@ -166,9 +166,7 @@ class SourceLifecycleOverlayTests(unittest.TestCase):
         routes = {item["route_id"]: item for item in source["retrieval_routes"]}
         self.assertEqual(set(routes), {"SRC-14-014:apex", "SRC-14-014:www"})
         self.assertEqual(routes["SRC-14-014:apex"]["route_class"], "PRIMARY")
-        self.assertEqual(
-            routes["SRC-14-014:www"]["route_class"], "IDENTITY_EQUIVALENT"
-        )
+        self.assertEqual(routes["SRC-14-014:www"]["route_class"], "IDENTITY_EQUIVALENT")
         self.assertEqual(
             routes["SRC-14-014:www"]["identity_check"],
             {"kind": "TEXT_CONTAINS", "expected": "Aotearoa Brain Project"},
