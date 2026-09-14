@@ -1,0 +1,160 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-14_PRE_G3_REPLAY_REBIND_SUCCESSOR",
+  "status": "PRE_G2_CURRENT_EXECUTION_SUCCESSOR_STATE_NONCANONICAL",
+  "as_of": "2026-09-14",
+  "purpose": "Append-only execution-control successor binding the current-baseline structured recorded-replay compatibility evidence from PR #250 while preserving all inherited G0/G1/G2, source-lifecycle, benchmark, rights, Phase 3/4, publication, and assessment authority boundaries.",
+  "governing_issue": 256,
+  "predecessor": {
+    "path": "curation/PROGRAMME_EXECUTION_STATE_2026-09-14_G0_ROUTE_REMEDIATION_SUCCESSOR.json",
+    "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-14_G0_ROUTE_REMEDIATION_SUCCESSOR",
+    "git_blob_sha": "d69435728c89db01d7f069bf2ae04f17abcea86c",
+    "predecessor_is_modified_by_this_successor": false,
+    "predecessor_immutability": "HISTORICAL_IMMUTABLE_EXECUTION_STATE_NOT_EDITED_IN_PLACE"
+  },
+  "repository_binding": {
+    "observatory_repository": "fraware/neuroai-observatory-data",
+    "observatory_main_sha": "111e2002e9fc03de8b6c3e8f5698f2087014d682",
+    "observatory_main_semantic_change": "PRE_G3_CURRENT_BASELINE_REPLAY_REBIND_PR_250_AFTER_VALIDATOR_REPAIR_PR_255",
+    "workbench_repository": "fraware/neuroai-workbench",
+    "workbench_main_sha": "854cc9d1c8e24a9e8ae8b21d871329bc3c24c118"
+  },
+  "pre_g3_structured_replay_compatibility": {
+    "issue": 249,
+    "issue_state_after_merge": "CLOSED_COMPLETED",
+    "pull_request": 250,
+    "final_pr_head_sha": "c4b7865a51c2d5eb48db620ab0f662a418ef8d6e",
+    "merged_main_sha": "111e2002e9fc03de8b6c3e8f5698f2087014d682",
+    "workbench_replay_pin": "854cc9d1c8e24a9e8ae8b21d871329bc3c24c118",
+    "target_count": 12,
+    "all_target_replays_passed_on_exact_pr_head": true,
+    "replay_workflows": [
+      {
+        "name": "SU-REGULATION openFDA 510(k) recorded replay",
+        "workflow_run_id": 34856581254,
+        "conclusion": "success"
+      },
+      {
+        "name": "SU-GRANTS NIH RePORTER recorded replay",
+        "workflow_run_id": 34856581258,
+        "conclusion": "success"
+      },
+      {
+        "name": "SU-PUBLICATIONS Europe PMC recorded replay",
+        "workflow_run_id": 34856580586,
+        "conclusion": "success"
+      },
+      {
+        "name": "SU-REGULATION openFDA device-classification recorded replay",
+        "workflow_run_id": 34856580611,
+        "conclusion": "success"
+      },
+      {
+        "name": "SU-TRIALS ClinicalTrials.gov recorded replay",
+        "workflow_run_id": 34856580634,
+        "conclusion": "success"
+      },
+      {
+        "name": "SU-REGULATION openFDA HDE recorded replay",
+        "workflow_run_id": 34856580596,
+        "conclusion": "success"
+      },
+      {
+        "name": "SU-REGULATION openFDA PMA recorded replay",
+        "workflow_run_id": 34856580460,
+        "conclusion": "success"
+      },
+      {
+        "name": "SU-REGULATION openFDA device-event recorded replay",
+        "workflow_run_id": 34856580493,
+        "conclusion": "success"
+      },
+      {
+        "name": "SU-REGULATION openFDA UDI recorded replay",
+        "workflow_run_id": 34856580482,
+        "conclusion": "success"
+      },
+      {
+        "name": "SU-REGULATION openFDA device-recall recorded replay",
+        "workflow_run_id": 34856580543,
+        "conclusion": "success"
+      },
+      {
+        "name": "SU-REGULATION openFDA registration-listing recorded replay",
+        "workflow_run_id": 34856580637,
+        "conclusion": "success"
+      },
+      {
+        "name": "SU-PATENTS EPO OPS recorded replay",
+        "workflow_run_id": 34856580608,
+        "conclusion": "success"
+      }
+    ],
+    "live_provider_execution_performed": false,
+    "g3_passed": false,
+    "interpretation": "All current structured-source recorded-replay workflows were rebound to the exact current Workbench baseline and succeeded on the final exact PR #250 head. This establishes current-baseline replay compatibility only; it is not a real live structured-source pilot and does not pass G3."
+  },
+  "inherited_gate_state": {
+    "g0": {
+      "decision": "BLOCKED_NOT_PASSED",
+      "passed": false,
+      "blocking_source_ids": [
+        "SRC-14-021"
+      ],
+      "blocking_issue": 224,
+      "re_adjudicated_by_this_successor": false
+    },
+    "g1": {
+      "decision": "APPROVE",
+      "approved": true,
+      "record_path": "curation/HUMAN_G1_DISPOSITION_2026-09-05_D1_D2_v0.1.json",
+      "git_blob_sha": "ed42dc5b77cf011562db8c8c39bc9e71968fdb37",
+      "re_adjudicated_by_this_successor": false
+    },
+    "g2": {
+      "passed": false,
+      "re_adjudicated_by_this_successor": false
+    },
+    "g3": {
+      "passed": false,
+      "re_adjudicated_by_this_successor": false
+    },
+    "g5": {
+      "passed": false,
+      "re_adjudicated_by_this_successor": false
+    }
+  },
+  "inherited_external_dependencies": {
+    "src_14_021_issue": 224,
+    "src_14_021_successor_domain_verified": false,
+    "workbench_phase3_issue": 287,
+    "workbench_phase3_external_live_proof_executed": false,
+    "d3_real_human_benchmark_frozen": false,
+    "d4_real_human_benchmark_frozen": false,
+    "roman_patstat_track_touched_by_this_successor": false,
+    "roman_patstat_state": "INHERITED_UNCHANGED_FROM_PREDECESSOR"
+  },
+  "historical_record_boundary": {
+    "predecessor_execution_state_modified": false,
+    "prior_g0_evidence_modified": false,
+    "g1_disposition_modified": false,
+    "source_universe_state_modified": false,
+    "d3_control_modified": false,
+    "d4_control_modified": false,
+    "patstat_or_roman_control_modified": false
+  },
+  "authority": {
+    "g0_passed": false,
+    "g1_approved": true,
+    "g2_passed": false,
+    "g3_passed": false,
+    "g5_passed": false,
+    "canonical_s2_authority": false,
+    "publication_authority": false,
+    "mutation_authority": false,
+    "assessment_effect": "NONE",
+    "population_generalization_authority": false,
+    "phase4_online_first_default_authorized": false
+  },
+  "boundary": "This successor records PRE-G3 current-baseline replay compatibility only. G0 remains BLOCKED_NOT_PASSED on SRC-14-021; G1 remains approved only for the exact prior D1/D2 identities; G2/G3/G5 remain unpassed; the real D3/D4 human benchmarks remain outstanding; the Workbench Phase 3 external live proof remains unexecuted/unreviewed; the Roman/PATSTAT track is inherited unchanged and is not modified here. No live structured-source pilot, canonical S2 mutation, publication, population inference, Phase 4 authorization, legal authority, source-truth/completeness claim, or v4.2 assessment effect is created."
+}
