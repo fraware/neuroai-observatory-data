@@ -252,6 +252,7 @@ class CTGovMonitorOnboardingTests(unittest.TestCase):
             schema = json.loads((ROOT / "schemas" / "monitor-review-decision-packet.schema.json").read_text())
             errors = list(Draft202012Validator(schema).iter_errors(packet))
             self.assertTrue(errors)
+            decisions.write_text(json.dumps(packet, indent=2, sort_keys=True) + "\n")
             with self.assertRaisesRegex(ValueError, "authority boundary weakened"):
                 onboarding.build_onboarding(materialization, decisions)
 
