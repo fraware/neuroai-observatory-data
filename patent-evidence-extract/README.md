@@ -4,6 +4,9 @@ A sample of the working data behind *Mapping the NeuroAI Frontier*, enough to se
 data is shaped and how the estimates are produced. Everything here is derived; nothing in
 it is needed to reproduce the pipeline itself, which lives in the repository.
 
+**[ANALYSIS.md](ANALYSIS.md) is the place to start** — what was done end to end, what it
+shows, and what is still open. This file describes the data; that one describes the work.
+
 Unit of observation throughout is the **DOCDB simple patent family**, not the individual
 publication. A family groups the filings of one invention across offices, so counting
 families avoids counting the same invention once per country.
