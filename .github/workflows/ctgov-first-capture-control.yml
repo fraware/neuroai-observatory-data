@@ -1,0 +1,64 @@
+name: CT.gov first-capture control
+
+on:
+  pull_request:
+    paths:
+      - "scripts/execute_ctgov_first_capture.py"
+      - "schemas/ctgov-first-capture-authorization.schema.json"
+      - "docs/CTGOV_FIRST_CAPTURE_EXECUTION.md"
+      - "tests/test_ctgov_first_capture_execution.py"
+      - "scripts/review_ctgov_monitoring_onboarding.py"
+      - "schemas/ctgov-monitor-onboarding-package.schema.json"
+      - "schemas/monitor-review-decision-packet.schema.json"
+      - "tests/test_ctgov_monitor_onboarding.py"
+      - ".github/workflows/ctgov-first-capture-control.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  first-capture-control:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact PR state
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+
+      - name: Install validation dependency
+        run: python -m pip install --upgrade pip jsonschema
+
+      - name: Checkout exact Workbench baseline
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: fraware/neuroai-workbench
+          ref: 854cc9d1c8e24a9e8ae8b21d871329bc3c24c118
+          path: .workbench
+
+      - name: Install exact Workbench
+        run: python -m pip install -e ./.workbench
+
+      - name: Run onboarding and first-capture control tests
+        env:
+          NEUROAI_LIVE_COLLECTION: ""
+        run: |
+          python -m unittest \
+            tests.test_ctgov_monitor_onboarding \
+            tests.test_ctgov_monitor_onboarding_pre_registry_binding \
+            tests.test_ctgov_first_capture_boundary_doc \
+            tests.test_ctgov_first_capture_execution
+
+      - name: Prove tests created no repository capture state
+        shell: bash
+        run: |
+          test ! -d quarantine
+          test ! -d ctgov-first-capture
+          test ! -d programme-review
+          test ! -d programme-adjudication
+          test ! -d discovery/registry_successors
+          git diff --exit-code -- releases curation schemas scripts tests docs .github/workflows
