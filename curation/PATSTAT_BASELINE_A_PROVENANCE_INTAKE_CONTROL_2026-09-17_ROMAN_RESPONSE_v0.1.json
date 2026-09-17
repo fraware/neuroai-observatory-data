@@ -1,0 +1,87 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "PATSTAT_BASELINE_A_PROVENANCE_INTAKE_CONTROL_2026-09-17_ROMAN_RESPONSE_v0.1",
+  "status": "PARTIAL_RESPONSE_WAITING_FOR_PROVENANCE",
+  "as_of": "2026-09-17",
+  "governing_issue": 243,
+  "baseline_audit_issue": 220,
+  "d3_umbrella_issue": 222,
+  "rights_issue": 210,
+  "created_against_main_sha": "bb6df60f31e76936fa9957bbac545994b96b2e34",
+  "predecessor": {
+    "path": "curation/PATSTAT_BASELINE_A_PROVENANCE_INTAKE_CONTROL_2026-09-12_v0.1.json",
+    "git_blob_sha": "a449525be390d7039d3cfe49d89cb8d50f36a828"
+  },
+  "artifact_bindings": {
+    "requirements": {
+      "path": "curation/PATSTAT_BASELINE_A_PROVENANCE_INTAKE_REQUIREMENTS_2026-09-12_v0.1.json",
+      "git_blob_sha": "19178e12b28f2f10729a7ff3cb92261e83bbcb81"
+    },
+    "response_evidence": {
+      "path": "curation/PATSTAT_BASELINE_A_ROMAN_RESPONSE_EVIDENCE_2026-09-17_v0.1.json",
+      "git_blob_sha": "a2d709de602bb5d8526142e1acb578b85670672f"
+    },
+    "current_status": {
+      "path": "curation/PATSTAT_BASELINE_A_PROVENANCE_INTAKE_STATUS_2026-09-17_ROMAN_RESPONSE_v0.1.json",
+      "git_blob_sha": "240c0b8bebc0195b09b169bcc673a3ece3ec383e"
+    },
+    "semantic_validator": {
+      "path": "scripts/validate_patstat_baseline_a_provenance_intake.py",
+      "git_blob_sha": "ee49b80a9116895a8ec2a92a3a1ac44e9103e43b"
+    },
+    "baseline_scientific_status": {
+      "path": "curation/PATSTAT_BASELINE_A_SCIENTIFIC_STATUS_2026-09-05_v0.1.json",
+      "git_blob_sha": "18c3b4b44f5f5d5381032236d1a696b7c3495fd7"
+    },
+    "rights_control": {
+      "path": "curation/PATSTAT_PUBLIC_EXTRACT_RIGHTS_REVIEW_2026-09-17_ROMAN_ANALYSIS_SUCCESSOR_v0.1.json",
+      "git_blob_sha": "d4c837833ca53e94243228d6964370623e14a07b"
+    }
+  },
+  "current_evidence_state": {
+    "roman_response_received_and_bound": true,
+    "historical_judges_and_rubric_complete": false,
+    "first_stage_probability_design_complete": false,
+    "second_stage_333_design_complete": false,
+    "estimator_and_uncertainty_complete": false,
+    "retrieval_pool_construction_complete": false,
+    "export_clarification_complete": false,
+    "ready_for_scientific_audit": false,
+    "scientific_validity_established": false
+  },
+  "open_provenance_blockers": [
+    "Exact first-tier and second-tier model identities, prompts and inference configurations.",
+    "First-stage sampling implementation, seed/randomization and reconstructible inclusion probabilities.",
+    "Second-stage 333 eligible frame, cell counts, inclusion probabilities, seed/selection implementation, timing and replacement/adaptive semantics.",
+    "Full pilot/ppi.py estimator and uncertainty implementation, including population-total and recall-ratio intervals.",
+    "Exact retrieval query set, similarity threshold/configuration and pool-construction implementation.",
+    "Resolution of the pool_frame.csv cluster-field export anomaly.",
+    "Resolution of conflicting reported population intervals: ANALYSIS [41,512, 58,192] versus README [40,256, 57,854]."
+  ],
+  "intake_boundary": {
+    "ready_for_scientific_audit_means": "ALL_MANDATORY_PROVENANCE_COMPONENTS_SUPPLIED_AND_DIGEST_BOUND_ONLY",
+    "verified_reconstructible_requires_independent_verification_digest": true,
+    "provided_by_original_author_implies_verified_reconstructible": false,
+    "partial_response_promotes_incomplete_component": false,
+    "intake_completeness_implies_design_unbiasedness": false,
+    "intake_completeness_implies_interval_validity": false,
+    "intake_completeness_implies_human_truth": false,
+    "intake_completeness_implies_global_completeness": false,
+    "intake_completeness_implies_rights_clearance": false
+  },
+  "authority": {
+    "g1_approved": true,
+    "g0_passed": false,
+    "g2_passed": false,
+    "g5_passed": false,
+    "rights_clearance": false,
+    "canonical_scientific_finding": false,
+    "benchmark_adequacy_established": false,
+    "population_generalization_authority": false,
+    "canonical_s2_authority": false,
+    "publication_authority": false,
+    "phase4_online_first_default_authorized": false,
+    "assessment_effect": "NONE"
+  },
+  "boundary": "Roman's response is received and digest-bound as partial provenance. Every mandatory component remains incomplete, so readiness remains WAITING_FOR_PROVENANCE. This control validates no estimator, confidence interval, headline estimate, retrieval recall, human truth, rights, D3/G2/G5, S2/publication/Phase 4 authority, or assessment effect."
+}

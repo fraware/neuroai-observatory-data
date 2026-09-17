@@ -5,11 +5,12 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-REVIEW = ROOT / "curation" / "PATSTAT_PUBLIC_EXTRACT_RIGHTS_REVIEW_2026-09-05_v0.1.json"
+REVIEW = ROOT / "curation" / "PATSTAT_PUBLIC_EXTRACT_RIGHTS_REVIEW_2026-09-17_ROMAN_ANALYSIS_SUCCESSOR_v0.1.json"
 README = ROOT / "patent-evidence-extract" / "README.md"
 EXTRACT = ROOT / "patent-evidence-extract"
 
 EXPECTED_PUBLIC_FILES = {
+    "patent-evidence-extract/ANALYSIS.md",
     "patent-evidence-extract/README.md",
     "patent-evidence-extract/abstracts_sample.csv",
     "patent-evidence-extract/clusters.csv",
@@ -34,6 +35,10 @@ class PatstatRightsBoundaryTests(unittest.TestCase):
     def test_review_is_fail_closed_and_non_authoritative(self) -> None:
         self.assertEqual(self.review["status"], "RIGHTS_REVIEW_OPEN_FAIL_CLOSED")
         self.assertEqual(self.review["governing_issue"], 210)
+        self.assertEqual(
+            self.review["predecessor"]["git_blob_sha"],
+            "92698b640f0c533fca03f576acb79cf9d450a4ed",
+        )
         self.assertFalse(self.review["rights_evidence"]["exact_license_order_terms_verified_in_repository"])
         self.assertFalse(self.review["rights_evidence"]["exact_written_redistribution_authorization_verified"])
         self.assertFalse(self.review["rights_evidence"]["legal_conclusion_made"])
@@ -65,6 +70,17 @@ class PatstatRightsBoundaryTests(unittest.TestCase):
         )
         self.assertTrue(row["direct_epo_text_present"])
         self.assertEqual(row["rights_state"], "HIGH_PRIORITY_RIGHTS_UNRESOLVED")
+
+    def test_roman_analysis_is_inventory_bound_without_clearance(self) -> None:
+        row = next(
+            item
+            for item in self.review["file_dispositions"]
+            if item["path"] == "patent-evidence-extract/ANALYSIS.md"
+        )
+        self.assertEqual(row["provisional_classification"], "DERIVED_PUBLICATION_WITH_EPO_SOURCED_INPUTS")
+        self.assertEqual(row["rights_state"], "RIGHTS_UNRESOLVED_PENDING_EXACT_CONTRACT")
+        self.assertFalse(row["direct_epo_text_present"])
+        self.assertFalse(row["publication_clearance_claimed"])
 
     def test_public_readme_contains_required_epo_attribution_and_open_review_warning(self) -> None:
         self.assertIn(REQUIRED_ATTRIBUTION, self.readme)

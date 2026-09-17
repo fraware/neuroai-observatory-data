@@ -1,0 +1,45 @@
+{
+  "schema_version": "0.1.0",
+  "manifest_id": "PATSTAT_BASELINE_A_ROMAN_RESPONSE_EVIDENCE_2026-09-17_v0.1",
+  "status": "PARTIAL_PROVENANCE_RESPONSE_DIGEST_BOUND",
+  "received_commit": "bb6df60f31e76936fa9957bbac545994b96b2e34",
+  "author": "Roman Jurowetzki",
+  "received_at": "2026-09-15T14:03:42Z",
+  "governing_issue": 243,
+  "baseline_audit_issue": 220,
+  "source_files": [
+    {"path": "patent-evidence-extract/ANALYSIS.md", "git_blob_sha": "4e6ceb36fbfe287eeb78ef0d8ac004725ce7b427"},
+    {"path": "patent-evidence-extract/README.md", "git_blob_sha": "940ea76931be46cd7ba9d969f0d766ccd13816e1"},
+    {"path": "patent-evidence-extract/strata.csv", "git_blob_sha": "b5eff1e15d7ccf17a8a1c51388a03ae5a3dc8a00"},
+    {"path": "patent-evidence-extract/reproduce.py", "git_blob_sha": "702d130e0c3cc553ddde03a590dd1a6b34d897dd"}
+  ],
+  "supported_requirements": {
+    "HISTORICAL_JUDGES_AND_RUBRIC": ["historical_labels_confirmed_machine_generated", "historical_label_0_1_2_semantics_bound", "four_malformed_verdicts_handling_bound"],
+    "FIRST_STAGE_PROBABILITY_DESIGN": ["nine_stratum_definitions_bound", "stratum_Nh_nh_manifest_bound", "certainty_exhaustive_cells_bound", "deduplication_unit_rule_bound", "missing_malformed_handling_bound"],
+    "SECOND_STAGE_333_DESIGN": ["stratification_cell_definitions_bound"],
+    "ESTIMATOR_AND_UNCERTAINTY": ["population_estimands_bound", "correction_formula_bound", "exhaustive_strata_handling_bound", "malformed_verdict_estimator_handling_bound"],
+    "RETRIEVAL_POOL_CONSTRUCTION": [],
+    "EXPORT_CLARIFICATION": ["cluster_field_estimator_use_declared", "gold_labels_machine_generated_confirmed"]
+  },
+  "unresolved_findings": [
+    "Exact first-tier and second-tier model identities, prompts and inference settings remain unbound.",
+    "First-stage draw implementation, randomization/seed and reconstructible inclusion-probability semantics remain unbound.",
+    "The 333-reread eligible frame, cell denominators, inclusion probabilities, selection seed/code, timing and replacement/adaptive semantics remain unbound.",
+    "The full pilot/ppi.py estimator and second-stage/ratio uncertainty calculation remain absent from the public extract.",
+    "The exact 275 query definitions, similarity threshold/configuration and pool-construction implementation remain unbound.",
+    "The pool_frame.csv cluster-field anomaly remains unexplained; README only quarantines the field from validated use.",
+    "ANALYSIS.md reports a 95% population interval [41,512, 58,192], while README records the historical interval [40,256, 57,854]. The conflict is unresolved."
+  ],
+  "authority": {
+    "scientific_validity_established": false,
+    "human_reference_standard_created": false,
+    "rights_clearance": false,
+    "g0_passed": false,
+    "g2_passed": false,
+    "g5_passed": false,
+    "canonical_s2_authority": false,
+    "publication_authority": false,
+    "assessment_effect": "NONE"
+  },
+  "boundary": "Digest-bound partial provenance intake only. Supported requirement flags mean evidence was supplied for those fields; no incomplete component is promoted to PROVIDED_UNVERIFIED. No estimator, interval, headline finding, rights, human benchmark, gate, S2/publication authority or assessment effect is validated."
+}
