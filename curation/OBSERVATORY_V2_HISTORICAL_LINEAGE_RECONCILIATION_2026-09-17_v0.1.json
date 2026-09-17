@@ -1,0 +1,231 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "OBSERVATORY_V2_HISTORICAL_LINEAGE_RECONCILIATION_2026-09-17_v0.1",
+  "status": "HISTORICAL_LINEAGE_RECONCILED_TO_CURRENT_ARCHITECTURE_NONAUTHORIZING",
+  "as_of": "2026-09-17",
+  "governing_issue": 267,
+  "repository_binding": {
+    "observatory_repository": "fraware/neuroai-observatory-data",
+    "observatory_main_at_reconciliation_start": "9be3718b8afad57c18c30ccf2a23a02061e2f831",
+    "workbench_repository": "fraware/neuroai-workbench",
+    "workbench_main_at_reconciliation_start": "854cc9d1c8e24a9e8ae8b21d871329bc3c24c118"
+  },
+  "historical_feature_stack": {
+    "whole_current_candidate_pull_request": 86,
+    "whole_current_candidate_head": "376a5a00e3ab3479dc7072ddb288b3fb53653f2e",
+    "whole_current_candidate_base_branch": "feat/observatory-v2-effective-source-namespace",
+    "whole_current_candidate_merged_to_observatory_main": false,
+    "six_domain_review_pull_request": 88,
+    "six_domain_review_head": "d935c674883a934a9cfbbf934cf859459c5134ec",
+    "six_domain_review_merged": false,
+    "interpretation": "The historical stacked migration implementation is provenance and design history. It is not current-main implementation authority and must not be treated as if PR #86 or PR #88 landed on Observatory main."
+  },
+  "current_architecture": {
+    "workbench_migration_implementation_pr": 240,
+    "workbench_migration_implementation_merge": "ebe5b7a011198eea37263ef71acb4122652952dd",
+    "workbench_gate_a_record_pr": 245,
+    "workbench_gate_a_record_merge": "0a69a39d33334f29bf1629ec918c78b2a0759190",
+    "workbench_s2_publication_path_pr": 254,
+    "workbench_s2_publication_path_merge": "a0929acc3f8002d33d05ce034cd0cb402afea3f0",
+    "observatory_s2_release_contract_pr": 104,
+    "observatory_s2_release_contract_merge": "3a94d7c1277988f342cad184d3a6f866653f42d2",
+    "gate_a_execution": {
+      "producer_runtime_commit": "719170f2fd3556f4b9710f2b14ba96e8e34a8855",
+      "s2_predecessor_commit": "3a94d7c1277988f342cad184d3a6f866653f42d2",
+      "field_proof_sha256": "0e69937b898eb09697ee57ce9e1f4e055162f1e158807a0932b606b17d391df9",
+      "package_manifest_sha256": "4006f1d95b40b8d7f093d236dca54f90a898a835845bdc16dd492322e1a8c539",
+      "package_descriptor_sha256": "fb7089e3127f200342fcfc0b4bb8c1835f0ae0a86850a9f06005abbb593e9827",
+      "decision_sha256": "5d3b1aa02d44dfe4391cad32a51846586ee30868ebdb4a1864e5e44f91356bc2",
+      "decision": "PASS_REPRESENTATIONAL_MIGRATION_MECHANICALLY_COMPLETE",
+      "physical_predecessor_record_occurrences": 842,
+      "leaf_field_occurrences": 11664,
+      "reviewed_native_class_field_destinations": 2117,
+      "preserved_legacy_field_occurrences": 9399,
+      "preserved_unresolved_occurrences": 148,
+      "unmapped_required_predecessor_fields": 0,
+      "invented_values": 0,
+      "claim_boundary_losses": 0,
+      "source_reference_losses": 0,
+      "history_lineage_losses": 0,
+      "temporal_precision_losses": 0,
+      "native_object_count": 403,
+      "native_entity_count": 153,
+      "native_source_count": 236,
+      "native_event_count": 5,
+      "native_candidate_count": 9,
+      "typed_reference_checks": 36,
+      "temporal_values_checked": 14,
+      "cross_class_id_collision_count": 0,
+      "representational_scope_complete": true,
+      "native_v2_materialization_complete": false,
+      "release_authorized": false
+    },
+    "current_controlled_source_namespace": {
+      "implementation": "scripts/current_source_namespace.py",
+      "materialized_source_count": 248,
+      "family_counts": {
+        "V1_4_BASELINE": 224,
+        "V1_6_REFRESH": 12,
+        "V1_7_PRIMA_SUPPLEMENTAL": 12
+      },
+      "relation_to_gate_a_native_sources": "SEPARATE_CONTROLLED_DISCOVERY_NAMESPACE_VIEW",
+      "interpretation": "The living discovery namespace materializes 248 controlled Source identities directly from governing predecessor records. Gate-A's 236 native Source objects serve the frozen predecessor-migration representation. The 12 PRIMA supplemental records are retained in the controlled discovery namespace; they are not forced into ordinary v2 Observations where the predecessor does not supply the required capture semantics."
+    },
+    "governance_model": {
+      "gate_a_human_domain_review_required": false,
+      "candidate_authorization_publication_separate": true,
+      "lifecycle": "candidate != authorization != publication",
+      "interpretation": "The historical six-domain review packet is not a current Gate-A closure requirement. Human/scientific governance continues at its separately governed programme gates; mechanical Gate-A does not create publication authority."
+    }
+  },
+  "historical_issue_dispositions": [
+    {
+      "issue": 54,
+      "historical_goal": "Add noncanonical Observatory v2 foundation schemas and migration proof scaffold",
+      "disposition": "SUPERSEDED_BY_STRICTER_CURRENT_ARCHITECTURE",
+      "current_evidence": ["workbench#240", "workbench#245", "observatory#104"],
+      "reason": "The current architecture places predecessor migration mechanics in S1 Gate-A and independent public release verification in S2. Recreating the historical feature-branch scaffold on current main would duplicate and weaken the current authority split."
+    },
+    {
+      "issue": 55,
+      "historical_goal": "Prove lossless v1.4/v1.6/v1.7 mapping into Observatory v2",
+      "disposition": "SATISFIED_BY_CURRENT_ARCHITECTURE",
+      "current_evidence": ["workbench#240", "workbench#245"],
+      "reason": "The corrected Gate-A field proof covers the frozen predecessor corpus with zero unmapped required fields, invented values, claim-boundary losses, source-reference losses, history-lineage losses or temporal-precision losses."
+    },
+    {
+      "issue": 56,
+      "historical_goal": "Track Observatory v2 foundation implementation branch",
+      "disposition": "SUPERSEDED_BY_STRICTER_CURRENT_ARCHITECTURE",
+      "current_evidence": ["workbench#240", "workbench#245", "workbench#254", "observatory#104"],
+      "reason": "The historical feature branch is no longer the implementation line. Current migration, S2 compilation and S2 verification are merged through the governed S1/S2 split."
+    },
+    {
+      "issue": 58,
+      "historical_goal": "Migrate v1.4 organization records into v2 entities and assertions",
+      "disposition": "SUPERSEDED_BY_STRICTER_CURRENT_ARCHITECTURE",
+      "current_evidence": ["workbench#240", "workbench#245"],
+      "reason": "Current Gate-A materializes only 153 identity-safe current organizations as native Entity objects and preserves the remaining legacy/provenance/history state exactly. It intentionally does not fabricate native assertions for predecessor semantics that do not support them."
+    },
+    {
+      "issue": 59,
+      "historical_goal": "Migrate v1.4 representative model records into Observatory v2",
+      "disposition": "SUPERSEDED_BY_STRICTER_CURRENT_ARCHITECTURE",
+      "current_evidence": ["workbench#240", "workbench#245"],
+      "reason": "The current representational-completeness model preserves model and related residual families in governed predecessor state where native projection would invent identity or evidence semantics. Native graph completeness is explicitly not a Gate-A claim."
+    },
+    {
+      "issue": 61,
+      "historical_goal": "Migrate v1.4 model/dataset registry objects without expanding aggregate counts",
+      "disposition": "SUPERSEDED_BY_STRICTER_CURRENT_ARCHITECTURE",
+      "current_evidence": ["workbench#240", "workbench#245"],
+      "reason": "Registry/benchmark predecessor state is preserved content-addressed under current Gate-A instead of manufacturing native graph objects solely to satisfy the historical migration design."
+    },
+    {
+      "issue": 63,
+      "historical_goal": "Migrate v1.4 relationship families with explicit unresolved endpoints",
+      "disposition": "SUPERSEDED_BY_STRICTER_CURRENT_ARCHITECTURE",
+      "current_evidence": ["workbench#240", "workbench#245"],
+      "reason": "Current Gate-A preserves relationship/dependency families as governed predecessor state where endpoints cannot be resolved without invention; it does not create zero-information native relationships."
+    },
+    {
+      "issue": 65,
+      "historical_goal": "Migrate v1.4 capital/ownership events with exact temporal and amount states",
+      "disposition": "SATISFIED_BY_CURRENT_ARCHITECTURE",
+      "current_evidence": ["workbench#240", "workbench#245"],
+      "reason": "All five v1.4 capital/ownership records are native Event objects in the current 403-object Gate-A candidate, with precision-safe temporal validation in the current implementation."
+    },
+    {
+      "issue": 67,
+      "historical_goal": "Close v1.4 migration with provenance, resolution, regional and data-quality records",
+      "disposition": "SUPERSEDED_BY_STRICTER_CURRENT_ARCHITECTURE",
+      "current_evidence": ["workbench#240", "workbench#245"],
+      "reason": "Current Gate-A preserves these release/control/provenance and residual families exactly with field-proof coverage instead of forcing each into a native graph object."
+    },
+    {
+      "issue": 69,
+      "historical_goal": "Migrate v1.6 source checks and new sources into v2 observations",
+      "disposition": "SUPERSEDED_BY_STRICTER_CURRENT_ARCHITECTURE",
+      "current_evidence": ["workbench#240", "workbench#245"],
+      "reason": "The 12 v1.6 new Source identities are native. The 12 source checks are deliberately preserved as transport-unresolved predecessor observation evidence because ordinary v2 Observation semantics would require retrieval details the predecessor did not govern."
+    },
+    {
+      "issue": 71,
+      "historical_goal": "Migrate v1.6 change-candidate lineage without inferred promotion links",
+      "disposition": "SATISFIED_BY_CURRENT_ARCHITECTURE",
+      "current_evidence": ["workbench#240", "workbench#245"],
+      "reason": "All nine v1.6 change candidates are native Candidate objects in the current Gate-A candidate and remain non-authoritative."
+    },
+    {
+      "issue": 73,
+      "historical_goal": "Normalize v1.6 adjudicated delta once without duplicate counting",
+      "disposition": "SUPERSEDED_BY_STRICTER_CURRENT_ARCHITECTURE",
+      "current_evidence": ["workbench#240", "workbench#245"],
+      "reason": "Current Gate-A verifies duplicate-container equivalence and preserves the residual DELTA16 families under explicit governed state; it does not require the historical native object expansion where that would invent semantics."
+    },
+    {
+      "issue": 75,
+      "historical_goal": "Migrate v1.6 reopening decisions and no-change provenance",
+      "disposition": "SUPERSEDED_BY_STRICTER_CURRENT_ARCHITECTURE",
+      "current_evidence": ["workbench#240", "workbench#245"],
+      "reason": "Reopening and scoped no-change predecessor state is retained content-addressed with no assessment mutation; native ReopeningDecision objects are not fabricated solely for migration."
+    },
+    {
+      "issue": 77,
+      "historical_goal": "Close v1.6 control state and prove top-level semantic coverage",
+      "disposition": "SATISFIED_BY_CURRENT_ARCHITECTURE",
+      "current_evidence": ["workbench#240", "workbench#245"],
+      "reason": "The current field-preservation proof plus governed residual-family reconciliation records zero unmapped required predecessor fields and zero declared loss/invention counters over the frozen scope."
+    },
+    {
+      "issue": 79,
+      "historical_goal": "Migrate v1.7 compact successor lineage without duplicating v1.6 state",
+      "disposition": "SATISFIED_BY_CURRENT_ARCHITECTURE",
+      "current_evidence": ["workbench#240", "workbench#245"],
+      "reason": "The current migration explicitly verifies V17/DELTA16 and PRIMA successor duplicate-container identities, reopening transition lineage and exact successor preservation without double materialization."
+    },
+    {
+      "issue": 81,
+      "historical_goal": "Migrate the 12 actual PRIMA supplemental sources into v2 Source/Observation records",
+      "disposition": "SUPERSEDED_BY_STRICTER_CURRENT_ARCHITECTURE",
+      "current_evidence": ["scripts/current_source_namespace.py", "workbench#240", "workbench#245"],
+      "reason": "All 12 actual PRIMA supplemental Source identities remain part of the exact 248-Source controlled discovery namespace. The current Gate-A architecture does not fabricate ordinary v2 Observations from supplemental records that lack the capture semantics required by the current Observation contract."
+    },
+    {
+      "issue": 83,
+      "historical_goal": "Prove the 248-source effective namespace from actual migrated source records",
+      "disposition": "SATISFIED_BY_CURRENT_ARCHITECTURE",
+      "current_evidence": ["scripts/current_source_namespace.py"],
+      "reason": "Current main directly materializes and validates exactly 224 v1.4 + 12 v1.6 + 12 PRIMA supplemental = 248 unique controlled Source identities with an exact Source-ID-set digest. The denominator is explicitly not a global completeness claim."
+    },
+    {
+      "issue": 85,
+      "historical_goal": "Assemble whole-current-state Observatory v2 noncanonical candidate",
+      "disposition": "SUPERSEDED_BY_STRICTER_CURRENT_ARCHITECTURE",
+      "current_evidence": ["workbench#240", "workbench#245", "workbench#254", "observatory#104"],
+      "reason": "The historical feature-stack candidate is replaced by the exact Gate-A migration package and graph-native S2 candidate compiler/verifier. Current architecture intentionally distinguishes representational completeness, native materialization, candidate creation, authorization and publication."
+    },
+    {
+      "issue": 87,
+      "historical_goal": "Build six-domain human review gate for Observatory v2 candidate",
+      "disposition": "SUPERSEDED_BY_CHANGED_GOVERNANCE_MODEL",
+      "current_evidence": ["workbench#245", "workbench#254", "observatory#104"],
+      "reason": "Current Gate-A policy explicitly removes representative six-domain human review from mechanical Gate-A closure. Human scientific/governance review remains separately governed; S2 authorization and publication are distinct immutable operations and are not auto-created by Gate-A."
+    }
+  ],
+  "summary": {
+    "historical_issue_count": 19,
+    "satisfied_by_current_architecture_count": 6,
+    "superseded_by_stricter_current_architecture_count": 12,
+    "superseded_by_changed_governance_model_count": 1,
+    "historical_feature_stack_promoted_to_current_main": false,
+    "current_architecture_recreates_historical_candidate_shape": false,
+    "current_gate_a_passed": true,
+    "current_gate_a_authorizes_s2_release": false,
+    "current_s2_candidate_created_by_this_reconciliation": false,
+    "canonical_s2_mutation_performed": false,
+    "publication_performed": false,
+    "assessment_mutation_performed": false
+  },
+  "authority_boundary": "This reconciliation retires stale historical implementation tickets by mapping them to the current merged architecture. It does not claim that the historical PR #86/#88 feature-stack code landed on main; does not require native projection where current Gate-A deliberately preserves predecessor state; does not create a production S2 candidate; does not authorize or publish any release; and creates no scientific, clinical, regulatory, population, assessment, G0, G2, G3 or G5 authority."
+}
