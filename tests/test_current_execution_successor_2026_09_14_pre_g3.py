@@ -47,10 +47,16 @@ class CurrentExecutionSuccessor20260914PreG3Tests(unittest.TestCase):
         cls.successor = load_json(SUCCESSOR)
         cls.pointer = load_json(POINTER)
 
-    def test_pointer_advances_to_exact_successor(self) -> None:
+    def test_historical_successor_remains_valid_after_pointer_advances(self) -> None:
         self.assertEqual(self.pointer["status"], "CURRENT_CONTROL_POINTER_NONCANONICAL")
-        self.assertEqual(self.pointer["as_of"], "2026-09-14")
-        self.assertEqual(self.pointer["current_programme_execution_state"], EXPECTED_SUCCESSOR_PATH)
+        self.assertGreaterEqual(self.pointer["as_of"], "2026-09-14")
+        current_path = ROOT / self.pointer["current_programme_execution_state"]
+        self.assertTrue(current_path.is_file())
+        self.assertTrue((ROOT / EXPECTED_SUCCESSOR_PATH).is_file())
+        self.assertEqual(
+            self.pointer["current_g1_disposition"],
+            "curation/HUMAN_G1_DISPOSITION_2026-09-05_D1_D2_v0.1.json",
+        )
 
     def test_predecessor_and_g1_are_exactly_blob_bound(self) -> None:
         self.assertEqual(self.successor["predecessor"]["git_blob_sha"], git_blob_sha(PREDECESSOR))
@@ -60,7 +66,7 @@ class CurrentExecutionSuccessor20260914PreG3Tests(unittest.TestCase):
             git_blob_sha(G1),
         )
 
-    def test_repository_binding_is_current(self) -> None:
+    def test_repository_binding_is_current_for_historical_successor(self) -> None:
         binding = self.successor["repository_binding"]
         self.assertEqual(binding["observatory_main_sha"], EXPECTED_OBSERVATORY_MAIN)
         self.assertEqual(binding["workbench_main_sha"], EXPECTED_WORKBENCH_MAIN)
