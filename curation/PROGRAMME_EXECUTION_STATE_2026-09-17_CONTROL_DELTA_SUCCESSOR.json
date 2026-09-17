@@ -1,0 +1,147 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-17_CONTROL_DELTA_SUCCESSOR",
+  "status": "PRE_G2_CURRENT_EXECUTION_SUCCESSOR_STATE_NONCANONICAL",
+  "as_of": "2026-09-17",
+  "purpose": "Append-only execution-control successor binding the current CT.gov monitoring/first-capture software controls and the partial Roman PATSTAT provenance intake while preserving all gate, S2/publication, rights, benchmark and assessment authority boundaries.",
+  "governing_issue": 265,
+  "predecessor": {
+    "path": "curation/PROGRAMME_EXECUTION_STATE_2026-09-14_PRE_G3_REPLAY_REBIND_SUCCESSOR.json",
+    "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-14_PRE_G3_REPLAY_REBIND_SUCCESSOR",
+    "git_blob_sha": "42af146fc94f274dd6798472e2ec93c6bb968191",
+    "predecessor_is_modified_by_this_successor": false,
+    "predecessor_immutability": "HISTORICAL_IMMUTABLE_EXECUTION_STATE_NOT_EDITED_IN_PLACE"
+  },
+  "repository_binding": {
+    "observatory_repository": "fraware/neuroai-observatory-data",
+    "observatory_main_sha": "b450a5109a784924c53cbdc75adb57b6f67df9ba",
+    "observatory_main_semantic_change": "CTGOV_SOFTWARE_CONTROLS_AND_PARTIAL_ROMAN_PATSTAT_PROVENANCE_INTAKE",
+    "workbench_repository": "fraware/neuroai-workbench",
+    "workbench_main_sha": "854cc9d1c8e24a9e8ae8b21d871329bc3c24c118"
+  },
+  "current_control_deltas": {
+    "ctgov_monitor_onboarding": {
+      "issue": 100,
+      "pull_request": 261,
+      "final_pr_head_sha": "cef486f6472ad8a713259975ad00fbdca238f95e",
+      "exact_head_workflow_run_id": 34972211820,
+      "exact_head_workflow_conclusion": "success",
+      "merged_main_sha": "af18b7109d6e98d603b86a2dc39727222fcaf92b",
+      "software_control_available": true,
+      "real_human_monitor_review_performed": false,
+      "network_execution_performed": false,
+      "monitor_registry_successor_created": false,
+      "canonical_s2_mutation_performed": false,
+      "interpretation": "The current CT.gov monitor-review to draft-onboarding software boundary exists and passed on its exact final PR head. Synthetic tests do not constitute a real human monitoring disposition or network execution."
+    },
+    "ctgov_first_capture": {
+      "software_control_issue": 262,
+      "execution_evidence_issues": [102, 103],
+      "pull_request": 263,
+      "final_pr_head_sha": "28c132308fa860d1bab7a6bbff041e541e535537",
+      "exact_head_workflow_run_id": 34972907102,
+      "exact_head_workflow_conclusion": "success",
+      "merged_main_sha": "7aeb3cf058bd5238bdcf2eb6e0105613f349caaf",
+      "software_control_available": true,
+      "real_first_capture_authorization_created": false,
+      "live_clinicaltrials_capture_executed": false,
+      "quarantine_approval_performed": false,
+      "monitor_registry_successor_created": false,
+      "canonical_s2_mutation_performed": false,
+      "interpretation": "The explicitly authorized pre-registry CT.gov quarantine executor exists and passed fake-transport adversarial tests. No real authorization packet or live first capture has been executed."
+    },
+    "patstat_roman_provenance": {
+      "roman_direct_main_commit": "bb6df60f31e76936fa9957bbac545994b96b2e34",
+      "roman_commit_author": "Roman Jurowetzki",
+      "intake_pull_request": 264,
+      "final_pr_head_sha": "60c6a12624e95856ec46dc9bb94963dacdebaee8",
+      "merged_main_sha": "b450a5109a784924c53cbdc75adb57b6f67df9ba",
+      "exact_head_provenance_workflow_run_id": 35221745227,
+      "exact_head_rights_workflow_run_id": 35221745017,
+      "post_merge_provenance_workflow_run_id": 35221787236,
+      "post_merge_rights_workflow_run_id": 35221787221,
+      "all_recorded_workflows_conclusion": "success",
+      "provenance_status_path": "curation/PATSTAT_BASELINE_A_PROVENANCE_INTAKE_STATUS_2026-09-17_ROMAN_RESPONSE_v0.1.json",
+      "provenance_status_git_blob_sha": "240c0b8bebc0195b09b169bcc673a3ece3ec383e",
+      "provenance_readiness": "WAITING_FOR_PROVENANCE",
+      "mandatory_components_complete": false,
+      "all_mandatory_components_still_incomplete": true,
+      "rights_control_path": "curation/PATSTAT_PUBLIC_EXTRACT_RIGHTS_REVIEW_2026-09-17_ROMAN_ANALYSIS_SUCCESSOR_v0.1.json",
+      "rights_control_git_blob_sha": "d4c837833ca53e94243228d6964370623e14a07b",
+      "rights_clearance": false,
+      "scientific_validity_established": false,
+      "human_reference_standard_created": false,
+      "reported_interval_conflict_unresolved": true,
+      "interpretation": "Roman supplied useful additional Baseline A provenance. The response is digest-bound as partial evidence only; no mandatory provenance component is complete, scientific validity and rights remain unestablished, and model-generated rereads do not become a human D3 benchmark."
+    }
+  },
+  "workbench_phase3": {
+    "issue": 287,
+    "workflow": ".github/workflows/phase3-external-proof.yml",
+    "workbench_main_sha": "854cc9d1c8e24a9e8ae8b21d871329bc3c24c118",
+    "workflow_dispatch_runs_observed_at_recording": 0,
+    "external_live_proof_executed": false,
+    "external_live_proof_reviewed": false,
+    "phase4_online_first_default_authorized": false,
+    "interpretation": "The controlled external Phase 3 proof remains operator-dispatched and has not run. Software readiness does not substitute for hosted live execution evidence."
+  },
+  "inherited_gate_state": {
+    "g0": {
+      "decision": "BLOCKED_NOT_PASSED",
+      "passed": false,
+      "blocking_source_ids": ["SRC-14-021"],
+      "blocking_issue": 224,
+      "re_adjudicated_by_this_successor": false,
+      "successor_domain_verified_by_this_successor": false
+    },
+    "g1": {
+      "decision": "APPROVE",
+      "approved": true,
+      "record_path": "curation/HUMAN_G1_DISPOSITION_2026-09-05_D1_D2_v0.1.json",
+      "git_blob_sha": "ed42dc5b77cf011562db8c8c39bc9e71968fdb37",
+      "re_adjudicated_by_this_successor": false
+    },
+    "g2": {
+      "passed": false,
+      "re_adjudicated_by_this_successor": false
+    },
+    "g3": {
+      "passed": false,
+      "re_adjudicated_by_this_successor": false
+    },
+    "g5": {
+      "passed": false,
+      "re_adjudicated_by_this_successor": false
+    }
+  },
+  "human_benchmark_state": {
+    "d3_real_human_benchmark_frozen": false,
+    "d4_real_human_benchmark_frozen": false,
+    "roman_model_generated_labels_count_as_d3_human_gold": false,
+    "g2_human_disposition_completed": false
+  },
+  "historical_record_boundary": {
+    "predecessor_execution_state_modified": false,
+    "prior_g0_evidence_modified": false,
+    "g1_disposition_modified": false,
+    "source_universe_state_modified": false,
+    "d3_human_benchmark_fabricated": false,
+    "d4_human_benchmark_fabricated": false,
+    "patstat_predecessor_controls_modified_in_place": false
+  },
+  "authority": {
+    "g0_passed": false,
+    "g1_approved": true,
+    "g2_passed": false,
+    "g3_passed": false,
+    "g5_passed": false,
+    "patstat_rights_clearance": false,
+    "canonical_s2_authority": false,
+    "publication_authority": false,
+    "mutation_authority": false,
+    "population_generalization_authority": false,
+    "phase4_online_first_default_authorized": false,
+    "assessment_effect": "NONE"
+  },
+  "boundary": "This successor records meaningful software-control and provenance-intake deltas only. G0 remains BLOCKED_NOT_PASSED on unresolved SRC-14-021; G1 remains approved only for the exact prior D1/D2 identities; G2/G3/G5 remain unpassed; real D3/D4 human benchmarks and G2 human disposition remain outstanding; Workbench Phase 3 has no workflow-dispatch execution; the CT.gov first-capture path has no real authorization/live capture; Roman's PATSTAT response remains partial and rights-unresolved. No live structured-source pilot, human-reference-standard claim, canonical S2 mutation, publication, population inference, Phase 4 authorization, legal authority, scientific-validity claim, or assessment effect is created."
+}
