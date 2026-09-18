@@ -1,0 +1,216 @@
+{
+  "schema_version": "0.2.0",
+  "control_id": "PATSTAT_PUBLIC_EXTRACT_RIGHTS_REVIEW_2026-09-18_PUBLIC_EVIDENCE_SUCCESSOR_v0.2",
+  "status": "RIGHTS_REVIEW_OPEN_FAIL_CLOSED",
+  "as_of": "2026-09-18",
+  "repository": "fraware/neuroai-observatory-data",
+  "created_against_main_sha": "8f33af03244723336184ba4cb763cde7e1cf0c40",
+  "governing_issue": 210,
+  "scope": "patent-evidence-extract/",
+  "predecessor": {
+    "path": "curation/PATSTAT_PUBLIC_EXTRACT_RIGHTS_REVIEW_2026-09-17_ROMAN_ANALYSIS_SUCCESSOR_v0.1.json",
+    "git_blob_sha": "d4c837833ca53e94243228d6964370623e14a07b"
+  },
+  "rights_evidence": {
+    "exact_autumn_2025_order_acceptance_terms_verified_in_repository": false,
+    "exact_amendments_in_force_for_delivery_verified": false,
+    "exact_written_redistribution_authorization_verified": false,
+    "legal_or_licensor_determination_verified": false,
+    "current_public_terms_rechecked_on": "2026-09-18",
+    "first_party_sources": [
+      {
+        "url": "https://www.epo.org/en/service-support/ordering/raw-data-terms-and-conditions",
+        "scope": "current published terms for licensing EPO databases",
+        "relevant_articles": ["2", "3.4", "5.1-5.5", "6.1-6.2", "10.2", "11.1", "14.5", "17.1-17.3"],
+        "findings": [
+          "The published terms describe contract formation through EPO acceptance of the licensee's order.",
+          "PATSTAT single orders deliver a copy of the database in its most recent version.",
+          "Article 5.2 distinguishes a licensee's own product containing or based on EPO data from a copy of the database or the data as such.",
+          "Article 5.4 restricts making the EPO database, a copy, or data as such public and restricts distribution of data as such absent express written EPO authorization.",
+          "Articles 6.1-6.2 impose control and security obligations for EPO database copies and data.",
+          "Article 10.2 specifies attribution for products, websites, and interfaces through which products containing sourced EPO data are accessed.",
+          "Article 17 permits amendments to the terms and describes notice and effective-date mechanics, so current web terms do not prove the exact terms applicable to the Autumn 2025 delivery."
+        ]
+      },
+      {
+        "url": "https://www.epo.org/en/about-us/observatory-patents-and-technology/observatory-tools/patstat/new-to-patstat",
+        "scope": "current EPO PATSTAT access description",
+        "findings": [
+          "The EPO currently describes PATSTAT Global as available through several access routes, including a subscription-based bulk data set.",
+          "This page does not establish the exact contract terms governing the specific Autumn 2025 delivery represented in the repository."
+        ]
+      }
+    ],
+    "required_attribution": "This product contains data sourced from EPO databases, © European Patent Organisation",
+    "legal_conclusion_made": false
+  },
+  "field_dispositions": [
+    {
+      "path": "patent-evidence-extract/ANALYSIS.md",
+      "file_class": "DERIVED_NARRATIVE_PUBLICATION",
+      "fields": {
+        "derived_or_aggregate_content": ["entire narrative, tables, reported aggregate statistics"],
+        "direct_row_level_epo_text": []
+      },
+      "provisional_rights_state": "RIGHTS_UNRESOLVED_PENDING_EXACT_CONTRACT",
+      "minimum_public_representation_if_row_data_must_be_contained": "retain only if derived-publication use is confirmed; otherwise replace source-dependent numeric claims with controlled references",
+      "publication_clearance_claimed": false
+    },
+    {
+      "path": "patent-evidence-extract/README.md",
+      "file_class": "DERIVED_NARRATIVE_AND_DOCUMENTATION",
+      "fields": {
+        "derived_or_aggregate_content": ["documentation, aggregate counts, estimator description, attribution"],
+        "direct_row_level_epo_text": []
+      },
+      "provisional_rights_state": "RIGHTS_UNRESOLVED_PENDING_EXACT_CONTRACT",
+      "minimum_public_representation_if_row_data_must_be_contained": "retain documentation and attribution after removing any field-level examples that reproduce controlled source data",
+      "publication_clearance_claimed": false
+    },
+    {
+      "path": "patent-evidence-extract/abstracts_sample.csv",
+      "file_class": "MIXED_DIRECT_SOURCE_TEXT_AND_DERIVED_ANNOTATION",
+      "fields": {
+        "direct_or_high_priority_source_linked": ["docdb_family_id", "title", "abstract"],
+        "derived": ["stratum", "score", "neuro", "ml", "verdict"]
+      },
+      "provisional_rights_state": "HIGH_PRIORITY_RIGHTS_UNRESOLVED",
+      "minimum_public_representation_if_row_data_must_be_contained": "remove the row-level public file; keep licensed/source text only in controlled S3 and expose only approved aggregates or opaque commitments",
+      "publication_clearance_claimed": false
+    },
+    {
+      "path": "patent-evidence-extract/judged_sample.csv",
+      "file_class": "DERIVED_ROW_LEVEL_ANNOTATION_WITH_SOURCE_IDENTIFIER",
+      "fields": {
+        "source_linked": ["docdb_family_id"],
+        "derived": ["stratum", "score", "neuro", "ml", "verdict"]
+      },
+      "provisional_rights_state": "RIGHTS_UNRESOLVED_PENDING_EXACT_CONTRACT_AND_PRODUCT_ANALYSIS",
+      "minimum_public_representation_if_row_data_must_be_contained": "publish aggregate stratum and label counts only; retain row membership and source identifiers in controlled S3",
+      "publication_clearance_claimed": false
+    },
+    {
+      "path": "patent-evidence-extract/gold_labels.csv",
+      "file_class": "DERIVED_ROW_LEVEL_REREAD_WITH_SOURCE_IDENTIFIER",
+      "fields": {
+        "source_linked": ["docdb_family_id"],
+        "derived": ["stratum", "gold_neuro", "cheap_neuro"]
+      },
+      "provisional_rights_state": "RIGHTS_UNRESOLVED_PENDING_EXACT_CONTRACT_AND_PRODUCT_ANALYSIS",
+      "minimum_public_representation_if_row_data_must_be_contained": "publish aggregate confusion/allocation tables only; retain row membership and source identifiers in controlled S3",
+      "publication_clearance_claimed": false
+    },
+    {
+      "path": "patent-evidence-extract/pool_frame.csv",
+      "file_class": "MIXED_ROW_LEVEL_SOURCE_DERIVATIVES_AND_MODEL_FEATURES",
+      "fields": {
+        "direct_or_source_derived": ["docdb_family_id", "earliest_year", "office", "family_size", "g06n"],
+        "derived": ["bloc", "similarity", "ai_score", "found_by_query", "band", "era", "cluster", "neuro", "ml"]
+      },
+      "provisional_rights_state": "HIGH_PRIORITY_RIGHTS_UNRESOLVED_FOR_ROW_LEVEL_PUBLICATION",
+      "minimum_public_representation_if_row_data_must_be_contained": "publish aggregate counts and method summaries only; retain row-level source linkage and mixed feature frame in controlled S3",
+      "publication_clearance_claimed": false
+    },
+    {
+      "path": "patent-evidence-extract/strata.csv",
+      "file_class": "DERIVED_AGGREGATE_SAMPLING_OUTPUT",
+      "fields": {
+        "aggregate_or_derived": ["stratum", "score_lo", "score_hi", "N_families", "n_judged"]
+      },
+      "provisional_rights_state": "RIGHTS_UNRESOLVED_PENDING_EXACT_CONTRACT",
+      "minimum_public_representation_if_row_data_must_be_contained": "candidate for public aggregate representation subject to exact-contract confirmation",
+      "publication_clearance_claimed": false
+    },
+    {
+      "path": "patent-evidence-extract/clusters.csv",
+      "file_class": "DERIVED_AGGREGATE_OR_MODEL_OUTPUT",
+      "fields": {
+        "aggregate_or_derived": ["cluster", "n_families", "top_terms"]
+      },
+      "provisional_rights_state": "RIGHTS_UNRESOLVED_PENDING_EXACT_CONTRACT",
+      "minimum_public_representation_if_row_data_must_be_contained": "candidate for public aggregate representation subject to exact-contract confirmation and review of whether top_terms reproduce protected source expression",
+      "publication_clearance_claimed": false
+    },
+    {
+      "path": "patent-evidence-extract/reproduce.py",
+      "file_class": "CODE_ONLY",
+      "fields": {
+        "source_data": [],
+        "code": ["entire file"]
+      },
+      "provisional_rights_state": "NO_EPO_ROW_DATA_IDENTIFIED",
+      "minimum_public_representation_if_row_data_must_be_contained": "retain code with test fixtures that contain no controlled EPO row data",
+      "publication_clearance_claimed": false
+    }
+  ],
+  "conservative_public_profile": {
+    "purpose": "precomputed containment target if an accountable rights disposition requires row-level PATSTAT material to leave the public repository",
+    "public_candidates_subject_to_exact_contract_confirmation": [
+      "patent-evidence-extract/reproduce.py",
+      "derived aggregate sampling counts equivalent to strata.csv",
+      "derived aggregate reread/confusion statistics",
+      "derived aggregate topic summaries after expression-level review",
+      "method documentation and provenance hashes that contain no row-level source material"
+    ],
+    "controlled_s3_candidates": [
+      "title and abstract text",
+      "DOCDB family membership lists and row-level source identifiers",
+      "row-level bibliographic/source-derived fields",
+      "mixed row-level feature frames linked to source identifiers",
+      "any licensed raw extraction or reconstructible database subset"
+    ],
+    "public_substitute_for_controlled_rows": [
+      "aggregate counts",
+      "predeclared summary statistics",
+      "opaque commitments/digests where membership binding is needed",
+      "synthetic or independently licensed fixtures for executable tests"
+    ],
+    "currently_authorized_for_execution": false
+  },
+  "scenario_actions": [
+    {
+      "scenario": "EXACT_CONTRACT_OR_WRITTEN_EPO_AUTHORIZATION_CLEARLY_COVERS_CURRENT_PUBLIC_FIELDS",
+      "action": "retain only fields demonstrably within the verified scope; preserve required attribution and any security/data-protection obligations; record the exact evidence and scope",
+      "history_rewrite": "not implied"
+    },
+    {
+      "scenario": "EXACT_CONTRACT_FOLLOWS_CURRENT_PRODUCT_VS_DATA_AS_SUCH_STRUCTURE_WITHOUT_SPECIFIC_ROW_LEVEL_AUTHORIZATION",
+      "action": "obtain a documented product-versus-data-as-such determination for each row-level file; pending that determination, use the conservative public profile for any containment action authorized by the accountable rights owner",
+      "history_rewrite": "not implied"
+    },
+    {
+      "scenario": "EXACT_CONTRACT_OR_AUTHORITATIVE_EPO_RESPONSE_RESTRICTS_CURRENT_ROW_LEVEL_PUBLICATION",
+      "action": "make a normal corrective successor removing affected public files, preserve controlled copies in S3, retain hashes and aggregate audit evidence, and update all public references",
+      "history_rewrite": "perform only if the verified obligation or authoritative legal/licensor instruction specifically calls for purging repository history"
+    },
+    {
+      "scenario": "EXACT_CONTRACT_EVIDENCE_REMAINS_UNAVAILABLE",
+      "action": "retain RIGHTS_REVIEW_OPEN_FAIL_CLOSED, do not treat current public presence as clearance, and route any proposed containment change through the accountable rights disposition using the precomputed conservative public profile",
+      "history_rewrite": "not authorized"
+    }
+  ],
+  "minimum_remaining_inputs": [
+    "the EPO acceptance/order record for the Autumn 2025 PATSTAT delivery and the terms incorporated into that contract",
+    "any amendments notified to the licensee and effective for the Autumn 2025 delivery",
+    "any separate written EPO authorization for redistribution or public row-level publication",
+    "an accountable legal/licensor determination of whether each retained row-level file is an allowed licensee product or data as such"
+  ],
+  "programme_boundary": {
+    "may_be_cited_as_rights_cleared_public_programme_evidence": false,
+    "may_establish_g0_g1_g2": false,
+    "may_authorize_s2_publication": false,
+    "may_authorize_assessment_mutation": false,
+    "corrective_containment_plan_precomputed": true,
+    "corrective_containment_currently_authorized": false,
+    "history_rewrite_authorized": false,
+    "deletion_authorized": false
+  },
+  "authority": {
+    "rights_clearance": false,
+    "canonical_authority": false,
+    "publication_authority": false,
+    "mutation_authority": false,
+    "assessment_effect": "NONE"
+  },
+  "boundary": "This successor narrows the public-evidence analysis and precomputes bounded containment actions. It makes no legal conclusion, does not claim any file is cleared or in violation, does not authorize deletion or history rewriting, does not validate scientific claims, and does not pass any programme gate."
+}
