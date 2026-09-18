@@ -1,0 +1,150 @@
+{
+  "schema_version": "0.1",
+  "audit_id": "PATSTAT_BASELINE_A_INDEPENDENT_AUDIT_2026-09-18_v0.1",
+  "governing_issue": 220,
+  "related_issues": [210, 222, 243],
+  "source_binding": {
+    "observatory_main_commit": "825f8702cda66dd6b9740f563d2e8fb3e7144f5f",
+    "audit_script_git_blob": "b0d671abf63d94ad8e6226625f58223f78012573",
+    "source_git_blobs": {
+      "ANALYSIS.md": "4e6ceb36fbfe287eeb78ef0d8ac004725ce7b427",
+      "README.md": "940ea76931be46cd7ba9d969f0d766ccd13816e1",
+      "strata.csv": "b5eff1e15d7ccf17a8a1c51388a03ae5a3dc8a00",
+      "judged_sample.csv": "e10a5af342cf472dac2a8a3e19e16099bc85708d",
+      "gold_labels.csv": "bc4e1c7cd1b32080d144f1b94828f58b67ac5492",
+      "pool_frame.csv": "6691dcbf2c77437abf72d0d83494e3154f077b62",
+      "clusters.csv": "929265475ad76aa4739c579446faab82e87defa0",
+      "reproduce.py": "702d130e0c3cc553ddde03a590dd1a6b34d897dd"
+    }
+  },
+  "mechanical_findings": {
+    "row_counts": {
+      "judged_sample": 235738,
+      "gold_labels": 333,
+      "pool_frame": 118629,
+      "strata": 9,
+      "duplicate_ids_detected": false,
+      "all_gold_ids_present_in_judged_sample": true,
+      "all_gold_cheap_labels_round_trip_to_judged_sample": true
+    },
+    "headline_point_reproduction": {
+      "cheap_only_corpus": 99719.78842171596,
+      "rectified_corpus": 49671.276601037025,
+      "rectified_pool": 33277.42584399009,
+      "pool_recall": 0.669953102097145,
+      "estimated_missed": 16393.850757046937,
+      "status": "MECHANICALLY_REPRODUCED_FROM_PUBLIC_SCRIPT_SEMANTICS"
+    },
+    "reread_agreement": {
+      "binary_label2_vs_rest": {
+        "tp": 51,
+        "fp": 53,
+        "fn": 5,
+        "tn": 224,
+        "precision": 0.49038461538461536,
+        "recall": 0.9107142857142857,
+        "cohen_kappa": 0.5360780169100693
+      },
+      "three_class_0_1_2": {
+        "cohen_kappa": 0.469085111494529,
+        "analysis_reported_kappa_0_469_reproduced": true
+      }
+    },
+    "verdict_integrity": {
+      "rows_with_empty_neuro_or_ml": 2,
+      "empty_label_family_ids": ["50277015", "55911278"],
+      "rows_with_nonstandard_raw_verdict": 13,
+      "neuro_conflicting_nonstandard_family_id": "91282470",
+      "analysis_claim_that_four_rows_are_carried_missing_supported_by_export": false,
+      "interpretation": "The public judged_sample.csv exports two empty-label rows. Thirteen rows carry raw verdict strings outside the six standard tokens, and eleven of those rows nevertheless carry parsed labels. This establishes an export/parser discrepancy; it does not establish which historical parser behavior was intended."
+    },
+    "uncertainty": {
+      "visible_first_stage_sd_only": 3235.101682815138,
+      "visible_first_stage_only_wald95": [43330.47730271936, 56012.07589935469],
+      "readme_reported_interval": [40256, 57854],
+      "analysis_reported_interval": [41512, 58192],
+      "either_reported_interval_reproduced_by_visible_variance": false,
+      "full_interval_validated": false,
+      "recall_ratio_interval_validated": false
+    },
+    "second_stage": {
+      "observed_allocation_recovered": true,
+      "exact_selection_probabilities_reconstructible": false,
+      "historical_selection_code_or_seed_present": false,
+      "design_unbiasedness_validated": false,
+      "public_reproducer_collapses_original_labels_0_and_1_for_the_headline_binary_estimand": true,
+      "public_pool_reproducer_defines_correction_cells_after_applying_pool_membership_mask": true
+    },
+    "sensitivity_only": {
+      "borderline_as_relevant_public_algorithm": {
+        "corpus": 49901.021209663166,
+        "pool": 33460.811664924666,
+        "recall": 0.6705436252363728
+      },
+      "preserve_original_three_class_correction_cells": {
+        "corpus": 49662.89483760001,
+        "pool": 33772.01941569191,
+        "recall": 0.6800251883449
+      },
+      "preserve_original_binary_correction_cell_before_pool_mask": {
+        "pool": 33780.40117912892,
+        "recall_using_public_corpus": 0.6800791823905662
+      },
+      "authority": "SENSITIVITY_DIAGNOSTICS_ONLY_NOT_HISTORICAL_ESTIMATOR_RECONSTRUCTION"
+    },
+    "low_score_region": {
+      "strata_0_through_3_population": 51034929,
+      "first_stage_draws": 73000,
+      "cheap_label2_events": 0,
+      "strong_reread_label2_events": 0,
+      "one_sided_95_zero_event_upper_count_sum_under_independent_within_stratum_binomial_srs": 6838.468898921577,
+      "population_empty_established": false,
+      "note": "The zero-event bound is assumption-bound and does not validate historical sampling or stronger-model labels as truth."
+    },
+    "pool_cluster_field": {
+      "blank_rows": 96239,
+      "nonblank_rows": 22390,
+      "values_in_declared_cluster_id_range_0_20": 0,
+      "same_row_docdb_family_id_matches": 6400,
+      "nearby_row_docdb_family_id_matches_by_offset": {
+        "0": 6400,
+        "1": 1290,
+        "2": 299,
+        "3": 8432,
+        "4": 5969
+      },
+      "all_nonblank_values_accounted_for_by_offsets_0_through_4": true,
+      "disposition": "ROW_LEVEL_CLUSTER_PROVENANCE_CORRUPTED_OR_MISALIGNED",
+      "estimator_effect": "NOT_CONSUMED_BY_PUBLIC_REPRODUCER"
+    }
+  },
+  "scientific_disposition": {
+    "status": "PARTIAL_INDEPENDENT_AUDIT_BLOCKED_ON_MISSING_PROVENANCE",
+    "public_point_estimates_mechanically_reproduced": true,
+    "historical_estimator_fully_reconstructed": false,
+    "design_unbiasedness_established": false,
+    "reported_intervals_validated": false,
+    "retrieval_recall_uncertainty_validated": false,
+    "human_reference_standard_established": false,
+    "global_population_generalization_established": false,
+    "rights_clearance_established": false
+  },
+  "remaining_external_evidence": [
+    "exact first-stage selection implementation, seed/randomization and inclusion-probability reconstruction",
+    "exact 333-case eligible frame, cell denominators, item inclusion probabilities, selection code/seed and replacement/adaptive semantics",
+    "full historical pilot/ppi.py or exact equivalent estimator and uncertainty implementation",
+    "exact first- and second-stage prompts, model identities and inference settings",
+    "exact 275-query definitions, threshold/configuration and pool-construction implementation",
+    "authoritative explanation of the pool_frame.csv cluster export defect"
+  ],
+  "authority": {
+    "g0_passed": false,
+    "g2_passed": false,
+    "g5_passed": false,
+    "canonical_scientific_finding": false,
+    "rights_clearance": false,
+    "canonical_s2_authority": false,
+    "publication_authority": false,
+    "assessment_effect": "NONE"
+  }
+}
