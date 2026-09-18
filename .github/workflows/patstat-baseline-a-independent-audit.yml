@@ -1,0 +1,58 @@
+name: PATSTAT Baseline A independent audit
+
+on:
+  pull_request:
+    paths:
+      - "patent-evidence-extract/ANALYSIS.md"
+      - "patent-evidence-extract/README.md"
+      - "patent-evidence-extract/reproduce.py"
+      - "patent-evidence-extract/strata.csv"
+      - "patent-evidence-extract/judged_sample.csv"
+      - "patent-evidence-extract/gold_labels.csv"
+      - "patent-evidence-extract/pool_frame.csv"
+      - "patent-evidence-extract/clusters.csv"
+      - "scripts/audit_patstat_baseline_a.py"
+      - "curation/PATSTAT_BASELINE_A_INDEPENDENT_AUDIT_2026-09-18_v0.1.json"
+      - "docs/patstat-baseline-a-independent-audit-2026-09-18.md"
+      - "tests/test_patstat_baseline_a_independent_audit.py"
+      - ".github/workflows/patstat-baseline-a-independent-audit.yml"
+  push:
+    branches: [main]
+    paths:
+      - "patent-evidence-extract/ANALYSIS.md"
+      - "patent-evidence-extract/README.md"
+      - "patent-evidence-extract/reproduce.py"
+      - "patent-evidence-extract/strata.csv"
+      - "patent-evidence-extract/judged_sample.csv"
+      - "patent-evidence-extract/gold_labels.csv"
+      - "patent-evidence-extract/pool_frame.csv"
+      - "patent-evidence-extract/clusters.csv"
+      - "scripts/audit_patstat_baseline_a.py"
+      - "curation/PATSTAT_BASELINE_A_INDEPENDENT_AUDIT_2026-09-18_v0.1.json"
+      - "docs/patstat-baseline-a-independent-audit-2026-09-18.md"
+      - "tests/test_patstat_baseline_a_independent_audit.py"
+      - ".github/workflows/patstat-baseline-a-independent-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  independent-public-extract-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Run independent PATSTAT Baseline A audit tests
+        run: python -m unittest tests.test_patstat_baseline_a_independent_audit -v
+      - name: Emit exact audit result
+        run: python scripts/audit_patstat_baseline_a.py --format pretty
+      - name: Authority boundary
+        run: |
+          echo "This workflow mechanically audits the bound public PATSTAT Baseline A extract."
+          echo "It does not certify historical inclusion probabilities, design-unbiasedness, full uncertainty,"
+          echo "human label truth, global population coverage, PATSTAT rights, G0/G2/G5 passage,"
+          echo "canonical S2 authority, publication authority, or assessment effects."
