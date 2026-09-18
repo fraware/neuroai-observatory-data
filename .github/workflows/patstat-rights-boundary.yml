@@ -6,6 +6,8 @@ on:
       - "patent-evidence-extract/**"
       - "curation/PATSTAT_PUBLIC_EXTRACT_RIGHTS_REVIEW_2026-09-05_v0.1.json"
       - "curation/PATSTAT_PUBLIC_EXTRACT_RIGHTS_REVIEW_2026-09-17_ROMAN_ANALYSIS_SUCCESSOR_v0.1.json"
+      - "curation/PATSTAT_PUBLIC_EXTRACT_RIGHTS_REVIEW_2026-09-18_PUBLIC_EVIDENCE_SUCCESSOR_v0.2.json"
+      - "docs/patstat-public-extract-rights-containment-2026-09-18.md"
       - "tests/test_patstat_rights_boundary.py"
       - ".github/workflows/patstat-rights-boundary.yml"
   push:
@@ -14,6 +16,8 @@ on:
       - "patent-evidence-extract/**"
       - "curation/PATSTAT_PUBLIC_EXTRACT_RIGHTS_REVIEW_2026-09-05_v0.1.json"
       - "curation/PATSTAT_PUBLIC_EXTRACT_RIGHTS_REVIEW_2026-09-17_ROMAN_ANALYSIS_SUCCESSOR_v0.1.json"
+      - "curation/PATSTAT_PUBLIC_EXTRACT_RIGHTS_REVIEW_2026-09-18_PUBLIC_EVIDENCE_SUCCESSOR_v0.2.json"
+      - "docs/patstat-public-extract-rights-containment-2026-09-18.md"
       - "tests/test_patstat_rights_boundary.py"
       - ".github/workflows/patstat-rights-boundary.yml"
   workflow_dispatch:
@@ -34,6 +38,6 @@ jobs:
         run: python -m unittest tests.test_patstat_rights_boundary -v
       - name: Authority boundary
         run: |
-          echo "This workflow validates bookkeeping and fail-closed rights-review invariants only."
+          echo "This workflow validates field inventory, containment planning, and fail-closed rights-review invariants only."
           echo "It cannot establish redistribution rights, legal compliance, G0/G1/G2 passage,"
-          echo "canonical S2 authority, publication authority, or assessment effects."
+          echo "canonical S2 authority, publication authority, deletion/history-rewrite authority, or assessment effects."
