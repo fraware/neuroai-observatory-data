@@ -25,8 +25,9 @@ class D4PilotReadinessV03Error(predecessor.D4PilotReadinessError):
     """Raised when the D4 v0.3 readiness evidence violates the successor contract."""
 
 
-# Preserve the predecessor module interface for composed-execution callers.
-D4PilotReadinessError = D4PilotReadinessV03Error
+# Preserve the predecessor exception interface so composed callers contain both
+# inherited validation failures and v0.3-specific consistency failures.
+D4PilotReadinessError = predecessor.D4PilotReadinessError
 
 
 def _validate_confusion_matrix(value: Any) -> dict[str, dict[str, int]]:
