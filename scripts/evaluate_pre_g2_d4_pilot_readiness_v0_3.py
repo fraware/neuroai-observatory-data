@@ -25,6 +25,10 @@ class D4PilotReadinessV03Error(predecessor.D4PilotReadinessError):
     """Raised when the D4 v0.3 readiness evidence violates the successor contract."""
 
 
+# Preserve the predecessor module interface for composed-execution callers.
+D4PilotReadinessError = D4PilotReadinessV03Error
+
+
 def _validate_confusion_matrix(value: Any) -> dict[str, dict[str, int]]:
     matrix = predecessor._require_mapping(value, "primary_secondary_confusion_matrix")
     predecessor._require_exact_keys(
