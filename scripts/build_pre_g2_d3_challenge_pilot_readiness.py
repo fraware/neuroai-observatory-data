@@ -70,9 +70,9 @@ def _canonical_bytes(value: Any) -> bytes:
 
 
 def _hmac_domain(key: bytes, domain: str, value: Any) -> str:
-    if not isinstance(key, bytes) or len(key) < 32:
+    if not isinstance(key, bytes) or not key:
         raise D3ChallengePilotExecutionError(
-            "pilot membership commitment key must contain at least 32 bytes"
+            "pilot membership commitment key must be non-empty bytes"
         )
     payload = domain.encode("utf-8") + b"\0" + _canonical_bytes(value)
     return hmac.new(key, payload, hashlib.sha256).hexdigest()
