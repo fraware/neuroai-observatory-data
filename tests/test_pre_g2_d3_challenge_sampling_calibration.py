@@ -28,8 +28,8 @@ from scripts.select_pre_g2_d3_challenge_held_out import (
 )
 from tests.test_pre_g2_d3_patent_review_packet import _packet, _refresh_digest
 
-PILOT_KEY = b"synthetic-d3-pilot-key"
-POOL_KEY = b"synthetic-d3-pool-key"
+PILOT_KEY = b"synthetic-d3-pilot-key-at-least-32-bytes"
+POOL_KEY = b"synthetic-d3-pool-key-at-least-32-bytes"
 CALIBRATION_SHA = "d" * 64
 
 
