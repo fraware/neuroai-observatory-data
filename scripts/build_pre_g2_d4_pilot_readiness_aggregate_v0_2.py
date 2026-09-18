@@ -48,6 +48,11 @@ def build_pilot_readiness_aggregate(
     under the v0.3 readiness contract.
     """
 
+    if not isinstance(commitment_key, bytes) or len(commitment_key) < 32:
+        raise D4PilotExecutionError(
+            "pilot membership commitment key must contain at least 32 bytes"
+        )
+
     aggregate = build_predecessor_aggregate(manifest, packet_root, commitment_key)
     packets, _ = load_validated_pilot_packets(
         manifest,
