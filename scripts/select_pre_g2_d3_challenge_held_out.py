@@ -133,9 +133,9 @@ def _sha256_domain(domain: str, value: Any) -> str:
 
 
 def _hmac_sha256_domain(key: bytes, domain: str, value: Any) -> str:
-    if not isinstance(key, bytes) or len(key) < 32:
+    if not isinstance(key, bytes) or not key:
         raise D3ChallengeSelectionError(
-            "candidate-pool commitment key must contain at least 32 bytes"
+            "candidate-pool commitment key must be non-empty bytes"
         )
     payload = domain.encode("utf-8") + b"\0" + _canonical_bytes(value)
     return hmac.new(key, payload, hashlib.sha256).hexdigest()
