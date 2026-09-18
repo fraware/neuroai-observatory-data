@@ -61,6 +61,21 @@ class D4ComposedFinalSelectionError(ValueError):
     """Raised when the composed D4 final-selection path must fail closed."""
 
 
+def _require_strong_commitment_keys(
+    pilot_key: bytes,
+    candidate_pool_key: bytes,
+) -> None:
+    if (
+        not isinstance(pilot_key, bytes)
+        or not isinstance(candidate_pool_key, bytes)
+        or len(pilot_key) < 32
+        or len(candidate_pool_key) < 32
+    ):
+        raise D4ComposedFinalSelectionError(
+            "pilot and candidate-pool commitment keys must each contain at least 32 bytes"
+        )
+
+
 def _load_object(path: Path, field: str) -> dict[str, Any]:
     payload = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(payload, dict):
@@ -190,10 +205,10 @@ def execute_composed_selection(
     publication, population generalizability, S2 authority or assessment effect.
     """
 
-    if len(pilot_commitment_key) < 32 or len(candidate_pool_commitment_key) < 32:
-        raise D4ComposedFinalSelectionError(
-            "pilot and candidate-pool commitment keys must each contain at least 32 bytes"
-        )
+    _require_strong_commitment_keys(
+        pilot_commitment_key,
+        candidate_pool_commitment_key,
+    )
 
     readiness_aggregate = build_pilot_readiness_aggregate(
         pilot_manifest,
@@ -387,10 +402,7 @@ def run_composed_selection(
         )
         pilot_key = pilot_key_path.read_bytes()
         candidate_pool_key = candidate_pool_key_path.read_bytes()
-        if len(pilot_key) < 32 or len(candidate_pool_key) < 32:
-            raise D4ComposedFinalSelectionError(
-                "commitment key files must each contain at least 32 bytes"
-            )
+        _require_strong_commitment_keys(pilot_key, candidate_pool_key)
 
         controlled, public = execute_composed_selection(
             pilot_manifest=pilot_manifest,
