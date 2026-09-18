@@ -190,6 +190,11 @@ def execute_composed_selection(
     publication, population generalizability, S2 authority or assessment effect.
     """
 
+    if len(pilot_commitment_key) < 32 or len(candidate_pool_commitment_key) < 32:
+        raise D4ComposedFinalSelectionError(
+            "pilot and candidate-pool commitment keys must each contain at least 32 bytes"
+        )
+
     readiness_aggregate = build_pilot_readiness_aggregate(
         pilot_manifest,
         packet_root,
@@ -382,9 +387,9 @@ def run_composed_selection(
         )
         pilot_key = pilot_key_path.read_bytes()
         candidate_pool_key = candidate_pool_key_path.read_bytes()
-        if not pilot_key or not candidate_pool_key:
+        if len(pilot_key) < 32 or len(candidate_pool_key) < 32:
             raise D4ComposedFinalSelectionError(
-                "commitment key files must not be empty"
+                "commitment key files must each contain at least 32 bytes"
             )
 
         controlled, public = execute_composed_selection(
