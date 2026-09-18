@@ -16,6 +16,15 @@ from scripts.evaluate_pre_g2_d4_pilot_readiness_v0_3 import (
     evaluate_pilot_readiness,
 )
 
+MIN_COMMITMENT_KEY_BYTES = 32
+
+
+def _require_strong_commitment_key(key: bytes) -> None:
+    if not isinstance(key, bytes) or len(key) < MIN_COMMITMENT_KEY_BYTES:
+        raise D4PilotExecutionError(
+            "pilot membership commitment key must contain at least 32 bytes"
+        )
+
 
 def _derive_primary_secondary_confusion_matrix(
     packets: list[dict[str, Any]],
@@ -48,10 +57,7 @@ def build_pilot_readiness_aggregate(
     under the v0.3 readiness contract.
     """
 
-    if not isinstance(commitment_key, bytes) or len(commitment_key) < 32:
-        raise D4PilotExecutionError(
-            "pilot membership commitment key must contain at least 32 bytes"
-        )
+    _require_strong_commitment_key(commitment_key)
 
     aggregate = build_predecessor_aggregate(manifest, packet_root, commitment_key)
     packets, _ = load_validated_pilot_packets(
