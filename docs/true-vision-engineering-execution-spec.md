@@ -2,13 +2,13 @@
 
 Status: **ACTIVE ENGINEERING EXECUTION SPECIFICATION — living control document, non-authorizing.**
 
-Version: **v0.1**
+Version: **v0.2**
 
-Initial repository baseline for this version: `fraware/neuroai-observatory-data@9cd32e616d6bf1aebd85bab6c6564ca777117205`
+Initial repository baseline for this version: `fraware/neuroai-observatory-data@b9f0638bdbde14f47899ef162552bed566ebd12b`
 
 Companion Workbench baseline observed during authoring: `fraware/neuroai-workbench@854cc9d1c8e24a9e8ae8b21d871329bc3c24c118`
 
-Last substantive status snapshot in this version: **2026-09-14**
+Last substantive status snapshot in this version: **2026-09-19**
 
 ---
 
@@ -226,17 +226,19 @@ Landscape state MAY trigger assessment review; it MUST NOT substitute for exact-
 
 ---
 
-## 5. Current execution state at the v0.1 spec snapshot
 
-This section is a **snapshot**, not the authoritative mutable state.
+## 5. Current execution state at the v0.2 spec snapshot
 
-At the 2026-09-14 documentation refresh:
+This section is a **snapshot**, not the authoritative mutable state. Fresh repository state remains first in the authority order.
 
-- Observatory `main` immediately before this documentation-only refresh: `06da8887c3700c6d16c52cbfb83aa71b62aab3df`.
+At the 2026-09-19 documentation refresh:
+
+- Observatory `main` immediately before this documentation-only refresh: `b9f0638bdbde14f47899ef162552bed566ebd12b`.
 - Workbench `main`: `854cc9d1c8e24a9e8ae8b21d871329bc3c24c118`.
 - Current programme pointer: `curation/CURRENT_EXECUTION_CONTROL.json`.
-- Current immutable successor: `curation/PROGRAMME_EXECUTION_STATE_2026-09-14_PRE_G3_REPLAY_REBIND_SUCCESSOR.json`.
-- PRE-G3 current-baseline structured recorded-replay compatibility: complete for the 12 controlled replay workflows through Observatory PR #250; this is compatibility evidence only and is not a G3 pass.
+- The pointer is dated **2026-09-17** and references `curation/PROGRAMME_EXECUTION_STATE_2026-09-17_CONTROL_DELTA_SUCCESSOR.json`.
+- The pointer therefore trails current Observatory `main`. It binds CT.gov software controls and Roman's partial PATSTAT response, but it does not yet bind the later merged Observatory deltas in PRs #268, #269, and #270. Until a new immutable successor is appended, those newer facts are live-repository evidence and MUST NOT be misrepresented as already incorporated into current programme-control state.
+- PRE-G3 current-baseline structured recorded-replay compatibility remains complete for the 12 controlled replay workflows through Observatory PR #250; this is compatibility evidence only and is not a G3 pass.
 - G0: `BLOCKED_NOT_PASSED`.
 - G1: `APPROVE` for the exact bound D1/D2 identities only.
 - G2: not passed.
@@ -249,40 +251,58 @@ At the 2026-09-14 documentation refresh:
 - Phase 4 online-first default authorization: false.
 - v4.2 assessment effect: none.
 
-Open blocking/execution work represented by live issues at this snapshot:
+Substantive repository changes since the prior 2026-09-14 specification snapshot are:
 
-- Workbench #287 — controlled live/replay equivalence and interruption proof.
-- Observatory #224 — SRC-14-021 / SONA successor-domain adjudication.
-- Observatory #222 — D3 patent benchmark umbrella.
-- Observatory #259 — real D3 challenge 60-family S3 calibration pilot, explicitly separated from the PATSTAT probability-audit track.
-- Observatory #223 — D4 product benchmark umbrella.
-- Observatory #258 — real D4 60-item S3 calibration pilot and human disposition.
-- Observatory #220 — PATSTAT Baseline A scientific audit.
-- Observatory #210 — PATSTAT redistribution/containment rights review.
+- Observatory PR #261 merged the current CT.gov monitor-review to noncanonical onboarding-plan software boundary.
+- Observatory PR #263 merged the explicitly authorized pre-registry CT.gov first-capture/quarantine software boundary. No real first-capture authorization or live capture is established by that merge.
+- Observatory PR #264 ingested Roman Jurowetzki's partial PATSTAT provenance response and retained the conflicting reported confidence intervals as unresolved.
+- Observatory PR #266 advanced the current-control pointer to the 2026-09-17 successor.
+- Observatory PR #268 reconciled the historical Observatory-v2 migration lineage to the current Gate-A/S2 architecture. The old #54-#87 feature-stack programme is no longer an unresolved implementation dependency. Historical PRs #86/#88 remain provenance, not current-main authority.
+- Observatory PR #269 independently audited the committed PATSTAT public extract and mechanically reproduced the public point-calculation semantics while preserving missing-provenance and uncertainty blockers.
+- Observatory PR #270 narrowed the PATSTAT rights review with current first-party EPO evidence, file/field-level classification, and precomputed fail-closed containment scenarios. Rights clearance remains false.
+- Adversarial PRE-G2 preflight opened Observatory issue #271 after identifying two real-execution defects: the D4 readiness evidence does not yet bind the governance-mandated full 4x4 confusion matrix, and the D3/D4 HMAC helpers do not yet enforce the Workbench minimum 32-byte key length.
 
-Current PRE-G2 controls are substantially implemented, and the current-baseline structured replay matrix has been re-proved. The dominant remaining work is **real execution, human evidence, provenance, rights review, measured research performance, and downstream governed release**.
+The current live Observatory issue topology is deliberately small. Open programme issues at this snapshot are:
+
+- #271 — PRE-G2 D3/D4 real-execution hardening;
+- #210 — PATSTAT redistribution/containment rights review;
+- #220 — PATSTAT Baseline A scientific/probability audit;
+- #91 — CT.gov PRIMA rediscovery execution evidence;
+- #103 — current authorized CT.gov first capture into quarantine;
+- #125 — authoritative machine-readable De Novo provider transport;
+- #224 — SRC-14-021 / SONA successor-domain adjudication;
+- #222 — D3 patent benchmark umbrella;
+- #259 — real D3 60-family S3 calibration pilot;
+- #223 — D4 product benchmark umbrella;
+- #258 — real D4 60-item S3 calibration pilot.
+
+Workbench has one open programme issue:
+
+- #287 — controlled Phase-3 live/replay equivalence and interruption proof.
+
+Historical migration issues #54-#87 have been reconciled and disposed against the current architecture. Observatory #102 is closed as a duplicate of #103. They MUST NOT be treated as live blockers merely because older execution notes still reference them.
+
+The dominant remaining work is now a mixture of one bounded engineering-hardening defect (#271), real external execution, human benchmark evidence, source-identity evidence, missing PATSTAT provenance, rights disposition, measured evaluation, and downstream governed release.
 
 ---
+
 
 ## 6. Critical-path dependency graph
 
 The main programme chain is:
 
 ```text
-Workbench Phase-3 external proof ----+
-                                      |
-SRC-14-021 lifecycle resolution ------+--> qualifying scheduled due-cycle --> G0
-                                      |
-                                      +-----------------------------------------+
-                                                                                |
-G1 exact D1/D2 approval [already passed] ---------------------------------------+
-                                                                                |
-D3 real pilot -> calibration -> frozen membership -> labels -> freeze ----------+
-                                                                                +--> G2
-D4 real pilot -> calibration -> frozen membership -> labels -> freeze ----------+
-                                                                                |
-PATSTAT provenance + probability audit + rights -------------------------------+
-                                                                                |
+Workbench Phase-3 external proof -----------------------------+
+                                                               |
+SRC-14-021 identity/lifecycle resolution -> scheduled due-cycle +--> G0
+                                                               |
+G1 exact D1/D2 approval [already passed] ----------------------+
+                                                               |
+PRE-G2 #271 hardening -> D3 real pilot -> calibration -> freeze --+
+                                                                  +--> G2
+PRE-G2 #271 hardening -> D4 real pilot -> calibration -> freeze --+
+                                                                  |
+                                                                  v
 G2 --> G3 structured pilot --> G4 company/product pilot --> G5 evaluation
    --> G6 expert boundary review / methodology v1 freeze
    --> G7 scale acquisition
@@ -294,7 +314,21 @@ G2 --> G3 structured pilot --> G4 company/product pilot --> G5 evaluation
    --> final true-vision acceptance audit
 ```
 
-Parallelism is allowed when a downstream result does not depend on an unresolved upstream decision. In particular, benchmark construction, PATSTAT provenance intake, rights review, and bounded replay research MAY progress while G0 remains blocked.
+Two important side dependencies remain separate from that linear gate chain:
+
+```text
+PATSTAT scientific/probability audit ----> population-generalizable patent claims
+                                      \--> G5 population-evidence role, if validated
+
+PATSTAT rights disposition -------------> any public/redistributed PATSTAT-derived surface
+                                      \--> any D3/S2 path that would otherwise expose controlled material
+
+CT.gov #91 / #103 + De Novo #125 ------> source-specific real G3 evidence and transport contracts
+```
+
+The D3 challenge benchmark and the PATSTAT probability-audit track MUST remain separate evidence roles. Missing PATSTAT historical provenance does not authorize treating challenge-set metrics as population estimates, and it MUST NOT force historical model labels into the human D3 reference standard. Conversely, a successful D3 challenge freeze does not validate the historical PATSTAT estimator.
+
+Parallelism is allowed when a downstream result does not depend on an unresolved upstream decision. In particular, #271 remediation, PATSTAT provenance intake, rights review, SONA identity investigation, bounded structured-source diagnostics, and preparation for real benchmark execution MAY progress while G0 remains blocked.
 
 No engineer should optimize for PR count. Progress is measured by removal of a real dependency, creation of admissible evidence, or passage of a governed gate.
 
@@ -317,6 +351,8 @@ Workbench:
 - fixed reference target: ClinicalTrials.gov / `NCT04676854`;
 - live origin: `https://clinicaltrials.gov`;
 - confirmation input: `AUTHORIZE_ONE_CT_GOV_PHASE3_LIVE_REQUEST`.
+
+At the 2026-09-19 documentation refresh, issue #287 remains open. The current 2026-09-17 execution successor records zero `workflow_dispatch` executions. No later reviewed Phase-3 external-proof event is bound into current control. Hosted run history MUST be re-read immediately before execution; the documentation snapshot itself is not proof that no later run occurred.
 
 ### Execution
 
@@ -392,7 +428,11 @@ Establish a trustworthy exact execution baseline with healthy live-scale operati
 
 The current known blocker is `SRC-14-021`, governed by Observatory issue #224.
 
-The historical SONA route is unavailable. A candidate successor route has been observed, but a route change MUST NOT be made from self-assertion, DNS failure, or convenience alone.
+The historical SONA route is unavailable. A candidate successor route at `sonafrica.net` has been observed, but a route change MUST NOT be made from self-assertion, DNS failure, or convenience alone.
+
+The latest bound operational evidence has already isolated this source. Scheduled run `34833993578` had unresolved `SRC-14-014` and `SRC-14-021`; after the narrow `SRC-14-014` remediation in Observatory PR #252, hosted run `34846817313` left only `SRC-14-021` unresolved. That hosted post-merge evidence does not replace the required normal scheduled due-cycle after a legitimate SONA lifecycle resolution.
+
+Repeated public identity sweeps through 2026-09-15 found no independent authoritative bridge from SONA to `sonafrica.net`. Current organization-controlled/partner evidence continued to point to the historical `sonafrica.org` / `conference.sonafrica.org` lineage. The next high-value evidence path is attributable confirmation from a current SONA officer or an authoritative partner/institutional page explicitly binding the organization to the candidate domain.
 
 ### Required source-lifecycle resolution
 
@@ -447,6 +487,7 @@ G0 establishes operational readiness of the exact baseline. It does not establis
 
 ---
 
+
 ## 9. Immediate execution stage C — PATSTAT Baseline A provenance, probability audit, and rights
 
 PATSTAT has two independent tracks:
@@ -455,17 +496,19 @@ PATSTAT has two independent tracks:
 scientific validity != redistribution/legal clearance
 ```
 
-Neither track can substitute for the other.
+Neither track substitutes for the other. The public extract has now been audited substantially further than at the v0.1 snapshot, but the historical probability design and the rights basis are still incomplete.
 
-### 9.1 Provenance intake
+### 9.1 Current provenance state
 
-Current status file:
+Current provenance status:
 
-`curation/PATSTAT_BASELINE_A_PROVENANCE_INTAKE_STATUS_2026-09-12_v0.1.json`
+`curation/PATSTAT_BASELINE_A_PROVENANCE_INTAKE_STATUS_2026-09-17_ROMAN_RESPONSE_v0.1.json`
 
 Current declared state: `WAITING_FOR_PROVENANCE`.
 
-Six required provenance components remain explicit:
+Roman Jurowetzki's 2026-09-17 response is bound as useful partial evidence only. It supports, among other points, the machine-generated status of the historical labels, the historical 0/1/2 semantics, the nine first-stage score bands and their declared `N_h/n_h`, exhaustive top strata, DOCDB simple-family sampling unit, `stratum × cheap-label` second-stage stratification, the public correction formula, and the claim that the anomalous `pool_frame.csv cluster` field is not consumed by `reproduce.py`.
+
+The six required provenance components remain explicit and incomplete:
 
 1. `HISTORICAL_JUDGES_AND_RUBRIC`
 2. `FIRST_STAGE_PROBABILITY_DESIGN`
@@ -474,57 +517,105 @@ Six required provenance components remain explicit:
 5. `RETRIEVAL_POOL_CONSTRUCTION`
 6. `EXPORT_CLARIFICATION`
 
-Each component MUST be supported by enough exact evidence to reconstruct the historical process. The programme MUST NOT treat a narrative recollection as equivalent to executable or auditable design evidence when exact implementation details matter.
+The remaining evidence is now narrower:
 
-### 9.2 Scientific reconstruction
+- exact first-stage selection implementation, seed/randomization, and inclusion-probability reconstruction;
+- exact 333-case eligible frame, cell denominators, item inclusion probabilities, selection code/seed, timing, and replacement/adaptive semantics;
+- full historical `pilot/ppi.py` or exact equivalent estimator/uncertainty implementation;
+- exact first- and second-stage prompts, model identities, and inference settings;
+- exact 275-query definitions, threshold/configuration, and pool-construction implementation;
+- authoritative explanation of the `pool_frame.csv cluster` export defect.
 
-Once provenance is available, engineers/researchers MUST independently reconstruct:
+Narrative recollection MAY guide recovery, but it MUST NOT be treated as equivalent to reconstructible selection probabilities or executable estimator provenance.
 
-- the target population/frame;
-- the nine first-stage strata;
-- `N_h` and `n_h`;
+### 9.2 Independent public-extract audit now completed
+
+Observatory PR #269 merged:
+
+- executable audit: `scripts/audit_patstat_baseline_a.py`;
+- machine-readable record: `curation/PATSTAT_BASELINE_A_INDEPENDENT_AUDIT_2026-09-18_v0.1.json`;
+- human-readable record: `docs/patstat-baseline-a-independent-audit-2026-09-18.md`.
+
+The exact committed public extract now independently supports the following bounded mechanical findings:
+
+- `judged_sample.csv`: 235,738 rows;
+- `gold_labels.csv`: 333 rows;
+- `pool_frame.csv`: 118,629 rows;
+- public-script point semantics reproduce approximately 49,671.2766 relevant families in the English-abstract frame, 33,277.4258 in the query pool, 66.9953% pool/corpus ratio, and 16,393.8508 difference;
+- the reported `κ=0.469` is reproducible as raw three-class 0/1/2 Cohen's kappa; label-2-versus-rest binary kappa is approximately 0.5361;
+- the public export contains 2 rows with empty `neuro/ml` labels and 13 nonstandard raw verdict strings, so the statement that four malformed rows are all carried missing is not supported by the committed export;
+- the observed 333-case allocation is recoverable, but exact item selection probabilities are not reconstructible from the public material;
+- sensitivity diagnostics show that alternative correction-cell semantics move the pool/recall result materially; they are diagnostics only, not replacement accepted estimators;
+- the visible first-stage variance term yields an SD of approximately 3,235.10 and a symmetric 95% interval of approximately [43,330.48, 56,012.08], matching neither reported interval;
+- the README interval [40,256, 57,854] and `ANALYSIS.md` interval [41,512, 58,192] both remain unvalidated;
+- `pool_frame.csv cluster` is mechanically corrupted or misaligned relative to the declared 0-20 cluster identifiers: all 22,390 nonblank values map to DOCDB family IDs at offsets 0 through +4; the public reproducer does not consume this field.
+
+These findings establish mechanical reproducibility of the public point calculation, not design-unbiasedness, full estimator validity, human label truth, confidence-interval validity, retrieval-recall uncertainty, or population generalization.
+
+### 9.3 Scientific reconstruction still required
+
+Before any population-generalizable patent claim, engineers/researchers MUST independently establish the relevant historical design, including:
+
+- target population/frame;
+- all first-stage strata and `N_h/n_h`;
 - certainty/exhaustive cells;
-- inclusion probabilities;
+- exact inclusion probabilities;
 - seed/randomization procedure;
 - deduplication unit;
-- the exact 333-case second-stage eligibility frame;
-- second-stage cell counts and inclusion probabilities;
-- replacement/adaptation semantics if any;
-- the estimator implementation;
-- correction formula;
-- uncertainty method;
+- exact second-stage eligibility frame and cell denominators;
+- second-stage inclusion probabilities;
+- replacement/adaptation semantics;
+- full estimator and correction formula;
+- first-/second-stage uncertainty and covariance terms;
 - finite-population corrections where applicable;
 - interval construction;
-- retrieval-pool construction;
-- query definitions/version/time;
+- ratio-recall uncertainty;
+- retrieval-pool query definitions/version/time;
 - pool-to-probability-frame relationship;
-- malformed/missing verdict handling.
+- malformed/missing-verdict handling;
+- explicit mapping from historical 0/1/2 semantics to the approved D1 four-way semantics.
 
-The historical machine-generated labels MUST remain identified as machine-generated. They MUST NOT be relabeled as human gold.
+The historical machine-generated labels MUST remain identified as machine-generated. They MUST NOT be relabeled as human gold or imported as D3 human reference labels.
 
-The historical `49,671` estimated relevant-family total and approximately `67%` retrieval recall MUST remain unvalidated until this audit establishes them.
+### 9.4 Rights review now narrowed, not cleared
 
-### 9.3 Rights review
+Issue #210 remains an independent blocker for public redistribution or any public-release surface containing PATSTAT-derived material whose rights basis is unresolved.
 
-Issue #210 remains an independent blocker for any public redistribution of PATSTAT-derived material.
+The current fail-closed rights successor is:
 
-The rights disposition MUST state, at minimum:
+`curation/PATSTAT_PUBLIC_EXTRACT_RIGHTS_REVIEW_2026-09-18_PUBLIC_EVIDENCE_SUCCESSOR_v0.2.json`
 
-- source/licence class;
-- permitted research use;
-- permitted derived statistics;
-- prohibited raw/row-level redistribution;
-- whether identifiers or transformed fields may enter S2;
-- retention requirements;
-- whether public aggregate evidence is allowed;
-- review authority and date;
-- exact material reviewed.
+Observatory PR #270 has already:
 
-If rights remain unclear, protected PATSTAT evidence stays in S3. Public S2 may contain only what the rights disposition explicitly permits.
+- rechecked current first-party EPO database-licensing terms;
+- classified each public PATSTAT extract file at file/field level;
+- separated direct/source-linked row material from derived annotations and aggregates;
+- precomputed a conservative public profile and scenario-specific containment actions.
 
-### 9.4 Exit condition
+No legal conclusion or clearance was created. The decisive remaining inputs are:
 
-PATSTAT is ready for downstream scientific use only when the exact required provenance is available, the estimator/retrieval claims have been independently audited to the intended inference scope, and rights have been separately disposed for the public-release surface being proposed.
+1. the EPO acceptance/order record for the Autumn-2025 PATSTAT delivery and the terms incorporated into that contract;
+2. amendments notified to the licensee and effective for that delivery;
+3. any separate written EPO authorization for redistribution/public row-level publication;
+4. an accountable legal/licensor determination of whether each retained row-level file is an allowed licensee product or data as such.
+
+Until such a disposition exists, rights state remains `RIGHTS_REVIEW_OPEN_FAIL_CLOSED`. Public repository presence is not clearance. Row-level PATSTAT material MUST NOT be newly propagated into S2 or downstream public products on the basis of the current web terms alone.
+
+### 9.5 PATSTAT exit condition
+
+PATSTAT is ready for population-generalizable downstream scientific use only when:
+
+- the exact required historical probability-design provenance is independently reconstructible;
+- the intended estimator and uncertainty terms are independently reproduced for the declared estimand;
+- the reported interval conflict is resolved by exact historical evidence or explicitly retired in favor of a newly versioned estimator;
+- retrieval-recall uncertainty is justified;
+- historical borderline semantics are mapped explicitly;
+- the cluster export defect is dispositioned;
+- the English-abstract frame remains distinguished from multilingual/missing-abstract populations;
+- Baseline A is evaluated against frozen human D3 before any G5 classifier-performance disposition;
+- rights have been separately disposed for every public surface being proposed.
+
+If some historical provenance remains irrecoverable, the programme MUST bound the claims to what is reproducible and version any replacement estimator/design as a new analysis. Missing historical details MUST NOT be reverse-engineered into invented probabilities or uncertainty terms.
 
 ---
 
@@ -547,6 +638,14 @@ Population inference belongs to the separate probability-audit track.
 - `curation/PRE_G2_D3_CALIBRATION_SELECTION_COMPOSITION_2026-09-11_v0.1.json`
 
 Current state: software/control composition exists; no real pilot, final membership, final labels, D3 freeze, or benchmark-adequacy finding exists.
+
+### 10.0 Preflight prerequisite — issue #271
+
+Do not start the real 60-family pilot until the shared commitment hardening in issue #271 is merged and exact-head green.
+
+For D3, every HMAC commitment path used for pilot membership, candidate-pool commitment, selected-membership commitment, or final-selection binding MUST reject keys shorter than 32 bytes. Add adversarial coverage for 1-byte and 31-byte rejection and 32-byte acceptance without changing deterministic membership semantics.
+
+This hardening is software/control evidence only. It does not create a real pilot, human disposition, D3 freeze, G2/G5 passage, or publication authority.
 
 ### 10.1 Real pilot
 
@@ -668,6 +767,16 @@ Required construct strata are:
 
 The v0.2 successor explicitly removes raw exact agreement as an automated readiness threshold while retaining it as mandatory human-review evidence.
 
+### 11.0 Preflight prerequisite — issue #271
+
+Do not start the real 60-item pilot until issue #271 is merged and exact-head green.
+
+The D4 readiness successor MUST bind the complete 4x4 PRIMARY × SECONDARY confusion matrix derived from the exact validated packet set. All 16 cells MUST be non-negative integers, the cells MUST sum to exactly 60, and the diagonal MUST equal `primary_secondary_exact_agreement_count`. Missing, malformed, or inconsistent matrices MUST fail closed, and the digest-bound evidence presented to the human calibration authority MUST include that matrix.
+
+The D4 HMAC pilot/candidate-pool/selection helpers MUST also enforce the same minimum 32-byte key length as the Workbench keyed-commitment contract, with 1-byte/31-byte rejection and 32-byte acceptance tests.
+
+This successor/hardening MUST preserve historical v0.1/v0.2 artifacts and all authority nonclaims.
+
 ### 11.1 Real pilot
 
 Run exactly **60** pilot items.
@@ -786,6 +895,17 @@ The G2 record MUST state explicitly what is and is not authorized. G2 itself doe
 ### Objective
 
 Demonstrate reproducible discovery against structured/denominated sources before scaling.
+
+### Current structured-source readiness
+
+The current-baseline recorded-replay compatibility matrix is already demonstrated for the controlled structured-source workflows, but replay compatibility alone is not a G3 pass. Real provider execution, identity/denominator semantics, and candidate-only outputs still need source-specific evidence.
+
+ClinicalTrials.gov has two distinct open execution-evidence tracks:
+
+- issue #103: perform one real, explicitly authorized current-baseline single-study first capture into quarantine through the merged #261/#263 control path. This proves bounded retrieval/custody mechanics only and does not admit a Source or Trial;
+- issue #91: execute the predeclared `SU-TRIALS-CTGOV-v0.1` discovery query path and test whether it independently rediscovers `NCT03333954`. A direct identifier lookup does not satisfy this recall check. If the complete declared query misses the target, retain that as measured bounded recall evidence rather than adding an identifier-specific query to manufacture success.
+
+Regulatory De Novo transport remains open under issue #125. Current official evidence supports a strong hypothesis that De Novo `DEN...` rows are represented through the openFDA Device 510(k) data model/shared publication surface, because the official schema explicitly permits `DEN` identities in `k_number`. However, no controlled provider capture has yet established known-DEN round-tripping, De Novo completeness, or exact decision-state semantics such as `DENG` through that machine-readable transport. No production `SU-REGULATION-DENOVO` projector may be created until the provider contract is defensibly verified. If De Novo is used to satisfy the G3 regulation class, #125 is a prerequisite for that source-specific evidence.
 
 At minimum the pilot scope SHOULD cover the programme's structured source classes:
 
@@ -1109,6 +1229,8 @@ G9 passes when mappings are bounded, mechanism-based, and supported by the exact
 
 Only accepted, rights-permitted evidence may be compiled into the public candidate.
 
+The historical Observatory-v2 migration feature-stack has already been reconciled by Observatory PR #268. Do not resurrect historical PR #86 or #88 as the implementation path. The current migration/publication architecture is the merged Workbench Gate-A and S2 path together with the independent Observatory release contract/verifier. The existing Gate-A result establishes representational migration completeness for the frozen predecessor corpus while explicitly retaining `native_v2_materialization_complete=false` and `release_authorized=false`; it is not the future G10 production candidate.
+
 ### Required graph classes
 
 The stable S2 candidate surface is defined by `docs/observatory-v2-release-contract.md` and includes:
@@ -1353,7 +1475,7 @@ Record current `main` SHAs for:
 
 Compare them to the bindings in the current execution successor.
 
-A difference is not automatically an error; determine whether it represents newer merged work that requires a new execution successor.
+A difference is not automatically an error; determine whether it represents newer merged work that requires a new execution successor. If substantive merged deltas exist after the current pointer, record the lag explicitly and append a successor before claiming that the pointer represents the latest programme-control state. Do not rewrite the predecessor.
 
 ### Step 3 — inspect open blocking issues
 
@@ -1561,19 +1683,24 @@ For each open programme issue, maintain a clear distinction between:
 
 ---
 
+
 ## 29. Current next-actions queue
 
-This queue is intentionally short and ordered by real dependency value. Re-read live state before acting.
+This queue is ordered by dependency value at the 2026-09-19 snapshot. Re-read live repository state, current control, issue state, and hosted execution evidence before acting.
 
-1. Execute and review the Workbench Phase-3 external proof for issue #287.
-2. Obtain admissible SRC-14-021/SONA identity-lifecycle evidence; if positive, append the route successor and obtain the next qualifying normal scheduled due-cycle for G0.
-3. Obtain the six-component PATSTAT provenance package and execute the scientific reconstruction; separately finish PATSTAT rights review.
-4. Execute the real S3 D3 60-family challenge pilot and human calibration under issue #259, then frozen 240-family selection, final labeling, and D3 freeze under the #222 umbrella; keep the separate probability-audit evidence role distinct.
-5. Execute the real S3 D4 60-item pilot and human calibration under issue #258, then frozen 240-item selection, final labeling, and D4 freeze under the #223 umbrella.
-6. Assemble exact frozen D3+D4 evidence and record a real human G2 disposition.
-7. Continue sequentially through G3-G12 under the gate contracts in this specification.
+1. **Synchronize execution control after this documentation refresh.** Append a new immutable execution-state successor that binds the substantive post-pointer Observatory deltas already on `main` through PRs #268, #269, and #270, records the new #271 preflight gap, and atomically advances `curation/CURRENT_EXECUTION_CONTROL.json`. Preserve all existing G0/G2/G3/G5, rights, S2/publication, population-inference, Phase-4, and assessment non-authorities unless a separate real event changes them.
+2. **Fix PRE-G2 issue #271 before spending reviewer effort.** Add the append-only D4 readiness successor with the full digest-bound 4x4 PRIMARY × SECONDARY confusion matrix, enforce matrix consistency, enforce minimum 32-byte HMAC keys across every D3/D4 pilot and selection path, add adversarial tests, and merge only an exact-head-green implementation.
+3. **Execute the Workbench Phase-3 external proof under #287 and obtain attributable review.** The existing workflow/harness is readiness only until a real manually authorized external execution and review are bound.
+4. **Resolve SRC-14-021 under #224 without weakening identity controls.** Prefer attributable current SONA officer/organization/partner evidence. If identity-equivalent continuity is established, append the source-lifecycle successor and then obtain the next qualifying normal scheduled operational due-cycle before any G0 pass disposition.
+5. **Complete the remaining PATSTAT scientific audit under #220.** Recover the exact historical first-/second-stage selection mechanisms, probabilities, estimator/uncertainty implementation, prompts/model identities/settings, 275-query/pool-construction implementation, and cluster-export explanation. Reproduce the full intended estimator or explicitly bound the analysis to the mechanically reproducible subset. Do not infer missing probabilities or variance terms.
+6. **Complete PATSTAT rights disposition under #210 in parallel.** Obtain the Autumn-2025 acceptance/order terms and effective amendments, any written redistribution authorization, and an accountable product-vs-data-as-such determination. Execute the precomputed containment path only if an attributable rights disposition authorizes it.
+7. **Run the bounded current-baseline CT.gov execution evidence.** Under #103, obtain a real monitor-review decision, local authorization, and one controlled first capture into quarantine. Under #91, run the predeclared discovery traversal and retain either successful independent rediscovery of `NCT03333954` or a bounded recall miss. Keep these transitions separate.
+8. **Resolve De Novo transport #125 with a diagnostic provider proof, not a production projector.** Query one or more independently verified AccessData `DEN...` identities through the candidate openFDA/shared machine-readable surface, retain exact noncanonical response evidence, verify DEN identity/decision-date/product-code correspondence, inspect decision semantics, and test bounded coverage/completeness. Implement the De Novo projector only after the provider contract is established.
+9. **Execute the real D3 and D4 human pilots after #271 is closed.** Run #259 and #258 exactly as predeclared, retain real S3 packet/reviewer/exposure/commitment evidence, derive quantitative readiness from packet bytes, and obtain attributable human calibration dispositions. Failed rounds remain immutable; do not extend them to manufacture passage.
+10. **Freeze D3 and D4 and obtain human G2 disposition.** After approved calibration, freeze candidate pools, prove pilot/final disjointness, perform deterministic pre-label selection, collect final independent human labels/adjudication, publish only permitted opaque commitments/aggregates, and bind the exact frozen D3+D4 identities in a real human G2 record.
+11. **Proceed through G3-G12 only from actual gate evidence.** Use the current structured-source controls and source-specific execution evidence for G3; run the bounded open-world G4 pilot; evaluate against frozen G2 evidence at G5; freeze methodology at G6; scale only after evaluation; validate identity/concordance at G8; governance mapping at G9; compile the exact rights-permitted G10 candidate; obtain separate G11 authorization/publication; build reproducible G12 products and separately attributable exact-system assessment triggers.
 
-If an item is externally blocked, proceed with independent parallel work that does not prejudge the blocked outcome.
+If an item is externally blocked, proceed with independent parallel work that does not prejudge the blocked outcome. Do not create additional protocol layers merely to simulate progress where the next admissible evidence is a live run, a human review, a source-identity confirmation, a rights document, or missing historical provenance.
 
 ---
 
