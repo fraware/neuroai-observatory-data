@@ -239,7 +239,7 @@ At the 2026-09-23 refresh:
 - PRE-G2 issue #271 is closed. PR #273 added successor real-execution paths that bind the D4 4x4 reviewer confusion matrix and enforce the 32-byte HMAC minimum without rewriting exact-bound historical artifacts.
 - PR #274 retired seven date-specific successor-validation workflows and replaced them with one current-pointer integrity workflow. Historical curation records remain present and immutable.
 - The latest qualifying normal scheduled operational live run is #35590013260. Source and target accountability were both 1.0; registered route resilience resolved the other typed failures; `SRC-14-021` remained unresolved. G0 therefore remains `BLOCKED_NOT_PASSED`.
-- Workbench Phase 3 issue #287 still has zero external-proof `workflow_dispatch` executions.
+- Workbench Phase 3 issue #287 is closed. External proof run `35871598379` succeeded on exact Workbench `854cc9d1c8e24a9e8ae8b21d871329bc3c24c118`; the reviewed artifact establishes one bounded live capture, exact zero-network replay, deterministic projection equivalence, 1.0/1.0 accounting, and no canonical S2 mutation. Phase 4 remains unauthorized.
 - G1 remains `APPROVE` for the exact bound D1/D2 identities.
 - G2, G3 and G5 remain unpassed. Real D3 issue #259 and D4 issue #258 S3 pilots and human calibration are outstanding.
 - The 12 current-baseline structured recorded-replay workflows remain compatibility evidence only, not a G3 pass.
@@ -255,7 +255,7 @@ The programme has moved out of control-scaffolding construction. The dominant ne
 The main programme chain is:
 
 ```text
-Workbench Phase-3 external proof -----------------------------+
+[COMPLETE] Workbench Phase-3 external proof ------------------+
                                                                |
 SRC-14-021 identity/lifecycle resolution -> scheduled due-cycle +--> G0
                                                                |
@@ -297,87 +297,27 @@ No engineer should optimize for PR count. Progress is measured by removal of a r
 
 ---
 
-## 7. Immediate execution stage A — complete Workbench Phase-3 external proof
+## 7. Completed execution stage A — Workbench Phase-3 external proof
 
-### Objective
+Phase 3 is complete and reviewed.
 
-Produce the first real hosted external proof for the already-merged online-first Phase-3 runtime semantics.
+Exact evidence:
 
-### Current control
+- Workbench main: `854cc9d1c8e24a9e8ae8b21d871329bc3c24c118`;
+- issue #287: closed completed;
+- governed `workflow_dispatch` run: `35871598379`, success;
+- retained artifact: `10755421672`, digest `sha256:be863ec343e64dad0b9441ed2dc569933a01eb2d16495d473f22f7b907492620`;
+- source/target: `SRC-PR-002`, ClinicalTrials.gov `NCT04676854`;
+- live collection attempts: 1;
+- replay collection attempts: 0;
+- source-accountability coverage: 1.0;
+- target-execution coverage: 1.0;
+- live/replay projection equivalence: verified;
+- interruption/recovery adversarial suite: 12/12 passed;
+- canonical S2 mutation: false;
+- raw capture/quarantine upload: false.
 
-Workbench:
-
-- issue: #287;
-- workflow: `.github/workflows/phase3-external-proof.yml`;
-- required branch: `main`;
-- fixed source: `SRC-PR-002`;
-- fixed reference target: ClinicalTrials.gov / `NCT04676854`;
-- live origin: `https://clinicaltrials.gov`;
-- confirmation input: `AUTHORIZE_ONE_CT_GOV_PHASE3_LIVE_REQUEST`.
-
-At the 2026-09-19 documentation refresh, issue #287 remains open. The current 2026-09-17 execution successor records zero `workflow_dispatch` executions. No later reviewed Phase-3 external-proof event is bound into current control. Hosted run history MUST be re-read immediately before execution; the documentation snapshot itself is not proof that no later run occurred.
-
-### Execution
-
-The workflow MUST be manually dispatched against current Workbench `main`.
-
-Reference CLI invocation:
-
-```bash
-gh workflow run phase3-external-proof.yml \
-  --repo fraware/neuroai-workbench \
-  --ref main \
-  -f confirm_external_live=AUTHORIZE_ONE_CT_GOV_PHASE3_LIVE_REQUEST
-```
-
-The run MUST:
-
-1. check out the exact dispatched `main` SHA;
-2. construct a run-scoped acquisition policy and authorization;
-3. perform one bounded live capture;
-4. record full target/source accounting;
-5. replay the exact captured result with zero network collection attempts;
-6. verify live/replay projection equivalence;
-7. verify zero canonical S2 mutation;
-8. rerun the interruption/recovery adversarial suite;
-9. prove the repository worktree remained clean;
-10. upload only the sanitized proof bundle;
-11. keep capture/quarantine bytes out of the uploaded public artifact.
-
-### Required retained evidence
-
-Record at minimum:
-
-- GitHub workflow run ID and attempt;
-- event = `workflow_dispatch`;
-- exact Workbench SHA;
-- policy digest;
-- authorization digest;
-- registry/configuration digests;
-- live run ID;
-- replay run ID;
-- result ID;
-- runtime proof ID and semantic digest;
-- workflow conclusion;
-- artifact identity;
-- reviewer disposition.
-
-### Pass rule
-
-Workflow success alone is necessary but not sufficient. A human/attributable review MUST confirm that the expected semantic claims were actually established by the exact run.
-
-Only then may the programme record Phase-3 reviewed-complete state.
-
-### Forbidden shortcuts
-
-Do not:
-
-- change the workflow trigger merely to create a run;
-- substitute a synthetic CI test;
-- substitute local replay for a hosted external proof;
-- upload captured source bytes that the workflow intentionally quarantines;
-- infer Phase-4 authorization from Phase-3 success;
-- infer G0 or G2 passage from this proof.
+The retained proof bundle was reviewed and its internal `SHA256SUMS` entries rechecked successfully. This completes the Phase-3 operational proof obligation only. It does not authorize Phase 4, pass G0/G2, establish source or clinical truth, authorize publication or change assessment state.
 
 ---
 
@@ -1651,12 +1591,11 @@ For each open programme issue, maintain a clear distinction between:
 
 This queue is deliberately execution-heavy. Re-read live repository state and the current control pointer before acting.
 
-1. **Execute Workbench Phase 3 under #287.** Dispatch the already-merged bounded external proof and review the exact run/artifact. Do not add more readiness scaffolding in place of the live event.
-2. **Resolve G0 source identity under #224.** Obtain independent attributable evidence for or against the `sonafrica.net` successor candidate. If continuity is established, append the source-lifecycle successor and require a later normal scheduled due cycle to pass.
-3. **Run the real D3 and D4 calibration pilots.** Execute #259 and #258 in controlled S3 using the merged successor paths, genuine independent reviewers and attributable human calibration dispositions. Keep failed rounds immutable.
-4. **Produce source-specific G3 evidence.** Execute CT.gov first-capture #103, PRIMA rediscovery #91 and the bounded De Novo provider diagnostic #125 without promoting replay or synthetic evidence into live-source claims.
-5. **Continue PATSTAT provenance and rights work in parallel.** Complete #220 and #210. Keep the challenge benchmark independent of the unresolved population-audit estimator and keep scientific validity separate from redistribution authority.
-6. **Advance G2-G12 only from real evidence.** Freeze D3/D4 after approved calibration, obtain human G2 disposition, then proceed through structured pilot, open-world pilot, measured evaluation, methodology freeze, scale, concordance, governance mapping, exact S2 candidate, separate authorization/publication and reproducible public products.
+1. **Resolve G0 source identity under #224.** Obtain independent attributable evidence for or against the `sonafrica.net` successor candidate. If continuity is established, register only the evidence-supported successor and require a later normal scheduled due cycle to satisfy the G0 criterion.
+2. **Run the real D3 and D4 benchmarks.** Execute #259 and #258 in controlled S3 using the hardened successor paths, genuine independent reviewers and attributable human calibration dispositions; proceed through approved final selection and freeze.
+3. **Produce source-specific G3 evidence.** Execute CT.gov first-capture #103, PRIMA rediscovery #91 and the bounded De Novo provider diagnostic #125 without promoting replay or synthetic evidence into live-source claims.
+4. **Continue PATSTAT provenance and rights work in parallel.** Complete #220 and #210 while keeping the challenge benchmark independent of the unresolved population-audit estimator and keeping scientific validity separate from redistribution authority.
+5. **Advance G2-G12 only from real evidence.** Obtain human G2 disposition after D3/D4 freeze, then proceed through structured pilot, open-world pilot, measured evaluation, methodology freeze, scale, concordance, governance mapping, exact S2 candidate, separate authorization/publication and reproducible public products.
 
 If an item is externally blocked, work on an independent evidence dependency. Do not create additional protocol, successor or workflow layers solely to represent work that has not happened.
 
