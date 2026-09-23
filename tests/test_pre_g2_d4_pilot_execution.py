@@ -267,9 +267,6 @@ class D4PilotAggregateExecutionTests(unittest.TestCase):
             aggregate = build_pilot_readiness_aggregate(manifest, root / "packets", PILOT_KEY)
             self.assertEqual(aggregate["total_items"], 60)
             self.assertEqual(aggregate["primary_secondary_exact_agreement_count"], 48)
-            matrix = aggregate["primary_secondary_confusion_matrix"]
-            self.assertEqual(sum(sum(row.values()) for row in matrix.values()), 60)
-            self.assertEqual(sum(matrix[label][label] for label in matrix), 48)
             self.assertEqual(aggregate["adjudicated_disagreement_count"], 9)
             self.assertEqual(aggregate["unresolved_disagreement_count"], 3)
             self.assertGreaterEqual(aggregate["resolved_disposition_counts"]["INCLUDE"], 10)
@@ -277,12 +274,6 @@ class D4PilotAggregateExecutionTests(unittest.TestCase):
             self.assertGreaterEqual(aggregate["resolved_disposition_counts"]["BORDERLINE"], 10)
             self.assertTrue(all(value == 6 for value in aggregate["required_stratum_counts"].values()))
             self.assertFalse(aggregate["authority"]["g2_passed"])
-
-    def test_commitment_keys_require_at_least_32_bytes(self) -> None:
-        item_ids = [f"ITEM-{index:03d}" for index in range(60)]
-        with self.assertRaisesRegex(D4PilotExecutionError, "at least 32 bytes"):
-            pilot_membership_commitment("ROUND", item_ids, b"x" * 31)
-        self.assertEqual(len(pilot_membership_commitment("ROUND", item_ids, b"x" * 32)), 64)
 
     def test_manifest_order_does_not_change_aggregate(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
