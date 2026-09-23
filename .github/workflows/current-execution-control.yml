@@ -1,0 +1,91 @@
+name: Current execution control
+
+on:
+  pull_request:
+    paths:
+      - 'curation/CURRENT_EXECUTION_CONTROL.json'
+      - 'curation/PROGRAMME_EXECUTION_STATE_*.json'
+      - '.github/workflows/current-execution-control.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'curation/CURRENT_EXECUTION_CONTROL.json'
+      - 'curation/PROGRAMME_EXECUTION_STATE_*.json'
+      - '.github/workflows/current-execution-control.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-current-control:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Validate current pointer and referenced successor
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path(".")
+          pointer_path = root / "curation" / "CURRENT_EXECUTION_CONTROL.json"
+          pointer = json.loads(pointer_path.read_text(encoding="utf-8"))
+
+          required_pointer = {
+              "schema_version",
+              "status",
+              "as_of",
+              "programme_execution_baseline",
+              "current_programme_execution_state",
+              "current_g1_disposition",
+              "source_universe_execution_state",
+              "boundary",
+          }
+          missing = sorted(required_pointer - set(pointer))
+          if missing:
+              raise SystemExit(f"current execution pointer missing fields: {missing}")
+
+          state_path = root / pointer["current_programme_execution_state"]
+          if not state_path.is_file():
+              raise SystemExit(f"referenced current execution state is missing: {state_path}")
+          state = json.loads(state_path.read_text(encoding="utf-8"))
+
+          if state.get("as_of") != pointer.get("as_of"):
+              raise SystemExit("pointer and current execution state as_of values differ")
+          if not isinstance(state.get("repository_binding"), dict):
+              raise SystemExit("current execution state lacks repository_binding")
+          if not isinstance(state.get("authority"), dict):
+              raise SystemExit("current execution state lacks authority")
+
+          for field in (
+              "g0_passed",
+              "g1_approved",
+              "g2_passed",
+              "g3_passed",
+              "g5_passed",
+              "patstat_rights_clearance",
+              "canonical_s2_authority",
+              "publication_authority",
+              "population_generalization_authority",
+              "phase4_online_first_default_authorized",
+          ):
+              if not isinstance(state["authority"].get(field), bool):
+                  raise SystemExit(f"authority.{field} must be boolean")
+
+          predecessor = state.get("predecessor")
+          if predecessor is not None:
+              if not isinstance(predecessor, dict) or not predecessor.get("path"):
+                  raise SystemExit("successor predecessor must identify a path")
+              predecessor_path = root / predecessor["path"]
+              if not predecessor_path.is_file():
+                  raise SystemExit(f"referenced predecessor is missing: {predecessor_path}")
+
+          print(f"current control valid: {state_path}")
+          PY
+      - name: Boundary
+        run: |
+          echo "This check validates pointer integrity and typed control state only."
+          echo "It does not pass a gate, validate scientific claims, authorize S2 mutation, or authorize publication."
