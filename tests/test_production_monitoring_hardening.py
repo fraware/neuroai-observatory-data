@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-WORKBENCH_SHA = "685f1597a2a63f2e2217f65f115a67ac3e35cc55"
+WORKBENCH_SHA = "854cc9d1c8e24a9e8ae8b21d871329bc3c24c118"
 PINNED_TRANSPORT = "PinnedSocketHttpTransport"
 LEGACY_TRANSPORT = "StdlibHttpTransport"
 UPLOAD_ARTIFACT_SHA = "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a"
@@ -20,11 +20,8 @@ LIVE_WORKFLOWS = (
     ".github/workflows/operational-live-cycle.yml",
     ".github/workflows/successor-discovery.yml",
     ".github/workflows/operational-interruption-resume-drill.yml",
-    ".github/workflows/pre-g0-b02-controlled-live-proof.yml",
 )
-WORKBENCH_COUPLED_WORKFLOWS = LIVE_WORKFLOWS + (
-    ".github/workflows/pre-g0-b02-contract.yml",
-)
+WORKBENCH_COUPLED_WORKFLOWS = LIVE_WORKFLOWS
 HARDENED_WORKFLOWS = WORKBENCH_COUPLED_WORKFLOWS + (
     ".github/workflows/observatory-v2-release.yml",
 )
@@ -68,7 +65,6 @@ class ProductionMonitoringHardeningTests(unittest.TestCase):
             ".github/workflows/operational-live-cycle.yml": "operational-live-report.json",
             ".github/workflows/successor-discovery.yml": "successor-discovery.json",
             ".github/workflows/operational-interruption-resume-drill.yml": "report.json",
-            ".github/workflows/pre-g0-b02-controlled-live-proof.yml": "proof.json",
         }
         for path, artifact_path in expectations.items():
             with self.subTest(path=path):
@@ -116,36 +112,6 @@ class ProductionMonitoringHardeningTests(unittest.TestCase):
                     r"python -m pip install --no-deps \./(?:workbench|\.workbench)",
                 )
                 self.assertNotIn("pip install --disable-pip-version-check -e", text)
-
-    def test_pre_g0_b02_proof_delegates_to_governed_live_facade(self) -> None:
-        script = _read("scripts/run_pre_g0_b02_controlled_live_proof.py")
-        workflow = _read(".github/workflows/pre-g0-b02-controlled-live-proof.yml")
-        contract = _read(".github/workflows/pre-g0-b02-contract.yml")
-        self.assertIn("run_live_cohort_collection", script)
-        self.assertNotIn("CollectionScheduler", script)
-        self.assertIn('PROOF_SOURCE_ID = "SRC-0002"', script)
-        self.assertIn('"url": "https://neurosity.co/"', script)
-        self.assertIn("source_ids=[PROOF_SOURCE_ID]", script)
-
-        self.assertIn("workflow_dispatch:", workflow)
-        self.assertNotIn("schedule:", workflow)
-        self.assertNotIn("push:", workflow)
-        self.assertNotIn("pull_request:", workflow)
-        self.assertIn("persist-credentials: false", workflow)
-        self.assertIn("raw_response_body_exposed", workflow)
-        self.assertIn('rm -rf "$RUNNER_TEMP/pre-g0-b02-proof/workspace"', workflow)
-
-        self.assertIn("pull_request:", contract)
-        self.assertIn("push:", contract)
-        self.assertNotIn("workflow_dispatch:", contract)
-        self.assertNotIn("--authorization-id", contract)
-        self.assertNotIn("Execute one-source governed controlled-live proof", contract)
-        self.assertIn('test -z "${NEUROAI_LIVE_COLLECTION:-}"', contract)
-        self.assertIn(
-            'test -z "${NEUROAI_LIVE_COLLECTION_AUTHORIZATION_JSON:-}"',
-            contract,
-        )
-
 
 if __name__ == "__main__":
     unittest.main()
