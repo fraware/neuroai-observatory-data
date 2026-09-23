@@ -1,13 +1,13 @@
 {
   "schema_version": "0.1.0",
   "status": "CURRENT_CONTROL_POINTER_NONCANONICAL",
-  "as_of": "2026-09-17",
+  "as_of": "2026-09-23",
   "programme_execution_baseline": "curation/PROGRAMME_EXECUTION_BASELINE_2026-09-01.json",
-  "current_programme_execution_state": "curation/PROGRAMME_EXECUTION_STATE_2026-09-17_CONTROL_DELTA_SUCCESSOR.json",
+  "current_programme_execution_state": "curation/PROGRAMME_EXECUTION_STATE_2026-09-23_EXECUTION_UNLOCK_SUCCESSOR.json",
   "current_g1_disposition": "curation/HUMAN_G1_DISPOSITION_2026-09-05_D1_D2_v0.1.json",
   "source_universe_execution_state": "curation/source_universe_execution_state_2026-09-03_SRC14021_DISPOSITION_C_SUCCESSOR.json",
   "issue_disposition_ledger": "curation/issue_disposition_ledger_observatory_recovery_2026-09-03_v0.1.json",
   "historical_planning_control": "curation/source_universe_expansion_backlog_v0.1.json",
   "historical_planning_control_status": "SUPERSEDED_FOR_CURRENT_EXECUTION_INTERPRETATION",
-  "boundary": "This pointer identifies current execution-control records only. The frozen programme baseline and every predecessor successor remain immutable. The current successor binds the completed current-baseline structured recorded-replay matrix, the merged CT.gov monitor-onboarding and authorized first-capture software controls, and Roman Jurowetzki's partial PATSTAT Baseline A provenance response as ingested by PR #264. G0 remains BLOCKED_NOT_PASSED because SRC-14-021 remains unresolved; G1 remains approved only for the exact previously bound D1/D2 identities; G2/G3/G5 remain unpassed; real D3/D4 human benchmark construction and human G2 disposition remain outstanding; Workbench Phase 3 still has zero workflow-dispatch executions; no real CT.gov first-capture authorization or live first capture has run. PATSTAT provenance remains WAITING_FOR_PROVENANCE, the reported-interval conflict remains unresolved, and PATSTAT redistribution rights remain uncleared. This pointer does not confer live structured-source-pilot status, a human reference standard, canonical S2 mutation, publication authority, operational-health passage, scientific truth or completeness, population inference, legal authority, assessment authority, Phase 4 authorization, or any G0/G2/G3/G5 pass."
+  "boundary": "Current execution control is synchronized through the 2026-09-23 PRE-G2 hardening and dated-CI simplification. G0 remains BLOCKED_NOT_PASSED on unresolved SRC-14-021; G1 remains approved for the exact bound D1/D2 identities; G2/G3/G5 remain unpassed. Workbench Phase 3 still has zero workflow-dispatch executions. Real D3/D4 S3 pilots and human calibration are now the next benchmark evidence events. PATSTAT provenance and rights remain unresolved. This pointer creates no scientific truth, population inference, canonical S2 mutation, publication, Phase 4 authorization, or assessment effect."
 }
