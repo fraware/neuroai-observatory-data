@@ -1,0 +1,96 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-23_PHASE3_REVIEWED_COMPLETE_SUCCESSOR",
+  "status": "CURRENT_EXECUTION_SUCCESSOR_NONCANONICAL",
+  "as_of": "2026-09-23",
+  "purpose": "Bind the completed and reviewed Workbench Phase-3 external proof.",
+  "predecessor": {
+    "path": "curation/PROGRAMME_EXECUTION_STATE_2026-09-23_EXECUTION_UNLOCK_SUCCESSOR.json",
+    "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-23_EXECUTION_UNLOCK_SUCCESSOR",
+    "git_blob_sha": "47f8e206efedf857b206592fae80562cd3f6433b",
+    "predecessor_is_modified_by_this_successor": false
+  },
+  "repository_binding": {
+    "observatory_repository": "fraware/neuroai-observatory-data",
+    "observatory_main_sha": "5cf4f63d6d17cd871ce8a880942faeacf01795e8",
+    "workbench_repository": "fraware/neuroai-workbench",
+    "workbench_main_sha": "854cc9d1c8e24a9e8ae8b21d871329bc3c24c118"
+  },
+  "operational_state": {
+    "g0": {
+      "decision": "BLOCKED_NOT_PASSED",
+      "passed": false,
+      "latest_normal_scheduled_live_run_id": 35590013260,
+      "latest_current_main_operational_validation_run_id": 35865995796,
+      "source_accountability_coverage": 1,
+      "target_execution_coverage": 1,
+      "blocking_source_ids": ["SRC-14-021"],
+      "blocking_issue": 224
+    },
+    "workbench_phase3": {
+      "issue": 287,
+      "issue_state": "CLOSED_COMPLETED",
+      "workflow_dispatch_run_id": 35871598379,
+      "workflow_dispatch_run_conclusion": "success",
+      "artifact_id": 10755421672,
+      "artifact_digest": "sha256:be863ec343e64dad0b9441ed2dc569933a01eb2d16495d473f22f7b907492620",
+      "proof_id": "P3PROOF-3ede3ce36e138c6888f31566",
+      "proof_semantic_sha256": "3ede3ce36e138c6888f3156603fdb2c527be91bbe9bf4aaabbcd0202f5f7a64b",
+      "live_collection_attempts": 1,
+      "replay_collection_attempts": 0,
+      "source_accountability_coverage": 1,
+      "target_execution_coverage": 1,
+      "live_replay_equivalent": true,
+      "replay_zero_network_verified": true,
+      "canonical_s2_mutation_performed": false,
+      "phase3_reviewed_complete": true,
+      "phase4_online_first_default_authorized": false
+    }
+  },
+  "research_state": {
+    "g1": {
+      "decision": "APPROVE",
+      "approved": true,
+      "disposition_path": "curation/HUMAN_G1_DISPOSITION_2026-09-05_D1_D2_v0.1.json"
+    },
+    "g2": {
+      "passed": false,
+      "d3_real_pilot_issue": 259,
+      "d4_real_pilot_issue": 258
+    },
+    "g3": {
+      "passed": false
+    },
+    "g5": {
+      "passed": false
+    }
+  },
+  "patstat_state": {
+    "scientific_issue": 220,
+    "provenance_status": "WAITING_FOR_PROVENANCE",
+    "rights_issue": 210,
+    "rights_clearance": false
+  },
+  "immediate_execution_queue": [
+    "Resolve SRC-14-021 identity under #224.",
+    "Execute real D3 #259 and D4 #258 S3 calibration pilots and human review.",
+    "Run CT.gov #103 first-capture and #91 PRIMA rediscovery.",
+    "Resolve De Novo provider evidence under #125.",
+    "Continue PATSTAT provenance #220 and rights #210 in parallel."
+  ],
+  "authority": {
+    "g0_passed": false,
+    "g1_approved": true,
+    "g2_passed": false,
+    "g3_passed": false,
+    "g5_passed": false,
+    "patstat_rights_clearance": false,
+    "canonical_s2_authority": false,
+    "publication_authority": false,
+    "mutation_authority": false,
+    "population_generalization_authority": false,
+    "phase4_online_first_default_authorized": false,
+    "assessment_effect": "NONE"
+  },
+  "boundary": "Phase 3 execution and review are complete. G0, G2, G3 and G5 remain unpassed; Phase 4, S2 mutation, publication, population inference and assessment authority remain absent."
+}
