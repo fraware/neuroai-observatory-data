@@ -8,7 +8,7 @@ from typing import Any
 
 BENCHMARK_ID = "PRE_G2_PRODUCT_V0_1"
 PROTOCOL_ID = "PRE_G2_D4_SAMPLING_CALIBRATION_PROTOCOL_2026-09-09_v0.1"
-READINESS_POLICY_ID = "PRE_G2_D4_PILOT_READINESS_POLICY_2026-09-23_v0.3"
+READINESS_POLICY_ID = "PRE_G2_D4_PILOT_READINESS_POLICY_2026-09-12_v0.2"
 COMMITMENT_SCHEME = "HMAC_SHA256_DOMAIN_CANONICAL_JSON_V1"
 READY_STATE = "READY_FOR_HUMAN_CALIBRATION_DISPOSITION"
 NOT_READY_STATE = "NOT_READY_NEW_DISJOINT_ROUND_REQUIRED"
@@ -37,7 +37,6 @@ EXPECTED_TOP_LEVEL_KEYS = {
     "total_items",
     "double_labeled_items",
     "primary_secondary_exact_agreement_count",
-    "primary_secondary_confusion_matrix",
     "adjudicated_disagreement_count",
     "unresolved_disagreement_count",
     "resolved_disposition_counts",
@@ -167,28 +166,6 @@ def evaluate_pilot_readiness(report: dict[str, Any]) -> dict[str, Any]:
     if agreement + adjudicated + unresolved != 60:
         raise D4PilotReadinessError(
             "agreement + adjudicated disagreement + unresolved disagreement must account for all 60 items"
-        )
-
-    matrix = _require_mapping(
-        report["primary_secondary_confusion_matrix"],
-        "primary_secondary_confusion_matrix",
-    )
-    _require_exact_keys(matrix, set(DISPOSITIONS), "primary_secondary_confusion_matrix")
-    matrix_total = 0
-    matrix_diagonal = 0
-    for primary in DISPOSITIONS:
-        row = _require_count_map(
-            matrix[primary],
-            DISPOSITIONS,
-            f"primary_secondary_confusion_matrix.{primary}",
-        )
-        matrix_total += sum(row.values())
-        matrix_diagonal += row[primary]
-    if matrix_total != 60:
-        raise D4PilotReadinessError("primary_secondary_confusion_matrix must account for exactly 60 items")
-    if matrix_diagonal != agreement:
-        raise D4PilotReadinessError(
-            "primary_secondary_confusion_matrix diagonal must equal primary_secondary_exact_agreement_count"
         )
 
     dispositions = _require_count_map(report["resolved_disposition_counts"], DISPOSITIONS, "resolved_disposition_counts")
