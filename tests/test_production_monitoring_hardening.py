@@ -113,5 +113,6 @@ class ProductionMonitoringHardeningTests(unittest.TestCase):
                 )
                 self.assertNotIn("pip install --disable-pip-version-check -e", text)
 
+
 if __name__ == "__main__":
     unittest.main()
