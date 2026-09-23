@@ -1,0 +1,42 @@
+name: PRE-G2 contracts
+
+on:
+  pull_request:
+    paths:
+      - 'curation/PRE_G2_*'
+      - 'curation/HUMAN_D4_*'
+      - 'schemas/pre-g2-*'
+      - 'scripts/*pre_g2*'
+      - 'tests/test_pre_g2_*'
+      - '.github/workflows/pre-g2.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'curation/PRE_G2_*'
+      - 'curation/HUMAN_D4_*'
+      - 'schemas/pre-g2-*'
+      - 'scripts/*pre_g2*'
+      - 'tests/test_pre_g2_*'
+      - '.github/workflows/pre-g2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Compile active PRE-G2 execution paths
+        run: |
+          python -m py_compile             scripts/build_pre_g2_d3_challenge_pilot_readiness_v0_2.py             scripts/select_pre_g2_d3_challenge_held_out_v0_2.py             scripts/execute_pre_g2_d3_challenge_final_selection_v0_2.py             scripts/build_pre_g2_d4_pilot_readiness_aggregate_v0_3.py             scripts/evaluate_pre_g2_d4_pilot_readiness_v0_3.py             scripts/select_pre_g2_d4_held_out_v0_3.py             scripts/execute_pre_g2_d4_final_selection_v0_3.py
+      - name: Run complete PRE-G2 contract suite
+        run: python -m unittest discover -s tests -p 'test_pre_g2_*.py' -v
+      - name: Boundary
+        run: |
+          echo "This workflow validates PRE-G2 software and immutable contract artifacts only."
+          echo "It does not execute real human pilots, freeze D3/D4, pass G2, mutate S2, authorize publication, or alter assessment state."
