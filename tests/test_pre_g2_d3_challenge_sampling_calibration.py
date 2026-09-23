@@ -28,8 +28,8 @@ from scripts.select_pre_g2_d3_challenge_held_out import (
 )
 from tests.test_pre_g2_d3_patent_review_packet import _packet, _refresh_digest
 
-PILOT_KEY = b"synthetic-d3-pilot-key"
-POOL_KEY = b"synthetic-d3-pool-key"
+PILOT_KEY = b"synthetic-d3-pilot-key-material-32-bytes-min"
+POOL_KEY = b"synthetic-d3-pool-key-material-32-bytes-min"
 CALIBRATION_SHA = "d" * 64
 
 
@@ -266,6 +266,17 @@ class D3ChallengeSamplingCalibrationTests(unittest.TestCase):
             self.assertTrue(result["quantitative_gate_passed"])
             self.assertFalse(result["agreement_is_automated_gate"])
             self.assertFalse(result["population_generalizable"])
+
+    def test_commitment_keys_require_at_least_32_bytes(self) -> None:
+        family_refs = [f"S3-PILOT-FAMILY-{index:04d}" for index in range(60)]
+        with self.assertRaisesRegex(Exception, "at least 32 bytes"):
+            pilot_membership_commitment(family_refs, b"x" * 31)
+        self.assertEqual(len(pilot_membership_commitment(family_refs, b"x" * 32)), 64)
+
+        pool = _candidate_pool()
+        with self.assertRaisesRegex(D3ChallengeSelectionError, "at least 32 bytes"):
+            candidate_pool_commitment(pool, b"x" * 31)
+        self.assertEqual(len(candidate_pool_commitment(pool, b"x" * 32)), 64)
 
     def test_readiness_has_no_raw_agreement_gate(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
