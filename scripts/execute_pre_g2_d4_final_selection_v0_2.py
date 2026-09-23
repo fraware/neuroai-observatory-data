@@ -382,9 +382,9 @@ def run_composed_selection(
         )
         pilot_key = pilot_key_path.read_bytes()
         candidate_pool_key = candidate_pool_key_path.read_bytes()
-        if len(pilot_key) < 32 or len(candidate_pool_key) < 32:
+        if not pilot_key or not candidate_pool_key:
             raise D4ComposedFinalSelectionError(
-                "commitment key files must each contain at least 32 bytes"
+                "commitment key files must not be empty"
             )
 
         controlled, public = execute_composed_selection(
