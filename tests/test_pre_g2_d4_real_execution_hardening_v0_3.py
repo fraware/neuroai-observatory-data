@@ -20,9 +20,17 @@ from scripts.evaluate_pre_g2_d4_pilot_readiness_v0_3 import (
 from scripts.execute_pre_g2_d4_final_selection_v0_3 import (
     execute_composed_selection,
 )
-from scripts.select_pre_g2_d4_held_out import (
+from scripts.select_pre_g2_d4_held_out_v0_3 import (
     D4SelectionError,
     candidate_pool_commitment,
+)
+from scripts.build_pre_g2_d3_challenge_pilot_readiness_v0_2 import (
+    D3ChallengePilotExecutionError,
+    pilot_membership_commitment as d3_pilot_membership_commitment,
+)
+from scripts.select_pre_g2_d3_challenge_held_out_v0_2 import (
+    D3ChallengeSelectionError,
+    candidate_pool_commitment as d3_candidate_pool_commitment,
 )
 from tests.test_pre_g2_d4_calibration_selection_composition_v0_2 import (
     _disposition,
@@ -41,11 +49,10 @@ POLICY = ROOT / "curation" / "PRE_G2_D4_PILOT_READINESS_POLICY_2026-09-23_v0.3.j
 BUILDER = ROOT / "scripts" / "build_pre_g2_d4_pilot_readiness_aggregate_v0_3.py"
 EVALUATOR = ROOT / "scripts" / "evaluate_pre_g2_d4_pilot_readiness_v0_3.py"
 EXECUTOR = ROOT / "scripts" / "execute_pre_g2_d4_final_selection_v0_3.py"
-D3_BUILDER = ROOT / "scripts" / "build_pre_g2_d3_challenge_pilot_readiness.py"
-D3_SELECTOR = ROOT / "scripts" / "select_pre_g2_d3_challenge_held_out.py"
-D3_EXECUTOR = ROOT / "scripts" / "execute_pre_g2_d3_challenge_final_selection.py"
-D4_SELECTOR = ROOT / "scripts" / "select_pre_g2_d4_held_out.py"
-D4_SELECTOR_WRAPPER = ROOT / "scripts" / "select_pre_g2_d4_held_out_v0_2.py"
+D3_BUILDER = ROOT / "scripts" / "build_pre_g2_d3_challenge_pilot_readiness_v0_2.py"
+D3_SELECTOR = ROOT / "scripts" / "select_pre_g2_d3_challenge_held_out_v0_2.py"
+D3_EXECUTOR = ROOT / "scripts" / "execute_pre_g2_d3_challenge_final_selection_v0_2.py"
+D4_SELECTOR = ROOT / "scripts" / "select_pre_g2_d4_held_out_v0_3.py"
 
 
 def git_blob_sha1(path: Path) -> str:
@@ -105,6 +112,25 @@ class D4RealExecutionHardeningV03Tests(unittest.TestCase):
             candidate_pool_commitment(pool, b"x" * 31)
         self.assertEqual(len(candidate_pool_commitment(pool, b"x" * 32)), 64)
 
+        family_refs = [f"S3-D3-FAMILY-{index:04d}" for index in range(60)]
+        with self.assertRaisesRegex(D3ChallengePilotExecutionError, "at least 32 bytes"):
+            d3_pilot_membership_commitment(family_refs, b"x" * 31)
+        self.assertEqual(len(d3_pilot_membership_commitment(family_refs, b"x" * 32)), 64)
+
+        d3_pool = {
+            "schema_version": "0.1",
+            "benchmark_id": "PRE_G2_PATENT_V0_1",
+            "protocol_id": "PRE_G2_D3_CHALLENGE_SAMPLING_CALIBRATION_PROTOCOL_2026-09-11_v0.1",
+            "human_calibration_disposition_sha256": "d" * 64,
+            "candidate_pool_id": "SYNTHETIC-D3-POOL",
+            "candidate_pool_commitment": "0" * 64,
+            "candidate_pool_commitment_scheme": "HMAC_SHA256_DOMAIN_CANONICAL_JSON_V1",
+            "candidate_pool_frozen": True,
+            "candidates": [],
+        }
+        with self.assertRaisesRegex(D3ChallengeSelectionError, "at least 32 bytes"):
+            d3_candidate_pool_commitment(d3_pool, b"x" * 31)
+
     def test_v03_composed_execution_uses_matrix_bound_readiness(self) -> None:
         manifest, aggregate, packet_root, tmp = self._aggregate()
         self.addCleanup(tmp.cleanup)
@@ -138,11 +164,10 @@ class D4RealExecutionHardeningV03Tests(unittest.TestCase):
             "d4_builder_v0_3": BUILDER,
             "d4_evaluator_v0_3": EVALUATOR,
             "d4_composed_entrypoint_v0_3": EXECUTOR,
-            "d3_pilot_builder": D3_BUILDER,
-            "d3_selector": D3_SELECTOR,
-            "d3_composed_entrypoint": D3_EXECUTOR,
-            "d4_selector": D4_SELECTOR,
-            "d4_selector_wrapper_v0_2": D4_SELECTOR_WRAPPER,
+            "d3_pilot_builder_v0_2": D3_BUILDER,
+            "d3_selector_v0_2": D3_SELECTOR,
+            "d3_composed_entrypoint_v0_2": D3_EXECUTOR,
+            "d4_selector_v0_3": D4_SELECTOR,
         }
         for key, path in expected.items():
             self.assertEqual(bindings[key]["git_blob_sha"], git_blob_sha1(path))
