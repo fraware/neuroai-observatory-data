@@ -54,7 +54,13 @@ jobs:
           python -m json.tool curation/OBSERVATORY_V2_HISTORICAL_LINEAGE_RECONCILIATION_2026-09-17_v0.1.json >/dev/null
       - name: Run governance contract tests
         run: |
-          python -m unittest             tests.test_landscape_research_contract             tests.test_capability_context_taxonomy             tests.test_g1_g2_boundary_packets             tests.test_pre_g0_b02_controlled_live_proof             tests.test_pre_g0_b04_publication_authority_proof             tests.test_production_monitoring_hardening             tests.test_source_monitor_registry_audit             tests.test_observatory_v2_historical_lineage_reconciliation_2026_09_17 -v
+          python -m unittest \
+            tests.test_landscape_research_contract \
+            tests.test_capability_context_taxonomy \
+            tests.test_g1_g2_boundary_packets \
+            tests.test_production_monitoring_hardening \
+            tests.test_source_monitor_registry_audit \
+            tests.test_observatory_v2_historical_lineage_reconciliation_2026_09_17 -v
       - name: Audit source-monitor registry
         run: python scripts/audit_source_monitor_registry.py --output "$RUNNER_TEMP/source-registry-audit.json"
       - name: Boundary
