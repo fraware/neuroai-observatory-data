@@ -1,0 +1,118 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-23_EXECUTION_UNLOCK_SUCCESSOR",
+  "status": "CURRENT_EXECUTION_SUCCESSOR_NONCANONICAL",
+  "as_of": "2026-09-23",
+  "purpose": "Bind the current post-hardening repository state and move programme control from scaffolding work to real execution evidence.",
+  "predecessor": {
+    "path": "curation/PROGRAMME_EXECUTION_STATE_2026-09-17_CONTROL_DELTA_SUCCESSOR.json",
+    "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-17_CONTROL_DELTA_SUCCESSOR",
+    "git_blob_sha": "aff4848ea42c234fdcf0c742e003c248eb451398",
+    "predecessor_is_modified_by_this_successor": false
+  },
+  "repository_binding": {
+    "observatory_repository": "fraware/neuroai-observatory-data",
+    "observatory_main_sha": "87772ad618c1d3f6335f75e646cf4e3fada32ea7",
+    "observatory_state": "POST_PRE_G2_HARDENING_AND_CONTROL_CI_SIMPLIFICATION",
+    "workbench_repository": "fraware/neuroai-workbench",
+    "workbench_main_sha": "854cc9d1c8e24a9e8ae8b21d871329bc3c24c118"
+  },
+  "engineering_delta": {
+    "pre_g2_issue_271": {
+      "state": "CLOSED_SOFTWARE_HARDENING_COMPLETE",
+      "pull_request": 273,
+      "merged_main_sha": "9c65baf046ee71d8da54450b807379c923349c99",
+      "post_merge_hardening_run_id": 35861415683,
+      "post_merge_pilot_control_run_id": 35861415888,
+      "full_d4_confusion_matrix_bound": true,
+      "minimum_hmac_key_bytes": 32,
+      "real_d3_pilot_executed": false,
+      "real_d4_pilot_executed": false
+    },
+    "control_ci_simplification": {
+      "pull_request": 274,
+      "merged_main_sha": "87772ad618c1d3f6335f75e646cf4e3fada32ea7",
+      "post_merge_current_control_run_id": 35861617168,
+      "dated_successor_workflows_retired": 7,
+      "replacement_workflow": ".github/workflows/current-execution-control.yml",
+      "historical_control_artifacts_deleted": false
+    }
+  },
+  "operational_state": {
+    "g0": {
+      "decision": "BLOCKED_NOT_PASSED",
+      "passed": false,
+      "latest_normal_scheduled_live_run_id": 35590013260,
+      "latest_normal_scheduled_live_run_sha": "8443e48c67a1a8af2e39f4b2e8bce4328f51c683",
+      "source_accountability_coverage": 1,
+      "target_execution_coverage": 1,
+      "blocking_source_ids": [
+        "SRC-14-021"
+      ],
+      "blocking_issue": 224,
+      "interpretation": "The latest normal scheduled due cycle executed the governed live path and retained complete accountability, but SRC-14-021 remained unresolved after registered route resilience."
+    },
+    "workbench_phase3": {
+      "issue": 287,
+      "workflow": ".github/workflows/phase3-external-proof.yml",
+      "workflow_dispatch_runs_observed": 0,
+      "external_live_proof_executed": false,
+      "external_live_proof_reviewed": false,
+      "phase4_online_first_default_authorized": false
+    }
+  },
+  "research_state": {
+    "g1": {
+      "decision": "APPROVE",
+      "approved": true,
+      "disposition_path": "curation/HUMAN_G1_DISPOSITION_2026-09-05_D1_D2_v0.1.json"
+    },
+    "g2": {
+      "passed": false,
+      "d3_real_human_benchmark_frozen": false,
+      "d4_real_human_benchmark_frozen": false,
+      "d3_real_pilot_issue": 259,
+      "d4_real_pilot_issue": 258,
+      "next_state": "REAL_S3_PILOT_EXECUTION_AND_HUMAN_CALIBRATION"
+    },
+    "g3": {
+      "passed": false,
+      "current_baseline_recorded_replay_compatibility_established": true,
+      "interpretation": "Replay compatibility is engineering evidence only; source-specific real pilot evidence remains outstanding."
+    },
+    "g5": {
+      "passed": false
+    }
+  },
+  "patstat_state": {
+    "scientific_issue": 220,
+    "provenance_status": "WAITING_FOR_PROVENANCE",
+    "public_point_calculation_mechanically_reproduced": true,
+    "population_generalization_authority": false,
+    "rights_issue": 210,
+    "rights_clearance": false
+  },
+  "immediate_execution_queue": [
+    "Execute Workbench Phase-3 external proof under #287 and review the exact artifact.",
+    "Obtain independent identity evidence for SRC-14-021 under #224; only then rerun the qualifying normal scheduled G0 due cycle.",
+    "Execute real D3 issue #259 and D4 issue #258 S3 calibration pilots with genuine independent human review.",
+    "Run the bounded CT.gov #103 first-capture and #91 PRIMA rediscovery evidence paths.",
+    "Continue PATSTAT provenance #220 and rights #210 in parallel without blocking the D3 challenge pilot.",
+    "Resolve De Novo provider evidence under #125, then make a real G3 disposition from source-specific execution evidence."
+  ],
+  "authority": {
+    "g0_passed": false,
+    "g1_approved": true,
+    "g2_passed": false,
+    "g3_passed": false,
+    "g5_passed": false,
+    "patstat_rights_clearance": false,
+    "canonical_s2_authority": false,
+    "publication_authority": false,
+    "mutation_authority": false,
+    "population_generalization_authority": false,
+    "phase4_online_first_default_authorized": false,
+    "assessment_effect": "NONE"
+  },
+  "boundary": "This successor records current engineering and execution state only. It does not convert software readiness into live evidence, human benchmark truth, gate passage, scientific validity, rights clearance, canonical S2 authority, publication authority, population inference, Phase 4 authorization, or assessment effect."
+}
