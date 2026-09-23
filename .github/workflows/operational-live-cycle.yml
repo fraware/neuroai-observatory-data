@@ -245,7 +245,21 @@ jobs:
           }
 
           assert health["engineering_state"] == "READY", health
-          assert health["source_resolution_state"] == "HEALTHY", health
+
+          # A correctly executed due cycle may report DEGRADED source resolution
+          # while a real source remains unresolved. That is operational evidence,
+          # not an engineering failure. G0 must be decided from the retained
+          # source-resolution evidence, not from the GitHub Actions conclusion.
+          unresolved_failed_source_ids = health["route_resilience"][
+              "unresolved_failed_source_ids"
+          ]
+          expected_source_resolution_state = (
+              "DEGRADED" if unresolved_failed_source_ids else "HEALTHY"
+          )
+          assert (
+              health["source_resolution_state"]
+              == expected_source_resolution_state
+          ), health
           assert health["active_source_availability_state"] == "HEALTHY", health
           assert health["active_evidence_payload_availability_state"] == "HEALTHY", health
           assert execution["slo"]["source_accountability_coverage"] == 1.0
@@ -272,6 +286,8 @@ jobs:
               "piramidal_selected_route_id": piramidal["selected_route_id"],
               "source_accountability_coverage": execution["slo"]["source_accountability_coverage"],
               "target_execution_coverage": execution["slo"]["target_execution_coverage"],
+              "source_resolution_state": health["source_resolution_state"],
+              "unresolved_failed_source_ids": unresolved_failed_source_ids,
               "resume_additional_sends": report["resume_proof"]["additional_transport_sends"],
               "health_report_sha256": health["health_report_sha256"],
               "route_report_sha256": routes["report_sha256"],
