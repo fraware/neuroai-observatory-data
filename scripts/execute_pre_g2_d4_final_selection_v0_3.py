@@ -19,7 +19,7 @@ from scripts.evaluate_pre_g2_d4_pilot_readiness_v0_3 import (
     D4PilotReadinessError,
     evaluate_pilot_readiness,
 )
-from scripts.select_pre_g2_d4_held_out import (
+from scripts.select_pre_g2_d4_held_out_v0_3 import (
     D4SelectionError,
     select_candidates,
 )
