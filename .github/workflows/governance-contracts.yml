@@ -1,0 +1,71 @@
+name: Governance contracts
+
+on:
+  pull_request:
+    paths:
+      - 'curation/LANDSCAPE_RESEARCH_CONTRACT_v0.1.json'
+      - 'curation/CAPABILITY_CONTEXT_TAXONOMY_v0.1.json'
+      - 'curation/OBSERVATORY_V2_HISTORICAL_LINEAGE_RECONCILIATION_2026-09-17_v0.1.json'
+      - 'curation/source_universe_expansion_backlog_v0.1.json'
+      - 'scripts/run_pre_g0_b02_controlled_live_proof.py'
+      - 'scripts/run_pre_g0_b04_publication_authority_proof.py'
+      - 'scripts/validate_landscape_research_contract.py'
+      - 'scripts/validate_capability_context_taxonomy.py'
+      - 'scripts/audit_source_monitor_registry.py'
+      - 'tests/test_landscape_research_contract.py'
+      - 'tests/test_capability_context_taxonomy.py'
+      - 'tests/test_g1_g2_boundary_packets.py'
+      - 'tests/test_pre_g0_b02_controlled_live_proof.py'
+      - 'tests/test_pre_g0_b04_publication_authority_proof.py'
+      - 'tests/test_production_monitoring_hardening.py'
+      - 'tests/test_source_monitor_registry_audit.py'
+      - 'tests/test_observatory_v2_historical_lineage_reconciliation_2026_09_17.py'
+      - '.github/workflows/governance-contracts.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'curation/LANDSCAPE_RESEARCH_CONTRACT_v0.1.json'
+      - 'curation/CAPABILITY_CONTEXT_TAXONOMY_v0.1.json'
+      - 'curation/OBSERVATORY_V2_HISTORICAL_LINEAGE_RECONCILIATION_2026-09-17_v0.1.json'
+      - 'curation/source_universe_expansion_backlog_v0.1.json'
+      - 'scripts/run_pre_g0_b02_controlled_live_proof.py'
+      - 'scripts/run_pre_g0_b04_publication_authority_proof.py'
+      - 'scripts/validate_landscape_research_contract.py'
+      - 'scripts/validate_capability_context_taxonomy.py'
+      - 'scripts/audit_source_monitor_registry.py'
+      - 'tests/test_landscape_research_contract.py'
+      - 'tests/test_capability_context_taxonomy.py'
+      - 'tests/test_g1_g2_boundary_packets.py'
+      - 'tests/test_pre_g0_b02_controlled_live_proof.py'
+      - 'tests/test_pre_g0_b04_publication_authority_proof.py'
+      - 'tests/test_production_monitoring_hardening.py'
+      - 'tests/test_source_monitor_registry_audit.py'
+      - 'tests/test_observatory_v2_historical_lineage_reconciliation_2026_09_17.py'
+      - '.github/workflows/governance-contracts.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Validate current contract documents
+        run: |
+          python scripts/validate_landscape_research_contract.py
+          python scripts/validate_capability_context_taxonomy.py
+          python -m json.tool curation/source_universe_expansion_backlog_v0.1.json >/dev/null
+          python -m json.tool curation/OBSERVATORY_V2_HISTORICAL_LINEAGE_RECONCILIATION_2026-09-17_v0.1.json >/dev/null
+      - name: Run governance contract tests
+        run: |
+          python -m unittest             tests.test_landscape_research_contract             tests.test_capability_context_taxonomy             tests.test_g1_g2_boundary_packets             tests.test_pre_g0_b02_controlled_live_proof             tests.test_pre_g0_b04_publication_authority_proof             tests.test_production_monitoring_hardening             tests.test_source_monitor_registry_audit             tests.test_observatory_v2_historical_lineage_reconciliation_2026_09_17 -v
+      - name: Audit source-monitor registry
+        run: python scripts/audit_source_monitor_registry.py --output "$RUNNER_TEMP/source-registry-audit.json"
+      - name: Boundary
+        run: |
+          echo "Historical manual proof workflows are retired; their validators and tests remain covered here."
+          echo "This workflow performs no live collection and grants no gate, S2, publication, or assessment authority."
