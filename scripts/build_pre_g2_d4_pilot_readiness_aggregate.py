@@ -132,6 +132,7 @@ CLAIM_SCOPES = {
     "COMMERCIALIZATION",
 }
 D1_DISPOSITIONS = {"ABSTAIN", "BORDERLINE", "EXCLUDE", "INCLUDE"}
+DISPOSITIONS = ("ABSTAIN", "BORDERLINE", "EXCLUDE", "INCLUDE")
 REVIEWER_ROLES = {"PRIMARY_REVIEWER", "SECONDARY_REVIEWER", "FINAL_ADJUDICATOR"}
 ADJUDICATION_STATES = {"ADJUDICATED", "AGREE", "DISAGREE_UNADJUDICATED"}
 EXPOSURE_STATES = {
@@ -179,8 +180,8 @@ def _canonical_bytes(value: Any) -> bytes:
 
 
 def _hmac_domain(key: bytes, domain: str, value: Any) -> str:
-    if not isinstance(key, bytes) or not key:
-        raise D4PilotExecutionError("pilot membership commitment key must be non-empty bytes")
+    if not isinstance(key, bytes) or len(key) < 32:
+        raise D4PilotExecutionError("pilot membership commitment key must contain at least 32 bytes")
     payload = domain.encode("utf-8") + b"\0" + _canonical_bytes(value)
     return hmac.new(key, payload, hashlib.sha256).hexdigest()
 
@@ -506,12 +507,23 @@ def build_pilot_readiness_aggregate(
     packets, _ = load_validated_pilot_packets(manifest, packet_root, commitment_key)
 
     state_counts: Counter[str] = Counter()
-    disposition_counts: Counter[str] = Counter({key: 0 for key in ("ABSTAIN", "BORDERLINE", "EXCLUDE", "INCLUDE")})
+    disposition_counts: Counter[str] = Counter({key: 0 for key in DISPOSITIONS})
+    confusion_matrix: dict[str, Counter[str]] = {
+        disposition: Counter() for disposition in DISPOSITIONS
+    }
     stratum_counts: Counter[str] = Counter({stratum: 0 for stratum in REQUIRED_STRATA})
     stratum_disagreements: Counter[str] = Counter({stratum: 0 for stratum in REQUIRED_STRATA})
     blinding_exception_count = 0
 
     for packet in packets:
+        by_role = {
+            record["adjudicator_role"]: record
+            for record in packet["reviewer_records"]
+        }
+        primary = by_role["PRIMARY_REVIEWER"]["decision"]
+        secondary = by_role["SECONDARY_REVIEWER"]["decision"]
+        confusion_matrix[primary][secondary] += 1
+
         state = packet["adjudication"]["state"]
         state_counts[state] += 1
         if state in {"AGREE", "ADJUDICATED"}:
@@ -538,6 +550,13 @@ def build_pilot_readiness_aggregate(
         "total_items": PILOT_SIZE,
         "double_labeled_items": PILOT_SIZE,
         "primary_secondary_exact_agreement_count": state_counts["AGREE"],
+        "primary_secondary_confusion_matrix": {
+            primary: {
+                secondary: confusion_matrix[primary][secondary]
+                for secondary in DISPOSITIONS
+            }
+            for primary in DISPOSITIONS
+        },
         "adjudicated_disagreement_count": state_counts["ADJUDICATED"],
         "unresolved_disagreement_count": state_counts["DISAGREE_UNADJUDICATED"],
         "resolved_disposition_counts": {
@@ -591,8 +610,8 @@ def main() -> int:
         if not isinstance(manifest, dict):
             raise D4PilotExecutionError("manifest root must be an object")
         commitment_key = args.commitment_key_file.read_bytes()
-        if not commitment_key:
-            raise D4PilotExecutionError("commitment key file must not be empty")
+        if len(commitment_key) < 32:
+            raise D4PilotExecutionError("commitment key file must contain at least 32 bytes")
         aggregate = build_pilot_readiness_aggregate(manifest, args.packet_root, commitment_key)
     except (OSError, json.JSONDecodeError, D4PilotExecutionError, ValueError) as exc:
         print(f"INVALID: {exc}")
