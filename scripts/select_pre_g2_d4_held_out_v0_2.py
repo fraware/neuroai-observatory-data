@@ -80,8 +80,8 @@ def _load_inputs(candidate_pool_path: Path, commitment_key_path: Path) -> tuple[
     if not isinstance(pool, dict):
         raise D4SelectionError("candidate-pool root must be an object")
     commitment_key = commitment_key_path.read_bytes()
-    if len(commitment_key) < 32:
-        raise D4SelectionError("commitment key file must contain at least 32 bytes")
+    if not commitment_key:
+        raise D4SelectionError("commitment key file must not be empty")
     return pool, commitment_key
 
 
