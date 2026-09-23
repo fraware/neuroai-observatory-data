@@ -49,7 +49,12 @@
     "approved_d4_composed_entrypoint_path": "scripts/execute_pre_g2_d4_final_selection_v0_3.py",
     "historical_v0_2_paths_status": "HISTORICAL_PRESERVED_NOT_APPROVED_FOR_NEW_REAL_D4_EXECUTION",
     "human_calibration_disposition_still_required": true,
-    "real_d3_d4_execution_remains_outstanding": true
+    "real_d3_d4_execution_remains_outstanding": true,
+    "approved_d3_builder_path": "scripts/build_pre_g2_d3_challenge_pilot_readiness_v0_2.py",
+    "approved_d3_selector_path": "scripts/select_pre_g2_d3_challenge_held_out_v0_2.py",
+    "approved_d3_composed_entrypoint_path": "scripts/execute_pre_g2_d3_challenge_final_selection_v0_2.py",
+    "approved_d4_selector_path": "scripts/select_pre_g2_d4_held_out_v0_3.py",
+    "historical_d3_v0_1_paths_status": "HISTORICAL_PRESERVED_NOT_APPROVED_FOR_NEW_REAL_D3_EXECUTION"
   },
   "implementation_bindings": {
     "d4_builder_v0_3": {
@@ -60,29 +65,25 @@
       "path": "scripts/evaluate_pre_g2_d4_pilot_readiness_v0_3.py",
       "git_blob_sha": "beb15a9f6ec51018a51514486d6ce6874fda5439"
     },
-    "d4_composed_entrypoint_v0_3": {
-      "path": "scripts/execute_pre_g2_d4_final_selection_v0_3.py",
-      "git_blob_sha": "7f46cf5b9d70a1fb95cfecdd3002463d6c689c9b"
-    },
-    "d3_pilot_builder": {
-      "path": "scripts/build_pre_g2_d3_challenge_pilot_readiness.py",
-      "git_blob_sha": "e037551228175443848da4911eb95137558ed408"
-    },
-    "d3_selector": {
-      "path": "scripts/select_pre_g2_d3_challenge_held_out.py",
-      "git_blob_sha": "647569398594e964562eaf31196315f267d0617d"
-    },
-    "d3_composed_entrypoint": {
-      "path": "scripts/execute_pre_g2_d3_challenge_final_selection.py",
-      "git_blob_sha": "38e44bc66d74685d42d0f80b9421936b27f93953"
-    },
-    "d4_selector": {
-      "path": "scripts/select_pre_g2_d4_held_out.py",
+    "d4_selector_v0_3": {
+      "path": "scripts/select_pre_g2_d4_held_out_v0_3.py",
       "git_blob_sha": "34e0b315729b9e6c9e6d96e070e9687ec2f17bdf"
     },
-    "d4_selector_wrapper_v0_2": {
-      "path": "scripts/select_pre_g2_d4_held_out_v0_2.py",
-      "git_blob_sha": "0463b238544770ed24d08dbf578868de22634236"
+    "d4_composed_entrypoint_v0_3": {
+      "path": "scripts/execute_pre_g2_d4_final_selection_v0_3.py",
+      "git_blob_sha": "687113d6e69543ad7ad352d000014f8435839a6e"
+    },
+    "d3_pilot_builder_v0_2": {
+      "path": "scripts/build_pre_g2_d3_challenge_pilot_readiness_v0_2.py",
+      "git_blob_sha": "e037551228175443848da4911eb95137558ed408"
+    },
+    "d3_selector_v0_2": {
+      "path": "scripts/select_pre_g2_d3_challenge_held_out_v0_2.py",
+      "git_blob_sha": "647569398594e964562eaf31196315f267d0617d"
+    },
+    "d3_composed_entrypoint_v0_2": {
+      "path": "scripts/execute_pre_g2_d3_challenge_final_selection_v0_2.py",
+      "git_blob_sha": "21162aad2da043cc7ccf7ad6dd86e8fb3a52a701"
     }
   },
   "authority": {
