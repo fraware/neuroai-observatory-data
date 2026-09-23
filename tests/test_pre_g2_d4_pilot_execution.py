@@ -19,8 +19,8 @@ from scripts.check_pre_g2_d4_pilot_final_disjointness import (
 )
 from scripts.select_pre_g2_d4_held_out import candidate_pool_commitment
 
-PILOT_KEY = b"synthetic-pilot-key"
-POOL_KEY = b"synthetic-pool-key"
+PILOT_KEY = b"synthetic-d4-pilot-key-material-32-bytes-min"
+POOL_KEY = b"synthetic-d4-pool-key-material-32-bytes-min"
 SHA = "a" * 64
 STRATA = (
     "AMBIGUOUS_BIOSIGNAL",
