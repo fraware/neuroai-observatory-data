@@ -353,9 +353,9 @@ def run_composed_selection(
         )
         pilot_key = pilot_key_path.read_bytes()
         pool_key = pool_key_path.read_bytes()
-        if not pilot_key or not pool_key:
+        if len(pilot_key) < 32 or len(pool_key) < 32:
             raise D3ComposedFinalSelectionError(
-                "commitment key files must not be empty"
+                "commitment key files must each contain at least 32 bytes"
             )
 
         controlled, public = execute_composed_selection(
