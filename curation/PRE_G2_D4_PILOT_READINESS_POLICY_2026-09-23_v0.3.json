@@ -1,0 +1,103 @@
+{
+  "schema_version": "0.3.0",
+  "control_id": "PRE_G2_D4_PILOT_READINESS_POLICY_2026-09-23_v0.3",
+  "status": "PRE_G2_APPEND_ONLY_ENGINEERING_HARDENING_SUCCESSOR_NO_REAL_PILOT",
+  "as_of": "2026-09-23",
+  "governing_issue": 271,
+  "umbrella_issue": 223,
+  "predecessor": {
+    "path": "curation/PRE_G2_D4_PILOT_READINESS_POLICY_2026-09-12_v0.2.json",
+    "git_blob_sha": "c3d12fabd0a5f1c97048f6f64f9d1e9a87e7fb38",
+    "modified_by_successor": false
+  },
+  "inherited_human_governance": {
+    "path": "curation/HUMAN_D4_AGREEMENT_GATE_DISPOSITION_2026-09-12_v0.1.json",
+    "decision": "APPROVE_REMOVE_RAW_EXACT_AGREEMENT_FROM_AUTOMATED_GATE",
+    "git_blob_sha": "faec9bf7158ccbc44db453d8729f20f36184a1c3",
+    "interpretation": "The v0.3 hardening preserves the approved removal of raw exact agreement as an automated threshold. It strengthens the evidence presented to the required human calibration review."
+  },
+  "aggregate_contract": {
+    "base_protocol_id": "PRE_G2_D4_SAMPLING_CALIBRATION_PROTOCOL_2026-09-09_v0.1",
+    "full_primary_secondary_confusion_matrix_required": true,
+    "confusion_matrix_labels": [
+      "ABSTAIN",
+      "BORDERLINE",
+      "EXCLUDE",
+      "INCLUDE"
+    ],
+    "confusion_matrix_exact_total": 60,
+    "confusion_matrix_diagonal_must_equal_raw_exact_agreement_count": true,
+    "raw_agreement_count_remains_required": true,
+    "raw_agreement_rate_remains_reported": true,
+    "raw_agreement_is_automated_gate": false,
+    "raw_agreement_role": "DESCRIPTIVE_HUMAN_REVIEW_DIAGNOSTIC_ONLY"
+  },
+  "cryptographic_key_contract": {
+    "commitment_scheme": "HMAC_SHA256_DOMAIN_CANONICAL_JSON_V1",
+    "minimum_key_bytes": 32,
+    "applies_to": [
+      "D3_PILOT_MEMBERSHIP",
+      "D3_CANDIDATE_POOL_AND_SELECTION",
+      "D4_PILOT_MEMBERSHIP_V0_3",
+      "D4_CANDIDATE_POOL_AND_SELECTION"
+    ],
+    "short_keys_fail_closed": true
+  },
+  "real_execution_boundary": {
+    "approved_d4_builder_path": "scripts/build_pre_g2_d4_pilot_readiness_aggregate_v0_3.py",
+    "approved_d4_evaluator_path": "scripts/evaluate_pre_g2_d4_pilot_readiness_v0_3.py",
+    "approved_d4_composed_entrypoint_path": "scripts/execute_pre_g2_d4_final_selection_v0_3.py",
+    "historical_v0_2_paths_status": "HISTORICAL_PRESERVED_NOT_APPROVED_FOR_NEW_REAL_D4_EXECUTION",
+    "human_calibration_disposition_still_required": true,
+    "real_d3_d4_execution_remains_outstanding": true
+  },
+  "implementation_bindings": {
+    "d4_builder_v0_3": {
+      "path": "scripts/build_pre_g2_d4_pilot_readiness_aggregate_v0_3.py",
+      "git_blob_sha": "199a733dc4c047d0946c6be8b9d494e4e7fefd82"
+    },
+    "d4_evaluator_v0_3": {
+      "path": "scripts/evaluate_pre_g2_d4_pilot_readiness_v0_3.py",
+      "git_blob_sha": "beb15a9f6ec51018a51514486d6ce6874fda5439"
+    },
+    "d4_composed_entrypoint_v0_3": {
+      "path": "scripts/execute_pre_g2_d4_final_selection_v0_3.py",
+      "git_blob_sha": "7f46cf5b9d70a1fb95cfecdd3002463d6c689c9b"
+    },
+    "d3_pilot_builder": {
+      "path": "scripts/build_pre_g2_d3_challenge_pilot_readiness.py",
+      "git_blob_sha": "e037551228175443848da4911eb95137558ed408"
+    },
+    "d3_selector": {
+      "path": "scripts/select_pre_g2_d3_challenge_held_out.py",
+      "git_blob_sha": "647569398594e964562eaf31196315f267d0617d"
+    },
+    "d3_composed_entrypoint": {
+      "path": "scripts/execute_pre_g2_d3_challenge_final_selection.py",
+      "git_blob_sha": "38e44bc66d74685d42d0f80b9421936b27f93953"
+    },
+    "d4_selector": {
+      "path": "scripts/select_pre_g2_d4_held_out.py",
+      "git_blob_sha": "34e0b315729b9e6c9e6d96e070e9687ec2f17bdf"
+    },
+    "d4_selector_wrapper_v0_2": {
+      "path": "scripts/select_pre_g2_d4_held_out_v0_2.py",
+      "git_blob_sha": "0463b238544770ed24d08dbf578868de22634236"
+    }
+  },
+  "authority": {
+    "g1_approved": true,
+    "g0_passed": false,
+    "g2_passed": false,
+    "g5_passed": false,
+    "rights_clearance": false,
+    "reviewer_competence_established": false,
+    "benchmark_adequacy_established": false,
+    "population_generalization_authority": false,
+    "canonical_s2_authority": false,
+    "publication_authority": false,
+    "phase4_online_first_default_authorized": false,
+    "assessment_effect": "NONE"
+  },
+  "boundary": "This successor closes only the PRE-G2 real-execution implementation gaps identified in issue #271. It preserves historical v0.2 artifacts and the human agreement-gate disposition, binds the full 4x4 D4 reviewer confusion matrix into the current real-execution evidence path, and enforces a minimum 32-byte HMAC key on current D3/D4 commitment paths. It does not execute a real pilot, establish reviewer competence or benchmark adequacy, freeze D3/D4, pass G0/G2/G5, resolve rights, create population inference, mutate canonical S2, authorize publication or Phase 4, or alter assessment state."
+}
