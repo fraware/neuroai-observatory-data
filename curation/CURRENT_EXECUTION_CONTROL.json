@@ -3,11 +3,11 @@
   "status": "CURRENT_CONTROL_POINTER_NONCANONICAL",
   "as_of": "2026-09-23",
   "programme_execution_baseline": "curation/PROGRAMME_EXECUTION_BASELINE_2026-09-01.json",
-  "current_programme_execution_state": "curation/PROGRAMME_EXECUTION_STATE_2026-09-23_EXECUTION_UNLOCK_SUCCESSOR.json",
+  "current_programme_execution_state": "curation/PROGRAMME_EXECUTION_STATE_2026-09-23_PHASE3_REVIEWED_COMPLETE_SUCCESSOR.json",
   "current_g1_disposition": "curation/HUMAN_G1_DISPOSITION_2026-09-05_D1_D2_v0.1.json",
   "source_universe_execution_state": "curation/source_universe_execution_state_2026-09-03_SRC14021_DISPOSITION_C_SUCCESSOR.json",
   "issue_disposition_ledger": "curation/issue_disposition_ledger_observatory_recovery_2026-09-03_v0.1.json",
   "historical_planning_control": "curation/source_universe_expansion_backlog_v0.1.json",
   "historical_planning_control_status": "SUPERSEDED_FOR_CURRENT_EXECUTION_INTERPRETATION",
-  "boundary": "Current execution control is synchronized through the 2026-09-23 PRE-G2 hardening and dated-CI simplification. G0 remains BLOCKED_NOT_PASSED on unresolved SRC-14-021; G1 remains approved for the exact bound D1/D2 identities; G2/G3/G5 remain unpassed. Workbench Phase 3 still has zero workflow-dispatch executions. Real D3/D4 S3 pilots and human calibration are now the next benchmark evidence events. PATSTAT provenance and rights remain unresolved. This pointer creates no scientific truth, population inference, canonical S2 mutation, publication, Phase 4 authorization, or assessment effect."
+  "boundary": "Current execution control is synchronized through the 2026-09-23 reviewed Workbench Phase-3 external proof. Phase 3 is complete; Phase 4 remains unauthorized. G0 remains BLOCKED_NOT_PASSED on unresolved SRC-14-021; G1 remains approved for the exact bound D1/D2 identities; G2/G3/G5 remain unpassed. Real D3/D4 S3 benchmark execution, source-specific G3 evidence, PATSTAT provenance/rights and the SONA identity disposition remain outstanding. This pointer creates no scientific truth, population inference, canonical S2 mutation, publication, Phase 4 authorization, or assessment effect."
 }
