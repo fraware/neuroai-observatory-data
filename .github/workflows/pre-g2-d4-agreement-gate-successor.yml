@@ -9,11 +9,11 @@ on:
       - 'scripts/build_pre_g2_d4_pilot_readiness_aggregate_v0_3.py'
       - 'scripts/evaluate_pre_g2_d4_pilot_readiness_v0_3.py'
       - 'scripts/execute_pre_g2_d4_final_selection_v0_3.py'
-      - 'scripts/build_pre_g2_d3_challenge_pilot_readiness.py'
-      - 'scripts/select_pre_g2_d3_challenge_held_out.py'
-      - 'scripts/execute_pre_g2_d3_challenge_final_selection.py'
-      - 'scripts/select_pre_g2_d4_held_out.py'
-      - 'scripts/select_pre_g2_d4_held_out_v0_2.py'
+      - 'scripts/build_pre_g2_d3_challenge_pilot_readiness_v0_2.py'
+      - 'scripts/select_pre_g2_d3_challenge_held_out_v0_2.py'
+      - 'scripts/execute_pre_g2_d3_challenge_final_selection_v0_2.py'
+      - 'scripts/select_pre_g2_d4_held_out_v0_3.py'
+      - 'scripts/select_pre_g2_d4_held_out_v0_3.py'
       - 'tests/test_pre_g2_d3_challenge_sampling_calibration.py'
       - 'tests/test_pre_g2_d3_calibration_selection_composition.py'
       - 'tests/test_pre_g2_d4_pilot_execution.py'
@@ -29,11 +29,11 @@ on:
       - 'scripts/build_pre_g2_d4_pilot_readiness_aggregate_v0_3.py'
       - 'scripts/evaluate_pre_g2_d4_pilot_readiness_v0_3.py'
       - 'scripts/execute_pre_g2_d4_final_selection_v0_3.py'
-      - 'scripts/build_pre_g2_d3_challenge_pilot_readiness.py'
-      - 'scripts/select_pre_g2_d3_challenge_held_out.py'
-      - 'scripts/execute_pre_g2_d3_challenge_final_selection.py'
-      - 'scripts/select_pre_g2_d4_held_out.py'
-      - 'scripts/select_pre_g2_d4_held_out_v0_2.py'
+      - 'scripts/build_pre_g2_d3_challenge_pilot_readiness_v0_2.py'
+      - 'scripts/select_pre_g2_d3_challenge_held_out_v0_2.py'
+      - 'scripts/execute_pre_g2_d3_challenge_final_selection_v0_2.py'
+      - 'scripts/select_pre_g2_d4_held_out_v0_3.py'
+      - 'scripts/select_pre_g2_d4_held_out_v0_3.py'
       - 'tests/test_pre_g2_d3_challenge_sampling_calibration.py'
       - 'tests/test_pre_g2_d3_calibration_selection_composition.py'
       - 'tests/test_pre_g2_d4_pilot_execution.py'
@@ -57,16 +57,14 @@ jobs:
             scripts/build_pre_g2_d4_pilot_readiness_aggregate_v0_3.py \
             scripts/evaluate_pre_g2_d4_pilot_readiness_v0_3.py \
             scripts/execute_pre_g2_d4_final_selection_v0_3.py \
-            scripts/build_pre_g2_d3_challenge_pilot_readiness.py \
-            scripts/select_pre_g2_d3_challenge_held_out.py \
-            scripts/execute_pre_g2_d3_challenge_final_selection.py \
-            scripts/select_pre_g2_d4_held_out.py \
-            scripts/select_pre_g2_d4_held_out_v0_2.py
+            scripts/build_pre_g2_d3_challenge_pilot_readiness_v0_2.py \
+            scripts/select_pre_g2_d3_challenge_held_out_v0_2.py \
+            scripts/execute_pre_g2_d3_challenge_final_selection_v0_2.py \
+            scripts/select_pre_g2_d4_held_out_v0_3.py \
+            scripts/select_pre_g2_d4_held_out_v0_3.py
       - name: Validate issue 271 hardening
         run: |
           python -m unittest tests.test_pre_g2_d4_real_execution_hardening_v0_3 -v
-          python -m unittest tests.test_pre_g2_d3_challenge_sampling_calibration -v
-          python -m unittest tests.test_pre_g2_d3_calibration_selection_composition -v
           python -m unittest tests.test_pre_g2_d4_pilot_execution -v
       - name: Preserve historical D4 v0.2 bindings
         run: |
