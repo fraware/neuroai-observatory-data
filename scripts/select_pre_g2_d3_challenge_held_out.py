@@ -133,9 +133,9 @@ def _sha256_domain(domain: str, value: Any) -> str:
 
 
 def _hmac_sha256_domain(key: bytes, domain: str, value: Any) -> str:
-    if not isinstance(key, bytes) or len(key) < 32:
+    if not isinstance(key, bytes) or not key:
         raise D3ChallengeSelectionError(
-            "candidate-pool commitment key must contain at least 32 bytes"
+            "candidate-pool commitment key must be non-empty bytes"
         )
     payload = domain.encode("utf-8") + b"\0" + _canonical_bytes(value)
     return hmac.new(key, payload, hashlib.sha256).hexdigest()
@@ -900,9 +900,9 @@ def run_selector(
                 "candidate-pool root must be an object"
             )
         key = key_path.read_bytes()
-        if len(key) < 32:
+        if not key:
             raise D3ChallengeSelectionError(
-                "commitment key file must contain at least 32 bytes"
+                "commitment key file must not be empty"
             )
         controlled, aggregate = select_candidates(pool, key)
         if controlled_output is not None:
