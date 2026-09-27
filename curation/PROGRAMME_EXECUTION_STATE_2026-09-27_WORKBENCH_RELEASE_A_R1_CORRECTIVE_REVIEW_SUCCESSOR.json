@@ -1,0 +1,114 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-27_WORKBENCH_RELEASE_A_R1_CORRECTIVE_REVIEW_SUCCESSOR",
+  "status": "CURRENT_EXECUTION_SUCCESSOR_NONCANONICAL",
+  "as_of": "2026-09-27",
+  "purpose": "Bind the current Workbench Release-A R1 corrective-review state without altering the historical Phase-3 operational proof or any Observatory gate.",
+  "predecessor": {
+    "path": "curation/PROGRAMME_EXECUTION_STATE_2026-09-23_PHASE3_REVIEWED_COMPLETE_SUCCESSOR.json",
+    "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-23_PHASE3_REVIEWED_COMPLETE_SUCCESSOR",
+    "git_blob_sha": "0a351dc31ad6af241938f3c3728243229c17b646",
+    "predecessor_is_modified_by_this_successor": false
+  },
+  "repository_binding": {
+    "observatory_repository": "fraware/neuroai-observatory-data",
+    "observatory_main_sha": "35dcf13431eca40321bb64a88e1743d9313f9247",
+    "workbench_repository": "fraware/neuroai-workbench",
+    "workbench_main_sha": "9073f39c6252d67f8e0ea5cdbd368378559a3ef2",
+    "historical_phase3_workbench_sha": "854cc9d1c8e24a9e8ae8b21d871329bc3c24c118"
+  },
+  "operational_state": {
+    "g0": {
+      "decision": "BLOCKED_NOT_PASSED",
+      "passed": false,
+      "latest_normal_scheduled_live_run_id": 35590013260,
+      "latest_current_main_operational_validation_run_id": 35865995796,
+      "source_accountability_coverage": 1,
+      "target_execution_coverage": 1,
+      "blocking_source_ids": [
+        "SRC-14-021"
+      ],
+      "blocking_issue": 224
+    },
+    "workbench_phase3": {
+      "issue": 287,
+      "issue_state": "CLOSED_COMPLETED",
+      "workflow_dispatch_run_id": 35871598379,
+      "workflow_dispatch_run_conclusion": "success",
+      "artifact_id": 10755421672,
+      "artifact_digest": "sha256:be863ec343e64dad0b9441ed2dc569933a01eb2d16495d473f22f7b907492620",
+      "proof_id": "P3PROOF-3ede3ce36e138c6888f31566",
+      "proof_semantic_sha256": "3ede3ce36e138c6888f3156603fdb2c527be91bbe9bf4aaabbcd0202f5f7a64b",
+      "live_collection_attempts": 1,
+      "replay_collection_attempts": 0,
+      "source_accountability_coverage": 1,
+      "target_execution_coverage": 1,
+      "live_replay_equivalent": true,
+      "replay_zero_network_verified": true,
+      "canonical_s2_mutation_performed": false,
+      "phase3_reviewed_complete": true,
+      "phase4_online_first_default_authorized": false
+    }
+  },
+  "research_state": {
+    "g1": {
+      "decision": "APPROVE",
+      "approved": true,
+      "disposition_path": "curation/HUMAN_G1_DISPOSITION_2026-09-05_D1_D2_v0.1.json"
+    },
+    "g2": {
+      "passed": false,
+      "d3_real_pilot_issue": 259,
+      "d4_real_pilot_issue": 258
+    },
+    "g3": {
+      "passed": false
+    },
+    "g5": {
+      "passed": false
+    }
+  },
+  "patstat_state": {
+    "scientific_issue": 220,
+    "provenance_status": "WAITING_FOR_PROVENANCE",
+    "rights_issue": 210,
+    "rights_clearance": false
+  },
+  "immediate_execution_queue": [
+    "Track Workbench Release-A R1 corrective review #410; do not consume the historical A8 denominator in Release B/C/D.",
+    "Resolve SRC-14-021 identity under #224.",
+    "Execute real D3 #259 and D4 #258 S3 calibration pilots and human review.",
+    "Run CT.gov #103 first-capture and #91 PRIMA rediscovery.",
+    "Resolve De Novo provider evidence under #125.",
+    "Continue PATSTAT provenance #220 and rights #210 in parallel."
+  ],
+  "authority": {
+    "g0_passed": false,
+    "g1_approved": true,
+    "g2_passed": false,
+    "g3_passed": false,
+    "g5_passed": false,
+    "patstat_rights_clearance": false,
+    "canonical_s2_authority": false,
+    "publication_authority": false,
+    "mutation_authority": false,
+    "population_generalization_authority": false,
+    "phase4_online_first_default_authorized": false,
+    "assessment_effect": "NONE",
+    "release_a_final_denominator_authorized": false,
+    "release_b_c_d_denominator_consumption_authorized": false
+  },
+  "boundary": "The historical Workbench Phase-3 operational proof remains complete at its exact bound SHA. Separately, Workbench Release A is under CORRECTIVE_REVIEW_R1_OPEN at reviewed main 9073f39c6252d67f8e0ea5cdbd368378559a3ef2. No Observatory G0/G1/G2/G3/G5 disposition changes; no Release-A final denominator, B/C/D denominator consumption, population generalization, canonical S2 mutation, publication, Phase-4 authorization, or v4.2 assessment effect is created.",
+  "workbench_release_a_analytical_state": {
+    "tracking_issue": 410,
+    "disposition": "CORRECTIVE_REVIEW_R1_OPEN",
+    "reviewed_workbench_sha": "9073f39c6252d67f8e0ea5cdbd368378559a3ef2",
+    "historical_a8_package_sha256": "71ff7a917e9104ca279352643afbaebabc19c362527d36bcbfab1311aef73190",
+    "historical_a_g_packet_sha256": "33dc577617518df8f88a6faf38ef0b6b6b0c06ec91e004776cf74d64d9f69c92",
+    "historical_a_g_interpretation": "RECONSTRUCTION_PASS_EVIDENCE_ONLY",
+    "release_a_final_denominator_authorized": false,
+    "release_b_c_d_denominator_consumption_authorized": false,
+    "population_generalization_authority": false,
+    "boundary": "The historical Release-A A8/A-G bytes remain immutable reconstruction evidence. The current Release-A analytical denominator is under R1 corrective review and is not authorized for downstream B/C/D consumption until a successor scientific-validity gate is completed."
+  }
+}
