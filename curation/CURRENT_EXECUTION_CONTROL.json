@@ -3,11 +3,11 @@
   "status": "CURRENT_CONTROL_POINTER_NONCANONICAL",
   "as_of": "2026-09-27",
   "programme_execution_baseline": "curation/PROGRAMME_EXECUTION_BASELINE_2026-09-01.json",
-  "current_programme_execution_state": "curation/PROGRAMME_EXECUTION_STATE_2026-09-27_WORKBENCH_RELEASE_A_R1_CORRECTIVE_REVIEW_SUCCESSOR.json",
+  "current_programme_execution_state": "curation/PROGRAMME_EXECUTION_STATE_2026-09-27_WORKBENCH_RELEASE_A_R1_RESOLUTION_CHECKPOINT_SUCCESSOR.json",
   "current_g1_disposition": "curation/HUMAN_G1_DISPOSITION_2026-09-05_D1_D2_v0.1.json",
   "source_universe_execution_state": "curation/source_universe_execution_state_2026-09-03_SRC14021_DISPOSITION_C_SUCCESSOR.json",
   "issue_disposition_ledger": "curation/issue_disposition_ledger_observatory_recovery_2026-09-03_v0.1.json",
   "historical_planning_control": "curation/source_universe_expansion_backlog_v0.1.json",
   "historical_planning_control_status": "SUPERSEDED_FOR_CURRENT_EXECUTION_INTERPRETATION",
-  "boundary": "Current execution control preserves the reviewed Workbench Phase-3 operational proof and additionally binds Workbench Release-A analytical status CORRECTIVE_REVIEW_R1_OPEN at reviewed main 9073f39c6252d67f8e0ea5cdbd368378559a3ef2. G0 remains BLOCKED_NOT_PASSED; G1 remains approved for the exact bound D1/D2 identities; G2/G3/G5 remain unpassed. The historical Release-A A8/A-G chain is reconstruction-pass evidence only and is not authorized as a final denominator for B/C/D. Real D3/D4 S3 benchmark execution, source-specific G3 evidence, PATSTAT provenance/rights and the SONA identity disposition remain outstanding. This pointer creates no scientific truth, population inference, canonical S2 mutation, publication, Phase 4 authorization, or assessment effect."
+  "boundary": "Current execution control preserves the reviewed Workbench Phase-3 operational proof and binds Workbench Release-A CORRECTIVE_REVIEW_R1_OPEN at reviewed main a81dbcc84a31eaa9f959a1f87cdc57e23ccee4bf. R1.2 records a non-final exact-A2 A-P1 checkpoint and complete candidate-resolution ledger; R1.3 records historical marginal-yield saturation and A3/A4 point-zero interpretations as resolution-censored checkpoint evidence. The frozen knowledge-time window remains open through 2026-10-24T23:59:59Z. G0 remains BLOCKED_NOT_PASSED; G1 remains approved for the exact bound D1/D2 identities; G2/G3/G5 remain unpassed. This pointer creates no final Release-A denominator, B/C/D denominator authority, population inference, canonical S2 mutation, publication, Phase-4 authorization, or assessment effect."
 }

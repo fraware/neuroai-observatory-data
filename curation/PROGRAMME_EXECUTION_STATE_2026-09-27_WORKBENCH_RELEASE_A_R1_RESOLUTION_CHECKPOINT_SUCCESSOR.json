@@ -1,0 +1,153 @@
+{
+  "schema_version": "0.1.0",
+  "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-27_WORKBENCH_RELEASE_A_R1_RESOLUTION_CHECKPOINT_SUCCESSOR",
+  "status": "CURRENT_EXECUTION_SUCCESSOR_NONCANONICAL",
+  "as_of": "2026-09-27",
+  "purpose": "Bind the reviewed Workbench Release-A R1.2 exact-A2 resolution ledger and R1.3 resolution-completeness checkpoint without altering the historical Phase-3 operational proof or any Observatory gate.",
+  "predecessor": {
+    "path": "curation/PROGRAMME_EXECUTION_STATE_2026-09-27_WORKBENCH_RELEASE_A_R1_CORRECTIVE_REVIEW_SUCCESSOR.json",
+    "control_id": "PROGRAMME_EXECUTION_STATE_2026-09-27_WORKBENCH_RELEASE_A_R1_CORRECTIVE_REVIEW_SUCCESSOR",
+    "git_blob_sha": "afc9b511b25c7a84ed52fd90caaea66567ad1825",
+    "predecessor_is_modified_by_this_successor": false
+  },
+  "repository_binding": {
+    "observatory_repository": "fraware/neuroai-observatory-data",
+    "observatory_main_sha": "af0fc7c122da9468c76adb5c47096d22e6565aeb",
+    "workbench_repository": "fraware/neuroai-workbench",
+    "workbench_main_sha": "a81dbcc84a31eaa9f959a1f87cdc57e23ccee4bf",
+    "historical_phase3_workbench_sha": "854cc9d1c8e24a9e8ae8b21d871329bc3c24c118"
+  },
+  "operational_state": {
+    "g0": {
+      "decision": "BLOCKED_NOT_PASSED",
+      "passed": false,
+      "latest_normal_scheduled_live_run_id": 35590013260,
+      "latest_current_main_operational_validation_run_id": 35865995796,
+      "source_accountability_coverage": 1,
+      "target_execution_coverage": 1,
+      "blocking_source_ids": [
+        "SRC-14-021"
+      ],
+      "blocking_issue": 224
+    },
+    "workbench_phase3": {
+      "issue": 287,
+      "issue_state": "CLOSED_COMPLETED",
+      "workflow_dispatch_run_id": 35871598379,
+      "workflow_dispatch_run_conclusion": "success",
+      "artifact_id": 10755421672,
+      "artifact_digest": "sha256:be863ec343e64dad0b9441ed2dc569933a01eb2d16495d473f22f7b907492620",
+      "proof_id": "P3PROOF-3ede3ce36e138c6888f31566",
+      "proof_semantic_sha256": "3ede3ce36e138c6888f3156603fdb2c527be91bbe9bf4aaabbcd0202f5f7a64b",
+      "live_collection_attempts": 1,
+      "replay_collection_attempts": 0,
+      "source_accountability_coverage": 1,
+      "target_execution_coverage": 1,
+      "live_replay_equivalent": true,
+      "replay_zero_network_verified": true,
+      "canonical_s2_mutation_performed": false,
+      "phase3_reviewed_complete": true,
+      "phase4_online_first_default_authorized": false
+    }
+  },
+  "research_state": {
+    "g1": {
+      "decision": "APPROVE",
+      "approved": true,
+      "disposition_path": "curation/HUMAN_G1_DISPOSITION_2026-09-05_D1_D2_v0.1.json"
+    },
+    "g2": {
+      "passed": false,
+      "d3_real_pilot_issue": 259,
+      "d4_real_pilot_issue": 258
+    },
+    "g3": {
+      "passed": false
+    },
+    "g5": {
+      "passed": false
+    }
+  },
+  "patstat_state": {
+    "scientific_issue": 220,
+    "provenance_status": "WAITING_FOR_PROVENANCE",
+    "rights_issue": 210,
+    "rights_clearance": false
+  },
+  "immediate_execution_queue": [
+    "Execute Workbench Release-A R1.4 decision-relevant resolution worklist/adjudication contract under #418; preserve the 2026-10-24 knowledge-window close and do not consume a checkpoint denominator in B/C/D.",
+    "Resolve SRC-14-021 identity under #224.",
+    "Execute real D3 #259 and D4 #258 S3 calibration pilots and human review.",
+    "Run CT.gov #103 first-capture and #91 PRIMA rediscovery.",
+    "Resolve De Novo provider evidence under #125.",
+    "Continue PATSTAT provenance #220 and rights #210 in parallel."
+  ],
+  "authority": {
+    "g0_passed": false,
+    "g1_approved": true,
+    "g2_passed": false,
+    "g3_passed": false,
+    "g5_passed": false,
+    "patstat_rights_clearance": false,
+    "canonical_s2_authority": false,
+    "publication_authority": false,
+    "mutation_authority": false,
+    "population_generalization_authority": false,
+    "phase4_online_first_default_authorized": false,
+    "assessment_effect": "NONE",
+    "release_a_final_denominator_authorized": false,
+    "release_b_c_d_denominator_consumption_authorized": false
+  },
+  "boundary": "The historical Workbench Phase-3 operational proof remains complete at its exact bound SHA. Workbench Release A remains CORRECTIVE_REVIEW_R1_OPEN at reviewed main a81dbcc84a31eaa9f959a1f87cdc57e23ccee4bf. R1.2 supplies a complete exact-A2 candidate-resolution checkpoint with non-final A-P1 n_observed=4; R1.3 records all historical marginal-yield saturation interpretations and A3/A4 point-zero interpretations as resolution-censored checkpoint evidence. The frozen knowledge-time window remains open through 2026-10-24T23:59:59Z. No Observatory G0/G1/G2/G3/G5 disposition changes; no Release-A pass, final denominator, B/C/D denominator consumption, population generalization, canonical S2 mutation, publication, Phase-4 authorization, or v4.2 assessment effect is created.",
+  "workbench_release_a_analytical_state": {
+    "tracking_issue": 410,
+    "disposition": "CORRECTIVE_REVIEW_R1_OPEN",
+    "reviewed_workbench_sha": "a81dbcc84a31eaa9f959a1f87cdc57e23ccee4bf",
+    "historical_a8_package_sha256": "71ff7a917e9104ca279352643afbaebabc19c362527d36bcbfab1311aef73190",
+    "historical_a_g_packet_sha256": "33dc577617518df8f88a6faf38ef0b6b0c06ec91e004776cf74d64d9f69c92",
+    "historical_a_g_interpretation": "RECONSTRUCTION_PASS_EVIDENCE_ONLY",
+    "r1_2": {
+      "merge_sha": "2ef774f4b8ec0df255c11908a5847e2edd11dbd8",
+      "candidate_resolution_ledger_manifest_sha256": "1b2c5a893794473a444822b2ccb4052b05baddfa79968ff94fe4a9793f17f6bd",
+      "candidate_resolution_cluster_ledger_sha256": "2f7e874a71d3146df559671b76bfb2f4d364e40f19a73be609b076c7b2db325b",
+      "checkpoint_a_p1_n_observed": 4,
+      "checkpoint_a_p1_identity_set_sha256": "b82e0d09711b349fb1f2c2fba154d04a2ff6695476d287f62b6aa18635cccc06",
+      "temporal_finality": "CHECKPOINT_PENDING_KNOWLEDGE_WINDOW_CLOSE",
+      "knowledge_time_cutoff": "2026-10-24T23:59:59Z"
+    },
+    "r1_3": {
+      "merge_sha": "a81dbcc84a31eaa9f959a1f87cdc57e23ccee4bf",
+      "resolution_completeness_rule_sha256": "8ef1b0700e67a5d3737ae56f22e530cd239cb8ed9bdaacf3c1b2dc4ba5255cb1",
+      "resolution_completeness_checkpoint_sha256": "500bcd90ad59b4320a1f2a9eec857f81ce83b45e501f1d38853e8ae8ea37485d",
+      "marginal_yield_frames": [
+        "F1",
+        "F4",
+        "F5",
+        "F6",
+        "F8",
+        "F11"
+      ],
+      "historical_mechanical_stop_state": "SATURATION_UNDER_DECLARED_PROTOCOL",
+      "successor_scientific_interpretation": "CONTINUE_RESOLUTION_CENSORED",
+      "a3": {
+        "historical_resolved_increment": 0,
+        "unresolved_clusters_capable_of_changing_increment": 52,
+        "finite_upper_bound_available": false,
+        "successor_interpretation": "INCREMENT_RESOLUTION_CENSORED"
+      },
+      "a4": {
+        "historical_resolved_increment": 0,
+        "unresolved_clusters_capable_of_changing_increment": 63,
+        "finite_upper_bound_available": false,
+        "successor_interpretation": "INCREMENT_RESOLUTION_CENSORED"
+      },
+      "temporal_finality": "CHECKPOINT_PENDING_KNOWLEDGE_WINDOW_CLOSE",
+      "required_final_rebind": true
+    },
+    "next_resolution_issue": 418,
+    "release_a_final_denominator_authorized": false,
+    "release_b_c_d_denominator_consumption_authorized": false,
+    "population_generalization_authority": false,
+    "boundary": "The historical Release-A A8/A-G bytes remain immutable reconstruction evidence. R1.2 and R1.3 are non-final checkpoint evidence. The current A-P1 count is not final, historical marginal-yield saturation is scientifically resolution-censored, A3/A4 remain resolution-censored, and the R1.3 checkpoint must be regenerated against the final #413 successor after the frozen knowledge window is dispositioned."
+  }
+}
