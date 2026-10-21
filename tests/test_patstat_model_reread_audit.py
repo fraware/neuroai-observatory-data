@@ -67,7 +67,7 @@ class PatstatRereadAuditTests(unittest.TestCase):
                 tuple(result["binary_stronger_model_as_reference_only"][k] for k in ("tp", "fp", "fn", "tn")),
                 (1, 1, 1, 0),
             )
-            self.assertEqual(len(result["zero_observed_reread_cells"]), 24)
+            self.assertEqual(len(result["zero_observed_reread_cells"]), 25)
             out = p / "report.json"
             self.assertEqual(main(["--data-dir", str(p), "--output", str(out)]), 0)
             self.assertEqual(json.loads(out.read_text())["status"], "DESCRIPTIVE_MODEL_COMPARISON_ONLY")
