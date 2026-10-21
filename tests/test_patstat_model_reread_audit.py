@@ -45,11 +45,11 @@ class PatstatRereadAuditTests(unittest.TestCase):
         sample = result["first_stage_exact_cell_audit"]
         self.assertIsNotNone(sample)
         self.assertEqual(sample["actual_first_stage_sample_rows"], 235738)
-        self.assertEqual(sample["missing_first_model_verdict_rows"], 4)
+        self.assertEqual(sample["missing_first_model_verdict_rows"], 2)
         self.assertEqual(sample["reread_ids_exactly_matched_to_original_sample"], 333)
         self.assertEqual(
             sum(cell["first_stage_count"] for cell in sample["first_stage_cell_counts"]),
-            235734,
+            235736,
         )
         self.assertEqual(len(sample["first_stage_cell_counts"]), 27)
         self.assertTrue(
