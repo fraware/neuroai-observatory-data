@@ -12,9 +12,11 @@ on:
       - "patent-evidence-extract/pool_frame.csv"
       - "patent-evidence-extract/clusters.csv"
       - "scripts/audit_patstat_baseline_a.py"
+      - "scripts/audit_patstat_model_rereads.py"
       - "curation/PATSTAT_BASELINE_A_INDEPENDENT_AUDIT_2026-09-18_v0.1.json"
       - "docs/patstat-baseline-a-independent-audit-2026-09-18.md"
       - "tests/test_patstat_baseline_a_independent_audit.py"
+      - "tests/test_patstat_model_reread_audit.py"
       - ".github/workflows/patstat-baseline-a-independent-audit.yml"
   push:
     branches: [main]
@@ -28,9 +30,11 @@ on:
       - "patent-evidence-extract/pool_frame.csv"
       - "patent-evidence-extract/clusters.csv"
       - "scripts/audit_patstat_baseline_a.py"
+      - "scripts/audit_patstat_model_rereads.py"
       - "curation/PATSTAT_BASELINE_A_INDEPENDENT_AUDIT_2026-09-18_v0.1.json"
       - "docs/patstat-baseline-a-independent-audit-2026-09-18.md"
       - "tests/test_patstat_baseline_a_independent_audit.py"
+      - "tests/test_patstat_model_reread_audit.py"
       - ".github/workflows/patstat-baseline-a-independent-audit.yml"
   workflow_dispatch:
 
@@ -48,6 +52,10 @@ jobs:
           python-version: "3.12"
       - name: Run independent PATSTAT Baseline A audit tests
         run: python -m unittest tests.test_patstat_baseline_a_independent_audit -v
+      - name: Audit stronger-model reread cells and agreement (non-human diagnostic)
+        run: |
+          python -m unittest tests.test_patstat_model_reread_audit -v
+          python -m scripts.audit_patstat_model_rereads --data-dir patent-evidence-extract --output "$RUNNER_TEMP/patstat-model-reread-audit.json"
       - name: Emit exact audit result
         run: python scripts/audit_patstat_baseline_a.py --format pretty
       - name: Authority boundary
