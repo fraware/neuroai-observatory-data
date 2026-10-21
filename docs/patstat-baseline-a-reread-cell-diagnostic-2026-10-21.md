@@ -63,3 +63,42 @@ calculation, a justified human reference standard, and a legal
 redistribution determination (separate issue #210). Baseline A remains
 a preliminary model-anchored estimate and does not establish D3/G2/G5
 passage or publication authority.
+
+
+## Independent mathematical diagnostic: incomplete variance expression
+
+The historical `patent-evidence-extract/reproduce.py` computes a corrected
+point total using stronger-model residual rereads. Its displayed variance
+accumulator is built from first-stage cheap-label Bernoulli variability:
+`N_h**2 * (1-n_h/N_h) * mean_f*(1-mean_f)/n_h`, summed across
+strata. That expression contains no second-stage correction variance and
+cannot justify uncertainty for the corrected point total or its ratio by
+itself.
+
+A fully specified *synthetic* counterexample in
+`scripts/patstat_ppi_variance_counterexample.py` demonstrates the missing
+component without using PATSTAT rows. In a 20-element synthetic stratum,
+the first-stage model labels are a constant zero, the first stage is a
+census, and the exact reference values comprise ten ones and ten zeros.
+All 4-element, simple-random-without-replacement correction samples are
+exhaustively enumerated (4,845 samples). The corrected estimator is
+design-unbiased for 10, with exact variance `400/19 ≈ 21.0526`.
+The cheap-only variance expression is **zero**. A nominal interval formed
+from that zero variance covers the true total on only
+`2025/4845 ≈ 41.8%` of the 4,845 possible correction samples.
+
+The finite-population identity is checked independently against
+`N²(1-m/N)S²/m` with the finite-population variance denominator `N−1`.
+The experiment demonstrates a class of variance-estimation failures and
+does **not** establish that the particular historic PATSTAT second-stage
+design was simple random sampling, or that its reported point estimate
+was biased. The original correction sampling probabilities and the
+appropriate covariance terms for pool-retrieval ratios remain unverified.
+
+Run:
+
+```sh
+python -m scripts.patstat_ppi_variance_counterexample \
+  --output /tmp/patstat-variance-counterexample.json
+python -m unittest tests.test_patstat_ppi_variance_counterexample -v
+```
