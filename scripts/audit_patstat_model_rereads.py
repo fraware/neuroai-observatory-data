@@ -65,6 +65,78 @@ def _kappa(confusion: dict[str, dict[str, int]], labels: tuple[str, ...]) -> flo
     return (observed - expected) / (1.0 - expected)
 
 
+
+def _first_stage_cell_audit(
+    path: Path,
+    sample_sizes: dict[str, int],
+    rereads: list[dict[str, str]],
+) -> dict[str, Any]:
+    """Compare observed rereads to actual first-stage cells; never estimate inclusion odds."""
+    sample, digest = _load_csv(
+        path, {"docdb_family_id", "stratum", "neuro"}
+    )
+    first_by_id: dict[str, tuple[str, str | None]] = {}
+    first_cell_count: Counter[tuple[str, str]] = Counter()
+    by_stratum: Counter[str] = Counter()
+    missing_labels = 0
+    for row in sample:
+        identifier, stratum, label = (
+            row["docdb_family_id"], row["stratum"], row["neuro"]
+        )
+        if (
+            not identifier.isdecimal()
+            or identifier in first_by_id
+            or stratum not in sample_sizes
+            or (label not in LABELS and label != "")
+        ):
+            raise RereadAuditError("Malformed, duplicated or out-of-frame first-stage row")
+        first_by_id[identifier] = (stratum, label if label else None)
+        by_stratum[stratum] += 1
+        if label == "":
+            missing_labels += 1
+        else:
+            first_cell_count[(stratum, label)] += 1
+    if dict(by_stratum) != sample_sizes:
+        raise RereadAuditError("First-stage sampled counts differ from strata.csv")
+    for row in rereads:
+        first = first_by_id.get(row["docdb_family_id"])
+        if first is None or first != (row["stratum"], row["cheap_neuro"]):
+            raise RereadAuditError("Second-stage model reread not bound to matching first-stage label and stratum")
+    second_cell_count = Counter(
+        (row["stratum"], row["cheap_neuro"]) for row in rereads
+    )
+    cells = [
+        {
+            "stratum": stratum,
+            "first_model_label": label,
+            "first_stage_count": first_cell_count[(stratum, label)],
+            "stronger_model_reread_count": second_cell_count[(stratum, label)],
+        }
+        for stratum in EXPECTED_STRATA
+        for label in LABELS
+    ]
+    if any(row["stronger_model_reread_count"] > row["first_stage_count"] for row in cells):
+        raise RereadAuditError("Second-stage cell has more rereads than first-stage records")
+    uncovered = [
+        {"stratum": row["stratum"], "first_model_label": row["first_model_label"], "first_stage_count": row["first_stage_count"]}
+        for row in cells
+        if row["first_stage_count"] > 0 and row["stronger_model_reread_count"] == 0
+    ]
+    return {
+        "sample_file_sha256": digest,
+        "actual_first_stage_sample_rows": len(first_by_id),
+        "missing_first_model_verdict_rows": missing_labels,
+        "reread_ids_exactly_matched_to_original_sample": len(rereads),
+        "first_stage_cell_counts": cells,
+        "nonempty_first_stage_cells_with_zero_observed_rereads": uncovered,
+        "boundary": (
+            "Cell counts and exact ID/label correspondence only. "
+            "Without the original second-stage probability design, "
+            "these counts do not validate the historical estimator or variance."
+        ),
+    }
+
+
 def build_diagnostic(data_dir: Path = DEFAULT_DATA_DIR) -> dict[str, Any]:
     """Reproduce descriptive reread statistics with a fail-closed CSV audit."""
     strata, strata_digest = _load_csv(
@@ -141,6 +213,11 @@ def build_diagnostic(data_dir: Path = DEFAULT_DATA_DIR) -> dict[str, Any]:
         for stratum in EXPECTED_STRATA
         for label in LABELS
     ]
+    sample_path = data_dir / "judged_sample.csv"
+    first_stage = (
+        _first_stage_cell_audit(sample_path, sample_sizes, second)
+        if sample_path.is_file() else None
+    )
     return {
         "artifact_type": "PATSTAT_BASELINE_A_MODEL_REREAD_DIAGNOSTIC_v0.1",
         "status": "DESCRIPTIVE_MODEL_COMPARISON_ONLY",
@@ -152,6 +229,7 @@ def build_diagnostic(data_dir: Path = DEFAULT_DATA_DIR) -> dict[str, Any]:
         "english_abstract_frame_families": sum(populations.values()),
         "historical_first_model_sample_n_from_strata": sum(sample_sizes.values()),
         "stronger_model_reread_count": n,
+        "first_stage_exact_cell_audit": first_stage,
         "first_model_labels": dict(sorted(first_label_counts.items())),
         "stronger_model_labels": dict(sorted(strong_label_counts.items())),
         "reread_count_by_stratum": dict(sorted(by_stratum.items())),
@@ -177,7 +255,7 @@ def build_diagnostic(data_dir: Path = DEFAULT_DATA_DIR) -> dict[str, Any]:
         ],
         "interpretation": (
             "Zero observed reread cells describe these 333 selected records; "
-            "they do not establish an empty population cell. The historical "
+            "they do not establish an empty first-stage or population cell. The historical "
             "reproduce.py estimator omits a correction when its selected "
             "reread cell is empty. The actual population cell sizes, "
             "selection probabilities, and uncertainty remain to be audited."
