@@ -17,6 +17,7 @@ on:
       - "docs/patstat-baseline-a-independent-audit-2026-09-18.md"
       - "tests/test_patstat_baseline_a_independent_audit.py"
       - "tests/test_patstat_model_reread_audit.py"
+      - "docs/patstat-baseline-a-reread-cell-diagnostic-2026-10-21.md"
       - ".github/workflows/patstat-baseline-a-independent-audit.yml"
   push:
     branches: [main]
@@ -35,6 +36,7 @@ on:
       - "docs/patstat-baseline-a-independent-audit-2026-09-18.md"
       - "tests/test_patstat_baseline_a_independent_audit.py"
       - "tests/test_patstat_model_reread_audit.py"
+      - "docs/patstat-baseline-a-reread-cell-diagnostic-2026-10-21.md"
       - ".github/workflows/patstat-baseline-a-independent-audit.yml"
   workflow_dispatch:
 
