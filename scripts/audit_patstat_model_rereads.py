@@ -19,7 +19,7 @@ import argparse
 import csv
 import hashlib
 import json
-from collections import Counter, defaultdict
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -127,10 +127,6 @@ def build_diagnostic(data_dir: Path = DEFAULT_DATA_DIR) -> dict[str, Any]:
     fp = confusion["0"]["2"] + confusion["1"]["2"]
     fn = confusion["2"]["0"] + confusion["2"]["1"]
     tn = n - tp - fp - fn
-    binary = {
-        "2": {"2": tp, "other": fn},
-        "other": {"2": fp, "other": tn},
-    }
     precision = tp / (tp + fp) if tp + fp else None
     recall = tp / (tp + fn) if tp + fn else None
     binary_raw = {
