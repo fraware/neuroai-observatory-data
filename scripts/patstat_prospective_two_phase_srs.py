@@ -39,6 +39,7 @@ def estimate_design(strata: list[dict[str, Any]]) -> dict[str, Any]:
     total_y = total_pool = 0.0
     var_y = var_pool = cov_yp = 0.0
     summaries: list[dict[str, Any]] = []
+    globally_seen_ids: set[str] = set()
     for h, stratum in enumerate(strata):
         N = stratum["N"]
         first = stratum["phase1"]
@@ -53,9 +54,12 @@ def estimate_design(strata: list[dict[str, Any]]) -> dict[str, Any]:
             uid, f, p = row["id"], row["cheap"], row["pool"]
             if not isinstance(uid, str) or not uid or uid in ids:
                 raise ValueError("Phase-1 IDs must be distinct nonempty strings")
+            if uid in globally_seen_ids:
+                raise ValueError("Phase-1 family ID occurs in multiple disjoint strata")
             if type(f) is not int or type(p) is not int or f not in (0, 1) or p not in (0, 1):
                 raise ValueError("Observed phase-1 cheap and pool values must be binary")
             ids[uid] = f, p
+            globally_seen_ids.add(uid)
         s_ids = set()
         y_values: list[float] = []
         z_values: list[float] = []
