@@ -111,6 +111,27 @@ class ProspectiveTwoPhaseReferenceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "multiple disjoint strata"):
             estimate_design([item, item])
 
+    def test_ratio_diagnostic_on_all_90_nested_samples(self) -> None:
+        statuses = []
+        for first in itertools.combinations(range(6), 4):
+            for second in itertools.combinations(first, 2):
+                result = _one(first, second)
+                status = result["estimated_retrieval_ratio_diagnostic"]
+                statuses.append(status)
+                if status == "UNDEFINED_NONPOSITIVE_ESTIMATED_DENOMINATOR":
+                    self.assertIsNone(result["estimated_retrieval_ratio"])
+                    self.assertIsNone(result["estimated_retrieval_ratio_delta_variance"])
+                elif status == "OUTSIDE_LOGICAL_ZERO_TO_ONE_RANGE_REQUIRES_STATISTICAL_REVIEW":
+                    ratio = result["estimated_retrieval_ratio"]
+                    self.assertTrue(ratio < 0 or ratio > 1)
+                else:
+                    self.assertEqual(status, "IN_RANGE_ESTIMATE_NOT_VALIDATED_POPULATION_COVERAGE")
+                    self.assertGreaterEqual(result["estimated_retrieval_ratio"], 0)
+                    self.assertLessEqual(result["estimated_retrieval_ratio"], 1)
+        self.assertEqual(statuses.count("UNDEFINED_NONPOSITIVE_ESTIMATED_DENOMINATOR"), 19)
+        self.assertEqual(statuses.count("OUTSIDE_LOGICAL_ZERO_TO_ONE_RANGE_REQUIRES_STATISTICAL_REVIEW"), 12)
+        self.assertEqual(statuses.count("IN_RANGE_ESTIMATE_NOT_VALIDATED_POPULATION_COVERAGE"), 59)
+
     def test_invalid_nested_design_fails_closed(self) -> None:
         first = [
             {"id": str(i), "cheap": F[i], "pool": POOL[i]} for i in (0, 1, 2, 3)
