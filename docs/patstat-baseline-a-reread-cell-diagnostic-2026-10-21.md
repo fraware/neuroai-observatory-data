@@ -102,3 +102,76 @@ python -m scripts.patstat_ppi_variance_counterexample \
   --output /tmp/patstat-variance-counterexample.json
 python -m unittest tests.test_patstat_ppi_variance_counterexample -v
 ```
+
+## Prospective replacement reference: a fully specified nested SRS design
+
+The new `scripts/patstat_prospective_two_phase_srs.py` is **an executable
+reference for a future probability sampling plan**, not a retroactive
+completion of the historical selection procedure. It requires a fixed,
+known population size `N_h` for each disjoint stratum, a first-stage
+equal-probability sample without replacement of size `n_h`, and an
+independently randomized second-stage equal-probability subsample without
+replacement of size `m_h` from the selected first-stage IDs
+(`N_h >= n_h >= m_h >= 2`). Both selection mechanisms must be documented
+and reproducible, including all strata, units and fixed sample sizes.
+
+The initial `f` label and retrieved-pool indicator `p` are observed for
+the entire first-stage sample; the reference `y` label is observed for the
+second-stage subsample. All three are binary. For stratum `h`, the
+difference-estimator totals are:
+
+```text
+T_y(h) = N_h [ mean_s(f) + mean_r(y-f) ]
+T_z(h) = N_h [ mean_s(f*p) + mean_r((y-f)*p) ]
+```
+
+Here `s` denotes phase 1, `r` phase 2 and `z=y*p`. The estimator
+is design-unbiased for each finite-population total **under the assumed
+sampling design**. This does not make any model label a human reference
+standard; the validity of `y` is a separate empirical requirement.
+
+The unbiased covariance estimator for the two totals, calculated from
+values observed on `r`, is:
+
+```text
+Vhat_ab(h) = N_h^2 [
+    (1 - n_h/N_h) * s_cov_r(y_a,y_b) / n_h
+  + (1 - m_h/n_h) * s_cov_r(e_a,e_b) / m_h
+]
+e_y = y-f ; e_z = (y-f)*p
+```
+
+Each sample covariance uses denominator `m_h-1`. Independent strata
+contribute additive variance/covariance components. The provisional
+retrieval-ratio estimator `R=T_z/T_y` receives a **first-order
+delta-method variance**:
+
+```text
+Vhat(R) = [ Vhat(T_z) + R^2 Vhat(T_y)
+            - 2*R*Covhat(T_y,T_z) ] / T_y^2
+```
+
+A zero/nonpositive estimated denominator is treated as an undefined
+ratio. A positive denominator alone is not a coverage guarantee:
+near-zero denominators, post-stratification beyond this design,
+nonresponse, unequal sampling probabilities, dependence across strata,
+and reference-label error require additional methods.
+
+The unittest suite exhaustively enumerates **90 nested samples** in a
+six-unit synthetic population (`n=4,m=2`). Exact finite-population
+variance values are `Var(T_y)=6`, `Var(T_z)=3.3`, and
+`Cov(T_y,T_z)=3.9`; the average of the implemented unbiased variance
+and covariance estimates equals these values. The suite also exercises
+two independent strata, all-in-pool ratio covariance, and invalid
+identifiers/design inputs.
+
+**External methodological context:** Statistics Canada, *Double
+Sampling* (Hidiroglou, Survey Methodology 27(2), 2001),
+https://www150.statcan.gc.ca/n1/pub/12-001-x/2001002/article/6091-eng.pdf ,
+and the R `survey` package's documented two-phase probability-design
+requirements, https://search.r-project.org/CRAN/refmans/survey/html/twophase.html .
+
+No historical PATSTAT data are fed to this reference; the old point
+estimate, uncertainty interval and retrieval-coverage ratio remain
+unverified. Replacing them requires a governed prospective sample,
+a sound independent reference standard, and an authorized new baseline.
