@@ -79,7 +79,12 @@ class ProspectiveTwoPhaseReferenceTests(unittest.TestCase):
             "phase2": [{"id": str(i), "reference": Y[i]} for i in (0, 1)],
         }
         single = estimate_design([item])
-        double = estimate_design([item, item])
+        independent = {
+            "N": item["N"],
+            "phase1": [{**row, "id": f"other-{row['id']}"} for row in item["phase1"]],
+            "phase2": [{**row, "id": f"other-{row['id']}"} for row in item["phase2"]],
+        }
+        double = estimate_design([item, independent])
         for name in (
             "estimated_population_relevant_total",
             "estimated_retrieved_relevant_total",
@@ -96,6 +101,15 @@ class ProspectiveTwoPhaseReferenceTests(unittest.TestCase):
             double["estimated_retrieval_ratio_delta_variance"],
             single["estimated_retrieval_ratio_delta_variance"] / 2,
         )
+
+    def test_duplicate_family_between_disjoint_strata_fails_closed(self) -> None:
+        item = {
+            "N": 6,
+            "phase1": [{"id": str(i), "cheap": F[i], "pool": POOL[i]} for i in (0, 1, 2, 3)],
+            "phase2": [{"id": str(i), "reference": Y[i]} for i in (0, 1)],
+        }
+        with self.assertRaisesRegex(ValueError, "multiple disjoint strata"):
+            estimate_design([item, item])
 
     def test_invalid_nested_design_fails_closed(self) -> None:
         first = [
