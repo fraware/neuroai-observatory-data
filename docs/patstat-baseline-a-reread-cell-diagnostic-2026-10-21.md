@@ -175,3 +175,28 @@ No historical PATSTAT data are fed to this reference; the old point
 estimate, uncertainty interval and retrieval-coverage ratio remain
 unverified. Replacing them requires a governed prospective sample,
 a sound independent reference standard, and an authorized new baseline.
+
+## Unbounded difference-estimator ratios: explicit invalidity diagnostics
+
+The prospective reference is not a constrained estimator. Even when true
+reference-positive retrieved families are a subset of true reference-positive
+families, the *estimated* numerator and denominator can be noisy enough to
+produce a negative ratio, a ratio above one, or a nonpositive estimated
+denominator. Clipping a ratio to `[0,1]` would silently conceal the sampling
+problem and distort uncertainty.
+
+Exact enumeration of the same six-family, 90-outcome nested SRS fixture shows
+**12 ratios above the logical one bound** and **19 undefined ratios due to
+nonpositive estimated denominators**. The other **59** are inside `[0,1]`
+without thereby becoming calibrated confidence statements.
+
+The reference implementation now returns
+`estimated_retrieval_ratio_diagnostic` with one of three fail-visible
+states: `UNDEFINED_NONPOSITIVE_ESTIMATED_DENOMINATOR`,
+`OUTSIDE_LOGICAL_ZERO_TO_ONE_RANGE_REQUIRES_STATISTICAL_REVIEW`, or
+`IN_RANGE_ESTIMATE_NOT_VALIDATED_POPULATION_COVERAGE`. It does **not**
+clamp the raw point estimate, impute a zero denominator or infer actual
+PATSTAT retrieval coverage. These states are mechanically tested across
+all 90 samples. Defensible constrained-ratio inference may require larger
+samples, a suitable logit/Fieller or joint interval design, and independent
+reference-label validity.
