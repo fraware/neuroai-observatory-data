@@ -12,9 +12,16 @@ on:
       - "patent-evidence-extract/pool_frame.csv"
       - "patent-evidence-extract/clusters.csv"
       - "scripts/audit_patstat_baseline_a.py"
+      - "scripts/audit_patstat_model_rereads.py"
+      - "scripts/patstat_ppi_variance_counterexample.py"
+      - "scripts/patstat_prospective_two_phase_srs.py"
       - "curation/PATSTAT_BASELINE_A_INDEPENDENT_AUDIT_2026-09-18_v0.1.json"
       - "docs/patstat-baseline-a-independent-audit-2026-09-18.md"
       - "tests/test_patstat_baseline_a_independent_audit.py"
+      - "tests/test_patstat_model_reread_audit.py"
+      - "tests/test_patstat_ppi_variance_counterexample.py"
+      - "tests/test_patstat_prospective_two_phase_srs.py"
+      - "docs/patstat-baseline-a-reread-cell-diagnostic-2026-10-21.md"
       - ".github/workflows/patstat-baseline-a-independent-audit.yml"
   push:
     branches: [main]
@@ -28,9 +35,16 @@ on:
       - "patent-evidence-extract/pool_frame.csv"
       - "patent-evidence-extract/clusters.csv"
       - "scripts/audit_patstat_baseline_a.py"
+      - "scripts/audit_patstat_model_rereads.py"
+      - "scripts/patstat_ppi_variance_counterexample.py"
+      - "scripts/patstat_prospective_two_phase_srs.py"
       - "curation/PATSTAT_BASELINE_A_INDEPENDENT_AUDIT_2026-09-18_v0.1.json"
       - "docs/patstat-baseline-a-independent-audit-2026-09-18.md"
       - "tests/test_patstat_baseline_a_independent_audit.py"
+      - "tests/test_patstat_model_reread_audit.py"
+      - "tests/test_patstat_ppi_variance_counterexample.py"
+      - "tests/test_patstat_prospective_two_phase_srs.py"
+      - "docs/patstat-baseline-a-reread-cell-diagnostic-2026-10-21.md"
       - ".github/workflows/patstat-baseline-a-independent-audit.yml"
   workflow_dispatch:
 
@@ -48,6 +62,16 @@ jobs:
           python-version: "3.12"
       - name: Run independent PATSTAT Baseline A audit tests
         run: python -m unittest tests.test_patstat_baseline_a_independent_audit -v
+      - name: Audit stronger-model reread cells and agreement (non-human diagnostic)
+        run: |
+          python -m unittest tests.test_patstat_model_reread_audit -v
+          python -m scripts.audit_patstat_model_rereads --data-dir patent-evidence-extract --output "$RUNNER_TEMP/patstat-model-reread-audit.json"
+      - name: Verify synthetic second-stage correction variance counterexample
+        run: |
+          python -m unittest tests.test_patstat_ppi_variance_counterexample -v
+          python -m scripts.patstat_ppi_variance_counterexample --output "$RUNNER_TEMP/patstat-ppi-variance-counterexample.json"
+      - name: Verify synthetic prospective two-phase SRS reference and ratio covariance
+        run: python -m unittest tests.test_patstat_prospective_two_phase_srs -v
       - name: Emit exact audit result
         run: python scripts/audit_patstat_baseline_a.py --format pretty
       - name: Authority boundary
