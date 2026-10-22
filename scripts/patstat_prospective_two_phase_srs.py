@@ -108,12 +108,18 @@ def estimate_design(strata: list[dict[str, Any]]) -> dict[str, Any]:
         )
     ratio = None
     ratio_variance = None
+    ratio_status = "UNDEFINED_NONPOSITIVE_ESTIMATED_DENOMINATOR"
     if total_y > 0:
         ratio = total_pool / total_y
         raw_var = (var_pool + ratio * ratio * var_y - 2 * ratio * cov_yp) / total_y**2
         if raw_var < -1e-10:
             raise ValueError("Invalid negative delta-ratio variance")
         ratio_variance = max(raw_var, 0.0)
+        ratio_status = (
+            "OUTSIDE_LOGICAL_ZERO_TO_ONE_RANGE_REQUIRES_STATISTICAL_REVIEW"
+            if ratio < 0 or ratio > 1
+            else "IN_RANGE_ESTIMATE_NOT_VALIDATED_POPULATION_COVERAGE"
+        )
     return {
         "design": "STRATIFIED_NESTED_SRSWOR_PHASE1_AND_PHASE2",
         "authority": "PROSPECTIVE_SYNTHETIC_OR_DECLARED_PROBABILITY_DESIGN_ONLY",
@@ -124,11 +130,13 @@ def estimate_design(strata: list[dict[str, Any]]) -> dict[str, Any]:
         "estimated_total_retrieved_covariance": cov_yp,
         "estimated_retrieval_ratio": ratio,
         "estimated_retrieval_ratio_delta_variance": ratio_variance,
+        "estimated_retrieval_ratio_diagnostic": ratio_status,
         "strata": summaries,
         "limitations": [
             "Exact nested SRSWOR selection in each phase must be independently demonstrated",
             "The second-stage reference labels must be fit for scientific purpose",
             "Ratio delta variance is approximate; denominator near zero is unstable",
+            "Difference-estimator ratios may fall outside [0, 1]; these are flagged, never silently clipped",
             "No historical PATSTAT selection probabilities or second-stage variance recovered",
             "No human-gold status, licensing decision, or G2/G5 publication authorization",
         ],
