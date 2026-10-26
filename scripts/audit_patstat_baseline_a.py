@@ -58,6 +58,10 @@ EXPECTED_HEADERS = {
     "clusters.csv": ["cluster", "n_families", "top_terms"],
 }
 
+# These are immutable research inputs. Explanatory Markdown is maintained
+# separately and must not be frozen to a historical Git blob when corrected.
+# Historical document hashes remain recorded in the immutable 2026-09-18
+# provenance record; changing that historical record is not authorized here.
 SOURCE_BLOBS = {
     "strata.csv": "b5eff1e15d7ccf17a8a1c51388a03ae5a3dc8a00",
     "judged_sample.csv": "e10a5af342cf472dac2a8a3e19e16099bc85708d",
@@ -65,8 +69,6 @@ SOURCE_BLOBS = {
     "pool_frame.csv": "6691dcbf2c77437abf72d0d83494e3154f077b62",
     "clusters.csv": "929265475ad76aa4739c579446faab82e87defa0",
     "reproduce.py": "702d130e0c3cc553ddde03a590dd1a6b34d897dd",
-    "ANALYSIS.md": "4e6ceb36fbfe287eeb78ef0d8ac004725ce7b427",
-    "README.md": "940ea76931be46cd7ba9d969f0d766ccd13816e1",
 }
 
 SOURCE_MAIN_COMMIT = "825f8702cda66dd6b9740f563d2e8fb3e7144f5f"
