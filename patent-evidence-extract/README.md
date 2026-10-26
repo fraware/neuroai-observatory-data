@@ -1,11 +1,8 @@
-# NeuroAI patent evidence — data extract
+# Historical NeuroAI patent evidence extract
 
-A sample of the working data behind *Mapping the NeuroAI Frontier*, enough to see how the
-data is shaped and how the estimates are produced. Everything here is derived; nothing in
-it is needed to reproduce the pipeline itself, which lives in the repository.
+This directory preserves research data associated with the preliminary PATSTAT-based analysis in *Mapping the NeuroAI Frontier*. It contains a mixture of derived statistics, source-linked family identifiers, and selected bibliographic or abstract information. **It is not entirely derived data and is not a rights-cleared research release.**
 
-**[ANALYSIS.md](ANALYSIS.md) is the place to start** — what was done end to end, what it
-shows, and what is still open. This file describes the data; that one describes the work.
+Read the [methods and limitations](ANALYSIS.md) together with the scientific and redistribution caveats below. The files support reproduction of historical point calculations; they do not independently validate sampling design, model-based labels or statistical uncertainty.
 
 Unit of observation throughout is the **DOCDB simple patent family**, not the individual
 publication. A family groups the filings of one invention across offices, so counting
@@ -43,8 +40,7 @@ can see.
 > `judged_sample.csv` was judged by a 26B model. `gold_labels.csv` contains 333 second reads
 > by a stronger model; despite the filename, these are **not human gold labels**. The public
 > `reproduce.py` reconstructs the headline point estimates, but the extract does not contain
-> enough second-stage sampling/estimator evidence to independently certify the README's
-> reported confidence interval or uncertainty for the 67.0% recall ratio.
+> enough second-stage sampling/estimator evidence to independently certify reported confidence intervals or uncertainty for the 67.0% recall ratio.
 >
 > The historical labels are `0 = not relevant`, `1 = borderline`, `2 = relevant`, while
 > `reproduce.py` maps only `2` to the headline binary relevant state. The approved Observatory
@@ -58,7 +54,7 @@ can see.
 
 ### `strata.csv` — the sampling design (9 rows)
 
-A classifier scores all 69.3M families for relevance. The score is cut into 9 strata;
+A classifier historically scored the 69.3M-family English-abstract frame. The score was partitioned into nine sampling strata;
 `N_families` is how many families fall in each, `n_judged` how many we actually read.
 The top three strata are small enough to have been read completely.
 
@@ -85,7 +81,7 @@ guessed at.
 
 ### `gold_labels.csv` — 333 families read twice
 
-A probability subsample re-read by a much stronger model against the same rubric.
+A historical sample re-read by a stronger model against the same rubric. The full second-stage probability-selection provenance is not publicly reconstructible.
 `cheap_neuro` is what the 26B model said, `gold_neuro` what the strong model said. The
 gap between these two columns is what corrects every number in the study — see below.
 

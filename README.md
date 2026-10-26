@@ -1,134 +1,73 @@
-# neuroai-observatory-data
+# NeuroAI Observatory Data
 
-Public canonical observatory data for the NeuroAI Workbench programme (store S2; [ADR-0009](https://github.com/fraware/neuroai-workbench/blob/main/docs/adr/0009-canonical-data-and-evidence-stores.md)).
+Public, versioned evidence records and release artifacts for the [NeuroAI Workbench](https://github.com/fraware/neuroai-workbench).
 
-## Scope
+This repository provides the public data and verification interfaces used by the NeuroAI observatory. It is distinct from the Workbench software and from controlled research evidence that cannot be distributed publicly.
 
-This repository holds **public canonical data only**:
+## What is here
 
-- published machine-readable observatory records permitted for public release;
-- credential-free source registries and aliases;
-- disposition summaries approved for publication;
-- assessment dependency manifests and reopening decisions;
-- release manifests, checksums, release descriptors, and public publication-lineage records.
+- **Published observatory releases** with signed or digest-bound manifests and their public authorization records.
+- **Machine-readable schemas** for sources, observations, entities, relationships, and publication lineage.
+- **Source registries and public fixtures** supporting reproducible checks.
+- **Historical patent research extracts** accompanied by explicit scientific and data-rights limitations. These are research materials, not canonical released estimates.
 
-## Explicit exclusions
+Data availability in Git is not itself proof of provenance, scientific acceptance, permitted redistribution, clinical validity, or authorization to publish further data.
 
-- No protected evidence, participant records, credentials, licensed captures, or private regulatory material.
-- No generated Excel, Word, PDF, or dashboard products (those are store S4).
-- No software, normative v4.2 kernel resources, or workbench code (store S1).
+## Repositories and documentation
 
-## Authority boundary
+| Resource | Purpose |
+| --- | --- |
+| [NeuroAI Workbench](https://github.com/fraware/neuroai-workbench) | Offline-first assessment software, validation, review, and monitoring |
+| [Observatory release contract](docs/observatory-v2-release-contract.md) | Release contents, identity, and verification rules |
+| [Landscape research contract](docs/landscape-research-contract.md) | Definitions and methodological safeguards for research outputs |
+| [Public data-rights review](docs/patstat-public-extract-rights-containment-2026-09-18.md) | Containment and unresolved PATSTAT licensing questions |
 
-Checksum verification, schema validation, and signed release mechanics confirm **artifact identity and publication lineage**. They do **not** establish scientific truth, regulatory authorization, clinical value, system conformance, UNESCO endorsement, or substantive assessment authority.
-
-Missing or inaccessible public evidence is typed explicitly; it is never converted into automatic failure by manifest tooling alone.
-
-For Observatory v2, three states are deliberately separate:
+## Repository layout
 
 ```text
-candidate != authorization != publication
+releases/                 Published records and release manifests
+schemas/                  Public machine-readable contracts
+scripts/                  Verification utilities
+fixtures/                 Synthetic or explicitly public reference inputs
+docs/                     Public release, research and data-handling references
+patent-evidence-extract/  Historical exploratory research; see limitations below
+WORKBENCH_VERSION         Workbench compatibility reference
 ```
 
-A candidate descriptor remains permanently non-authoritative. Explicit authorization and publication are separate immutable governance records; no candidate boolean, schema pass, manifest digest, repository presence, or successful test independently confers publication authority.
+## Verify a release
 
-## Layout
+The historical public governing release is located at `releases/data-v0.1.0-public-governing/`. Verify its recorded files with:
 
-```text
-schemas/                 JSON Schema for release and governance records
-releases/                Versioned public release directories
-fixtures/                Synthetic public examples only; never production captures
-scripts/                 Deterministic manifest and release verification
-scripts/verify_observatory_v2_release.py
-                         Independent S2 verifier for graph-native Observatory v2 releases
-docs/                    Release, branch-protection, and signed-publication policy
-WORKBENCH_VERSION        Pinned compatible neuroai-workbench package version
+```bash
+python scripts/verify_manifest.py \
+  releases/data-v0.1.0-public-governing/records \
+  releases/data-v0.1.0-public-governing/SHA256SUMS.txt
 ```
 
-
-## Engineering execution control
-
-The end-to-end implementation and gate sequence for completing the programme is maintained in [docs/true-vision-engineering-execution-spec.md](docs/true-vision-engineering-execution-spec.md).
-
-Engineers resuming work should read that specification together with `curation/CURRENT_EXECUTION_CONTROL.json` and the immutable execution successor referenced by that pointer. Fresh repository state remains authoritative for mutable facts such as exact `main` SHAs, open issues, and hosted workflow runs.
-
-The execution specification is deliberately non-authorizing: it describes the required path through G0-G12 and the final true-vision acceptance audit, but does not itself pass a gate, approve a benchmark, clear rights, mutate canonical S2, authorize publication, or alter v4.2 assessment state.
-
-## Observatory v2 graph-native release contract
-
-The first graph-native release family uses this stable shape:
-
-```text
-releases/<tag>/
-  descriptor.json
-  manifest.json
-  records/
-    entities.jsonl
-    sources.jsonl
-    observations.jsonl
-    assertions.jsonl
-    events.jsonl
-    relationships.jsonl
-    candidates.jsonl
-    reopening-decisions.jsonl
-  migration/
-    entity-predecessor-traces.jsonl
-    preserved-organizations.jsonl
-    source-predecessor-traces.jsonl
-    predecessor-observation-evidence.jsonl
-    event-predecessor-traces.jsonl
-    candidate-predecessor-traces.jsonl
-    v16-adjudication-state.json
-    v17-successor-lineage.json
-    residual-predecessor-state.json
-    duplicate-container-proofs.json
-    gate-a-descriptor.json
-    gate-a-manifest.json
-    gate-a-decision.json
-  governance/
-    authorizations/*.json
-    publication.json
-```
-
-The 21 candidate files under `records/` and `migration/` are the immutable candidate surface. Governance records are deliberately outside that candidate manifest so explicit authorization never rewrites candidate bytes.
-
-Candidate verification:
+The graph-native Observatory v2 release format is documented in the [release contract](docs/observatory-v2-release-contract.md). For a candidate directory:
 
 ```bash
 python scripts/verify_observatory_v2_release.py releases/<tag>
 ```
 
-Require an exact active `AUTHORIZE` record plus matching publication record:
+Where a release claims publication authority, require and verify its authorization and publication records:
 
 ```bash
 python scripts/verify_observatory_v2_release.py releases/<tag> --require-published
 ```
 
-The verifier is standard-library-only and intentionally independent of `neuroai-workbench`. S1 produces the candidate; S2 recomputes its identities, validates the fixed file surface and graph classes, re-checks Gate-A lineage, and verifies publication binding independently.
+Verification confirms file integrity and record consistency under the declared rules. It does **not** independently establish the accuracy of scientific conclusions or the legal right to redistribute a dataset.
 
-See [docs/observatory-v2-release-contract.md](docs/observatory-v2-release-contract.md).
+## Scientific and data-rights limitations
 
-## Legacy/current governing releases
+The [historical patent extract](patent-evidence-extract/README.md) contains model-generated classifications and selected EPO/PATSTAT-derived information. It is a preliminary analysis of a specified English-abstract sampling frame—not a complete patent census or a human-validated reference standard. The original sampling and uncertainty methods remain under independent review.
 
-### data-v0.1.0-public-governing
+**The exact rights applicable to the Autumn 2025 PATSTAT delivery and the public redistribution status of relevant fields have not been verified.** Files already visible in the public repository should not be assumed to have an affirmative redistribution clearance. See the [rights containment review](docs/patstat-public-extract-rights-containment-2026-09-18.md) for the file-level risk assessment.
 
-First authorized public governing release (`public-governing-v1`):
+Observatory product totals, classification performance, and population estimates need explicit definitions, independent evidence and competent human review. No GitHub check, published file, or automated release command substitutes for those requirements.
 
-- `source_monitor_registry_v1.5.json` (224 sources)
-- `canonical_observatory_release_v1.4.json`
-- `canonical_live_refresh_release_v1.6.json`
-- `adjudicated_delta_v1.6.json`
-- `canonical_successor_snapshot_v1.7.json`
-- `public_disposition_summary.json` (includes residual `AMB-003`)
+## Security and contributions
 
-Records live under `releases/data-v0.1.0-public-governing/records/` and are mirrored under `fixtures/` for discovery. Verify:
+Do not open issues or pull requests containing participant or neural data, credentials, private reviewer material, protected source captures, or licensed content lacking redistribution clearance. Use [Workbench security guidance](https://github.com/fraware/neuroai-workbench/blob/main/SECURITY.md) for vulnerability reporting.
 
-```bash
-python scripts/verify_manifest.py releases/data-v0.1.0-public-governing/records releases/data-v0.1.0-public-governing/SHA256SUMS.txt
-```
-
-The existing v2.3 development candidate remains a historical development projection and does not define the graph-native Observatory-v2 release contract.
-
-## Workbench coupling
-
-Import and validation adapters in `fraware/neuroai-workbench` consume tagged releases from this repository. The pinned compatible package line is recorded in `WORKBENCH_VERSION`; exact producer commit, runtime execution pin, graph schema generation, S2 predecessor commit, frozen predecessor inputs, and Gate-A proof identities are additionally bound by each Observatory-v2 candidate descriptor.
+Propose data corrections with the affected public source, record identity, reason for correction, and verifiable provenance. Existing published records must preserve their historical lineage; a correction should be represented by a reviewable successor.

@@ -23,6 +23,26 @@ class PatstatBaselineAIndependentAuditTests(unittest.TestCase):
         )
         cls.audit = json.loads(result.stdout)
 
+    def test_mutable_public_documentation_is_not_frozen_as_research_input(self) -> None:
+        # The historical 2026-09-18 record preserves the original Markdown
+        # blob hashes. The current public README/ANALYSIS may be corrected
+        # without changing the original PATSTAT data or reproducer.
+        from scripts.audit_patstat_baseline_a import SOURCE_BLOBS
+
+        self.assertNotIn("README.md", SOURCE_BLOBS)
+        self.assertNotIn("ANALYSIS.md", SOURCE_BLOBS)
+        self.assertEqual(
+            set(SOURCE_BLOBS),
+            {
+                "strata.csv",
+                "judged_sample.csv",
+                "gold_labels.csv",
+                "pool_frame.csv",
+                "clusters.csv",
+                "reproduce.py",
+            },
+        )
+
     def test_exact_source_and_row_bindings(self) -> None:
         self.assertEqual(
             self.audit["source_binding"]["source_main_commit"],
