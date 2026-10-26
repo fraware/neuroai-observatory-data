@@ -1,8 +1,8 @@
-# What was done, and what it shows
+# Historical NeuroAI patent analysis: methods and limitations
 
-A summary of the patent analysis behind *Mapping the NeuroAI Frontier*, written for a
-collaborator picking the work up. The data in this folder is the evidence for the parts
-marked as reproducible below; the rest is recorded in the project repository.
+This document describes the exploratory PATSTAT-based analysis behind *Mapping the NeuroAI Frontier*, its reproducible point calculations, and outstanding methodological limitations. It is a historical research account, not a validated patent census or an authorized D3 human reference standard.
+
+**Evidence status:** The public scripts reproduce the historical point estimates. The second-stage selection design, full variance estimator, query-recall uncertainty, human reference labels, and redistribution rights remain unverified. Reported confidence intervals below are retained solely as historical claims pending independent validation.
 
 Source throughout: PATSTAT Global, Autumn 2025 edition. The unit is the DOCDB simple
 patent family, so one invention counts once however many offices it was filed in.
@@ -85,41 +85,26 @@ applied literally. The disagreement is definitional before it is technical.
 
 ## 6. The estimate
 
-Prediction-powered inference combines the two tiers: cheap labels everywhere, plus a
-rectifier — the mean of (strong − cheap) measured on the gold subsample, post-stratified
-within cheap-label class. Both terms are design-unbiased, so the point estimate is valid
-whatever the cheap model does; model quality enters only through the interval width.
+The historical point calculation combines first-stage model labels with a residual correction estimated from stronger-model rereads. Design-unbiasedness requires a verified probability sampling design and the corresponding weighting/selection assumptions. The complete second-stage selection probabilities and implementation have not been established from the public extract. Neither design-unbiasedness nor the reported uncertainty intervals has been independently certified.
 
 `reproduce.py` in this folder recomputes it from the CSVs with the standard library alone:
 
 | | |
 |---|---|
-| Relevant families, whole 69.3M corpus | **49,671**  (95% [41,512, 58,192]) |
+| Historical model-corrected family estimate, English-abstract frame | **49,671** (reported 95% interval [41,512, 58,192], **unvalidated**) |
 | Relevant families inside the 118,629 pool | 33,277 |
-| **Recall of the query pool** | **67.0%**  (95% [57.2%, 78.6%]) |
+| **Historical model-based query-recall ratio** | **67.0%** (reported 95% interval [57.2%, 78.6%], **unvalidated**) |
 | Relevant families the queries never retrieved | **16,394** |
 
 Two features of this deserve attention.
 
 **The correction is large.** Cheap labels alone give a corpus total of 99,720; rectified,
 49,671. The 26B judge reads the rubric more permissively than the strong judge does, and
-333 double-readings halve the estimate. This is the two-tier design doing exactly what it
-was built for, and it is why a single-tier LLM count of a field like this should not be
-trusted.
+333 double-readings halve the estimate. This illustrates the sensitivity of a model-assisted correction to rater and rubric choice. The numerical difference does not by itself validate the design or population inference.
 
-**The low-score region is genuinely empty.** Strata 0 through 3 hold 51.0 million
-families, and both judges found zero relevant families in 73,000 draws. Their combined
-contribution is bounded above at roughly 8,800. This is the measurement the design existed
-to make: it converts "we probably found most of it" into a bound. At a conventional
-judgement budget of 400, that bound would have exceeded 500,000 and the exercise would
-have settled nothing.
+**The low-score sample yielded zero machine-positive classifications.** Strata 0–3 cover approximately 51 million families, and the historical first-stage model returned no relevant labels in the stated 73,000 draws. This observation does not establish an empty low-score population. Any upper confidence bound depends on verified selection probabilities, label accuracy and uncertainty calculations.
 
-**The missed count converges with an independent method.** A corpus classifier, sharing
-no estimation logic with this design, flags 16,028 outside-pool families at high score
-against this design's 16,394. Two methods with different failure modes landing within 2%
-is the strongest evidence that the query frame misses something real and roughly that
-large. It is also the main argument against treating any query-built patent set as the
-field.
+**A separate classifier produced a comparable outside-pool signal.** Its historical 16,028 high-score flags are numerically close to the model-corrected 16,394 estimate. Both quantities depend on model-defined relevance and shared corpus assumptions; their numerical proximity is a diagnostic, not independent proof of the number of missed relevant families.
 
 ## 7. Structure: what the field is made of
 
@@ -206,15 +191,11 @@ valuable models may be held as trade secrets while incremental work is patented,
 case patents understate the *level* of AI in the field without distorting its *trend*.
 That is a limitation of the instrument, not a property of the field.
 
-## 10. What is settled, and what is not
+## 10. Established calculations and open scientific questions
 
-**Settled.** The corpus outside the classifier's attention is empty, measured rather than
-assumed. The query pool misses something on the order of 16,000 relevant families, now
-confirmed by two independent methods. Recall is around two thirds — not the near-complete
-coverage the original design implied, and not the one third the unrectified cheap labels
-suggested.
+**Mechanically reproduced:** the historical model-assisted point calculation yields approximately 49,671 family-equivalents in the specified English-abstract frame, approximately 16,394 estimated outside the query pool, and a query-recall ratio near 67%. These are preliminary, model-dependent calculations. They do not establish a validated family population, complete retrieval, unbiased estimation or a human adjudication benchmark.
 
-**Not settled, in order of how much it moves the numbers.**
+**Unresolved:** the following questions affect interpretation and uncertainty.
 
 1. *The inclusion rule.* The estimate is more sensitive to how strictly the rubric's
    tie-break is read than to anything else in the pipeline. Five specific categories sit
@@ -224,13 +205,13 @@ suggested.
    components. Widening clause 1 to cover measurement *of* the nervous system, rather than
    only signals originating *in* it, would resolve the two largest. This needs expert
    sign-off, not a further modelling decision.
-2. *Rater validation.* The gold labels come from a single rater applying a draft rubric.
+2. *Rater validation.* The historically named gold labels come from a stronger machine model applying a draft rubric; they are not human-adjudicated gold.
    Repeat-run, order-shuffle and a second model family are outstanding, as is a set of
    roughly 75 expert anchors — which should be spent on the five categories above rather
    than spread evenly.
 3. *Stratum 5.* Its upper bound, 32,991, is two thirds of the whole estimate, resting on
    247 cheap positives and 70 gold labels over 1.4 million families. It is the widest
-   remaining piece of the interval and the cheapest to narrow.
+   remaining component of the historical, unvalidated interval calculation; its uncertainty needs re-estimation under a documented design.
 4. *The burst results are provisional.* Everything in §8 was run on the pool, not on the
    judged-relevant subset, and pool precision runs from 89% in the top similarity band to
    16% in the bottom, so low-similarity noise is included. CPC is available for 94,886 of
@@ -249,5 +230,4 @@ Sections 8 and 9 rest on classification-code series computed over the full PATST
 and are not reproducible from this folder; they require database access. `README.md`
 describes each file and its columns.
 
-Bibliographic data and abstract text originate with the EPO and remain subject to the
-PATSTAT licence terms.
+Bibliographic identifiers and abstract text originate with the EPO. The exact terms governing redistribution of the Autumn 2025 extract remain under review; publication in this repository is not evidence of affirmative rights clearance. See [PATSTAT rights and containment review](../docs/patstat-public-extract-rights-containment-2026-09-18.md).
